@@ -90,7 +90,8 @@ object ResolveProjects {
                 .toRight(s"couldn't find $bleepDep in bleep build")
                 .orThrowTextWithContext(crossName)
 
-              bleepBuild.forceGet.build.resolvedDependsOn(bleepProjectName) ++ List(bleepProjectName)
+              // all of them, not just those it names: `dependsOn` need not repeat what a dependency brings (bleep-core gets bleep-model from bleep-nosbt)
+              bleepBuild.forceGet.build.transitiveDependenciesFor(bleepProjectName).keySet ++ List(bleepProjectName)
             }
 
           if (transitiveBleepProjectNames.nonEmpty) b(crossName) = transitiveBleepProjectNames
@@ -163,7 +164,7 @@ object ResolveProjects {
             // Take bleep-core's transitive bleep-internal projects (via resolveClassesDir + resolveResourceDirs so the legacy-layout fallback kicks in) plus
             // the Coursier-resolved third-party jars from bleep-core's classpath (filtering out the v2-layout class/resource paths the test fixture may not
             // have populated).
-            val coreBleepProjects = bleepBuild.forceGet.build.resolvedDependsOn(coreCpn) ++ List(coreCpn)
+            val coreBleepProjects = bleepBuild.forceGet.build.transitiveDependenciesFor(coreCpn).keySet ++ List(coreCpn)
             val bleepInternalPaths =
               coreBleepProjects.toList.map(classesEntry) ::: coreBleepProjects.toList.flatMap(resolveResourceDirs)
             val coreCoursierJars: List[PathsByUsage.Entry] =
