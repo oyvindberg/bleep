@@ -1,0 +1,5 @@
+Where bleep resolves a library differently from maven (`mvn dependency:list`).
+Maven lets the version declared nearest a module win, bleep the highest version asked for anywhere.
+`~` another version, `-` only maven has it, `+` only bleep has it
+
+compared: 13 projects, with differences: 0

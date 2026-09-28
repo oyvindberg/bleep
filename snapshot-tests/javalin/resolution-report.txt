@@ -1,0 +1,169 @@
+Where bleep resolves a library differently from maven (`mvn dependency:list`).
+Maven lets the version declared nearest a module win, bleep the highest version asked for anywhere.
+`~` another version, `-` only maven has it, `+` only bleep has it
+
+compared: 27 projects, with differences: 14
+
+most common (projects, difference):
+   12  + jackson-core:2.22.2
+    2  + asm-commons:9.10.1
+    2  + asm-tree:9.10.1
+    2  + asm:9.10.1
+    2  + jakarta.annotation-api:2.1.1
+    2  + jakarta.enterprise.cdi-api:4.0.1
+    2  + jakarta.enterprise.lang-model:4.0.1
+    2  + jakarta.inject-api:2.0.1
+    2  + jakarta.interceptor-api:2.1.0
+    2  + jakarta.servlet-api:6.0.0
+    2  + jakarta.transaction-api:2.0.1
+    2  + jetty-annotations:12.1.12
+    2  + jetty-ee-webapp:12.1.12
+    2  + jetty-ee10-annotations:12.1.12
+    2  + jetty-ee10-plus:12.1.12
+    2  + jetty-ee10-servlet:12.1.12
+    2  + jetty-ee10-webapp:12.1.12
+    2  + jetty-ee10-websocket-jetty-server:12.1.12
+    2  + jetty-ee10-websocket-servlet:12.1.12
+    2  + jetty-http:12.1.12
+    2  + jetty-io:12.1.12
+    2  + jetty-jndi:12.1.12
+    2  + jetty-plus:12.1.12
+    2  + jetty-security:12.1.12
+    2  + jetty-server:12.1.12
+    2  + jetty-session:12.1.12
+    2  + jetty-util:12.1.12
+    2  + jetty-websocket-core-common:12.1.12
+    2  + jetty-websocket-core-server:12.1.12
+    2  + jetty-websocket-jetty-api:12.1.12
+    2  + jetty-websocket-jetty-common:12.1.12
+    2  + jetty-websocket-jetty-server:12.1.12
+    2  + jetty-xml:12.1.12
+    2  ~ asm-commons: 7.3.1 -> 9.10.1
+    2  ~ asm-tree: 7.3.1 -> 9.10.1
+    2  ~ asm: 7.3.1 -> 9.10.1
+    1  ~ byte-buddy-agent: 1.17.7 -> 1.18.2
+    1  ~ byte-buddy: 1.18.3 -> 1.18.11
+    1  ~ commons-codec: 1.15 -> 1.19.0
+    1  ~ commons-io: 2.20.0 -> 2.21.0
+    1  ~ jspecify: 1.0.0 -> 1.0.1
+    1  ~ kotlin-reflect: 2.1.21 -> 2.2.21
+    1  ~ kotlin-stdlib: 2.2.20 -> 2.2.21
+    1  ~ objenesis: 3.3 -> 3.4
+
+javalin-context-mock
+  + asm:9.10.1
+  + asm-commons:9.10.1
+  + asm-tree:9.10.1
+  + jackson-core:2.22.2
+  + jakarta.annotation-api:2.1.1
+  + jakarta.enterprise.cdi-api:4.0.1
+  + jakarta.enterprise.lang-model:4.0.1
+  + jakarta.inject-api:2.0.1
+  + jakarta.interceptor-api:2.1.0
+  + jakarta.servlet-api:6.0.0
+  + jakarta.transaction-api:2.0.1
+  + jetty-annotations:12.1.12
+  + jetty-ee-webapp:12.1.12
+  + jetty-ee10-annotations:12.1.12
+  + jetty-ee10-plus:12.1.12
+  + jetty-ee10-servlet:12.1.12
+  + jetty-ee10-webapp:12.1.12
+  + jetty-ee10-websocket-jetty-server:12.1.12
+  + jetty-ee10-websocket-servlet:12.1.12
+  + jetty-http:12.1.12
+  + jetty-io:12.1.12
+  + jetty-jndi:12.1.12
+  + jetty-plus:12.1.12
+  + jetty-security:12.1.12
+  + jetty-server:12.1.12
+  + jetty-session:12.1.12
+  + jetty-util:12.1.12
+  + jetty-websocket-core-common:12.1.12
+  + jetty-websocket-core-server:12.1.12
+  + jetty-websocket-jetty-api:12.1.12
+  + jetty-websocket-jetty-common:12.1.12
+  + jetty-websocket-jetty-server:12.1.12
+  + jetty-xml:12.1.12
+
+javalin-micrometer
+  + jackson-core:2.22.2
+
+javalin-rendering-commonmark
+  + jackson-core:2.22.2
+
+javalin-rendering-freemarker
+  + jackson-core:2.22.2
+
+javalin-rendering-handlebars
+  ~ asm: 7.3.1 -> 9.10.1
+  ~ asm-commons: 7.3.1 -> 9.10.1
+  ~ asm-tree: 7.3.1 -> 9.10.1
+  + jackson-core:2.22.2
+
+javalin-rendering-handlebars-test
+  ~ asm: 7.3.1 -> 9.10.1
+  ~ asm-commons: 7.3.1 -> 9.10.1
+  ~ asm-tree: 7.3.1 -> 9.10.1
+
+javalin-rendering-jte
+  + jackson-core:2.22.2
+
+javalin-rendering-mustache
+  + jackson-core:2.22.2
+
+javalin-rendering-pebble
+  + jackson-core:2.22.2
+
+javalin-rendering-thymeleaf
+  + jackson-core:2.22.2
+
+javalin-rendering-velocity
+  + jackson-core:2.22.2
+
+javalin-ssl
+  + jackson-core:2.22.2
+
+javalin-test
+  ~ byte-buddy: 1.18.3 -> 1.18.11
+  ~ byte-buddy-agent: 1.17.7 -> 1.18.2
+  ~ commons-codec: 1.15 -> 1.19.0
+  ~ commons-io: 2.20.0 -> 2.21.0
+  ~ jspecify: 1.0.0 -> 1.0.1
+  ~ kotlin-reflect: 2.1.21 -> 2.2.21
+  ~ kotlin-stdlib: 2.2.20 -> 2.2.21
+  ~ objenesis: 3.3 -> 3.4
+
+javalin-testtools
+  + asm:9.10.1
+  + asm-commons:9.10.1
+  + asm-tree:9.10.1
+  + jackson-core:2.22.2
+  + jakarta.annotation-api:2.1.1
+  + jakarta.enterprise.cdi-api:4.0.1
+  + jakarta.enterprise.lang-model:4.0.1
+  + jakarta.inject-api:2.0.1
+  + jakarta.interceptor-api:2.1.0
+  + jakarta.servlet-api:6.0.0
+  + jakarta.transaction-api:2.0.1
+  + jetty-annotations:12.1.12
+  + jetty-ee-webapp:12.1.12
+  + jetty-ee10-annotations:12.1.12
+  + jetty-ee10-plus:12.1.12
+  + jetty-ee10-servlet:12.1.12
+  + jetty-ee10-webapp:12.1.12
+  + jetty-ee10-websocket-jetty-server:12.1.12
+  + jetty-ee10-websocket-servlet:12.1.12
+  + jetty-http:12.1.12
+  + jetty-io:12.1.12
+  + jetty-jndi:12.1.12
+  + jetty-plus:12.1.12
+  + jetty-security:12.1.12
+  + jetty-server:12.1.12
+  + jetty-session:12.1.12
+  + jetty-util:12.1.12
+  + jetty-websocket-core-common:12.1.12
+  + jetty-websocket-core-server:12.1.12
+  + jetty-websocket-jetty-api:12.1.12
+  + jetty-websocket-jetty-common:12.1.12
+  + jetty-websocket-jetty-server:12.1.12
+  + jetty-xml:12.1.12

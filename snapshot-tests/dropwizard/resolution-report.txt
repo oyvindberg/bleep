@@ -1,0 +1,294 @@
+Where bleep resolves a library differently from maven (`mvn dependency:list`).
+Maven lets the version declared nearest a module win, bleep the highest version asked for anywhere.
+`~` another version, `-` only maven has it, `+` only bleep has it
+
+compared: 69 projects, with differences: 62
+
+most common (projects, difference):
+   58  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+   37  ~ logback-core: 1.5.38 -> 1.6.3
+   33  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+    4  ~ error_prone_annotations: 2.42.0 -> 2.47.0
+    2  + jaxb-api:2.3.1
+    1  + jackson-databind:2.22.2
+    1  + junit-platform-engine:1.14.4
+    1  ~ apiguardian-api: 1.1.0 -> 1.1.2
+    1  ~ commons-io: 2.19.0 -> 2.20.0
+    1  ~ conscrypt-openjdk-uber: 2.4.0 -> 2.5.2
+    1  ~ hamcrest: 2.1 -> 3.0
+    1  ~ junit-jupiter-api: 5.6.2 -> 5.14.4
+    1  ~ junit-jupiter-engine: 5.6.2 -> 5.14.4
+    1  ~ junit-jupiter-params: 5.6.2 -> 5.14.4
+    1  ~ junit-platform-commons: 1.6.2 -> 1.14.4
+    1  ~ junit-platform-engine: 1.6.2 -> 1.14.4
+    1  ~ opentest4j: 1.2.0 -> 1.3.0
+
+dropwizard-assets
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-assets-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-auth
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-auth-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-benchmarks
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-client
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-client-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-configuration
+  ~ error_prone_annotations: 2.42.0 -> 2.47.0
+
+dropwizard-configuration-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-core
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-core-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-db
+  ~ error_prone_annotations: 2.42.0 -> 2.47.0
+
+dropwizard-db-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-e2e
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-e2e-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ hamcrest: 2.1 -> 3.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-example
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  + jaxb-api:2.3.1
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-example-test
+  ~ commons-io: 2.19.0 -> 2.20.0
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  + jaxb-api:2.3.1
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-forms
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-forms-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-health
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-health-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-hibernate
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-hibernate-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-http2
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-http2-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-jackson
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-jackson-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-jdbi3
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-jdbi3-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-jersey
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-jersey-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-jetty
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-jetty-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-json-logging
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-json-logging-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-logging
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-logging-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-metrics
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-metrics-graphite
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  + jackson-databind:2.22.2
+
+dropwizard-metrics-graphite-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-metrics-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-migrations
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-migrations-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-request-logging
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-request-logging-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-testing
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  + junit-platform-engine:1.14.4
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-testing-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-unix-socket
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+
+dropwizard-unix-socket-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-validation
+  ~ error_prone_annotations: 2.42.0 -> 2.47.0
+
+dropwizard-validation-test
+  ~ error_prone_annotations: 2.42.0 -> 2.47.0
+
+dropwizard-views
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-views-freemarker
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-views-freemarker-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-views-mustache
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-views-mustache-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+dropwizard-views-test
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+example-conscrypt
+  ~ conscrypt-openjdk-uber: 2.4.0 -> 2.5.2
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+example-getting-started
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+examples-core
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3
+
+examples-core-test
+  ~ apiguardian-api: 1.1.0 -> 1.1.2
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ junit-jupiter-api: 5.6.2 -> 5.14.4
+  ~ junit-jupiter-engine: 5.6.2 -> 5.14.4
+  ~ junit-jupiter-params: 5.6.2 -> 5.14.4
+  ~ junit-platform-commons: 1.6.2 -> 1.14.4
+  ~ junit-platform-engine: 1.6.2 -> 1.14.4
+  ~ logback-core: 1.5.38 -> 1.6.3
+  ~ opentest4j: 1.2.0 -> 1.3.0
+
+examples-views
+  ~ error_prone_annotations: 2.42.0 -> 2.49.0
+  ~ jakarta.servlet-api: 6.0.0 -> 6.1.0
+  ~ logback-core: 1.5.38 -> 1.6.3

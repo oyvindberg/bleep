@@ -1002,4 +1002,8 @@ object buildFromMavenPom {
 
   private def sanitizeProjectName(artifactId: String): String =
     artifactId.replace('.', '-')
+
+  /** The bleep project a module's code becomes. Its tests become the same name with `-test` */
+  def projectNameFor(mavenProject: MavenProject): model.ProjectName =
+    model.ProjectName(sanitizeProjectName(mavenProject.artifactId))
 }

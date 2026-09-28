@@ -152,6 +152,15 @@ class MavenIntegrationSnapshotTests extends SnapshotTest {
       val reportPath = testFolder / "import-report.txt"
       writeAndCompare(reportPath, Map(reportPath -> absolutePaths.templatize.string(report.mkString("", "\n", "\n"))), logger).discard()
 
+      // what `bleep import-maven` reports about versions bleep resolves differently from maven
+      val resolution = mavenimport.ResolutionReport(
+        mavenProjects,
+        mavenimport.parseDependencyList(fs.readString(Path.of(input.dependencyList))),
+        resolved.map { case (crossName, p) => (crossName, (p.classpath(Usage.Compile) ++ p.classpath(Usage.Runtime)).distinct) }
+      )
+      val resolutionPath = testFolder / "resolution-report.txt"
+      writeAndCompare(resolutionPath, Map(resolutionPath -> resolution.render), logger).discard()
+
       val generatedBloopFiles: Map[Path, String] =
         GenBloopFiles.encodedFiles(GenBloopFiles.defaultBloopFilePath(bootstrappedDestinationPaths), started.resolvedProjects)
 
@@ -242,6 +251,8 @@ class MavenIntegrationSnapshotTests extends SnapshotTest {
     val recording = new MavenFs.Recording(MavenFs.Real)
     val mavenProjects = parsePom(recording, effectivePom)
     runImport(recording, mavenProjects, dependencyList).discard()
+    // read after the import by `bleep import-maven`'s resolution report, also for builds whose import does not read it
+    recording.readString(dependencyList).discard()
 
     def classpathOf(scoped: Map[String, List[String]], module: MavenProject, scope: String): List[String] =
       scoped.getOrElse(module.artifactId, sys.error(s"maven printed no $scope classpath for ${module.artifactId}"))

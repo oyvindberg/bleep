@@ -71,7 +71,7 @@ object Main {
         newCommand(logger, userPaths, buildPaths.cwd)
       ),
       importCmd(buildLoader, userPaths, buildPaths, logger),
-      importMavenCmd(buildPaths, logger),
+      importMavenCmd(buildPaths, userPaths, logger),
       configCommand(userPaths).map(mkCommand => mkCommand(logger)),
       installTabCompletions(userPaths, logger),
       serverCommand(userPaths, currentWorkspace = None).map(mkCommand => mkCommand(logger)),
@@ -916,7 +916,7 @@ object Main {
             importCmd(buildLoader, started.userPaths, buildPaths, started.logger)
           }, {
             val buildPaths0 = BuildPaths(started.buildPaths.cwd, BuildLoader.nonExisting(started.buildPaths.cwd), model.BuildVariant.Normal)
-            importMavenCmd(buildPaths0, started.logger)
+            importMavenCmd(buildPaths0, started.userPaths, started.logger)
           },
           configCommand(started.pre.userPaths).map(mkCommand =>
             new BleepBuildCommand {
@@ -1270,13 +1270,13 @@ object Main {
     )
   }
 
-  def importMavenCmd(buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
+  def importMavenCmd(buildPaths: BuildPaths, userPaths: UserPaths, logger: Logger): Opts[BleepCommand] =
     Opts.subcommand(
       "import-maven",
       "import an existing Maven build by reading pom.xml (uses `mvn help:effective-pom` to resolve parent POMs and dependencyManagement)"
     )(
       mavenimport.MavenImportOptions.opts.map { opts =>
-        commands.ImportMaven(mavenBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.BleepVersion.current)
+        commands.ImportMaven(mavenBuildDir = buildPaths.cwd, buildPaths, userPaths, logger, opts, model.BleepVersion.current)
       }
     )
 
