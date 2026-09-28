@@ -295,7 +295,7 @@ object KotlinProjectCompiler extends ProjectCompiler {
     else
       Outcome.fromCancellationToken(cancellationToken).flatMap { killSignal =>
         val work: IO[ProjectCompileResult] = IO.interruptibleMany {
-          val javac = javax.tools.ToolProvider.getSystemJavaCompiler
+          val javac = new IsolatedProcessorsJavaCompiler(javax.tools.ToolProvider.getSystemJavaCompiler)
           val diagnosticCollector = new javax.tools.DiagnosticCollector[javax.tools.JavaFileObject]()
           val fileManager = javac.getStandardFileManager(diagnosticCollector, null, null)
           try {

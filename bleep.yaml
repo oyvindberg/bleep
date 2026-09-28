@@ -305,6 +305,7 @@ projects:
     - bleep-test-runner
     extends:
     - template-common
+    - template-java-17
     - template-scala-3
   bleep-bsp-protocol:
     dependencies:
