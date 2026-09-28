@@ -457,7 +457,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-netty-server-sync/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-netty-server-zio@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-netty-server@jvm3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-netty-server@jvm3/generated-resources/scripts.GenerateForTapirNettyServer",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-netty-server@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-openapi-docs@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-opentelemetry-metrics@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-opentelemetry-tracing@jvm3/builds/normal/classes",

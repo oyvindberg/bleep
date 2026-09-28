@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi@jvm3/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi@jvm3/generated-sources/scripts.GenerateForPekkoOsgi",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi@jvm3/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/osgi/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/osgi/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/osgi/src/main/scala-2.13+",
@@ -21,13 +21,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
       "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm3/generated-resources/scripts.GenerateForPekkoActor",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi@jvm3/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi@jvm3/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi@jvm3/generated-resources/scripts.GenerateForPekkoOsgi",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/osgi/src/main/resources"
     ],
     "scala": {

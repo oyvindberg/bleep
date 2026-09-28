@@ -441,7 +441,7 @@ projects:
     - template-scala-2.13
     folder: ../sbt-build/scalafix/tests
     sourcegen:
-      main: scripts.GenerateForScalafixtestsTest
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   schedule:
     dependencies: dev.zio::zio:2.1.25
@@ -455,11 +455,10 @@ projects:
     publish:
       groupId: default
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 3.9.0
+    resources: ./resources
   streams-tests:
     cross:
       js212:
@@ -722,7 +721,7 @@ projects:
         -language:experimental.macros
     source-layout: cross-full
     sourcegen:
-      main: scripts.GenerateForZio
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   zio+test:
     cross:
@@ -813,7 +812,7 @@ projects:
       options: -Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent
     source-layout: cross-pure
     sourcegen:
-      main: scripts.GenerateForZioConcurrent
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   zio-concurrent-test:
     cross:
@@ -940,7 +939,7 @@ projects:
         -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent -language:experimental.macros
     source-layout: cross-full
     sourcegen:
-      main: scripts.GenerateForZioManaged
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   zio-stacktracer:
     cross:
@@ -974,7 +973,7 @@ projects:
       options: -language:experimental.macros
     source-layout: cross-pure
     sourcegen:
-      main: scripts.GenerateForZioStacktracer
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   zio-streams:
     cross:
@@ -998,7 +997,7 @@ projects:
         -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent -language:experimental.macros
     source-layout: cross-full
     sourcegen:
-      main: scripts.GenerateForZioStreams
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   zio-test-junit:
     dependencies: junit:junit:4.13.2

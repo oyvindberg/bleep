@@ -22,7 +22,7 @@ projects:
     - template-scala-2.12-xlint
     folder: ../sbt-build/backend
     sourcegen:
-      main: scripts.GenerateForBloopBackend
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-backend-test:
     dependencies:
@@ -55,7 +55,7 @@ projects:
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
     sourcegen:
-      main: scripts.GenerateForBloopCli
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-docs:
     dependencies: org.scalameta::mdoc:2.7.1
@@ -66,7 +66,7 @@ projects:
     folder: ../sbt-build/docs-gen
     resources: ../docs
     sourcegen:
-      main: scripts.GenerateForBloopDocs
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-frontend:
     dependencies:
@@ -81,7 +81,7 @@ projects:
     - template-common-main-resources
     folder: ../sbt-build/frontend
     sourcegen:
-      main: scripts.GenerateForBloopFrontend
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-frontend-it:
     dependencies:
@@ -105,7 +105,7 @@ projects:
     folder: ../sbt-build/frontend
     sbt-scope: test
     sourcegen:
-      main: scripts.GenerateForBloopFrontendTest
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-js-bridge-0-6:
     dependencies:
@@ -179,7 +179,7 @@ projects:
     - template-scala-2.13
     folder: ../sbt-build/bloop-rifle
     sourcegen:
-      main: scripts.GenerateForBloopRifle
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-rifle-test:
     dependencies:
@@ -247,15 +247,14 @@ projects:
     scala:
       options: -Wconf:cat=unused-nowarn:s -Xsource:3
     sourcegen:
-      main: scripts.GenerateForSbtBloop
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
     sources: ./src/${SCOPE}/scala-sbt-1.0
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 2.13.16
+    resources: ./resources
 templates:
   template-bloop-frontend:
     dependencies:

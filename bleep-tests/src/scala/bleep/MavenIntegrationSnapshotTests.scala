@@ -105,7 +105,7 @@ class MavenIntegrationSnapshotTests extends SnapshotTest {
         logger,
         options,
         model.BleepVersion.dev,
-        bleepTasksVersion = model.BleepVersion("0.0.12"),
+        bleepTasksVersion = model.BleepVersion("1.0.0-M14"),
         fs,
         mavenProjects,
         dependencyList

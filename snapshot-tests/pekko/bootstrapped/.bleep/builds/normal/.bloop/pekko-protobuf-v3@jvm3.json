@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-protobuf-v3@jvm3/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-protobuf-v3@jvm3/generated-sources/scripts.GenerateForPekkoProtobufV3",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-protobuf-v3@jvm3/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/protobuf-v3/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/protobuf-v3/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/protobuf-v3/src/main/scala-2.13+",
@@ -22,7 +22,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-protobuf-v3@jvm3/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-protobuf-v3@jvm3/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-protobuf-v3@jvm3/generated-resources/scripts.GenerateForPekkoProtobufV3",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-protobuf-v3@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/protobuf-v3/src/main/resources"
     ],
     "scala": {

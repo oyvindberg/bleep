@@ -97,7 +97,7 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-client-testkit@js213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-client@js213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@js213/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@js213/generated-resources/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@js213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl@js213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-ember-client@js213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-ember-core-test@js213/builds/normal/test-classes",

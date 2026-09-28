@@ -75,7 +75,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_sjs1_3/2.1.0/scalacheck-effect_sjs1_3-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_sjs1_3/3.7.0/vault_sjs1_3-3.7.0.jar",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@js3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@js3/generated-resources/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@js3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-laws@js3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/resources",

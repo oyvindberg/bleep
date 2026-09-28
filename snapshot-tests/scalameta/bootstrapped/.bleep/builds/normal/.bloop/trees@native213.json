@@ -60,7 +60,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.13/2.13.16%2B0.5.6/scalalib_native0.5_2.13-2.13.16%2B0.5.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_2.13/0.5.6/windowslib_native0.5_2.13-0.5.6.jar",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@native213/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@native213/generated-resources/scripts.GenerateForCommon",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@native213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/io@native213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/resources",

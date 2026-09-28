@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/sbt-dependency-tree/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/sbt-dependency-tree/generated-sources/scripts.GenerateForSbtDependencyTree",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/sbt-dependency-tree/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/dependency-tree/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/dependency-tree/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/dependency-tree/src/main/scala-2",
@@ -101,7 +101,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/actions@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm212/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm212/generated-resources/scripts.GenerateForCollections",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/collections@jvm212/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/command@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/completion@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/core-macros@jvm212/builds/normal/classes",
@@ -177,7 +177,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/sbt-dependency-tree/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/sbt-dependency-tree/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/sbt-dependency-tree/generated-resources/scripts.GenerateForSbtDependencyTree",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/projects/sbt-dependency-tree/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/dependency-tree/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/dependency-tree/src/main/resources"
     ],

@@ -55,7 +55,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@js212/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@js212/generated-resources/scripts.GenerateForCommon",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@js212/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/io@js212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/resources",

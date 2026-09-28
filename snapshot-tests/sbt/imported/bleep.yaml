@@ -44,7 +44,7 @@ projects:
     folder: ../sbt-build/internal/util-collection
     resources: ../../LICENSE
     sourcegen:
-      main: scripts.GenerateForCollections
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   collections-test:
     dependsOn: collections
@@ -231,7 +231,7 @@ projects:
     scala:
       options: -Xsource:3
     sourcegen:
-      main: scripts.GenerateForSbtDependencyTree
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
     sources: ./src/${SCOPE}/scala-sbt-1.0
   sbt-test:
@@ -280,11 +280,10 @@ projects:
     - template-scala-2.12
     folder: ../sbt-build/scripted-sbt-redux
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 2.13.16
+    resources: ./resources
   servertestproj:
     dependsOn: scripted-sbt-redux-test
     extends:

@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend/generated-sources/scripts.GenerateForBloopFrontend",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/frontend/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/frontend/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/frontend/src/main/scala-2",
@@ -137,7 +137,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-zip/1.17/zt-zip-1.17.jar",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-backend/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-backend/generated-resources/scripts.GenerateForBloopBackend",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-backend/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-shared/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
@@ -147,7 +147,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend/generated-resources/scripts.GenerateForBloopFrontend",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/frontend/src/main/resources"

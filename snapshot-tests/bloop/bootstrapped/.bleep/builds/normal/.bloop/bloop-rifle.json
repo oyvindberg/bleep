@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/generated-sources/scripts.GenerateForBloopRifle",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloop-rifle/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloop-rifle/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloop-rifle/src/main/scala-2",
@@ -37,7 +37,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/generated-resources/scripts.GenerateForBloopRifle",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloop-rifle/src/main/resources"

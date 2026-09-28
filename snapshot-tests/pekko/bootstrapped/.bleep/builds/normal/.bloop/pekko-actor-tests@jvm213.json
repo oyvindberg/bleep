@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor-tests@jvm213/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor-tests@jvm213/generated-sources/scripts.GenerateForPekkoActorTests",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor-tests@jvm213/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor-tests/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor-tests/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor-tests/src/main/scala-2",
@@ -20,16 +20,16 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.9/config-1.4.9.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
       "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm213/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm213/generated-resources/scripts.GenerateForPekkoActor",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-testkit@jvm213/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-testkit@jvm213/generated-resources/scripts.GenerateForPekkoTestkit",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-testkit@jvm213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/testkit/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor-tests@jvm213/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor-tests@jvm213/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor-tests@jvm213/generated-resources/scripts.GenerateForPekkoActorTests",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor-tests@jvm213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor-tests/src/main/resources"
     ],
     "scala": {

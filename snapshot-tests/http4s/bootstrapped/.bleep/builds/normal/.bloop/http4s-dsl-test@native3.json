@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@native3/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@native3/generated-sources/scripts.GenerateForHttp4sDslTest",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@native3/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.native/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.native/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.native/src/test/scala-3",
@@ -78,7 +78,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_native0.5_3/2.1.0/scalacheck-effect_native0.5_3-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_native0.5_3/3.7.0/vault_native0.5_3-3.7.0.jar",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native3/generated-resources/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl@native3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-laws@native3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-tests@native3/builds/normal/classes",
@@ -98,7 +98,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@native3/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@native3/builds/normal/test-classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@native3/generated-resources/scripts.GenerateForHttp4sDslTest",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@native3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.native/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/test/resources"
     ],
@@ -107,7 +107,7 @@
       "name": "scala3-compiler_3",
       "version": "3.3.6",
       "options": [
-        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@native3/generated-sources/scripts.GenerateForHttp4sDslTest;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.native/src/test/java;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.native/src/test/scala;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.native/src/test/scala-3;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/test/java;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/test/scala;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/test/scala-2.13+;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/test/scala-3",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@native3/generated-sources/scripts.CopyImportedGeneratedFiles;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.native/src/test/java;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.native/src/test/scala;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.native/src/test/scala-3;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/test/java;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/test/scala;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/test/scala-2.13+;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/test/scala-3",
         "-Wunused:explicits",
         "-Wunused:implicits",
         "-Wunused:imports",

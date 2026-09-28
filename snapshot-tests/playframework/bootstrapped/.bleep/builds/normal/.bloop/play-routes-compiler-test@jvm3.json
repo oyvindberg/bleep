@@ -33,7 +33,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/specs2-matcher_3/4.21.0/specs2-matcher_3-4.21.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/specs2/xml_3/4.21.0/xml_3-4.21.0.jar",
       "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-routes-compiler@jvm3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-routes-compiler@jvm3/generated-resources/scripts.GenerateForPlayRoutesCompiler",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-routes-compiler@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-routes-compiler/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-routes-compiler-test@jvm3/builds/normal",

@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-plugin/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-plugin/generated-sources/scripts.GenerateForSbtPlugin",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-plugin/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/sbt-plugin/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/sbt-plugin/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/sbt-plugin/src/main/scala-2",
@@ -137,7 +137,7 @@
       "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-exceptions/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-run-support/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-routes-compiler/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-routes-compiler/generated-resources/scripts.GenerateForSbtRoutesCompiler",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-routes-compiler/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-exceptions/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-build-link/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-routes-compiler/src/main/resources",
@@ -146,7 +146,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-plugin/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-plugin/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-plugin/generated-resources/scripts.GenerateForSbtPlugin",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-plugin/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/sbt-plugin/src/main/resources"
     ],
     "scala": {

@@ -163,7 +163,7 @@
       "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-specs2@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-streams@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play@jvm3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play@jvm3/generated-resources/scripts.GenerateForPlay",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/cache/play-cache/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/cache/play-caffeine-cache/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/cache/play-jcache/src/main/resources",

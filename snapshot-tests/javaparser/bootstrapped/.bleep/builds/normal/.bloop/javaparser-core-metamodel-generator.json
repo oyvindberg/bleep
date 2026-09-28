@@ -12,7 +12,7 @@
     ],
     "classpath": [
       "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-resources/scripts.GenerateForJavaparserCore",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-metamodel-generator/builds/normal",

@@ -20,7 +20,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/javassist/javassist/3.33.0-GA/javassist-3.33.0-GA.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
       "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-resources/scripts.GenerateForJavaparserCore",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-symbol-solver-core/builds/normal",

@@ -90,7 +90,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_2.13/3.7.0/vault_2.13-3.7.0.jar",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-client@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm213/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm213/generated-resources/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-laws@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-server@jvm213/builds/normal/classes",

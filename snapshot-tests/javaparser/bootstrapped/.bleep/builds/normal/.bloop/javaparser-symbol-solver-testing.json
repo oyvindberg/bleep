@@ -28,7 +28,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/1.14.4/junit-platform-engine-1.14.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar",
       "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-resources/scripts.GenerateForJavaparserCore",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-symbol-solver-core/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-symbol-solver-core/src/main/resources"

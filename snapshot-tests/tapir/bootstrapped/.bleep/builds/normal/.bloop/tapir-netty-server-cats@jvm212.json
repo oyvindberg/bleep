@@ -105,7 +105,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-cats-effect@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-netty-server@jvm212/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-netty-server@jvm212/generated-resources/scripts.GenerateForTapirNettyServer",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-netty-server@jvm212/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-server@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",

@@ -184,7 +184,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-zip/1.13/zt-zip-1.13.jar",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/core/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/generated-resources/scripts.GenerateForImporterPortable",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/logging/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/phases/builds/normal/classes",

@@ -1,0 +1,4 @@
+org.scalablytyped.converter.plugin.ScalablyTypedConverterExternalNpmPlugin
+org.scalablytyped.converter.plugin.ScalablyTypedConverterGenSourcePlugin
+org.scalablytyped.converter.plugin.ScalablyTypedConverterPlugin
+org.scalablytyped.converter.plugin.ScalablyTypedPluginBase

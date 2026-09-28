@@ -99,7 +99,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.19/slf4j-api-2.0.19.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-netty-server@jvm212/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-netty-server@jvm212/generated-resources/scripts.GenerateForTapirNettyServer",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-netty-server@jvm212/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-server@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-zio@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",

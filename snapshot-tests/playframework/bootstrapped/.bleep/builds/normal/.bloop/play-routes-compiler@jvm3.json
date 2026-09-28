@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-routes-compiler@jvm3/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-routes-compiler@jvm3/generated-sources/scripts.GenerateForPlayRoutesCompiler",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-routes-compiler@jvm3/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-routes-compiler/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-routes-compiler/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-routes-compiler/src/main/scala-3"
@@ -23,7 +23,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-routes-compiler@jvm3/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-routes-compiler@jvm3/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-routes-compiler@jvm3/generated-resources/scripts.GenerateForPlayRoutesCompiler",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-routes-compiler@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-routes-compiler/src/main/resources"
     ],
     "scala": {

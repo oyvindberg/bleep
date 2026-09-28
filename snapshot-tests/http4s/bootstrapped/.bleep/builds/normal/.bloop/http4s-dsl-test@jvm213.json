@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@jvm213/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@jvm213/generated-sources/scripts.GenerateForHttp4sDslTest",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@jvm213/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.jvm/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.jvm/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.jvm/src/test/scala-2",
@@ -70,7 +70,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_2.13/2.1.0/scalacheck-effect_2.13-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_2.13/3.7.0/vault_2.13-3.7.0.jar",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm213/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm213/generated-resources/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-laws@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-tests@jvm213/builds/normal/classes",
@@ -90,7 +90,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@jvm213/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@jvm213/builds/normal/test-classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@jvm213/generated-resources/scripts.GenerateForHttp4sDslTest",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-dsl-test@jvm213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.jvm/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/test/resources"
     ],

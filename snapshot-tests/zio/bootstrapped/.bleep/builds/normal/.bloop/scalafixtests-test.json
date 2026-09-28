@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/scalafixtests-test/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/scalafixtests-test/generated-sources/scripts.GenerateForScalafixtestsTest",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/scalafixtests-test/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/scalafix/tests/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/scalafix/tests/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/scalafix/tests/src/test/scala-2",
@@ -88,7 +88,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/scalafixtests-test/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/scalafixtests-test/builds/normal/test-classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/scalafixtests-test/generated-resources/scripts.GenerateForScalafixtestsTest",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/scalafixtests-test/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/scalafix/tests/src/test/resources"
     ],
     "scala": {

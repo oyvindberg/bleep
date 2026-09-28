@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@native213/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@native213/generated-sources/scripts.GenerateForCommon",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@native213/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/scala-2",
@@ -42,7 +42,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@native213/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@native213/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@native213/generated-resources/scripts.GenerateForCommon",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@native213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/protobuf",
@@ -54,7 +54,7 @@
       "name": "scala-compiler",
       "version": "2.13.16",
       "options": [
-        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@native213/generated-sources/scripts.GenerateForCommon;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/protobuf;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/shared/src/main/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/shared/src/main/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/shared/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/shared/src/main/scala-2.13",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/common@native213/generated-sources/scripts.CopyImportedGeneratedFiles;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/protobuf;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/shared/src/main/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/shared/src/main/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/shared/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/shared/src/main/scala-2.13",
         "-Wconf:cat=deprecation:is",
         "-Xfatal-warnings",
         "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_2.13.16/0.5.6/nscplugin_2.13.16-0.5.6.jar",

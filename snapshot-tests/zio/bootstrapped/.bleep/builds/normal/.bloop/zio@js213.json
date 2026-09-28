@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@js213/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@js213/generated-sources/scripts.GenerateForZio",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@js213/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js-jvm/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js-jvm/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js-jvm/src/main/scala-2",
@@ -45,7 +45,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar",
       "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-internal-macros@js213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@js213/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@js213/generated-resources/scripts.GenerateForZioStacktracer",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@js213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/internal-macros/.js/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/internal-macros/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.js/src/main/resources",
@@ -54,7 +54,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@js213/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@js213/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@js213/generated-resources/scripts.GenerateForZio",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@js213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js-jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js/src/main/resources",

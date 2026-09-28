@@ -51,7 +51,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_3/2.0.0-M2/scalacheck-effect_3-2.0.0-M2.jar",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-core-test@jvm3/builds/normal/test-classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-core@jvm3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-core@jvm3/generated-resources/scripts.GenerateForDoobieCore",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-core@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-free@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-mysql@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/testutils-test@jvm3/builds/normal/test-classes",

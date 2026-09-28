@@ -33,97 +33,26 @@ object generateBuildFromMaven {
 
     logger.info(s"Imported ${filteredBuild.explodedProjects.size} projects for ${buildFile1.projects.value.size} project definitions")
 
-    val scriptsPkg = List("scripts")
-
     val hasGeneratedFiles = !options.skipGeneratedResourcesScript && nonEmptyGeneratedFiles.nonEmpty
 
     if (!hasGeneratedFiles)
       Map(destinationPaths.bleepYamlFile -> yaml.encodeShortened(buildFile1))
     else {
-      // Scripts project must use a Scala 3 version compatible with bleep-core's TASTy files.
-      // Keep in sync with template-scala-3 in bleep's own bleep.yaml: scripts need a compiler at
-      // least as new as the one bleep-core was built with, or they fail reading its TASTy.
-      val bleepScala3 = model.VersionScala("3.9.0")
-
-      val scalaVersion =
-        normalizedBuild.explodedProjects.values
-          .flatMap(_.scala.flatMap(_.version))
-          .maxByOption(_.scalaVersion)
-          .filter {
-            case x if x.is3 && x.scalaVersion < bleepScala3.scalaVersion => false
-            case x if x.is212                                            => false
-            case _                                                       => true
-          }
-          .orElse(Some(bleepScala3))
-
-      val scriptsDependencies = List(
-        model.Dep.Scala("build.bleep", "bleep-core", bleepTasksVersion.value)
-      )
-
-      val scriptProjectName = model.CrossProjectName(model.ProjectName("scripts"), None)
-      val scriptsProject = model.Project(
-        `extends` = model.JsonSet.empty,
-        cross = model.JsonMap.empty,
-        folder = None,
-        dependsOn = model.JsonSet.empty,
-        `source-layout` = None,
-        `sbt-scope` = None,
-        sources = model.JsonSet.empty,
-        resources = model.JsonSet.empty,
-        dependencies = model.JsonSet.fromIterable(scriptsDependencies),
-        boms = model.JsonSet.empty,
-        jars = model.JsonSet.empty,
-        java = None,
-        scala = Some(model.Scala(scalaVersion, model.Options.empty, None, model.JsonSet.empty, strict = None, skipStdlib = None, compilerProject = None)),
-        kotlin = None,
-        platform = Some(model.Platform.Jvm(model.Options.empty, None, model.Options.empty)),
-        isTestProject = None,
-        testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
-        testTags = model.JsonMap.empty,
-        testExclude = model.JsonSet.empty,
-        maxConcurrentSuites = None,
-        testFork = None,
-        sourcegen = model.JsonSet.empty[model.ScriptDef],
-        stamp = model.JsonSet.empty[model.StampKind],
-        libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
-        ignoreEvictionErrors = None,
-        publish = None,
-        postCompile = None
-      )
-
-      val generators =
-        if (hasGeneratedFiles) GeneratedFilesScript(scriptsPkg, nonEmptyGeneratedFiles)
-        else Map.empty[model.ProjectName, GeneratedFilesScript.ImportedGeneratorScript]
+      val generated = GeneratedFilesScript(destinationPaths, bleepTasksVersion, normalizedBuild.explodedProjects.keySet, nonEmptyGeneratedFiles)
 
       val buildWithScript = buildFile1.copy(
         projects = buildFile1.projects
-          .map { case (name, p) =>
-            val newP = generators.get(name) match {
-              case Some(foundGenerator) =>
-                val scriptDef = model.ScriptDef.Main(scriptProjectName, foundGenerator.qname, model.JsonSet.empty, model.JsonSet.empty)
-                p.copy(sourcegen = model.JsonSet(scriptDef))
-              case None => p
-            }
-            (name, newP)
-          }
-          .updated(scriptProjectName.name, scriptsProject)
+          .map { case (name, p) => (name, if (generated.projects(name)) p.copy(sourcegen = model.JsonSet(generated.scriptDef)) else p) }
+          .updated(GeneratedFilesScript.projectName.name, generated.scriptsProject)
       )
 
-      val genFiles: Map[Path, String] =
-        generators.map { case (_, gen) =>
-          destinationPaths
-            .project(scriptProjectName, scriptsProject, scriptsProject.platform.flatMap(_.name).toSet)
-            .dir / s"src/scala/scripts/${gen.className}.scala" -> gen.contents
-        }
+      logger
+        .withContext("projects", generated.projects.map(_.value).toList.sorted.mkString(", "))
+        .warn(
+          s"Files Maven generated are kept in the scripts project, and ${GeneratedFilesScript.className} copies them. You'll need to replace it with code which generates them"
+        )
 
-      if (genFiles.nonEmpty)
-        logger
-          .withContext("paths", genFiles.keySet)
-          .warn(
-            "Created makeshift (re)source generation scripts which replicates what was generated with Maven. You'll need to edit this file and make it generate your files"
-          )
-
-      genFiles.updated(destinationPaths.bleepYamlFile, yaml.encodeShortened(buildWithScript))
+      generated.files.updated(destinationPaths.bleepYamlFile, yaml.encodeShortened(buildWithScript))
     }
   }
 

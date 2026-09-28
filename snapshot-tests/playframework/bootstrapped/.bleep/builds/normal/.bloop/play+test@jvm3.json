@@ -137,7 +137,7 @@
       "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-server@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-streams@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play@jvm3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play@jvm3/generated-resources/scripts.GenerateForPlay",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-configuration/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-exceptions/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-guice/src/main/resources",

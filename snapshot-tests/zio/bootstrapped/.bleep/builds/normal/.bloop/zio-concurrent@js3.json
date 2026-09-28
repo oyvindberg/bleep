@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-concurrent@js3/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-concurrent@js3/generated-sources/scripts.GenerateForZioConcurrent",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-concurrent@js3/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/concurrent/.js/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/concurrent/.js/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/concurrent/.js/src/main/scala-3",
@@ -32,9 +32,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.3.8/scala3-library_sjs1_3-3.3.8.jar",
       "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-internal-macros@js3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@js3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@js3/generated-resources/scripts.GenerateForZioStacktracer",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@js3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@js3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@js3/generated-resources/scripts.GenerateForZio",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@js3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js-jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js/src/main/resources",
@@ -47,7 +47,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-concurrent@js3/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-concurrent@js3/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-concurrent@js3/generated-resources/scripts.GenerateForZioConcurrent",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-concurrent@js3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/concurrent/.js/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/concurrent/src/main/resources"
     ],

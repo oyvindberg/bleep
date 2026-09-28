@@ -83,9 +83,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.20/scalatest_3-3.2.20.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar",
       "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm3/generated-resources/scripts.GenerateForPekkoActor",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi@jvm3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi@jvm3/generated-resources/scripts.GenerateForPekkoOsgi",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-osgi@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/osgi/src/main/resources"
     ],

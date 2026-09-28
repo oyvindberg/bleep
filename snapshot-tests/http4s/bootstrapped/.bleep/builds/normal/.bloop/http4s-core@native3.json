@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native3/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native3/generated-sources/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native3/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/scala-3",
@@ -62,7 +62,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native3/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native3/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native3/generated-resources/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/native/src/main/resources",
@@ -73,7 +73,7 @@
       "name": "scala3-compiler_3",
       "version": "3.3.6",
       "options": [
-        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native3/generated-sources/scripts.GenerateForHttp4sCore;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/java;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/scala;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/scala-3;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/java;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/scala;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/scala-3;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/native/src/main/java;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/native/src/main/scala;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/native/src/main/scala-3;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/java;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/scala;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/scala-2.13+;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/scala-3",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@native3/generated-sources/scripts.CopyImportedGeneratedFiles;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/java;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/scala;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/scala-3;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/java;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/scala;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/scala-3;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/native/src/main/java;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/native/src/main/scala;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/native/src/main/scala-3;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/java;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/scala;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/scala-2.13+;<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/scala-3",
         "-Wunused:explicits",
         "-Wunused:implicits",
         "-Wunused:imports",

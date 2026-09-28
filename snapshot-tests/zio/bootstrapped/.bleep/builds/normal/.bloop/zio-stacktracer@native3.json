@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native3/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native3/generated-sources/scripts.GenerateForZioStacktracer",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native3/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.native/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.native/src/main/scala-3",
@@ -31,7 +31,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native3/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native3/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native3/generated-resources/scripts.GenerateForZioStacktracer",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/src/main/resources"
     ],
@@ -41,7 +41,7 @@
       "version": "3.3.8",
       "options": [
         "-P:scalanative:genStaticForwardersForNonTopLevelObjects",
-        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native3/generated-sources/scripts.GenerateForZioStacktracer;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.native/src/main/java;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.native/src/main/scala;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.native/src/main/scala-3;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/src/main/java;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/src/main/scala;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/src/main/scala-3",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native3/generated-sources/scripts.CopyImportedGeneratedFiles;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.native/src/main/java;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.native/src/main/scala;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.native/src/main/scala-3;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/src/main/java;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/src/main/scala;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/src/main/scala-3",
         "-Xignore-scala2-macros",
         "-Xmax-inlines:64",
         "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_3.3.8/0.5.12/nscplugin_3.3.8-0.5.12.jar",

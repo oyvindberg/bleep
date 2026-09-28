@@ -80,7 +80,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_2.13/2.1.0/scalacheck-effect_2.13-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_2.13/3.7.0/vault_2.13-3.7.0.jar",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm213/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm213/generated-resources/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-ember-core@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-laws@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-tests@jvm213/builds/normal/classes",

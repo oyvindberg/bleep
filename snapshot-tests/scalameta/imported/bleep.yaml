@@ -13,7 +13,7 @@ projects:
     - template-scala-2-jvm-protobuf
     folder: ../sbt-build/bench/suite
     sourcegen:
-      main: scripts.GenerateForBench
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   common:
     cross:
@@ -46,7 +46,7 @@ projects:
     - template-cross-js-all-jvm-211-212-213-native-all
     folder: ../sbt-build/scalameta/common
     sourcegen:
-      main: scripts.GenerateForCommon
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   communitytest:
     cross:
@@ -192,7 +192,7 @@ projects:
     - template-cross-js-all-jvm-211-212-213-native-all
     folder: ../sbt-build/scalameta/parsers
     sourcegen:
-      main: scripts.GenerateForParsers
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
     sources:
     - ../quasiquotes/${PLATFORM}/src/${SCOPE}/scala
@@ -263,14 +263,13 @@ projects:
     - template-scala-2.13.16
     folder: ../sbt-build/scalameta-docs
     sourcegen:
-      main: scripts.GenerateForScalametaDocs
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 3.9.0
+    resources: ./resources
   semanticdb-metacp:
     dependsOn: semanticdb-scalac-core
     extends:
@@ -328,7 +327,7 @@ projects:
     - ./shared/src/${SCOPE}/proto/semanticidx.proto
     source-layout: cross-full
     sourcegen:
-      main: scripts.GenerateForSemanticdbShared
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
     sources: ./shared/src/${SCOPE}/proto
   semanticdbintegration:
@@ -449,7 +448,7 @@ projects:
     - template-cross-jvm-211-212-213
     folder: ../sbt-build/tests
     sourcegen:
-      main: scripts.GenerateForTests
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   tests-test:
     cross:
@@ -495,7 +494,7 @@ projects:
     - template-scala-2-jvm-protobuf
     folder: ../sbt-build/tests-semanticdb
     sourcegen:
-      main: scripts.GenerateForTestssemanticdb
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   testssemanticdb-test:
     dependsOn: testssemanticdb

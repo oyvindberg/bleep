@@ -244,7 +244,7 @@ projects:
     - template-javalin
     folder: ../maven-build/javalin
     sourcegen:
-      main: scripts.GenerateForJavalinTest
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   javalin-testtools:
     dependsOn: javalin
@@ -258,11 +258,10 @@ projects:
     - template-common-test-slf4j-simple
     folder: ../maven-build/javalin-testtools
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 3.9.0
+    resources: ./resources
 templates:
   template-common:
     dependencies:

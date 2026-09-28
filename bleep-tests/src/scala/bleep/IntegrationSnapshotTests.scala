@@ -229,7 +229,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
         importerOptions,
         model.BleepVersion.dev,
         inputData,
-        bleepTasksVersion = model.BleepVersion("0.0.12"),
+        bleepTasksVersion = model.BleepVersion("1.0.0-M14"),
         maybeExistingBuildFile = None
       )
 

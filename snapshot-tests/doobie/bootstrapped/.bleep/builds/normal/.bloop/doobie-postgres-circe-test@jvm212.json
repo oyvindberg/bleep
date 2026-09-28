@@ -56,7 +56,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_2.12/2.0.0-M2/scalacheck-effect-munit_2.12-2.0.0-M2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_2.12/2.0.0-M2/scalacheck-effect_2.12-2.0.0-M2.jar",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-core@jvm212/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-core@jvm212/generated-resources/scripts.GenerateForDoobieCore",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-core@jvm212/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-free@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-postgres-circe@jvm212/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-postgres@jvm212/builds/normal/classes",

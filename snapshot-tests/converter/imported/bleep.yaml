@@ -39,7 +39,7 @@ projects:
     - template-common-opt-inline-from
     folder: ../sbt-build/importer-portable
     sourcegen:
-      main: scripts.GenerateForImporterPortable
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   importer-test:
     dependencies: org.scalatest::scalatest:3.2.14
@@ -78,7 +78,7 @@ projects:
     scala:
       options: -Wconf:cat=unused-nowarn:s -Xsource:3
     sourcegen:
-      main: scripts.GenerateForSbtConverter
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
     sources: ./src/${SCOPE}/scala-sbt-1.0
   scalajs:
@@ -91,11 +91,10 @@ projects:
     - template-common-opt-inline-from
     folder: ../sbt-build/scalajs
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 3.9.0
+    resources: ./resources
   ts:
     dependencies: org.scala-lang.modules::scala-parser-combinators:1.1.2
     dependsOn:

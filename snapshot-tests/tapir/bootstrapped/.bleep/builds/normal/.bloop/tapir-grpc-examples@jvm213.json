@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-grpc-examples@jvm213/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-grpc-examples@jvm213/generated-sources/scripts.GenerateForTapirGrpcExamples",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-grpc-examples@jvm213/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/grpc/examples/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/grpc/examples/src/main/javajvm",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/grpc/examples/src/main/proto",
@@ -103,7 +103,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-grpc-examples@jvm213/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-grpc-examples@jvm213/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-grpc-examples@jvm213/generated-resources/scripts.GenerateForTapirGrpcExamples",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-grpc-examples@jvm213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/grpc/examples/src/main/proto",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/grpc/examples/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/grpc/examples/src/main/resources"
