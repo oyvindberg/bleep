@@ -5,8 +5,10 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-processor/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-processor/generated-sources/annotations",
       "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/processor/src/main/java",
-      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/processor/src/main/kotlin"
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/processor/src/main/kotlin",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-processor/generated-sources/annotations"
     ],
     "dependencies": [
       "mapstruct"
@@ -31,7 +33,10 @@
     ],
     "java": {
       "options": [
-        "-proc:none"
+        "-source",
+        "1.8",
+        "-target",
+        "1.8"
       ]
     },
     "platform": {

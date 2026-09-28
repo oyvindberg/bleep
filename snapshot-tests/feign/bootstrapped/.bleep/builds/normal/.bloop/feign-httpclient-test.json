@@ -69,10 +69,12 @@
     ],
     "java": {
       "options": [
+        "-parameters",
+        "-proc:full",
         "-source",
-        "1.8",
+        "25",
         "-target",
-        "1.8",
+        "25",
         "-proc:none"
       ]
     },

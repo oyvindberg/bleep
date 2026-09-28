@@ -133,6 +133,10 @@
     ],
     "java": {
       "options": [
+        "-source",
+        "17",
+        "-target",
+        "17",
         "-proc:none"
       ]
     },

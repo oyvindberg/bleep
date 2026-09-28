@@ -12,6 +12,8 @@ case class ImportOptions(
     jvm: model.Jvm,
     sbtPath: Option[String],
     xmx: Option[String],
+    /** `--build-jvm`, see [[internal.importJvm]] */
+    buildJvm: Option[Int],
     filtering: ImportFiltering
 )
 
@@ -39,7 +41,10 @@ object ImportOptions {
 
   val jvm: Opts[model.Jvm] =
     Opts
-      .flagOption("jvm", "pick JVM to use for import. Valid nam in index file at https://github.com/coursier/jvm-index/raw/master/index.json")
+      .flagOption(
+        "jvm",
+        "JVM to run sbt with during the import (see --build-jvm for the imported build). Valid names are in https://github.com/coursier/jvm-index/raw/master/index.json"
+      )
       .withDefault(Some(model.Jvm.system))
       .map(_.get)
 
@@ -79,17 +84,28 @@ object ImportOptions {
     .orNone
 
   val opts: Opts[ImportOptions] =
-    (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript, jvm, sbtPath, xmx, excludeProjects, filterPlatforms, filterScalaVersions).mapN {
-      (ignore, skipSbt, skipScript, jvm, sbtPath, xmx, excludeProjects, filterPlatforms, filterScalaVersions) =>
-        ImportOptions(
-          ignore,
-          skipSbt,
-          skipScript,
-          jvm,
-          sbtPath,
-          xmx,
-          ImportFiltering(excludeProjects, filterPlatforms, filterScalaVersions)
-        )
+    (
+      ignoreWhenInferringTemplates,
+      skipSbt,
+      skipGeneratedResourcesScript,
+      jvm,
+      sbtPath,
+      xmx,
+      internal.importJvm.opts,
+      excludeProjects,
+      filterPlatforms,
+      filterScalaVersions
+    ).mapN { (ignore, skipSbt, skipScript, jvm, sbtPath, xmx, buildJvm, excludeProjects, filterPlatforms, filterScalaVersions) =>
+      ImportOptions(
+        ignore,
+        skipSbt,
+        skipScript,
+        jvm,
+        sbtPath,
+        xmx,
+        buildJvm,
+        ImportFiltering(excludeProjects, filterPlatforms, filterScalaVersions)
+      )
     }
 
 }

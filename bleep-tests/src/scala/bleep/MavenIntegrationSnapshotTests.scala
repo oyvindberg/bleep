@@ -93,6 +93,7 @@ class MavenIntegrationSnapshotTests extends SnapshotTest {
       skipMvn = false,
       skipGeneratedResourcesScript = false,
       mvnPath = None,
+      buildJvm = None,
       filtering = sbtimport.ImportFiltering.empty
     )
 

@@ -91,10 +91,12 @@
     ],
     "java": {
       "options": [
+        "-parameters",
+        "-proc:full",
         "-source",
-        "11",
+        "25",
         "-target",
-        "11",
+        "25",
         "-proc:none"
       ]
     },

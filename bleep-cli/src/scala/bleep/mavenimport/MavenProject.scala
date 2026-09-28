@@ -20,7 +20,9 @@ case class MavenProject(
     dependencyManagement: List[MavenDependency],
     plugins: List[MavenPlugin],
     repositories: List[MavenRepository],
-    modules: List[String]
+    modules: List[String],
+    /** `<properties>` of the effective pom, the module's own and those it inherits. Plugins read some of them as defaults: `maven.compiler.release`, say */
+    properties: Map[String, String]
 )
 
 /** @param tpe
@@ -52,8 +54,18 @@ case class MavenPlugin(
     groupId: String,
     artifactId: String,
     version: String,
-    configuration: scala.xml.NodeSeq
+    configuration: scala.xml.NodeSeq,
+    executions: List[MavenExecution]
 )
+
+/** An `<execution>` of a plugin, with configuration of its own which wins over the plugin's
+  *
+  * @param phase
+  *   empty unless stated. `none` turns the execution off, which is how a build replaces a default execution with its own
+  */
+case class MavenExecution(id: String, phase: String, goals: List[String], configuration: scala.xml.NodeSeq) {
+  def isEnabled: Boolean = phase != "none"
+}
 
 case class MavenRepository(
     id: String,

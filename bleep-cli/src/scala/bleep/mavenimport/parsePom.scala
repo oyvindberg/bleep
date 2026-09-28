@@ -55,6 +55,7 @@ private class Parser(fs: MavenFs) {
     val plugins = parsePlugins(allPlugins)
     val repositories = parseRepositories(node \ "repositories" \ "repository")
     val modules = (node \ "modules" \ "module").iterator.map(_.text.trim).toList
+    val properties = (node \ "properties").flatMap(_.child).collect { case e: scala.xml.Elem => e.label -> e.text.trim }.toMap
 
     MavenProject(
       groupId = groupId,
@@ -72,7 +73,8 @@ private class Parser(fs: MavenFs) {
       dependencyManagement = dependencyManagement,
       plugins = plugins,
       repositories = repositories,
-      modules = modules
+      modules = modules,
+      properties = properties
     )
   }
 
@@ -103,7 +105,15 @@ private class Parser(fs: MavenFs) {
         groupId = textOrDefault(plugin, "groupId", "org.apache.maven.plugins"),
         artifactId = textOrEmpty(plugin, "artifactId"),
         version = textOrEmpty(plugin, "version"),
-        configuration = plugin \ "configuration"
+        configuration = plugin \ "configuration",
+        executions = (plugin \ "executions" \ "execution").iterator.map { execution =>
+          MavenExecution(
+            id = textOrEmpty(execution, "id"),
+            phase = textOrEmpty(execution, "phase"),
+            goals = (execution \ "goals" \ "goal").iterator.map(_.text.trim).toList,
+            configuration = execution \ "configuration"
+          )
+        }.toList
       )
     }.toList
 

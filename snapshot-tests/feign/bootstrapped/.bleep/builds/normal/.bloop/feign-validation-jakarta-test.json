@@ -68,10 +68,12 @@
     ],
     "java": {
       "options": [
+        "-parameters",
+        "-proc:full",
         "-source",
-        "17",
+        "25",
         "-target",
-        "17",
+        "25",
         "-proc:none"
       ]
     },

@@ -1,5 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
+jvm:
+  name: temurin:17
 projects:
   docs:
     extends: template-common-main
@@ -7,20 +9,20 @@ projects:
   dropwizard-assets:
     dependsOn: dropwizard-core
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-assets
   dropwizard-assets-test:
     dependencies:
     - net.bytebuddy:byte-buddy:1.18.14-jdk5
     - org.mockito:mockito-core:5.23.0
     dependsOn: dropwizard-assets
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-assets
   dropwizard-auth:
     dependencies: io.dropwizard.metrics:metrics-caffeine:4.2.40
     dependsOn: dropwizard-jersey
-    extends: template-common-main-dependencies
+    extends: template-java-17-main-dependencies
     folder: ../maven-build/dropwizard-auth
   dropwizard-auth-test:
     dependencies:
@@ -32,8 +34,8 @@ projects:
     - dropwizard-auth
     - dropwizard-logging
     extends:
-    - template-common-test-junit-jupiter-api
-    - template-common-test-mockito-core
+    - template-java-17-test
+    - template-java-17-test-mockito-core
     folder: ../maven-build/dropwizard-auth
   dropwizard-benchmarks:
     dependencies:
@@ -45,9 +47,11 @@ projects:
     - dropwizard-jersey
     - dropwizard-logging
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-benchmarks
+    java:
+      annotationProcessors: org.openjdk.jmh:jmh-generator-annprocess:1.37
   dropwizard-client:
     dependencies:
     - io.dropwizard.metrics:metrics-httpclient5:4.2.40
@@ -57,8 +61,8 @@ projects:
       module: org.eclipse.jetty:jetty-util:12.1.11
     dependsOn: dropwizard-core
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-client
   dropwizard-client-test:
     dependencies:
@@ -71,7 +75,7 @@ projects:
     dependsOn:
     - dropwizard-client
     - dropwizard-testing
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-client
   dropwizard-configuration:
     dependencies:
@@ -82,8 +86,8 @@ projects:
     - org.apache.commons:commons-text:1.15.0
     dependsOn: dropwizard-validation
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-configuration
   dropwizard-configuration-test:
     dependencies:
@@ -93,8 +97,8 @@ projects:
     - dropwizard-configuration
     - dropwizard-jackson
     extends:
-    - template-common-logback-classic
-    - template-common-test-junit-jupiter-api
+    - template-java-17-logback-classic
+    - template-java-17-test
     folder: ../maven-build/dropwizard-configuration
   dropwizard-core:
     dependencies:
@@ -114,8 +118,8 @@ projects:
     - dropwizard-request-logging
     - dropwizard-servlets
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-core
   dropwizard-core-test:
     dependencies:
@@ -123,7 +127,7 @@ projects:
     - org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-inmemory:3.1.12
     - org.mockito:mockito-core:5.23.0
     dependsOn: dropwizard-core
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-core
   dropwizard-db:
     dependencies:
@@ -133,8 +137,8 @@ projects:
     - dropwizard-lifecycle
     - dropwizard-validation
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-db
   dropwizard-db-test:
     dependencies:
@@ -147,15 +151,15 @@ projects:
     - dropwizard-db
     - dropwizard-jackson
     - dropwizard-jersey
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-db
   dropwizard-e2e:
     dependsOn:
     - dropwizard-forms
     - dropwizard-views-mustache
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-e2e
   dropwizard-e2e-test:
     dependencies:
@@ -166,7 +170,7 @@ projects:
     - dropwizard-client
     - dropwizard-e2e
     - dropwizard-testing
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-e2e
   dropwizard-example:
     boms: org.testcontainers:testcontainers-bom:2.0.5
@@ -186,6 +190,8 @@ projects:
     - dropwizard-views-mustache
     extends: template-common-main-boms
     folder: ../maven-build/dropwizard-example
+    java:
+      options: --release 11
   dropwizard-example-test:
     dependencies:
     - com.mysql:mysql-connector-j:26.7.0
@@ -201,17 +207,19 @@ projects:
     - dropwizard-testing
     extends: template-common-test-junit-jupiter
     folder: ../maven-build/dropwizard-example
+    java:
+      options: --release 11
   dropwizard-forms:
     dependencies: org.glassfish.jersey.media:jersey-media-multipart:3.1.12
     dependsOn: dropwizard-core
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-forms
   dropwizard-forms-test:
     dependencies: net.bytebuddy:byte-buddy:1.18.14-jdk5
     dependsOn: dropwizard-forms
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-forms
   dropwizard-health:
     dependencies: io.dropwizard.metrics:metrics-healthchecks:4.2.40
@@ -220,8 +228,8 @@ projects:
     - dropwizard-jetty
     - dropwizard-lifecycle
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-health
   dropwizard-health-test:
     dependencies:
@@ -231,9 +239,9 @@ projects:
     - dropwizard-configuration
     - dropwizard-health
     extends:
-    - template-common-logback-classic
-    - template-common-test-junit-jupiter-api
-    - template-common-test-mockito-core
+    - template-java-17-logback-classic
+    - template-java-17-test
+    - template-java-17-test-mockito-core
     folder: ../maven-build/dropwizard-health
   dropwizard-hibernate:
     dependencies:
@@ -253,8 +261,8 @@ projects:
     - dropwizard-core
     - dropwizard-db
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-hibernate
   dropwizard-hibernate-test:
     dependencies:
@@ -266,7 +274,7 @@ projects:
     dependsOn:
     - dropwizard-hibernate
     - dropwizard-testing
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-hibernate
   dropwizard-http2:
     dependencies:
@@ -278,8 +286,8 @@ projects:
     - org.eclipse.jetty:jetty-alpn-server:12.1.11
     dependsOn: dropwizard-jetty
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-http2
   dropwizard-http2-test:
     dependencies:
@@ -293,7 +301,7 @@ projects:
     dependsOn:
     - dropwizard-http2
     - dropwizard-testing
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-http2
   dropwizard-jackson:
     dependencies:
@@ -310,15 +318,15 @@ projects:
     - org.slf4j:slf4j-api:2.0.19
     dependsOn: dropwizard-util
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-jackson
   dropwizard-jackson-test:
     dependencies:
     - net.bytebuddy:byte-buddy:1.18.14-jdk5
     - org.mockito:mockito-core:5.23.0
     dependsOn: dropwizard-jackson
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-jackson
   dropwizard-jdbi3:
     dependencies:
@@ -332,8 +340,8 @@ projects:
     - dropwizard-core
     - dropwizard-db
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-jdbi3
   dropwizard-jdbi3-test:
     dependencies:
@@ -343,7 +351,7 @@ projects:
       module: org.eclipse.jetty:jetty-util:12.1.11
     - org.mockito:mockito-core:5.23.0
     dependsOn: dropwizard-jdbi3
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-jdbi3
   dropwizard-jersey:
     dependencies:
@@ -378,8 +386,8 @@ projects:
     - org.javassist:javassist:3.32.0-GA
     dependsOn: dropwizard-validation
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-jersey
   dropwizard-jersey-test:
     dependencies:
@@ -391,7 +399,7 @@ projects:
     dependsOn:
     - dropwizard-jersey
     - dropwizard-logging
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-jersey
   dropwizard-jetty:
     dependencies:
@@ -404,7 +412,7 @@ projects:
     dependsOn:
     - dropwizard-jackson
     - dropwizard-validation
-    extends: template-common-main-dependencies
+    extends: template-java-17-main-dependencies
     folder: ../maven-build/dropwizard-jetty
   dropwizard-jetty-test:
     dependencies:
@@ -415,8 +423,8 @@ projects:
     - dropwizard-jetty
     - dropwizard-logging
     extends:
-    - template-common-test-junit-jupiter-api
-    - template-common-test-mockito-core
+    - template-java-17-test
+    - template-java-17-test-mockito-core
     folder: ../maven-build/dropwizard-jetty
   dropwizard-json-logging:
     dependencies:
@@ -425,8 +433,8 @@ projects:
       module: jakarta.servlet:jakarta.servlet-api:6.0.0
     dependsOn: dropwizard-logging
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-json-logging
   dropwizard-json-logging-test:
     dependencies:
@@ -438,7 +446,7 @@ projects:
     - dropwizard-configuration
     - dropwizard-json-logging
     - dropwizard-request-logging
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-json-logging
   dropwizard-lifecycle:
     dependencies:
@@ -450,8 +458,8 @@ projects:
     - org.slf4j:slf4j-api:2.0.19
     dependsOn: dropwizard-util
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-lifecycle
   dropwizard-lifecycle-test:
     dependencies:
@@ -459,7 +467,7 @@ projects:
     - org.junit.jupiter:junit-jupiter-params:5.14.4
     - org.mockito:mockito-core:5.23.0
     dependsOn: dropwizard-lifecycle
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-lifecycle
   dropwizard-logging:
     dependencies:
@@ -476,8 +484,8 @@ projects:
     - dropwizard-jackson
     - dropwizard-validation
     extends:
-    - template-common-logback-classic
     - template-common-main-boms
+    - template-java-17-logback-classic
     folder: ../maven-build/dropwizard-logging
   dropwizard-logging-test:
     dependencies:
@@ -487,7 +495,7 @@ projects:
     dependsOn:
     - dropwizard-configuration
     - dropwizard-logging
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-logging
   dropwizard-metrics:
     dependsOn:
@@ -495,15 +503,15 @@ projects:
     - dropwizard-lifecycle
     - dropwizard-validation
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-metrics
   dropwizard-metrics-graphite:
     dependencies: io.dropwizard.metrics:metrics-graphite:4.2.40
     dependsOn: dropwizard-metrics
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-metrics-graphite
   dropwizard-metrics-graphite-test:
     dependencies:
@@ -512,7 +520,7 @@ projects:
     dependsOn:
     - dropwizard-configuration
     - dropwizard-metrics-graphite
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-metrics-graphite
   dropwizard-metrics-test:
     dependencies:
@@ -523,7 +531,7 @@ projects:
     - dropwizard-configuration
     - dropwizard-logging
     - dropwizard-metrics
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-metrics
   dropwizard-migrations:
     dependencies:
@@ -540,8 +548,8 @@ projects:
     - dropwizard-core
     - dropwizard-db
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-migrations
   dropwizard-migrations-test:
     dependencies:
@@ -550,7 +558,7 @@ projects:
     - org.jdbi:jdbi3-core:3.54.0
     - org.mockito:mockito-core:5.23.0
     dependsOn: dropwizard-migrations
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-migrations
   dropwizard-request-logging:
     dependencies:
@@ -560,7 +568,7 @@ projects:
     - org.eclipse.jetty:jetty-http:12.1.11
     - org.eclipse.jetty:jetty-session:12.1.11
     dependsOn: dropwizard-logging
-    extends: template-common-main-dependencies
+    extends: template-java-17-main-dependencies
     folder: ../maven-build/dropwizard-request-logging
   dropwizard-request-logging-test:
     dependencies:
@@ -570,7 +578,7 @@ projects:
     dependsOn:
     - dropwizard-configuration
     - dropwizard-request-logging
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-request-logging
   dropwizard-servlets:
     dependencies:
@@ -581,8 +589,8 @@ projects:
     - org.slf4j:slf4j-api:2.0.19
     dependsOn: dropwizard-util
     extends:
-    - template-common-logback-classic
     - template-common-main-boms
+    - template-java-17-logback-classic
     folder: ../maven-build/dropwizard-servlets
   dropwizard-servlets-test:
     dependencies:
@@ -593,7 +601,7 @@ projects:
     - org.mockito:mockito-core:5.23.0
     - org.mockito:mockito-subclass:5.23.0
     dependsOn: dropwizard-servlets
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-servlets
   dropwizard-testing:
     dependencies:
@@ -621,15 +629,15 @@ projects:
     dependsOn: dropwizard-testing
     extends:
     - template-common-test-assertj-core
-    - template-common-test-mockito-core
     - template-dropwizard-testing
+    - template-java-17-test-mockito-core
     folder: ../maven-build/dropwizard-testing
   dropwizard-unix-socket:
     dependencies: org.eclipse.jetty:jetty-unixdomain-server:12.1.11
     dependsOn: dropwizard-jetty
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-unix-socket
   dropwizard-unix-socket-test:
     dependencies:
@@ -639,15 +647,15 @@ projects:
     dependsOn:
     - dropwizard-testing
     - dropwizard-unix-socket
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-unix-socket
   dropwizard-util:
     dependencies:
     - com.fasterxml.jackson.core:jackson-annotations:2.22
     - org.jspecify:jspecify:1.0.1
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-util
   dropwizard-util-test:
     dependencies:
@@ -655,7 +663,7 @@ projects:
     - net.bytebuddy:byte-buddy:1.18.14-jdk5
     - org.junit.jupiter:junit-jupiter-params:5.14.4
     dependsOn: dropwizard-util
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-util
   dropwizard-validation:
     dependencies:
@@ -672,8 +680,8 @@ projects:
     - org.slf4j:slf4j-api:2.0.19
     dependsOn: dropwizard-util
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-validation
   dropwizard-validation-test:
     dependencies:
@@ -681,21 +689,21 @@ projects:
     - org.mockito:mockito-core:5.23.0
     dependsOn: dropwizard-validation
     extends:
-    - template-common-logback-classic
-    - template-common-test-junit-jupiter-api
+    - template-java-17-logback-classic
+    - template-java-17-test
     folder: ../maven-build/dropwizard-validation
   dropwizard-views:
     dependsOn: dropwizard-core
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-views
   dropwizard-views-freemarker:
     dependencies: org.freemarker:freemarker:2.3.35
     dependsOn: dropwizard-views
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-views-freemarker
   dropwizard-views-freemarker-test:
     dependencies:
@@ -703,14 +711,14 @@ projects:
     - org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-inmemory:3.1.12
     - org.glassfish.jersey.test-framework:jersey-test-framework-core:3.1.12
     dependsOn: dropwizard-views-freemarker
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-views-freemarker
   dropwizard-views-mustache:
     dependencies: com.github.spullara.mustache.java:compiler:0.9.14
     dependsOn: dropwizard-views
     extends:
-    - template-common-errorprone
     - template-common-main-boms
+    - template-java-17
     folder: ../maven-build/dropwizard-views-mustache
   dropwizard-views-mustache-test:
     dependencies:
@@ -718,27 +726,31 @@ projects:
     - org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-inmemory:3.1.12
     - org.glassfish.jersey.test-framework:jersey-test-framework-core:3.1.12
     dependsOn: dropwizard-views-mustache
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-views-mustache
   dropwizard-views-test:
     dependencies:
     - net.bytebuddy:byte-buddy:1.18.14-jdk5
     - org.mockito:mockito-core:5.23.0
     dependsOn: dropwizard-views
-    extends: template-common-test-junit-jupiter-api
+    extends: template-java-17-test
     folder: ../maven-build/dropwizard-views
   example-conscrypt:
     dependencies:
     - org.conscrypt:conscrypt-openjdk-uber:2.4.0
     - org.eclipse.jetty:jetty-alpn-conscrypt-server:12.1.11
     dependsOn: dropwizard-core
-    extends: template-common-main-boms
+    extends:
+    - template-common-main-boms
+    - template-java-17-source
     folder: ../maven-build/docs/source/examples/conscrypt
     publish:
       groupId: io.dropwizard.documentation
   example-getting-started:
     dependsOn: dropwizard-core
-    extends: template-common-main-boms
+    extends:
+    - template-common-main-boms
+    - template-java-17-source
     folder: ../maven-build/docs/source/examples/getting-started
     publish:
       groupId: io.dropwizard.documentation
@@ -747,7 +759,9 @@ projects:
     dependsOn:
     - dropwizard-assets
     - dropwizard-http2
-    extends: template-common-main-boms
+    extends:
+    - template-common-main-boms
+    - template-java-17-source
     folder: ../maven-build/docs/source/examples/core
     publish:
       groupId: io.dropwizard.documentation
@@ -758,13 +772,17 @@ projects:
     dependsOn:
     - dropwizard-testing
     - examples-core
-    extends: template-common-test-mockito-core
+    extends:
+    - template-java-17-source
+    - template-java-17-test-mockito-core
     folder: ../maven-build/docs/source/examples/core
   examples-views:
     dependsOn:
     - dropwizard-views-freemarker
     - dropwizard-views-mustache
-    extends: template-common-main-boms
+    extends:
+    - template-common-main-boms
+    - template-java-17-source
     folder: ../maven-build/docs/source/examples/views
     publish:
       groupId: io.dropwizard.documentation
@@ -777,18 +795,6 @@ templates:
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
       name: jvm
-  template-common-errorprone:
-    extends: template-common
-    java:
-      options: --should-stop=ifError=FLOW -XDcompilePolicy=simple -Xep:EqualsGetClass:OFF
-        -Xep:NullAway:ERROR -XepDisableWarningsInGeneratedCode -XepOpt:NullAway:AnnotatedPackages=io.dropwizard
-        -XepOpt:NullAway:ExcludedFieldAnnotations=org.mockito.Mock -XepOpt:NullAway:UnannotatedSubPackages=io.dropwizard.benchmarks
-        -Xplugin:ErrorProne
-  template-common-logback-classic:
-    dependencies:
-    - ch.qos.logback:logback-classic:1.5.38
-    - ch.qos.logback:logback-core:1.5.38
-    extends: template-common-errorprone
   template-common-main:
     extends: template-common
     publish:
@@ -806,14 +812,6 @@ templates:
     - org.mockito:mockito-bom:5.23.0
     - org.slf4j:slf4j-bom:2.0.19
     extends: template-common-main
-  template-common-main-dependencies:
-    dependencies:
-    - org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.11
-    - org.eclipse.jetty:jetty-security:12.1.11
-    - org.eclipse.jetty:jetty-server:12.1.11
-    extends:
-    - template-common-errorprone
-    - template-common-main-boms
   template-common-test:
     extends: template-common
     isTestProject: true
@@ -824,16 +822,6 @@ templates:
   template-common-test-junit-jupiter:
     dependencies: org.junit.jupiter:junit-jupiter:5.14.4
     extends: template-common-test-assertj-core
-  template-common-test-junit-jupiter-api:
-    dependencies: org.junit.jupiter:junit-jupiter-api:5.14.4
-    extends:
-    - template-common-errorprone
-    - template-common-test-junit-jupiter
-  template-common-test-mockito-core:
-    dependencies:
-    - org.mockito:mockito-core:5.23.0
-    - org.mockito:mockito-junit-jupiter:5.23.0
-    extends: template-common-test
   template-dropwizard-testing:
     dependencies:
     - configuration: provided
@@ -850,4 +838,42 @@ templates:
       module: org.junit.jupiter:junit-jupiter:5.14.4
     - configuration: optional
       module: org.junit.platform:junit-platform-commons:1.14.4
-    extends: template-common-errorprone
+    extends: template-java-17
+  template-java-17:
+    extends: template-common
+    java:
+      annotationProcessors:
+      - com.google.errorprone:error_prone_core:2.42.0
+      - com.uber.nullaway:nullaway:0.13.8
+      - jp.skypencil.errorprone.slf4j:errorprone-slf4j:0.1.29
+      options: --release 17 --should-stop=ifError=FLOW -XDcompilePolicy=simple -Xep:EqualsGetClass:OFF
+        -Xep:NullAway:ERROR -XepDisableWarningsInGeneratedCode -XepOpt:NullAway:AnnotatedPackages=io.dropwizard
+        -XepOpt:NullAway:ExcludedFieldAnnotations=org.mockito.Mock -XepOpt:NullAway:UnannotatedSubPackages=io.dropwizard.benchmarks
+        -Xplugin:ErrorProne
+  template-java-17-logback-classic:
+    dependencies:
+    - ch.qos.logback:logback-classic:1.5.38
+    - ch.qos.logback:logback-core:1.5.38
+    extends: template-java-17
+  template-java-17-main-dependencies:
+    dependencies:
+    - org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.11
+    - org.eclipse.jetty:jetty-security:12.1.11
+    - org.eclipse.jetty:jetty-server:12.1.11
+    extends:
+    - template-common-main-boms
+    - template-java-17
+  template-java-17-source:
+    extends: template-common
+    java:
+      options: -source 17 -target 17
+  template-java-17-test:
+    dependencies: org.junit.jupiter:junit-jupiter-api:5.14.4
+    extends:
+    - template-common-test-junit-jupiter
+    - template-java-17
+  template-java-17-test-mockito-core:
+    dependencies:
+    - org.mockito:mockito-core:5.23.0
+    - org.mockito:mockito-junit-jupiter:5.23.0
+    extends: template-common-test

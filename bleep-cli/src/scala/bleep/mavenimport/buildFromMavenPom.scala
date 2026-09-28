@@ -48,7 +48,9 @@ object buildFromMavenPom {
       mavenProjects: List[MavenProject],
       /** what `mvn dependency:list` printed, see [[runMaven]] */
       dependencyList: Path,
-      bleepVersion: model.BleepVersion
+      bleepVersion: model.BleepVersion,
+      /** `--build-jvm`, see [[internal.importJvm]] */
+      buildJvm: Option[Int]
   ): model.Build.Exploded = {
 
     // Build a set of reactor module GAVs for inter-module dependency detection
@@ -71,9 +73,9 @@ object buildFromMavenPom {
 
     val buildResolvers = extractRepositories(mavenProjects)
 
-    // Detect Java version from maven-compiler-plugin <release> across all modules
-    val javaRelease = mavenProjects.flatMap(detectJavaRelease).maxOption
-    val jvm = javaRelease.map(v => model.Jvm(s"temurin:$v", None))
+    // the newest java version any module compiles its code or its tests for
+    val javaRelease = mavenProjects.flatMap(m => List(JavaCompile.main(m), JavaCompile.test(m))).flatMap(_.javaVersion).maxOption
+    val jvm = Some(internal.importJvm(buildJvm, javaRelease))
 
     model.Build.Exploded(
       bleepVersion.latestRelease,
@@ -174,19 +176,8 @@ object buildFromMavenPom {
       )
     }
 
-    val configuredJava: Option[model.Java] = {
-      val javaArgs = extractJavaCompilerArgs(mavenProject)
-      if (javaArgs.isEmpty) None
-      else
-        Some(
-          model.Java(
-            options = model.Options.parse(javaArgs, None),
-            scanForAnnotationProcessors = None,
-            annotationProcessors = model.JsonSet.empty,
-            annotationProcessorOptions = model.AnnotationProcessorOptions.empty
-          )
-        )
-    }
+    val mainJava = JavaCompile.main(mavenProject).toJava
+    val testJava = JavaCompile.test(mavenProject).toJava
 
     val configuredKotlin: Option[model.Kotlin] = detectKotlinVersion(mavenProject).map { kv =>
       val kotlinArgs = extractKotlinCompilerArgs(mavenProject)
@@ -274,7 +265,7 @@ object buildFromMavenPom {
       dependencies = model.JsonSet.fromIterable(mainDeps),
       boms = model.JsonSet.fromIterable(boms),
       jars = model.JsonSet.empty,
-      java = configuredJava,
+      java = mainJava,
       scala = configuredScala,
       kotlin = configuredKotlin,
       platform = Some(platform),
@@ -321,7 +312,7 @@ object buildFromMavenPom {
         dependencies = model.JsonSet.fromIterable(allTestDeps),
         boms = model.JsonSet.empty,
         jars = model.JsonSet.empty,
-        java = configuredJava,
+        java = testJava,
         scala = configuredScala,
         kotlin = configuredKotlin,
         platform = Some(testPlatform),
@@ -391,11 +382,14 @@ object buildFromMavenPom {
       case _ => Nil
     }
 
-  private def extractKotlinJvmTarget(mavenProject: MavenProject): Option[String] =
-    mavenProject.plugins.collectFirst {
-      case plugin if plugin.artifactId == "kotlin-maven-plugin" =>
-        (plugin.configuration \ "jvmTarget").headOption.map(_.text.trim)
-    }.flatten
+  /** From the plugin's `compile` execution, its configuration, or the `kotlin.compiler.jvmTarget` property it reads as its default: javalin sets only that */
+  private def extractKotlinJvmTarget(mavenProject: MavenProject): Option[String] = {
+    val fromPlugin = mavenProject.plugins.find(_.artifactId == "kotlin-maven-plugin").flatMap { plugin =>
+      val configurations = plugin.executions.filter(e => e.isEnabled && e.goals.contains("compile")).map(_.configuration) :+ plugin.configuration
+      configurations.iterator.flatMap(c => (c \ "jvmTarget").headOption).map(_.text.trim).find(_.nonEmpty)
+    }
+    fromPlugin.orElse(mavenProject.properties.get("kotlin.compiler.jvmTarget"))
+  }
 
   /** Extract Kotlin compiler plugin IDs from kotlin-maven-plugin configuration.
     *
@@ -679,32 +673,75 @@ object buildFromMavenPom {
     fromScalaMaven
   }
 
-  /** Detect the Java release version from maven-compiler-plugin configuration. */
-  private def detectJavaRelease(mavenProject: MavenProject): Option[Int] =
-    mavenProject.plugins.collectFirst {
-      case plugin if plugin.artifactId == "maven-compiler-plugin" =>
-        (plugin.configuration \ "release").headOption
-          .orElse((plugin.configuration \ "target").headOption)
-          .map(node => parseJavaVersion(mavenProject, node.text.trim))
-    }.flatten
+  /** How maven-compiler-plugin compiles a module's code (`compile`) or its tests (`testCompile`). A parameter comes from the execution which runs the goal,
+    * then from the plugin's configuration, then from the property the plugin reads as its default. Tests have parameters of their own, `testRelease` wins over
+    * `release`: feign compiles its code for java 8 and its tests for java 25
+    */
+  private class JavaCompile(mavenProject: MavenProject, goal: String) {
+    private val isTest = goal == "testCompile"
+    private val plugin = mavenProject.plugins.find(_.artifactId == "maven-compiler-plugin")
+    // a build may turn the default execution off and run the goal in one of its own
+    private val configurations: List[scala.xml.NodeSeq] =
+      plugin.toList.flatMap(_.executions).filter(e => e.isEnabled && e.goals.contains(goal)).map(_.configuration) ++ plugin.map(_.configuration).toList
+
+    private def element(name: String): Option[scala.xml.Node] =
+      configurations.iterator.flatMap(c => (c \ name).headOption).nextOption()
+
+    private def param(name: String): Option[String] =
+      element(name).map(_.text.trim).filter(_.nonEmpty).orElse(mavenProject.properties.get(s"maven.compiler.$name"))
+
+    private def versionParam(name: String): Option[String] =
+      (if (isTest) param(s"test${name.capitalize}") else None).orElse(param(name))
+
+    val release: Option[String] = versionParam("release")
+    val source: Option[String] = versionParam("source")
+    val target: Option[String] = versionParam("target")
+    val compilerArgs: List[String] = element("compilerArgs").toList.flatMap(args => (args \ "arg").map(_.text.trim))
+
+    def javaVersion: Option[Int] = release.orElse(target).map(parseJavaVersion(mavenProject, _))
+
+    /** `<annotationProcessorPaths>`: with them javac runs these processors and no others, without them it runs every processor it finds on the classpath */
+    val annotationProcessors: List[model.Dep] =
+      element("annotationProcessorPaths").toList.flatMap(_ \ "path").map { path =>
+        val groupId = (path \ "groupId").text.trim
+        val artifactId = (path \ "artifactId").text.trim
+        val version = Some((path \ "version").text.trim).filter(_.nonEmpty).getOrElse {
+          mavenProject.dependencyManagement
+            .find(m => m.groupId == groupId && m.artifactId == artifactId)
+            .map(_.version)
+            .getOrElse(throw new BleepException.Text(s"${mavenProject.artifactId}: no version for annotation processor $groupId:$artifactId"))
+        }
+        model.Dep.Java(groupId, artifactId, version)
+      }
+
+    def toJava: Option[model.Java] = {
+      val versionArgs = release match {
+        case Some(release) => List("--release", release)
+        case None          => source.toList.flatMap(s => List("-source", s)) ++ target.toList.flatMap(t => List("-target", t))
+      }
+      // TODO: without `<annotationProcessorPaths>` javac runs the processors on the classpath, which bleep only does with `scanForAnnotationProcessors`, and
+      // that fails when there are none. Which modules have one is not known here yet
+      val scan: Option[Boolean] = None
+      val java = model.Java(
+        options = model.Options.parse(versionArgs ++ compilerArgs, None),
+        scanForAnnotationProcessors = scan,
+        annotationProcessors = model.JsonSet.fromIterable(annotationProcessors),
+        annotationProcessorOptions = model.AnnotationProcessorOptions.empty,
+        ecjVersion = None
+      )
+      if (java.isEmpty) None else Some(java)
+    }
+  }
+
+  private object JavaCompile {
+    def main(mavenProject: MavenProject): JavaCompile = new JavaCompile(mavenProject, "compile")
+    def test(mavenProject: MavenProject): JavaCompile = new JavaCompile(mavenProject, "testCompile")
+  }
 
   /** `17`, and the old spelling `1.8` for java 8 */
   private def parseJavaVersion(mavenProject: MavenProject, version: String): Int =
     version.stripPrefix("1.").toIntOption.getOrElse {
       throw new BleepException.Text(s"${mavenProject.artifactId}: could not understand java version '$version' of maven-compiler-plugin")
-    }
-
-  private def extractJavaCompilerArgs(mavenProject: MavenProject): List[String] =
-    mavenProject.plugins.flatMap {
-      case plugin if plugin.artifactId == "maven-compiler-plugin" =>
-        val compilerArgs = plugin.configuration \ "compilerArgs" \ "arg"
-        val source = (plugin.configuration \ "source").headOption.map(n => List("-source", n.text.trim)).getOrElse(Nil)
-        val target = (plugin.configuration \ "target").headOption.map(n => List("-target", n.text.trim)).getOrElse(Nil)
-        val release = (plugin.configuration \ "release").headOption.map(n => List("--release", n.text.trim)).getOrElse(Nil)
-        // prefer release over source/target
-        if (release.nonEmpty) release ++ compilerArgs.map(_.text.trim).toList
-        else source ++ target ++ compilerArgs.map(_.text.trim).toList
-      case _ => Nil
     }
 
   private def detectMainClass(logger: Logger, mavenProject: MavenProject): Option[String] = {
@@ -803,8 +840,9 @@ object buildFromMavenPom {
     else
       fs.list(parentDir)
         .filter(fs.isDirectory)
-        // Skip "annotations" dirs — these are annotation processor outputs (empty marker dirs)
-        .filter(dir => dir.getFileName.toString != "annotations")
+        // what annotation processors wrote (maven-compiler-plugin's default `generatedSourcesDirectory` and `generatedTestSourcesDirectory`). bleep runs the
+        // processors itself, and javac refuses to write a file which is already a source: javalin's jmh benchmarks
+        .filter(dir => dir.getFileName.toString != "annotations" && dir.getFileName.toString != "test-annotations")
         .flatMap { genDir =>
           fs.walk(genDir)
             .filter(fs.isRegularFile)

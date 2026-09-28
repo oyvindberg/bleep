@@ -10,6 +10,8 @@ case class MavenImportOptions(
     skipMvn: Boolean,
     skipGeneratedResourcesScript: Boolean,
     mvnPath: Option[String],
+    /** `--build-jvm`, see [[internal.importJvm]] */
+    buildJvm: Option[Int],
     filtering: sbtimport.ImportFiltering
 )
 
@@ -61,14 +63,23 @@ object MavenImportOptions {
     .orNone
 
   val opts: Opts[MavenImportOptions] =
-    (ignoreWhenInferringTemplates, skipMvn, skipGeneratedResourcesScript, mvnPath, excludeProjects, filterPlatforms, filterScalaVersions).mapN {
-      (ignore, skipMvn, skipScript, mvnPath, excludeProjects, filterPlatforms, filterScalaVersions) =>
-        MavenImportOptions(
-          ignore,
-          skipMvn,
-          skipScript,
-          mvnPath,
-          sbtimport.ImportFiltering(excludeProjects, filterPlatforms, filterScalaVersions)
-        )
+    (
+      ignoreWhenInferringTemplates,
+      skipMvn,
+      skipGeneratedResourcesScript,
+      mvnPath,
+      internal.importJvm.opts,
+      excludeProjects,
+      filterPlatforms,
+      filterScalaVersions
+    ).mapN { (ignore, skipMvn, skipScript, mvnPath, buildJvm, excludeProjects, filterPlatforms, filterScalaVersions) =>
+      MavenImportOptions(
+        ignore,
+        skipMvn,
+        skipScript,
+        mvnPath,
+        buildJvm,
+        sbtimport.ImportFiltering(excludeProjects, filterPlatforms, filterScalaVersions)
+      )
     }
 }

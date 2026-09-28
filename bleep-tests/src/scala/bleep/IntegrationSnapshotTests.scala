@@ -169,6 +169,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
       jvm = jvm,
       sbtPath = None,
       xmx = Some(xmx),
+      buildJvm = None,
       filtering = filtering
     )
 

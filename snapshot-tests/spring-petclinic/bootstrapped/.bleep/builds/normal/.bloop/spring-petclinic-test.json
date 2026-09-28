@@ -192,6 +192,8 @@
     ],
     "java": {
       "options": [
+        "--release",
+        "17",
         "-proc:none"
       ]
     },

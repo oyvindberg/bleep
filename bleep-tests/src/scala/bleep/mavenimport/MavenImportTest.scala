@@ -214,7 +214,8 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
         mavenProjects,
         // these poms manage no versions, so the import never asks what maven resolved
         tempDir.resolve("dependency-list.txt"),
-        model.BleepVersion("1.0.0-M1")
+        model.BleepVersion("1.0.0-M1"),
+        buildJvm = None
       )
 
       val mainProject = build.explodedProjects.values.find(!_.isTestProject.contains(true))
@@ -278,7 +279,8 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
         mavenProjects,
         // these poms manage no versions, so the import never asks what maven resolved
         tempDir.resolve("dependency-list.txt"),
-        model.BleepVersion("1.0.0-M1")
+        model.BleepVersion("1.0.0-M1"),
+        buildJvm = None
       )
 
       val mainProject = build.explodedProjects.values.find(!_.isTestProject.contains(true))
@@ -345,7 +347,8 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
         mavenProjects,
         // these poms manage no versions, so the import never asks what maven resolved
         tempDir.resolve("dependency-list.txt"),
-        model.BleepVersion("1.0.0-M1")
+        model.BleepVersion("1.0.0-M1"),
+        buildJvm = None
       )
 
       // Maven Central should be filtered out, Spring Milestones should remain
@@ -403,7 +406,8 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
         mavenProjects,
         // these poms manage no versions, so the import never asks what maven resolved
         tempDir.resolve("dependency-list.txt"),
-        model.BleepVersion("1.0.0-M1")
+        model.BleepVersion("1.0.0-M1"),
+        buildJvm = None
       )
 
       val mainProject = build.explodedProjects.values.head

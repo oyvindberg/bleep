@@ -5,9 +5,10 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-test/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-test/generated-sources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-test/generated-sources/annotations",
       "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin/src/test/java",
-      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin/src/test/kotlin"
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin/src/test/kotlin",
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-test/generated-sources/annotations"
     ],
     "dependencies": [
       "javalin"
@@ -164,14 +165,12 @@
     "out": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-test/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-test/builds/normal/test-classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-test/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin/src/test/resources"
     ],
     "java": {
       "options": [
         "--release",
-        "17",
-        "-proc:none"
+        "17"
       ]
     },
     "test": {

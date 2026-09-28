@@ -1,7 +1,7 @@
 package bleep
 package sbtimport
 
-import bleep.internal.{BleepTemplateLogger, GeneratedFilesScript}
+import bleep.internal.{dropUnsupportedScala, importJvm, BleepTemplateLogger, GeneratedFilesScript}
 import bleep.rewrites.normalizeBuild
 import bleep.templates.{mineTemplates, templatesInfer}
 import ryddig.Logger
@@ -20,10 +20,15 @@ object generateBuild {
       maybeExistingBuildFile: Option[model.BuildFile]
   ): Map[Path, String] = {
 
-    val build0 = buildFromBloopFiles(logger, sbtBuildDir, destinationPaths, inputData, bleepVersion, options.filtering.excludeProjects)
+    val build00 = buildFromBloopFiles(logger, sbtBuildDir, destinationPaths, inputData, bleepVersion, options.filtering.excludeProjects)
+    // the newest java version any project compiles for, tapir compiles some for java 21
+    val compiledFor = build00.explodedProjects.values.flatMap { p =>
+      p.scala.toList.flatMap(s => importJvm.compiledFor(s.options)) ++ p.java.toList.flatMap(j => importJvm.compiledFor(j.options))
+    }.maxOption
+    val build0 = build00.copy(jvm = Some(importJvm(options.buildJvm, compiledFor)))
 
     // Apply project name and platform filtering
-    val filteredBuild = applyFiltering(build0, options.filtering, logger)
+    val filteredBuild = applyFiltering(dropUnsupportedScala(logger, build0), options.filtering, logger)
 
     val normalizedBuild = normalizeBuild(filteredBuild, destinationPaths)
 

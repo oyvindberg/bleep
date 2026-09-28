@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-views-freemarker-test/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/dropwizard-views-freemarker/src/test/java"
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-views-freemarker-test/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/dropwizard-views-freemarker/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-views-freemarker-test/generated-sources/annotations"
     ],
     "dependencies": [
       "dropwizard-configuration",
@@ -157,6 +159,8 @@
     ],
     "java": {
       "options": [
+        "--release",
+        "17",
         "--should-stop=ifError=FLOW",
         "-XDcompilePolicy=simple",
         "-Xep:EqualsGetClass:OFF",
@@ -165,8 +169,7 @@
         "-XepOpt:NullAway:AnnotatedPackages=io.dropwizard",
         "-XepOpt:NullAway:ExcludedFieldAnnotations=org.mockito.Mock",
         "-XepOpt:NullAway:UnannotatedSubPackages=io.dropwizard.benchmarks",
-        "-Xplugin:ErrorProne",
-        "-proc:none"
+        "-Xplugin:ErrorProne"
       ]
     },
     "test": {

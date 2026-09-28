@@ -20,12 +20,12 @@ object generateBuildFromMaven {
       dependencyList: Path
   ): Map[Path, String] = {
 
-    val build0 = buildFromMavenPom(logger, fs, destinationPaths, mavenProjects, dependencyList, bleepVersion)
+    val build0 = buildFromMavenPom(logger, fs, destinationPaths, mavenProjects, dependencyList, bleepVersion, options.buildJvm)
 
     val generatedFiles = buildFromMavenPom.discoverGeneratedFiles(logger, fs, mavenProjects)
     val nonEmptyGeneratedFiles = generatedFiles.filter { case (_, files) => files.nonEmpty }
 
-    val filteredBuild = applyFiltering(build0, options.filtering, logger)
+    val filteredBuild = applyFiltering(internal.dropUnsupportedScala(logger, build0), options.filtering, logger)
 
     val normalizedBuild = normalizeBuild(filteredBuild, destinationPaths)
 

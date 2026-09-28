@@ -243,9 +243,6 @@ projects:
     - template-common-test
     - template-javalin
     folder: ../maven-build/javalin
-    sourcegen:
-      main: scripts.CopyImportedGeneratedFiles
-      project: scripts
   javalin-testtools:
     dependsOn: javalin
     extends: template-common-main
@@ -257,11 +254,6 @@ projects:
     - template-common-jackson-databind
     - template-common-test-slf4j-simple
     folder: ../maven-build/javalin-testtools
-  scripts:
-    dependencies: build.bleep:bleepscript:1.0.0-M14
-    platform:
-      name: jvm
-    resources: ./resources
 templates:
   template-common:
     dependencies:
@@ -270,6 +262,7 @@ templates:
     java:
       options: --release 17
     kotlin:
+      jvmTarget: '17'
       version: 2.2.20
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
@@ -317,3 +310,5 @@ templates:
     - configuration: optional
       module: tools.jackson.module:jackson-module-kotlin:3.2.2
     extends: template-common
+    java:
+      annotationProcessors: org.openjdk.jmh:jmh-generator-annprocess:1.37

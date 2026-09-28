@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-auth/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/dropwizard-auth/src/main/java"
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-auth/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/dropwizard-auth/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/dropwizard-auth/generated-sources/annotations"
     ],
     "dependencies": [
       "dropwizard-jersey",
@@ -71,6 +73,8 @@
     ],
     "java": {
       "options": [
+        "--release",
+        "17",
         "--should-stop=ifError=FLOW",
         "-XDcompilePolicy=simple",
         "-Xep:EqualsGetClass:OFF",
@@ -79,8 +83,7 @@
         "-XepOpt:NullAway:AnnotatedPackages=io.dropwizard",
         "-XepOpt:NullAway:ExcludedFieldAnnotations=org.mockito.Mock",
         "-XepOpt:NullAway:UnannotatedSubPackages=io.dropwizard.benchmarks",
-        "-Xplugin:ErrorProne",
-        "-proc:none"
+        "-Xplugin:ErrorProne"
       ]
     },
     "platform": {
