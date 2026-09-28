@@ -171,8 +171,15 @@
           "$ref": "#/$defs/Options"
         },
         "scanForAnnotationProcessors": {
-          "type": "boolean",
-          "description": "When true, scan resolved-`dependencies` JARs for `META-INF/services/javax.annotation.processing.Processor` and add matches to javac's `-processorpath`. Default off (explicit opt-in)."
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "const": "if-present"
+            }
+          ],
+          "description": "Scan resolved-`dependencies` JARs for `META-INF/services/javax.annotation.processing.Processor` and add matches to javac's `-processorpath`. `true` fails when none are found, `if-present` runs whatever is there, as javac does without a processor path. Default off (explicit opt-in)."
         },
         "annotationProcessors": {
           "oneOf": [

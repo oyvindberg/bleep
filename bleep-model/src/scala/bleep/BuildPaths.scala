@@ -144,7 +144,7 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
       val generated = p.sourcegen.values.iterator.map(sourceGen => (sourceGen, generatedSourcesDir(crossName, sourceGen.folderName))).toMap
       val annotationProcessing =
         p.java
-          .filter(j => j.scanForAnnotationProcessors.contains(true) || j.annotationProcessors.values.nonEmpty)
+          .filter(j => j.scanForAnnotationProcessors.exists(_.scans) || j.annotationProcessors.values.nonEmpty)
           .map(_ => generatedSourcesDir(crossName, "annotations"))
       val ksp: List[Path] =
         p.kotlin.filter(_.hasSymbolProcessing).toList.flatMap { _ =>

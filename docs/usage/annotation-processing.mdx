@@ -30,7 +30,7 @@ Bleep finds Lombok's `META-INF/services/javax.annotation.processing.Processor` e
 
 | Field | Default | Purpose |
 | --- | --- | --- |
-| `scanForAnnotationProcessors: Boolean` | `false` | Opt-in to scan resolved-`dependencies` jars for processors. Matches found jars get added to `-processorpath`. |
+| `scanForAnnotationProcessors: true \| false \| if-present` | `false` | Opt-in to scan resolved-`dependencies` jars for processors. Matches found jars get added to `-processorpath`. `true` fails when it finds none, `if-present` doesn't. |
 | `annotationProcessors: [Dep]` | `[]` | Explicit processor-only deps. Always added to `-processorpath`; never on the runtime/compile classpath of the project. |
 | `annotationProcessorOptions: {key: value}` | `{}` | `-A<key>=<value>` flags. Visible to every configured processor (JSR 269 has no per-processor `-A`). |
 
@@ -103,6 +103,7 @@ Dependency upgrades cannot silently introduce new processors here, only what's i
 ## Errors and escape hatches
 
 * **No-op opt-in fails loud.** `scanForAnnotationProcessors: true` with empty `annotationProcessors` and zero processor-bearing jars in `dependencies` makes the AP DAG task fail at compile time, propagating up as `commands.compile`/`commands.run` throwing a `BleepException` with `"Annotation processor resolution failed for N project(s)"`. The user typed `true` for a reason; we don't silently disable.
+* **`if-present` is javac's own default.** Without a processor path, javac runs whatever processors it finds on the classpath, and finding none is fine. `scanForAnnotationProcessors: if-present` does exactly that. It's for builds carried over from a tool which relies on that. Write `true` in your own build, so a processor which goes missing is an error.
 * **Manual `-proc:none` is honored.** Putting `-proc:none` in `java.options` skips all auto-wiring. Use this when you want to disable processing for a project that has processor-bearing dependencies.
 * **Conflicting flags rejected.** Manual `-processorpath`, `-A`, `-proc:*`, or `-s` in `java.options` raise an error when bleep is also wiring annotation processing, choose one or the other.
 * **`-processor` (the comma-separated class-name list) is allowed in `java.options`.** Bleep never emits `-processor` itself; use it to pin a subset (e.g. one processor from a multi-processor jar) or to work around the rare jar that ships its processor classes without a `META-INF/services/javax.annotation.processing.Processor` registration.

@@ -179,4 +179,51 @@ class AnnotationProcessingIT extends IntegrationTestHarness {
       s"unexpected error message: $msg"
     )
   }
+
+  integrationTest("scanForAnnotationProcessors: if-present with no processors compiles without processing") { ws =>
+    ws.yaml(
+      """projects:
+        |  a:
+        |    dependencies: org.slf4j:slf4j-api:2.0.9
+        |    source-layout: java
+        |    platform:
+        |      name: jvm
+        |    java:
+        |      scanForAnnotationProcessors: if-present
+        |""".stripMargin
+    )
+    ws.file("a/src/java/test/Person.java", "package test; public class Person {}")
+    val (_, commands, _) = ws.start()
+    commands.compile(List(model.CrossProjectName(model.ProjectName("a"), None))).discard()
+    succeed
+  }
+
+  integrationTest("scanForAnnotationProcessors: if-present runs the processors it finds: lombok") { ws =>
+    ws.yaml(
+      """projects:
+        |  a:
+        |    dependencies:
+        |      - configuration: provided
+        |        module: org.projectlombok:lombok:1.18.46
+        |    source-layout: java
+        |    platform:
+        |      name: jvm
+        |    java:
+        |      scanForAnnotationProcessors: if-present
+        |""".stripMargin
+    )
+    // `getName` only exists if lombok ran
+    ws.file(
+      "a/src/java/test/Person.java",
+      """package test;
+        |@lombok.Getter
+        |public class Person {
+        |    private String name = "a";
+        |    public static String nameOf(Person p) { return p.getName(); }
+        |}""".stripMargin
+    )
+    val (_, commands, storingLogger) = ws.start()
+    commands.compile(List(model.CrossProjectName(model.ProjectName("a"), None))).discard()
+    assert(storingLogger.underlying.exists(_.message.plainText.contains("auto-discovered annotation processor")))
+  }
 }

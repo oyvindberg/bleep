@@ -8,8 +8,8 @@ import io.circe.{Decoder, Encoder}
   * @param options
   *   javac options
   * @param scanForAnnotationProcessors
-  *   when set to true, bleep scans every resolved-`dependencies` jar for `META-INF/services/javax.annotation.processing.Processor` and adds matching jars to
-  *   javac's `-processorpath`. Default off — explicit opt-in.
+  *   when set, bleep scans every resolved-`dependencies` jar for `META-INF/services/javax.annotation.processing.Processor` and adds matching jars to javac's
+  *   `-processorpath`. `true` fails when there are none, `if-present` does not, see [[ScanForAnnotationProcessors]]. Default off — explicit opt-in.
   * @param annotationProcessors
   *   processor-only deps. Resolved separately and added to `-processorpath` only — never on the runtime classpath. Composes with `scanForAnnotationProcessors`
   *   when both are set.
@@ -20,7 +20,7 @@ import io.circe.{Decoder, Encoder}
   */
 case class Java(
     options: Options,
-    scanForAnnotationProcessors: Option[Boolean],
+    scanForAnnotationProcessors: Option[ScanForAnnotationProcessors],
     annotationProcessors: JsonSet[Dep],
     annotationProcessorOptions: AnnotationProcessorOptions,
     ecjVersion: Option[VersionEcj] = None

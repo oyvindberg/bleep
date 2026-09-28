@@ -524,7 +524,7 @@ object ResolveProjects {
     //     for that case we don't add `-proc:none` again and we don't enable the DAG task.
     val annotationProcessingGenSourcesDir: Option[Path] =
       explodedJava match {
-        case Some(java) if java.scanForAnnotationProcessors.contains(true) || java.annotationProcessors.values.nonEmpty =>
+        case Some(java) if java.scanForAnnotationProcessors.exists(_.scans) || java.annotationProcessors.values.nonEmpty =>
           Some(pre.buildPaths.generatedSourcesDir(crossName, "annotations"))
         case _ => None
       }
@@ -533,7 +533,7 @@ object ResolveProjects {
       val baseOptions = explodedJava.map(_.options).getOrElse(model.Options.empty)
       val rendered = templateDirs.fill.opts(baseOptions).render
       val userHasProcNone = baseOptions.values.exists(_.render.contains("-proc:none"))
-      val apConfigured = explodedJava.exists(j => j.scanForAnnotationProcessors.contains(true) || j.annotationProcessors.values.nonEmpty)
+      val apConfigured = explodedJava.exists(j => j.scanForAnnotationProcessors.exists(_.scans) || j.annotationProcessors.values.nonEmpty)
       if (userHasProcNone || apConfigured) rendered
       else rendered :+ "-proc:none"
     }

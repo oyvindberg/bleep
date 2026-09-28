@@ -484,7 +484,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
   private val javaWithAnnotationProcessing: model.Java =
     model.Java(
       options = model.Options.empty,
-      scanForAnnotationProcessors = Some(true),
+      scanForAnnotationProcessors = Some(model.ScanForAnnotationProcessors.Yes),
       annotationProcessors = model.JsonSet.empty,
       annotationProcessorOptions = model.AnnotationProcessorOptions.empty,
       ecjVersion = None

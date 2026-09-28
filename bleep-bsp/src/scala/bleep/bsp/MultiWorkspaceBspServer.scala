@@ -1500,7 +1500,7 @@ class MultiWorkspaceBspServer(
   private def buildAnnotationProcessorPlan(started: Started, projects: Set[CrossProjectName]): TaskDag.AnnotationProcessorPlan = {
     val configured = projects.filter { projectName =>
       started.build.explodedProjects.get(projectName).flatMap(_.java).exists { java =>
-        java.scanForAnnotationProcessors.contains(true) || java.annotationProcessors.values.nonEmpty
+        java.scanForAnnotationProcessors.exists(_.scans) || java.annotationProcessors.values.nonEmpty
       }
     }
     TaskDag.AnnotationProcessorPlan(configured)

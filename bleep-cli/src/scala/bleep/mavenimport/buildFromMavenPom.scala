@@ -721,7 +721,7 @@ object buildFromMavenPom {
       }
       // TODO: without `<annotationProcessorPaths>` javac runs the processors on the classpath, which bleep only does with `scanForAnnotationProcessors`, and
       // that fails when there are none. Which modules have one is not known here yet
-      val scan: Option[Boolean] = None
+      val scan: Option[model.ScanForAnnotationProcessors] = None
       val java = model.Java(
         options = model.Options.parse(versionArgs ++ compilerArgs, None),
         scanForAnnotationProcessors = scan,
