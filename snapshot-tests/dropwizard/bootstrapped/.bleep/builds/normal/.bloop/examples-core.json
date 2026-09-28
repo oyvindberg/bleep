@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/examples-core/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/docs/source/examples/core/src/main/java"
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/examples-core/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/docs/source/examples/core/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/examples-core/generated-sources/annotations"
     ],
     "dependencies": [
       "dropwizard-assets",
@@ -143,8 +145,7 @@
         "-source",
         "17",
         "-target",
-        "17",
-        "-proc:none"
+        "17"
       ]
     },
     "platform": {

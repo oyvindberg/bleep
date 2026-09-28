@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/docs/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/docs/src/main/java"
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/docs/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/docs/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/docs/generated-sources/annotations"
     ],
     "dependencies": [
       
@@ -20,7 +22,7 @@
     ],
     "java": {
       "options": [
-        "-proc:none"
+        
       ]
     },
     "platform": {

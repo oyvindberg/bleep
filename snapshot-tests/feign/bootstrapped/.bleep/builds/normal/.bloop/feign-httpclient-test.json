@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-httpclient-test/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/httpclient/src/test/java"
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-httpclient-test/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/httpclient/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-httpclient-test/generated-sources/annotations"
     ],
     "dependencies": [
       "feign-core",
@@ -74,8 +76,7 @@
         "-source",
         "25",
         "-target",
-        "25",
-        "-proc:none"
+        "25"
       ]
     },
     "test": {

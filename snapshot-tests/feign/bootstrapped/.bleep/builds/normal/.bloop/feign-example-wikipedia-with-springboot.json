@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-example-wikipedia-with-springboot/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/example-wikipedia-with-springboot/src/main/java"
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-example-wikipedia-with-springboot/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/example-wikipedia-with-springboot/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-example-wikipedia-with-springboot/generated-sources/annotations"
     ],
     "dependencies": [
       "feign-core",
@@ -69,8 +71,7 @@
         "-source",
         "17",
         "-target",
-        "17",
-        "-proc:none"
+        "17"
       ]
     },
     "platform": {

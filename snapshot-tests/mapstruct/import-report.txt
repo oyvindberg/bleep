@@ -1,7 +1,7 @@
 # template inference
 templates: 5
 projects: 9
-settings: 98 (73 in projects, 25 in templates)
+settings: 105 (80 in projects, 25 in templates)
 
 # roundtrip
 maven classpaths (dependency:build-classpath) vs bleep resolved projects, normalized. `-` only in maven, `+` only in bleep, `~` same jar at another version

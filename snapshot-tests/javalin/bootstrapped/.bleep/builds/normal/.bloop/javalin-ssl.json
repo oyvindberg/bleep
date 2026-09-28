@@ -5,8 +5,10 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-ssl/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-ssl/generated-sources/annotations",
       "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-ssl/src/main/java",
-      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-ssl/src/main/kotlin"
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-ssl/src/main/kotlin",
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-ssl/generated-sources/annotations"
     ],
     "dependencies": [
       "javalin"
@@ -80,8 +82,7 @@
     "java": {
       "options": [
         "--release",
-        "17",
-        "-proc:none"
+        "17"
       ]
     },
     "platform": {

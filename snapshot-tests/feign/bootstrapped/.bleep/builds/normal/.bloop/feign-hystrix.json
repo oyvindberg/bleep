@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-hystrix/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/hystrix/src/main/java"
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-hystrix/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/hystrix/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-hystrix/generated-sources/annotations"
     ],
     "dependencies": [
       "feign-core"
@@ -32,8 +34,7 @@
         "-source",
         "1.8",
         "-target",
-        "1.8",
-        "-proc:none"
+        "1.8"
       ]
     },
     "platform": {

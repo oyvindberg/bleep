@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-symbol-solver-testing-test/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-symbol-solver-testing/src/test/java"
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-symbol-solver-testing-test/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-symbol-solver-testing/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-symbol-solver-testing-test/generated-sources/annotations"
     ],
     "dependencies": [
       "javaparser-core",
@@ -50,8 +52,7 @@
     "java": {
       "options": [
         "--release",
-        "8",
-        "-proc:none"
+        "8"
       ]
     },
     "test": {

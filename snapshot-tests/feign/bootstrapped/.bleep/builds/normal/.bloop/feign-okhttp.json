@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-okhttp/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/okhttp/src/main/java"
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-okhttp/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/okhttp/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-okhttp/generated-sources/annotations"
     ],
     "dependencies": [
       "feign-core"
@@ -28,8 +30,7 @@
         "-source",
         "1.8",
         "-target",
-        "1.8",
-        "-proc:none"
+        "1.8"
       ]
     },
     "platform": {

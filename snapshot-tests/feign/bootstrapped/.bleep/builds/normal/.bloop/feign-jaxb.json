@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jaxb/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jaxb/src/main/java"
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jaxb/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jaxb/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jaxb/generated-sources/annotations"
     ],
     "dependencies": [
       "feign-core"
@@ -26,8 +28,7 @@
         "-source",
         "1.8",
         "-target",
-        "1.8",
-        "-proc:none"
+        "1.8"
       ]
     },
     "platform": {

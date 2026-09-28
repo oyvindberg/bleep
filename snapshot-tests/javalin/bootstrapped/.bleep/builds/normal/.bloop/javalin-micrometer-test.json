@@ -5,8 +5,10 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-micrometer-test/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-micrometer-test/generated-sources/annotations",
       "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-micrometer/src/test/java",
-      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-micrometer/src/test/kotlin"
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-micrometer/src/test/kotlin",
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-micrometer-test/generated-sources/annotations"
     ],
     "dependencies": [
       "javalin",
@@ -91,8 +93,7 @@
     "java": {
       "options": [
         "--release",
-        "17",
-        "-proc:none"
+        "17"
       ]
     },
     "test": {

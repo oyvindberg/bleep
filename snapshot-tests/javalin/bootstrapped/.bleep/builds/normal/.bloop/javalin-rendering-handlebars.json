@@ -5,8 +5,10 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-rendering-handlebars/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-rendering-handlebars/generated-sources/annotations",
       "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars/src/main/java",
-      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars/src/main/kotlin"
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars/src/main/kotlin",
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-rendering-handlebars/generated-sources/annotations"
     ],
     "dependencies": [
       "javalin"
@@ -65,8 +67,7 @@
     "java": {
       "options": [
         "--release",
-        "17",
-        "-proc:none"
+        "17"
       ]
     },
     "platform": {

@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-serialization/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core-serialization/src/main/java"
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-serialization/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core-serialization/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-serialization/generated-sources/annotations"
     ],
     "dependencies": [
       "javaparser-core"
@@ -30,8 +32,7 @@
     "java": {
       "options": [
         "--release",
-        "8",
-        "-proc:none"
+        "8"
       ]
     },
     "platform": {

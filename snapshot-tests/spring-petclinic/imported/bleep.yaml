@@ -35,6 +35,7 @@ projects:
     folder: ../maven-build
     java:
       options: --release 17
+      scanForAnnotationProcessors: if-present
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
       name: jvm
@@ -62,6 +63,7 @@ projects:
     isTestProject: true
     java:
       options: --release 17
+      scanForAnnotationProcessors: if-present
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
       name: jvm

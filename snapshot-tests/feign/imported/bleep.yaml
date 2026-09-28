@@ -723,6 +723,8 @@ projects:
     folder: ../maven-build/vertx/feign-vertx5-test
 templates:
   template-common:
+    java:
+      scanForAnnotationProcessors: if-present
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
       name: jvm

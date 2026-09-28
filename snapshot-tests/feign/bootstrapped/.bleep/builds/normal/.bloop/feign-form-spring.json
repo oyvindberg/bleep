@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-form-spring/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/form-spring/src/main/java"
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-form-spring/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/form-spring/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-form-spring/generated-sources/annotations"
     ],
     "dependencies": [
       "feign-core",
@@ -39,8 +41,7 @@
         "-source",
         "17",
         "-target",
-        "17",
-        "-proc:none"
+        "17"
       ]
     },
     "platform": {

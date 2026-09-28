@@ -102,6 +102,7 @@ templates:
   template-common:
     java:
       options: --release 8
+      scanForAnnotationProcessors: if-present
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
       name: jvm

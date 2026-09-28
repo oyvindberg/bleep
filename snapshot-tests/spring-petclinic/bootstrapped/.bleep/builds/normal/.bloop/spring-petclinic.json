@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/spring-petclinic/bootstrapped/.bleep/projects/spring-petclinic/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/spring-petclinic/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/spring-petclinic/maven-build/src/main/java"
+      "<BLEEP_GIT>/snapshot-tests/spring-petclinic/bootstrapped/.bleep/projects/spring-petclinic/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/spring-petclinic/maven-build/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/spring-petclinic/bootstrapped/.bleep/projects/spring-petclinic/generated-sources/annotations"
     ],
     "dependencies": [
       
@@ -118,8 +120,7 @@
     "java": {
       "options": [
         "--release",
-        "17",
-        "-proc:none"
+        "17"
       ]
     },
     "platform": {

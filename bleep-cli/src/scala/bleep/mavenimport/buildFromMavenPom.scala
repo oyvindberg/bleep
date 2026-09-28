@@ -714,14 +714,16 @@ object buildFromMavenPom {
         model.Dep.Java(groupId, artifactId, version)
       }
 
+    private val processingOff: Boolean = param("proc").contains("none") || compilerArgs.contains("-proc:none")
+
     def toJava: Option[model.Java] = {
       val versionArgs = release match {
         case Some(release) => List("--release", release)
         case None          => source.toList.flatMap(s => List("-source", s)) ++ target.toList.flatMap(t => List("-target", t))
       }
-      // TODO: without `<annotationProcessorPaths>` javac runs the processors on the classpath, which bleep only does with `scanForAnnotationProcessors`, and
-      // that fails when there are none. Which modules have one is not known here yet
-      val scan: Option[model.ScanForAnnotationProcessors] = None
+      // without `<annotationProcessorPaths>` javac runs whatever processors are on the classpath, lombok from `provided` say, and finding none is fine
+      val scan: Option[model.ScanForAnnotationProcessors] =
+        if (annotationProcessors.isEmpty && !processingOff) Some(model.ScanForAnnotationProcessors.IfPresent) else None
       val java = model.Java(
         options = model.Options.parse(versionArgs ++ compilerArgs, None),
         scanForAnnotationProcessors = scan,

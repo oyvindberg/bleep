@@ -5,8 +5,10 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-bundle/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-bundle/generated-sources/annotations",
       "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-bundle/src/main/java",
-      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-bundle/src/main/kotlin"
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-bundle/src/main/kotlin",
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-bundle/generated-sources/annotations"
     ],
     "dependencies": [
       "javalin",
@@ -79,8 +81,7 @@
     "java": {
       "options": [
         "--release",
-        "17",
-        "-proc:none"
+        "17"
       ]
     },
     "platform": {

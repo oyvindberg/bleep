@@ -5,8 +5,10 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-context-mock/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-context-mock/generated-sources/annotations",
       "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/src/main/java",
-      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/src/main/kotlin"
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-utils/javalin-context-mock/src/main/kotlin",
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-context-mock/generated-sources/annotations"
     ],
     "dependencies": [
       "javalin"
@@ -60,8 +62,7 @@
     "java": {
       "options": [
         "--release",
-        "17",
-        "-proc:none"
+        "17"
       ]
     },
     "platform": {

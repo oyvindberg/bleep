@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-integrationtest/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/integrationtest/src/main/java"
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-integrationtest/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/integrationtest/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-integrationtest/generated-sources/annotations"
     ],
     "dependencies": [
       
@@ -24,8 +26,7 @@
         "-source",
         "1.8",
         "-target",
-        "1.8",
-        "-proc:none"
+        "1.8"
       ]
     },
     "platform": {

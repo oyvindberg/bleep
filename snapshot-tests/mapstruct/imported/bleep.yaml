@@ -6,9 +6,13 @@ projects:
   mapstruct:
     extends: template-common-main
     folder: ../maven-build/core
+    java:
+      scanForAnnotationProcessors: if-present
   mapstruct-build-config:
     extends: template-common-main
     folder: ../maven-build/build-config
+    java:
+      scanForAnnotationProcessors: if-present
   mapstruct-distribution:
     dependencies:
     - configuration: provided
@@ -19,12 +23,16 @@ projects:
     dependsOn: mapstruct-processor
     extends: template-common-main
     folder: ../maven-build/distribution
+    java:
+      scanForAnnotationProcessors: if-present
   mapstruct-integrationtest:
     dependencies:
       configuration: provided
       module: javax.xml.bind:jaxb-api:2.3.1
     extends: template-common-main
     folder: ../maven-build/integrationtest
+    java:
+      scanForAnnotationProcessors: if-present
   mapstruct-integrationtest-test:
     dependencies:
     - commons-io:commons-io:2.15.0
@@ -41,11 +49,15 @@ projects:
     - template-common-test
     - template-java-8
     folder: ../maven-build/integrationtest
+    java:
+      scanForAnnotationProcessors: if-present
     platform:
       jvmOptions: -Dverifier.forkMode=auto
   mapstruct-jdk8:
     extends: template-common-main
     folder: ../maven-build/core-jdk8
+    java:
+      scanForAnnotationProcessors: if-present
   mapstruct-processor:
     dependencies:
     - org.freemarker:freemarker:2.3.34
@@ -97,6 +109,8 @@ projects:
     - template-common-test
     - template-java-8
     folder: ../maven-build/core
+    java:
+      scanForAnnotationProcessors: if-present
 resolvers:
   name: gradle
   type: maven

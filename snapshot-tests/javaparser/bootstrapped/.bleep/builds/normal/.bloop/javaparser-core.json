@@ -5,9 +5,11 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-sources/annotations",
       "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core/src/main/java",
-      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core/src/main/javacc-support"
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core/src/main/javacc-support",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-sources/annotations"
     ],
     "dependencies": [
       
@@ -25,8 +27,7 @@
       "options": [
         "--release",
         "8",
-        "-parameters",
-        "-proc:none"
+        "-parameters"
       ]
     },
     "platform": {

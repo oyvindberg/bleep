@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/example-conscrypt/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/docs/source/examples/conscrypt/src/main/java"
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/example-conscrypt/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/docs/source/examples/conscrypt/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/example-conscrypt/generated-sources/annotations"
     ],
     "dependencies": [
       "dropwizard-configuration",
@@ -136,8 +138,7 @@
         "-source",
         "17",
         "-target",
-        "17",
-        "-proc:none"
+        "17"
       ]
     },
     "platform": {

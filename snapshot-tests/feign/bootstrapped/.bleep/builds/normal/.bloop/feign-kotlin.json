@@ -5,8 +5,10 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-kotlin/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-kotlin/generated-sources/annotations",
       "<BLEEP_GIT>/snapshot-tests/feign/maven-build/kotlin/src/main/java",
-      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/kotlin/src/main/kotlin"
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/kotlin/src/main/kotlin",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-kotlin/generated-sources/annotations"
     ],
     "dependencies": [
       "feign-core"
@@ -36,8 +38,7 @@
         "-source",
         "1.8",
         "-target",
-        "1.8",
-        "-proc:none"
+        "1.8"
       ]
     },
     "platform": {

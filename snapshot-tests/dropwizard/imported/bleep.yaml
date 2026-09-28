@@ -6,6 +6,8 @@ projects:
   docs:
     extends: template-common-main
     folder: ../maven-build/docs
+    java:
+      scanForAnnotationProcessors: if-present
   dropwizard-assets:
     dependsOn: dropwizard-core
     extends:
@@ -192,6 +194,7 @@ projects:
     folder: ../maven-build/dropwizard-example
     java:
       options: --release 11
+      scanForAnnotationProcessors: if-present
   dropwizard-example-test:
     dependencies:
     - com.mysql:mysql-connector-j:26.7.0
@@ -209,6 +212,7 @@ projects:
     folder: ../maven-build/dropwizard-example
     java:
       options: --release 11
+      scanForAnnotationProcessors: if-present
   dropwizard-forms:
     dependencies: org.glassfish.jersey.media:jersey-media-multipart:3.1.12
     dependsOn: dropwizard-core
@@ -867,6 +871,7 @@ templates:
     extends: template-common
     java:
       options: -source 17 -target 17
+      scanForAnnotationProcessors: if-present
   template-java-17-test:
     dependencies: org.junit.jupiter:junit-jupiter-api:5.14.4
     extends:

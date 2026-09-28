@@ -5,7 +5,9 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-annotation-error-decoder-test/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/annotation-error-decoder/src/test/java"
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-annotation-error-decoder-test/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/annotation-error-decoder/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-annotation-error-decoder-test/generated-sources/annotations"
     ],
     "dependencies": [
       "feign-annotation-error-decoder",
@@ -67,8 +69,7 @@
         "-source",
         "25",
         "-target",
-        "25",
-        "-proc:none"
+        "25"
       ]
     },
     "test": {
