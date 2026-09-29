@@ -81,7 +81,7 @@ dependencies:
 | `transitive` | both | Default `true`. Set `false` to pin only the named artifact and ignore its dependencies. |
 | `attributes` | both | Extra Maven module attributes (rarely needed). |
 | `publication` | both | Override the resolved artifact's `name` / `type` / `ext` / `classifier`. |
-| `isSbtPlugin` | Java | Adds `sbtVersion=1.0` and `scalaVersion=2.12` attributes, needed when consuming an sbt plugin as a normal dependency. |
+| `isSbtPlugin` | both | An sbt plugin. On `org:name` it is an sbt 1 plugin: adds the `sbtVersion=1.0` and `scalaVersion=2.12` attributes sbt 1 looks plugins up by. On `org::name` the project's scala version says which sbt: sbt 1 for 2.12, and for 3 the sbt 2 plugin `name_sbt2_3`, so one line serves a project built for both. |
 | `forceJvm` | Scala | Pin the JVM artifact even on a JS or Native project. |
 | `for3Use213` | Scala | When the project is on Scala 3, resolve the Scala 2.13 build. The standard escape hatch for libraries not yet published for 3. |
 | `for213Use3` | Scala | The opposite. Rarely useful; binary compatibility usually doesn't carry that direction. |

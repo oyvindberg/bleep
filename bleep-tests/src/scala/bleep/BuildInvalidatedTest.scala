@@ -87,7 +87,8 @@ class BuildInvalidatedTest extends AnyFunSuite with Matchers {
           compilerPlugins = model.JsonSet.empty,
           strict = None,
           skipStdlib = None,
-          compilerProject = Some(cpn("compiler"))
+          compilerProject = Some(cpn("compiler")),
+          sbtPlugin = None
         )
       ),
       postCompile = Some(model.PostCompile(cpn("post"), "post.Main", model.JsonSet(cpn("input"))))

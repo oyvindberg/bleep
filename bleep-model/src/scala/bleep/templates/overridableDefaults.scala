@@ -25,7 +25,7 @@ object overridableDefaults {
       p => e.copy(ignoreEvictionErrors = p.ignoreEvictionErrors),
       p =>
         e.copy(scala =
-          p.scala.flatMap(sc => sc.strict.map(strict => model.Scala(None, model.Options.empty, None, model.JsonSet.empty, Some(strict), None, None)))
+          p.scala.flatMap(sc => sc.strict.map(strict => model.Scala(None, model.Options.empty, None, model.JsonSet.empty, Some(strict), None, None, None)))
         )
     )
   }

@@ -59,7 +59,7 @@ object templatesInfer {
   def withoutDeadSettings(p: model.Project): model.Project =
     p.scala match {
       case Some(scala) if scala.version.isEmpty =>
-        val stillRead = scala.skipStdlib.map(skip => model.Scala(None, model.Options.empty, None, model.JsonSet.empty, None, Some(skip), None))
+        val stillRead = scala.skipStdlib.map(skip => model.Scala(None, model.Options.empty, None, model.JsonSet.empty, None, Some(skip), None, None))
         p.copy(scala = stillRead)
       case _ => p
     }

@@ -703,7 +703,8 @@ object buildFromBloopFiles {
       compilerPlugins = model.JsonSet.fromIterable(filteredCompilerPlugins),
       strict = strict,
       skipStdlib = None,
-      compilerProject = None
+      compilerProject = None,
+      sbtPlugin = None
     )
   }
 

@@ -27,7 +27,8 @@ class IndirectDependencyTest extends AnyFunSuite with Matchers {
       compilerPlugins = JsonSet.empty,
       strict = None,
       skipStdlib = None,
-      compilerProject = None
+      compilerProject = None,
+      sbtPlugin = None
     )
 
   /** One project using every kind of indirect dependency, each on its own project. */

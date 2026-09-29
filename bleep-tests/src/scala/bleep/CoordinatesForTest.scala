@@ -23,7 +23,8 @@ class CoordinatesForTest extends AnyFunSuite {
       compilerPlugins = model.JsonSet.empty,
       strict = None,
       skipStdlib = None,
-      compilerProject = None
+      compilerProject = None,
+      sbtPlugin = None
     )
     val project = model.Project.empty.copy(scala = Some(scala))
     val dep = coords(projectName, project)
@@ -44,7 +45,8 @@ class CoordinatesForTest extends AnyFunSuite {
       compilerPlugins = model.JsonSet.empty,
       strict = Some(true),
       skipStdlib = None,
-      compilerProject = None
+      compilerProject = None,
+      sbtPlugin = None
     )
     val project = model.Project.empty.copy(scala = Some(scala))
     val dep = coords(projectName, project)

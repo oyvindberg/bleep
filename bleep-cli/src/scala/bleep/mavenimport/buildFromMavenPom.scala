@@ -172,7 +172,8 @@ object buildFromMavenPom {
         compilerPlugins = model.JsonSet.empty,
         strict = None,
         skipStdlib = None,
-        compilerProject = None
+        compilerProject = None,
+        sbtPlugin = None
       )
     }
 

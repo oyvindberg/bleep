@@ -285,7 +285,8 @@ object BuildCreateNew {
             compilerPlugins = model.JsonSet.empty,
             strict = Some(true),
             skipStdlib = None,
-            compilerProject = None
+            compilerProject = None,
+            sbtPlugin = None
           )
         ),
         kotlin = None,

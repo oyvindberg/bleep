@@ -14,7 +14,7 @@ class semanticDb(semanticDbVersion: String) extends BuildRewrite {
 
   def apply(name: model.CrossProjectName, explodedProject: model.Project, crossPlatforms: Set[model.PlatformId], buildPaths: BuildPaths): model.Project =
     explodedProject.scala match {
-      case Some(s @ model.Scala(Some(version), _, _, _, _, _, _)) =>
+      case Some(s @ model.Scala(Some(version), _, _, _, _, _, _, _)) =>
         val projectPaths = buildPaths.project(name, explodedProject, crossPlatforms)
         val addedScalacOptions = List(
           Some(compilerOption(version)),

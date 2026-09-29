@@ -21,7 +21,7 @@ class TemplateTest extends SnapshotTest {
   private def opts(flags: String*) = model.Options(flags.map(model.Options.Opt.Flag.apply).toSet)
   private def dep(s: String) = model.Dep.parse(s).getOrElse(sys.error(s"bad dep $s"))
   private def scala(options: model.Options, plugins: model.Dep*) =
-    model.Scala(Some(model.VersionScala.Scala213), options, None, model.JsonSet.fromIterable(plugins), None, None, None)
+    model.Scala(Some(model.VersionScala.Scala213), options, None, model.JsonSet.fromIterable(plugins), None, None, None, None)
 
   private val sharedOptions = opts("-deprecation", "-feature", "-unchecked", "-Xlint")
   private val kindProjector = dep("org.typelevel:::kind-projector:0.13.3")
@@ -105,7 +105,7 @@ class TemplateTest extends SnapshotTest {
     assert(build.projects.value(model.ProjectName("a")).dependencies.values.contains(depX))
   }
 
-  private def scalaV(v: String) = model.Scala(Some(model.VersionScala(v)), model.Options.empty, None, model.JsonSet.empty, None, None, None)
+  private def scalaV(v: String) = model.Scala(Some(model.VersionScala(v)), model.Options.empty, None, model.JsonSet.empty, None, None, None, None)
   private def crossName(name: String, id: String) = model.CrossProjectName(model.ProjectName(name), Some(model.CrossId(id)))
 
   private def crossBuilt(name: String) = Map(
