@@ -352,10 +352,33 @@ object Dep {
           .foldWith(ShortenAndSortJson(Nil))
     }
 
-  implicit val ordering: Ordering[Dep] =
+  /** By `repr`, the order a build file lists dependencies in, and for the same `repr` by every field it leaves out, with maps and sets in sorted order: two
+    * dependencies compare as equal exactly when they are
+    */
+  implicit val ordering: Ordering[Dep] = {
+    import scala.math.Ordering.Implicits.seqOrdering
+
+    def sorted[T: Ordering](values: Iterable[T]): List[T] = values.toList.sorted
+
+    // everything `repr` leaves out: organization, name, version and how it is cross versioned are in it
+    def rest(dep: Dep) = {
+      val (forceJvm, for3Use213, for213Use3, isSbtPlugin) = dep match {
+        case java: JavaDependency   => (false, false, false, java.isSbtPlugin)
+        case scala: ScalaDependency => (scala.forceJvm, scala.for3Use213, scala.for213Use3, scala.isSbtPlugin)
+      }
+      (
+        (dep.configuration.value, sorted(dep.attributes), dep.transitive),
+        sorted(dep.exclusions.value.map { case (org, modules) => (org.value, sorted(modules.values.map(_.value))) }),
+        (dep.publication.name, dep.publication.`type`.value, dep.publication.ext.value, dep.publication.classifier.value),
+        (forceJvm, for3Use213, for213Use3, isSbtPlugin)
+      )
+    }
+    val restOrdering = Ordering.by(rest)
+
     (x: Dep, y: Dep) =>
       x.repr.compare(y.repr) match {
-        case 0 => x.toString.compareTo(y.toString) // this is rather slow
+        case 0 => restOrdering.compare(x, y)
         case n => n
       }
+  }
 }
