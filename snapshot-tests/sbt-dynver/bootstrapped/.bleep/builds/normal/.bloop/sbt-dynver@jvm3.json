@@ -1,0 +1,199 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "sbt-dynver@jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/sbt-dynver@jvm3/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/sbtdynver/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/sbtdynver/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/sbtdynver/src/main/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/sbtdynver/src/main/scala-sbt-2"
+    ],
+    "dependencies": [
+      "dynver@jvm3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-apache-http_3/0.9.4/gigahorse-apache-http_3-0.9.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-core_3/0.9.4/gigahorse-core_3-0.9.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-apache-httpclient5/0.9.4/shaded-apache-httpclient5-0.9.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_3/1.3.2/shaded-jawn-parser_3-1.3.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_3/1.0.0-M4/shaded-scalajson_3-1.0.0-M4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_3/0.15.0/sjson-new-core_3-0.15.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-murmurhash_3/0.15.0/sjson-new-murmurhash_3-0.15.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_3/0.15.0/sjson-new-scalajson_3-0.15.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/2.8.5/caffeine-2.8.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/mwiede/jsch/0.2.23/jsch-0.2.23.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.4.0/error_prone_annotations-2.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.2/disruptor-3.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.12/file-tree-views-2.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.5/config-1.4.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_3/0.7.1/ssl-config-core_3-0.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.19.0/jna-platform-5.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.19.0/jna-5.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.4.1/checker-qual-3.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.4.1/jansi-2.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-builtins/3.27.1/jline-builtins-3.27.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.1/jline-reader-3.27.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-style/3.27.1/jline-style-3.27.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.27.1/jline-terminal-jni-3.27.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.1/jline-terminal-3.27.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.9.0-scala-1/scala-asm-9.9.0-scala-1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.14.0/scala-collection-compat_3-2.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_3/1.2.0/scala-parallel-collections_3-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_3/2.1.0/scala-parser-combinators_3-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.4.0/scala-xml_3-2.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/3.8.4/scala-library-3.8.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.8.4/scala3-compiler_3-3.8.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.8.4/scala3-interfaces-3.8.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.8.4/scala3-library_3-3.8.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.8.4/tasty-core_3-3.8.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/actions_3/2.0.2/actions_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/build-file_3/2.0.2/build-file_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/collections_3/2.0.2/collections_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/command_3/2.0.2/command_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/2.0.1/compiler-interface-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/completion_3/2.0.2/completion_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/core-macros_3/2.0.2/core-macros_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/gson/shaded-gson/2.13.1/shaded-gson-2.13.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_3/1.12.2/io_3-1.12.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ipcsocket/ipcsocket/1.8.0/ipcsocket-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ivy/ivy/2.3.0-sbt-939a7ea82f140cdb1f51dc404bb43e00a8c43b83/ivy-2.3.0-sbt-939a7ea82f140cdb1f51dc404bb43e00a8c43b83.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18/jline-2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.6.0/launcher-interface-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-core_3/2.0.2/librarymanagement-core_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-coursier_3/2.0.2/librarymanagement-coursier_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-ivy_3/2.0.2/librarymanagement-ivy_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/logic_3/2.0.2/logic_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/main-settings_3/2.0.2/main-settings_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/main_3/2.0.2/main_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/protocol_3/2.0.2/protocol_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/run_3/2.0.2/run_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbinary_3/0.5.1/sbinary_3-0.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/2.0.2/sbt-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/task-system_3/2.0.2/task-system_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/tasks_3/2.0.2/tasks_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/template-resolver/0.1/template-resolver-0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/testing_3/2.0.2/testing_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-cache_3/2.0.2/util-cache_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-control_3/2.0.2/util-control_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-core_3/2.0.2/util-core_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/2.0.2/util-interface-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-logging_3/2.0.2/util-logging_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-position_3/2.0.2/util-position_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-relation_3/2.0.2/util-relation_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-tracking_3/2.0.2/util-tracking_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/worker/2.0.2/worker-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-apiinfo_3/2.0.1/zinc-apiinfo_3-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classfile_3/2.0.1/zinc-classfile_3-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classpath_3/2.0.1/zinc-classpath_3-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-compile-core_3/2.0.1/zinc-compile-core_3-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-core_3/2.0.1/zinc-core_3-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-lm-integration_3/2.0.2/zinc-lm-integration_3-2.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-persist_3/2.0.1/zinc-persist_3-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc_3/2.0.1/zinc_3-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.28/slf4j-api-1.7.28.jar",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/dynver@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/dynver/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/sbt-dynver@jvm3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/sbt-dynver@jvm3/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/sbtdynver/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.8.4",
+      "options": [
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.8.4/scala3-compiler_3-3.8.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.8.4/scala3-interfaces-3.8.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.8.4/tasty-core_3-3.8.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.8.4/scala3-library_3-3.8.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.9.0-scala-1/scala-asm-9.9.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/3.8.4/scala-library-3.8.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/sbt-dynver@jvm3/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped"
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scala-sbt",
+          "name": "sbt",
+          "version": "2.0.2",
+          "artifacts": [
+            {
+              "name": "sbt",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/2.0.2/sbt-2.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "3.8.4",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/3.8.4/scala-library-3.8.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.8.4",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.8.4/scala3-library_3-3.8.4.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

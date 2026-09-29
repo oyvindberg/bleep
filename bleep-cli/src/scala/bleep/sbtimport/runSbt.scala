@@ -41,7 +41,10 @@ object runSbt {
       "SBT_OPTS" -> s"-Xmx$heapSize",
       "JAVA_HOME" -> javaHome.toString
     )
-    val sbt = List(sbtPath.toString) ++ List("-java-home", javaHome.toString)
+    // sbt 2's launcher starts a native client and an sbt server in the background, which outlives the import. `--server` runs sbt in the foreground,
+    // reading the commands piped to it, as sbt 1 does
+    val sbt2Launcher = if (version.startsWith("2.")) List("--server") else Nil
+    val sbt = List(sbtPath.toString) ++ sbt2Launcher ++ List("-java-home", javaHome.toString)
 
     FileUtils.deleteDirectory(destinationPaths.bleepImportDir)
 
@@ -143,12 +146,16 @@ object runSbt {
 
       val tempAddBloopPlugin = sbtBuildDir / "project" / "bleep-temp-add-bloop-plugin.sbt"
 
+      // sbt 2 runs plugins built for it: sbt-bloop 2.x, and the sbt 2 build of sbt-export-dependencies, which the same version has
+      val sbt2 = version.startsWith("2.")
+      val bloopVersion = if (sbt2) "2.1.2" else "1.5.6"
+
       FileUtils.writeString(
         logger,
         None,
         tempAddBloopPlugin,
         s"""
-  addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.6")
+  addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "$bloopVersion")
   addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.5.0")
   """
       )
@@ -161,15 +168,9 @@ object runSbt {
             s"""set ThisBuild / exportProjectsTo := file("${destinationPaths.bleepImportSbtExportDir}")""",
             s"""set Global / bloopConfigDir := file("${destinationPaths.bleepImportBloopDir / scalaVersion.scalaVersion}")"""
           ) ++ projects.flatMap { p =>
-            List(
-              s"$p/bloopGenerate",
-              s"$p/Test/bloopGenerate",
-              // if this configuration is not defined it seems to just return `None`
-              s"$p/IntegrationTest/bloopGenerate",
-              s"$p/exportProject",
-              s"$p/Test/exportProject",
-              s"$p/IntegrationTest/exportProject"
-            )
+            List(s"$p/bloopGenerate", s"$p/Test/bloopGenerate", s"$p/exportProject", s"$p/Test/exportProject") ++
+              // if this configuration is not defined it seems to just return `None`. sbt 2 has no IntegrationTest
+              (if (sbt2) Nil else List(s"$p/IntegrationTest/bloopGenerate", s"$p/IntegrationTest/exportProject"))
           }
 
         scalaVersionOutput.scalaVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = false) } ++
@@ -291,9 +292,20 @@ object runSbt {
         }
 
         def handleCrossScalaVersions(projectName: String): Unit = {
-          i = i + 1
-          val nextLine = lines(i)
-          val versions = nextLine.dropWhile(_ != '(').drop(1).takeWhile(_ != ')').split(",").map(_.trim).filterNot(_.isEmpty)
+          // sbt 1 shows a sequence on one line, `List(2.13.8, 2.12.16)`. sbt 2 shows one element per line, `* 2.13.8`
+          val Element = "\\[info\\]\\s+\\*\\s+(\\S+)".r
+          val versions: List[String] =
+            if (i + 1 < lines.length && lines(i + 1).contains("(")) {
+              i = i + 1
+              lines(i).dropWhile(_ != '(').drop(1).takeWhile(_ != ')').split(",").map(_.trim).filterNot(_.isEmpty).toList
+            } else {
+              val b = List.newBuilder[String]
+              while (i + 1 < lines.length && Element.unapplySeq(lines(i + 1).trim).isDefined) {
+                i = i + 1
+                b += Element.unapplySeq(lines(i).trim).get.head
+              }
+              b.result()
+            }
           versions.foreach { scalaVersion =>
             crossVersionsBuilder.getOrElseUpdate(model.VersionScala(scalaVersion), mutable.Set.empty).add(projectName)
           }

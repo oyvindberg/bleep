@@ -1,0 +1,181 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "dynver-test@jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/dynver-test@jvm212/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/dynver/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/dynver/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/dynver/src/test/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/dynver/src/test/scala-2.12"
+    ],
+    "dependencies": [
+      "dynver@jvm212"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/javaewah/JavaEWAH/1.1.13/JavaEWAH-1.1.13.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jgit/org.eclipse.jgit/5.13.3.202401111512-r/org.eclipse.jgit-5.13.3.202401111512-r.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.12/1.20.0/scalacheck_2.12-1.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/dynver@jvm212/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/dynver/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/dynver-test@jvm212/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/dynver-test@jvm212/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/dynver/src/test/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.21",
+      "options": [
+        "-Xfuture",
+        "-Xlint",
+        "-Yno-adapted-args",
+        "-Ywarn-dead-code",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-value-discard",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-release:8",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.21/scala-compiler-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.21/scala-reflect-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/dynver-test@jvm212/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "hedgehog.sbt.Framework",
+            "weaver.framework.CatsEffect",
+            "zio.test.sbt.ZTestFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.googlecode.javaewah",
+          "name": "JavaEWAH",
+          "version": "1.1.13",
+          "artifacts": [
+            {
+              "name": "JavaEWAH",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/javaewah/JavaEWAH/1.1.13/JavaEWAH-1.1.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jgit",
+          "name": "org.eclipse.jgit",
+          "version": "5.13.3.202401111512-r",
+          "artifacts": [
+            {
+              "name": "org.eclipse.jgit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jgit/org.eclipse.jgit/5.13.3.202401111512-r/org.eclipse.jgit-5.13.3.202401111512-r.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.21",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalacheck",
+          "name": "scalacheck_2.12",
+          "version": "1.20.0",
+          "artifacts": [
+            {
+              "name": "scalacheck_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.12/1.20.0/scalacheck_2.12-1.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.30",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

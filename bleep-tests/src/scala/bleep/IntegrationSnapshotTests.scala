@@ -115,6 +115,11 @@ class IntegrationSnapshotTests extends SnapshotTest {
     )
   }
 
+  // an sbt plugin built for sbt 1 (scala 2.12) and sbt 2 (scala 3), by a build which itself runs on sbt 2
+  test("sbt-dynver") {
+    testIn("sbt-dynver", "https://github.com/sbt/sbt-dynver.git", "431f109")
+  }
+
   // an sbt plugin built for sbt 1 and sbt 2, depending on plugins built for both, by a build which runs on sbt 1
   test("sbt-ci-release") {
     testIn("sbt-ci-release", "https://github.com/sbt/sbt-ci-release.git", "5223f16")
