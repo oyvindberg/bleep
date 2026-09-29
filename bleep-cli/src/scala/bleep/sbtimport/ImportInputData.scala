@@ -25,7 +25,9 @@ case class ImportInputData(
     bloopFileStrings: Vector[(Path, String)],
     sbtExportFilePaths: Vector[(Path, String)],
     hasSources: SortedSet[Path],
-    generatedFilesBySourceDir: SortedMap[Path, Vector[GeneratedFile]]
+    generatedFilesBySourceDir: SortedMap[Path, Vector[GeneratedFile]],
+    /** source files sbt does not compile, in a directory it generates sources into: left there by an older generator, say. By directory */
+    notCompiledBySbt: SortedMap[Path, SortedSet[Path]]
 ) {
 
   def replace(r: model.Replacements.Replacer, rewriteGeneratedFiles: Boolean): ImportInputData =
@@ -45,7 +47,8 @@ case class ImportInputData(
               )
             )
           )
-        }
+        },
+      notCompiledBySbt.map { case (dir, files) => (r.path(dir), files.map(r.path)) }
     )
 
   lazy val bloopFiles: Vector[Config.File] =
@@ -200,7 +203,27 @@ object ImportInputData {
         .groupMap { case (path, _) => path } { case (_, gen) => gen }
         .to(SortedMap.sortedMapFactory)
 
-    new ImportInputData(bloopFileStrings, sbtExportFileStrings, hasSources, generatedFilesBySourceFolder)
+    // a directory sbt generates sources into, outside its target directory, may hold source files sbt does not compile. The import sees directories
+    val notCompiledBySbt: SortedMap[Path, SortedSet[Path]] = {
+      def isSource(path: Path): Boolean = path.toString.endsWith(".scala") || path.toString.endsWith(".java")
+      val generated: Set[Path] =
+        sbtExportFileStrings.flatMap { case (path, contents) => ReadSbtExportFile.parse(path, contents).managedSources.map(Path.of(_)) }.toSet
+      bloopFiles.iterator
+        .flatMap { file =>
+          val target = findOriginalTargetDir(file.project)
+          file.project.sources.filterNot(dir => target.exists(dir.startsWith))
+        }
+        .distinct
+        .filter(dir => Files.isDirectory(dir) && generated.exists(_.startsWith(dir)))
+        .flatMap { dir =>
+          val notCompiled =
+            scala.util.Using.resource(Files.walk(dir))(_.iterator().asScala.filter(p => Files.isRegularFile(p) && isSource(p)).toList).filterNot(generated)
+          if (notCompiled.isEmpty) None else Some((dir, SortedSet.from(notCompiled)))
+        }
+        .to(SortedMap.sortedMapFactory)
+    }
+
+    new ImportInputData(bloopFileStrings, sbtExportFileStrings, hasSources, generatedFilesBySourceFolder, notCompiledBySbt)
   }
 
   def findGeneratedJsonFiles(under: Path): Vector[Path] =

@@ -30,7 +30,9 @@ object ReadSbtExportFile {
       crossVersion: CrossVersion,
       libraryDependencySchemes: Seq[ModuleID],
       evictionErrorLevel: Level.Value,
-      projectDependencies: Seq[ProjectDependency]
+      projectDependencies: Seq[ProjectDependency],
+      /** the files sbt compiles from its source generators, absolute */
+      managedSources: Seq[String]
   )
 
   /** A project of the same build this one depends on, and how its configurations map to this one's (`compile->compile;provided->provided`). None is sbt's
@@ -112,6 +114,7 @@ object ReadSbtExportFile {
             val libraryDependencySchemes = unbuilder.readField[Seq[ModuleID]]("libraryDependencySchemes")
             val evictionErrorLevel = unbuilder.readField[Level.Value]("evictionErrorLevel")
             val projectDependencies = unbuilder.readField[Seq[ProjectDependency]]("projectDependencies")
+            val managedSources = unbuilder.readField[Seq[String]]("managedSources")
             unbuilder.endObject()
 
             ExportedProject(
@@ -125,7 +128,8 @@ object ReadSbtExportFile {
               crossVersion,
               libraryDependencySchemes,
               evictionErrorLevel,
-              projectDependencies
+              projectDependencies,
+              managedSources
             )
           case None =>
             sjsonnew.deserializationError("expected a json value to read")
@@ -145,6 +149,7 @@ object ReadSbtExportFile {
         builder.addField("libraryDependencySchemes", obj.libraryDependencySchemes)
         builder.addField("evictionErrorLevel", obj.evictionErrorLevel)
         builder.addField("projectDependencies", obj.projectDependencies)
+        builder.addField("managedSources", obj.managedSources)
         builder.endObject()
       }
     }

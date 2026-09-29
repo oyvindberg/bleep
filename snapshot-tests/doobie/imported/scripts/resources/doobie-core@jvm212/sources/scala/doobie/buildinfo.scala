@@ -4,6 +4,6 @@ package doobie
 object buildinfo {
   /** Current version of doobie (1.0.0-RC9). */
   val version = "1.0.0-RC9"
-  /** Build date (Tue Sep 29 00:58:54 CEST 2026). */
-  val date    = new java.util.Date(1790636334025L)
+  /** Build date (Tue Sep 29 13:22:44 CEST 2026). */
+  val date    = new java.util.Date(1790680964869L)
 }

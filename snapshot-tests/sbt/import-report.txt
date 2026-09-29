@@ -1,13 +1,21 @@
 # template inference
 templates: 10
 projects: 50
-settings: 379 (340 in projects, 39 in templates)
+settings: 652 (613 in projects, 39 in templates)
 
 # roundtrip
 sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
 imported from sbt but not in the bleep build: none
 sbt bloop projects dropped by the import: bundledLauncherProj, bundledLauncherProj-test, coreMacrosProj-test, dependencyTreeProj-test, lowerUtils, lowerUtils-test, protocolProj-test, sbtClientProj-test, scriptedPluginProj-test, scriptedSbtOldProj-test, testAgentProj-test, testingProj-test, upperModules, upperModules-test, utilControl-test, utilInterface-test, utilScripted-test
-compared: 88, identical: 85
+compared: 88, identical: 83
+
+protocol@jvm212
+  sources
+    - sbt-build/protocol/src/main/contraband-scala
+
+protocol@jvm213
+  sources
+    - sbt-build/protocol/src/main/contraband-scala
 
 sbt-dependency-tree
   classpath
