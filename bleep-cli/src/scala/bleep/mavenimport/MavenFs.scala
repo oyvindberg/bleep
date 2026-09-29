@@ -50,7 +50,12 @@ object MavenFs {
     }
   }
 
-  /** The answers to every question an import asked, keyed by path as a string so they can be templated like any other text */
+  /** A path as a recording keys it: as a string, so it can be templated like any other text, and with `/` between its parts, so a recording made on one
+    * operating system answers on all of them
+    */
+  def key(p: Path): String = p.toString.replace('\\', '/')
+
+  /** The answers to every question an import asked, keyed by [[key]] */
   case class Recorded(
       isDirectory: SortedMap[String, Boolean],
       isRegularFile: SortedMap[String, Boolean],
@@ -88,13 +93,13 @@ object MavenFs {
     private val listAnswers = mutable.Map.empty[String, List[String]]
     private val walkAnswers = mutable.Map.empty[String, List[String]]
 
-    override def isDirectory(p: Path): Boolean = isDirectoryAnswers.getOrElseUpdate(p.toString, underlying.isDirectory(p))
-    override def isRegularFile(p: Path): Boolean = isRegularFileAnswers.getOrElseUpdate(p.toString, underlying.isRegularFile(p))
-    override def exists(p: Path): Boolean = existsAnswers.getOrElseUpdate(p.toString, underlying.exists(p))
-    override def realPath(p: Path): Path = Path.of(realPathAnswers.getOrElseUpdate(p.toString, underlying.realPath(p).toString))
-    override def readString(p: Path): String = readStringAnswers.getOrElseUpdate(p.toString, underlying.readString(p))
-    override def list(dir: Path): List[Path] = listAnswers.getOrElseUpdate(dir.toString, underlying.list(dir).map(_.toString)).map(Path.of(_))
-    override def walk(dir: Path): List[Path] = walkAnswers.getOrElseUpdate(dir.toString, underlying.walk(dir).map(_.toString)).map(Path.of(_))
+    override def isDirectory(p: Path): Boolean = isDirectoryAnswers.getOrElseUpdate(key(p), underlying.isDirectory(p))
+    override def isRegularFile(p: Path): Boolean = isRegularFileAnswers.getOrElseUpdate(key(p), underlying.isRegularFile(p))
+    override def exists(p: Path): Boolean = existsAnswers.getOrElseUpdate(key(p), underlying.exists(p))
+    override def realPath(p: Path): Path = Path.of(realPathAnswers.getOrElseUpdate(key(p), underlying.realPath(p).toString))
+    override def readString(p: Path): String = readStringAnswers.getOrElseUpdate(key(p), underlying.readString(p))
+    override def list(dir: Path): List[Path] = listAnswers.getOrElseUpdate(key(dir), underlying.list(dir).map(key)).map(Path.of(_))
+    override def walk(dir: Path): List[Path] = walkAnswers.getOrElseUpdate(key(dir), underlying.walk(dir).map(key)).map(Path.of(_))
 
     def recorded: Recorded =
       Recorded(
@@ -109,10 +114,26 @@ object MavenFs {
   }
 
   /** Answers from a recording. A question the recording has no answer for means the import reads something it did not read when the recording was made */
-  class Replay(recorded: Recorded) extends MavenFs {
+  class Replay(recorded0: Recorded) extends MavenFs {
+    // a recording filled in with paths of this machine: on windows the build's own directory, `D:\a\bleep\bleep`, comes in with `\`. Paths only, what
+    // files contain is left as it is
+    private val recorded = {
+      def slashes(path: String): String = path.replace('\\', '/')
+      def keys[V](m: SortedMap[String, V]): SortedMap[String, V] = m.map { case (k, v) => (slashes(k), v) }
+      Recorded(
+        isDirectory = keys(recorded0.isDirectory),
+        isRegularFile = keys(recorded0.isRegularFile),
+        exists = keys(recorded0.exists),
+        realPath = recorded0.realPath.map { case (k, v) => (slashes(k), slashes(v)) },
+        readString = keys(recorded0.readString),
+        list = recorded0.list.map { case (k, v) => (slashes(k), v.map(slashes)) },
+        walk = recorded0.walk.map { case (k, v) => (slashes(k), v.map(slashes)) }
+      )
+    }
+
     private def answer[V](what: String, answers: SortedMap[String, V], p: Path): V =
       answers.getOrElse(
-        p.toString,
+        key(p),
         throw new BleepException.Text(s"The maven import asked $what for $p, which the recording has no answer for. Regenerate the recording")
       )
 
