@@ -408,8 +408,12 @@ patterns don't have a direct equivalent:
 - **sbt plugins** are cross built like anything else: `scala.sbtPlugin: true`
   on a project with a `jvm212` and a `jvm3` cross id is a plugin for sbt 1 and
   for sbt 2. It publishes as `name_2.12_1.0` and `name_sbt2_3`, the names sbt
-  looks plugins up by. Other plugins it depends on are `org::name` with
-  `isSbtPlugin: true`, which resolves the sbt 1 or sbt 2 build to match.
+  looks plugins up by. To a local ivy repository (`bleep publish local-ivy`) the
+  sbt 1 build goes where sbt 1 looks there, `name/scala_2.12/sbt_1.0/`. Its
+  sources are in `src/scala-sbt-1.0` and `src/scala-sbt-2` as well as the usual
+  directories: the `sbt-plugin` source layout. Other plugins it depends on are
+  `org::name` with `isSbtPlugin: true`, which resolves the sbt 1 or sbt 2 build
+  to match.
 
 ## Compiling cross projects
 

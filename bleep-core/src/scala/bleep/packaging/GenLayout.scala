@@ -6,7 +6,7 @@ import coursier.core.{Configuration, Dependency, Info}
 
 import java.nio.charset.StandardCharsets
 import scala.annotation.nowarn
-import scala.xml.{Elem, NodeSeq}
+import scala.xml.{Elem, NodeSeq, Null, PrefixedAttribute}
 
 @nowarn("msg=unused value of type scala.xml.NodeBuffer")
 object GenLayout {
@@ -62,16 +62,25 @@ object GenLayout {
     (prelude + p.format(xml)).getBytes(StandardCharsets.UTF_8)
   }
 
+  /** A module's attributes, as ivy has them: `e:sbtVersion="1.0" e:scalaVersion="2.12"` on an sbt 1 plugin */
+  private def withAttributes(elem: Elem, dep: Dependency): Elem =
+    dep.module.attributes.toList.sorted.foldLeft(elem) { case (elem, (key, value)) => elem % new PrefixedAttribute("e", key, value, Null) }
+
   def ivyFile(self: Dependency, deps: List[Dependency]): Elem = {
     <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
-      <info organisation={self.module.organization.value}
+      {
+      withAttributes(
+        <info organisation={self.module.organization.value}
             module={self.module.name.value}
             revision={self.versionConstraint.asString}
             status="release">
         <description>
           {self.module.name.value}
         </description>
-      </info>
+      </info>,
+        self
+      )
+    }
       <configurations>
         <conf name="compile" visibility="public" description=""/>
         <conf name="runtime" visibility="public" description="" extends="compile"/>
@@ -92,12 +101,15 @@ object GenLayout {
       </publications>
       <dependencies>{
       deps.map { dep =>
-        <dependency
+        withAttributes(
+          <dependency
           org={dep.module.organization.value}
           name={dep.module.name.value}
           rev={dep.versionConstraint.asString}
           conf={dep.configurationOrThrow.value}
-          />
+          />,
+          dep
+        )
       }
     }
       </dependencies>
@@ -117,8 +129,8 @@ object GenLayout {
       if (ts.isEmpty) NodeSeq.Empty else asXml(ts)
   }
 
-  /** The artifact a pom names. An sbt 1 plugin is resolved by its base name and attributes, which a pom cannot say, and is published under the name
-    * [[model.Scala.SbtPlugin.Sbt1]] gives it: `sbt-dynver_2.12_1.0`
+  /** The artifact a pom names, and a maven repository has it under. An sbt 1 plugin is resolved by its base name and attributes, which a pom cannot say, and is
+    * published under the name [[model.Scala.SbtPlugin.Sbt1]] gives it: `sbt-dynver_2.12_1.0`
     */
   def artifactId(dep: Dependency): String =
     dep.module.attributes match {
@@ -163,7 +175,7 @@ object GenLayout {
     <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
       <modelVersion>4.0.0</modelVersion>
       <groupId>{self.module.organization.value}</groupId>
-      <artifactId>{self.module.name.value}</artifactId>
+      <artifactId>{artifactId(self)}</artifactId>
       <packaging>jar</packaging>
       <description>{info.description}</description>
       <url>{info.homePage}</url>
@@ -182,7 +194,7 @@ object GenLayout {
       </licenses>
       }
     }
-      <name>{self.module.name.value}</name>
+      <name>{artifactId(self)}</name>
       <organization>
         <name>{self.module.organization.value}</name>
         <url>{info.homePage}</url>

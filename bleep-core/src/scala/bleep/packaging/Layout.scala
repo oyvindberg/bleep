@@ -38,8 +38,14 @@ object IvyLayout {
   def unit(p: Dependency): IvyLayout[RelPath, Unit] =
     apply(p, (), (), (), (), ())
 
+  /** An ivy repository has an sbt 1 plugin's attributes in its path, as sbt 1 looks for it there: `[organisation]/[module]/scala_2.12/sbt_1.0/[revision]`
+    * (`Resolver.PluginPattern` in librarymanagement). An sbt 2 plugin has no attributes
+    */
   def apply[T](self: Dependency, jarFile: T, sourceFile: T, ivyFile: T, pomFile: T, docFile: T): IvyLayout[RelPath, T] = {
-    val libraryPath = RelPath.of(self.module.organization.value, self.module.name.value, self.versionConstraint.asString)
+    val attributeDirs = List("scalaVersion" -> "scala_", "sbtVersion" -> "sbt_").flatMap { case (attribute, prefix) =>
+      self.module.attributes.get(attribute).map(value => s"$prefix$value")
+    }
+    val libraryPath = RelPath.of(self.module.organization.value :: self.module.name.value :: attributeDirs ++ List(self.versionConstraint.asString)*)
     IvyLayout(
       jarFile = libraryPath / "jars" / s"${self.module.name.value}.jar" -> jarFile,
       sourceFile = libraryPath / "srcs" / s"${self.module.name.value}-sources.jar" -> sourceFile,
@@ -60,12 +66,16 @@ final case class MavenLayout[F, V](jarFile: (F, V), sourceFile: (F, V), pomFile:
 }
 
 object MavenLayout {
+  def unit(p: Dependency): MavenLayout[RelPath, Unit] =
+    apply(p, (), (), (), ())
+
   def apply[T](self: Dependency, jarFile: T, sourceFile: T, pomFile: T, docFile: T): MavenLayout[RelPath, T] = {
     val orgFragment: RelPath =
       self.module.organization.value.split("\\.").foldLeft(RelPath.empty)(_ / _)
 
+    val artifactId = GenLayout.artifactId(self)
     def baseFile(ext: String): RelPath =
-      orgFragment / self.module.name.value / self.versionConstraint.asString / s"${self.module.name.value}-${self.versionConstraint.asString}$ext"
+      orgFragment / artifactId / self.versionConstraint.asString / s"$artifactId-${self.versionConstraint.asString}$ext"
 
     MavenLayout(
       jarFile = baseFile(".jar") -> jarFile,
