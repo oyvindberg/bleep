@@ -1,7 +1,7 @@
 # template inference
 templates: 3
 projects: 12
-settings: 84 (73 in projects, 11 in templates)
+settings: 85 (74 in projects, 11 in templates)
 
 # roundtrip
 sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
@@ -12,4 +12,3 @@ compared: 11, identical: 10
 sbt-converter
   classpath
     ~ httpcore: 4.4.13 -> 4.4.11
-    ~ netty-transport-native-epoll: 4.1.53.Final-<MASKED_OS>-x86_64 -> 4.1.53.Final-<MASKED_OS>-x86_64

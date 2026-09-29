@@ -70,7 +70,7 @@ projects:
   sbt-converter:
     dependencies:
     - isSbtPlugin: true
-      module: ch.epfl.scala:sbt-scalajs-bundler:0.21.1
+      module: ch.epfl.scala::sbt-scalajs-bundler:0.21.1
     - configuration: provided
       module: org.scala-sbt:sbt:1.8.0
     - software.amazon.awssdk:s3:2.15.28
@@ -79,6 +79,7 @@ projects:
     folder: ../sbt-build/sbt-converter
     scala:
       options: -Wconf:cat=unused-nowarn:s -Xsource:3
+      sbtPlugin: true
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts

@@ -303,6 +303,7 @@ projects:
     libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
     scala:
       options: -Wconf:cat=unused-nowarn:s -Xsource:3
+      sbtPlugin: true
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts

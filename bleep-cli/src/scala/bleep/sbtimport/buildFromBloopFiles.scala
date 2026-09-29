@@ -245,7 +245,11 @@ object buildFromBloopFiles {
 
       val configuredScala: Option[model.Scala] =
         if (isJavaArtifact) None
-        else bloopProject.scala.map(translateScala(compilerPlugins, replacements, versionCombo, depReplacements))
+        else
+          bloopProject.scala
+            .map(translateScala(compilerPlugins, replacements, versionCombo, depReplacements))
+            // `sbtPlugin := true` is what gives a project its dependency on sbt
+            .map(scala => if (isSbtPlugin) scala.copy(sbtPlugin = Some(true)) else scala)
 
       val testFrameworks: model.JsonSet[model.TestFrameworkName] =
         if (projectType.testLike) {
@@ -479,6 +483,20 @@ object buildFromBloopFiles {
       }
 
     JavaOrScalaModule.parse(platformId, moduleID.organization, moduleID.name, moduleID.crossVersion).map {
+      case x: JavaOrScalaModule.JavaModule if extractIsSbt(moduleID.extraAttributes)._1 =>
+        // an sbt 1 plugin. As `org::name` it is also the sbt 2 build of the plugin, for the scala 3 build of a plugin which depends on it
+        model.Dep.ScalaDependency(
+          organization = x.module.organization,
+          baseModuleName = x.module.name,
+          version = moduleID.revision,
+          fullCrossVersion = false,
+          attributes = extractIsSbt(moduleID.extraAttributes)._2,
+          configuration = configuration,
+          exclusions = exclusions,
+          publication = publication,
+          transitive = moduleID.isTransitive,
+          isSbtPlugin = true
+        )
       case x: JavaOrScalaModule.JavaModule =>
         val (isSbtPlugin, attrs) = extractIsSbt(moduleID.extraAttributes)
         model.Dep.JavaDependency(

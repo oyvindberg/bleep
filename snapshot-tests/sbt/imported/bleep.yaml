@@ -506,6 +506,7 @@ projects:
     folder: ../sbt-build/dependency-tree
     scala:
       options: -Xsource:3
+      sbtPlugin: true
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts

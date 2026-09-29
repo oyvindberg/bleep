@@ -163,9 +163,8 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-sbt
+    - template-scala-2.12-wconf
     folder: ../sbt-build/dev-mode/play-docs-sbt-plugin
-    scala:
-      options: -Wconf:cat=unused-nowarn:s
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts
@@ -661,14 +660,14 @@ projects:
   sbt-plugin:
     dependencies:
     - isSbtPlugin: true
-      module: com.github.sbt:sbt-js-engine:1.3.9
+      module: com.github.sbt::sbt-js-engine:1.3.9
     - isSbtPlugin: true
-      module: com.github.sbt:sbt-native-packager:1.11.3
+      module: com.github.sbt::sbt-native-packager:1.11.3
     - isSbtPlugin: true
-      module: com.github.sbt:sbt-web:1.5.8
+      module: com.github.sbt::sbt-web:1.5.8
     - com.typesafe:config:1.4.4
     - isSbtPlugin: true
-      module: org.playframework.twirl:sbt-twirl:2.1.0-M4
+      module: org.playframework.twirl::sbt-twirl:2.1.0-M4
     - configuration: provided
       module: org.scala-lang:scala-reflect:${SCALA_VERSION}
     - org.slf4j:slf4j-simple:2.0.17
@@ -678,9 +677,8 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-sbt
+    - template-scala-2.12-wconf
     folder: ../sbt-build/dev-mode/sbt-plugin
-    scala:
-      options: -Wconf:cat=unused-nowarn:s
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts
@@ -695,9 +693,8 @@ projects:
     - template-common-test
     - template-scala-2-and-3-specs2-core
     - template-scala-2.12-sbt
+    - template-scala-2.12-wconf
     folder: ../sbt-build/dev-mode/sbt-plugin
-    scala:
-      options: -Wconf:cat=unused-nowarn:s
     sources: ./src/${SCOPE}/scala-sbt-1.0
   sbt-routes-compiler:
     dependencies:
@@ -725,9 +722,8 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-sbt
+    - template-scala-2.12-wconf
     folder: ../sbt-build/dev-mode/sbt-scripted-tools
-    scala:
-      options: -Wconf:cat=unused-nowarn:s
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts
@@ -816,6 +812,11 @@ templates:
       module: org.scala-sbt:sbt:1.11.4
     extends: template-scala-2.12
     libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
+  template-scala-2.12-wconf:
+    extends: template-scala-2.12
+    scala:
+      options: -Wconf:cat=unused-nowarn:s
+      sbtPlugin: true
   template-scala-2.13:
     extends:
     - template-scala-2
