@@ -13,12 +13,16 @@ import scala.collection.immutable.SortedSet
 import scala.collection.mutable
 
 // this is a performance cache, the real cache is the coursier folder
-class TestResolver(underlying: CoursierResolver, inMemoryCache: mutable.Map[CoursierResolver.Cached.Request, CoursierResolver.Result])
-    extends CoursierResolver {
+class TestResolver(
+    underlying: CoursierResolver,
+    inMemoryCache: mutable.Map[CoursierResolver.Cached.Request, CoursierResolver.Result],
+    /** the requests this run made, which are what is written back */
+    used: mutable.Set[CoursierResolver.Cached.Request]
+) extends CoursierResolver {
   override val params = underlying.params
 
   override def withParams(newParams: Params): CoursierResolver =
-    new TestResolver(underlying.withParams(newParams), inMemoryCache)
+    new TestResolver(underlying.withParams(newParams), inMemoryCache, used)
 
   override def resolve(
       deps: SortedSet[model.Dep],
@@ -29,6 +33,7 @@ class TestResolver(underlying: CoursierResolver, inMemoryCache: mutable.Map[Cour
     if (deps.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
     else {
       val request = CoursierResolver.Cached.Request(deps, underlying.params, versionCombo, libraryVersionSchemes)
+      used += request
 
       inMemoryCache.get(request) match {
         case Some(value) => Right(value)
@@ -76,6 +81,9 @@ object TestResolver {
       Left(complain)
   }
 
+  /** Resolves through the cache in `cacheFolder`, which CI must never need to add to. Locally, a run which succeeds writes it back with the requests the run
+    * made and no others, in a stable order: a cache changes when what the build resolves does, and never otherwise. A run which fails leaves it as it was
+    */
   def withFactory[T](isCi: Boolean, cacheFolder: Path, replacements: model.Replacements)(f: CoursierResolver.Factory => T): T = {
     val cacheFile = cacheFolder / "resolve-cache.json.gz"
 
@@ -99,6 +107,7 @@ object TestResolver {
         } else Vector.empty
       mutable.Map.from(existing)
     }
+    val used = mutable.Set.empty[Cached.Request]
 
     val factory: CoursierResolver.Factory = { (pre, _, buildFile) =>
       lazy val replacements = model.Replacements.paths(pre.buildPaths.buildDir)
@@ -118,22 +127,23 @@ object TestResolver {
       )
       val credentialProvider = new CredentialProvider(pre.logger, None)
       val underlying = if (isCi) NoDownloadInCI(params) else new CoursierResolver.Direct(pre.logger, pre.cacheLogger, params, credentialProvider)
-      val cached = new TestResolver(underlying, inMemoryCache)
+      val cached = new TestResolver(underlying, inMemoryCache, used)
       new CoursierResolver.TemplatedVersions(cached, maybeWantedBleepVersion = None, buildDir = None)
     }
 
-    try f(factory)
-    finally
-      if (!isCi) {
-        val vector = inMemoryCache.toVector.map { case (req, res) =>
-          val trimmedRes = res.copy(fullDetailedArtifacts = res.fullDetailedArtifacts.map { case (dep, p, a, of) =>
-            val slimmedArtifact = a.copy(extra = Map.empty, checksumUrls = Map.empty)
-            val templatedFile = of.map(writeReplacements.templatize.file)
-            (dep, p, slimmedArtifact, templatedFile)
-          })
-          (req, trimmedRes)
-        }
-        FileUtils.writeGzippedBytes(cacheFile, vector.asJson.noSpaces.getBytes(StandardCharsets.UTF_8))
+    val result = f(factory)
+    if (!isCi) {
+      val entries = used.toVector.map { req =>
+        val res = inMemoryCache(req)
+        val trimmedRes = res.copy(fullDetailedArtifacts = res.fullDetailedArtifacts.map { case (dep, p, a, of) =>
+          val slimmedArtifact = a.copy(extra = Map.empty, checksumUrls = Map.empty)
+          val templatedFile = of.map(writeReplacements.templatize.file)
+          (dep, p, slimmedArtifact, templatedFile)
+        })
+        (req.asJson.noSpaces, (req, trimmedRes))
       }
+      FileUtils.writeGzippedBytes(cacheFile, entries.sortBy(_._1).map(_._2).asJson.noSpaces.getBytes(StandardCharsets.UTF_8))
+    }
+    result
   }
 }
