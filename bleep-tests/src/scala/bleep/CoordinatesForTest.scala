@@ -84,4 +84,34 @@ class CoordinatesForTest extends AnyFunSuite {
 
     assert(dep.repr == "real.group:myartifact:2.0.0")
   }
+
+  private def sbtPlugin(scalaVersion: model.VersionScala): model.Project =
+    model.Project.empty
+      .copy(scala = Some(model.Scala(Some(scalaVersion), model.Options.empty, None, model.JsonSet.empty, None, None, None, sbtPlugin = Some(true))))
+
+  test("an sbt plugin for scala 2.12 publishes under sbt 1's name") {
+    assert(coords(projectName, sbtPlugin(model.VersionScala.Scala212)).repr == "com.example:myartifact_2.12_1.0:1.0.0")
+  }
+
+  test("an sbt plugin for scala 3 publishes under sbt 2's name") {
+    assert(coords(projectName, sbtPlugin(model.VersionScala.Scala3)).repr == "com.example:myartifact_sbt2_3:1.0.0")
+  }
+
+  test("an sbt plugin for another scala version is an error") {
+    assertThrows[BleepException](coords(projectName, sbtPlugin(model.VersionScala.Scala213)))
+  }
+
+  test("a pom names an sbt 1 plugin dependency by its published name, an sbt 2 one already has it") {
+    val dynver = model.Dep.ScalaDependency(
+      coursier.core.Organization("com.github.sbt"),
+      coursier.core.ModuleName("sbt-dynver"),
+      "5.1.1",
+      fullCrossVersion = false,
+      isSbtPlugin = true
+    )
+    def artifactId(scalaVersion: model.VersionScala) =
+      packaging.GenLayout.artifactId(dynver.asJava(model.VersionCombo.Jvm(scalaVersion)).orThrowText.dependency)
+    assert(artifactId(model.VersionScala.Scala212) == "sbt-dynver_2.12_1.0")
+    assert(artifactId(model.VersionScala.Scala3) == "sbt-dynver_sbt2_3")
+  }
 }

@@ -405,10 +405,11 @@ patterns don't have a direct equivalent:
   beyond the binary version, `cross:` overrides happen by `crossId`,
   not by minor-version patterns. The pragmatic workaround is naming
   the cross-id distinctly per minor (`jvm213_11`, `jvm213_15`).
-- **Cross-built sbt plugins** (consumed as `Dep.SbtPlugin`) aren't
-  supported as a publish target, bleep can depend on them via the
-  long-form dep with `isSbtPlugin: true`, but it doesn't itself
-  publish sbt plugins.
+- **sbt plugins** are cross built like anything else: `scala.sbtPlugin: true`
+  on a project with a `jvm212` and a `jvm3` cross id is a plugin for sbt 1 and
+  for sbt 2. It publishes as `name_2.12_1.0` and `name_sbt2_3`, the names sbt
+  looks plugins up by. Other plugins it depends on are `org::name` with
+  `isSbtPlugin: true`, which resolves the sbt 1 or sbt 2 build to match.
 
 ## Compiling cross projects
 

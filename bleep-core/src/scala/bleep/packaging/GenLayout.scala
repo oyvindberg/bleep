@@ -117,10 +117,23 @@ object GenLayout {
       if (ts.isEmpty) NodeSeq.Empty else asXml(ts)
   }
 
+  /** The artifact a pom names. An sbt 1 plugin is resolved by its base name and attributes, which a pom cannot say, and is published under the name
+    * [[model.Scala.SbtPlugin.Sbt1]] gives it: `sbt-dynver_2.12_1.0`
+    */
+  def artifactId(dep: Dependency): String =
+    dep.module.attributes match {
+      case attributes if attributes.isEmpty => dep.module.name.value
+      case model.Dep.SbtPluginAttrs         => model.Scala.SbtPlugin.Sbt1.artifactName(dep.module.name.value)
+      case other                            =>
+        throw new BleepException.Text(
+          s"${dep.module.repr} has attributes a pom cannot say: ${other.toList.sorted.map { case (k, v) => s"$k=$v" }.mkString(", ")}"
+        )
+    }
+
   private def dependencyXml(dep: Dependency, bomImport: Boolean): Elem =
     <dependency>
       <groupId>{dep.module.organization.value}</groupId>
-      <artifactId>{dep.module.name.value}</artifactId>
+      <artifactId>{artifactId(dep)}</artifactId>
       <version>{dep.versionConstraint.asString}</version>{
       if (bomImport) List(<type>pom</type>, <scope>import</scope>)
       else
