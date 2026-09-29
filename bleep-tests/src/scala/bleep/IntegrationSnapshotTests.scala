@@ -115,6 +115,11 @@ class IntegrationSnapshotTests extends SnapshotTest {
     )
   }
 
+  // an sbt plugin built for sbt 1 and sbt 2, depending on plugins built for both, by a build which runs on sbt 1
+  test("sbt-ci-release") {
+    testIn("sbt-ci-release", "https://github.com/sbt/sbt-ci-release.git", "5223f16")
+  }
+
   test("scalameta") {
     testIn("scalameta", "https://github.com/scalameta/scalameta.git", "0e19b94", jvm = jvm8, xmx = "12g")
   }

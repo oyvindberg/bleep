@@ -231,14 +231,19 @@ object buildFromBloopFiles {
           .map(dep => model.LibraryVersionScheme.from(dep).orThrowText)
       }
 
-      // An sbt 1.x plugin compiles against sbt, which brings scala-compiler and scala-xml 1.x. bleep keeps the scala artifacts of a 2.12 project at the
-      // project's scala version, and newer 2.12 compilers depend on scala-xml 2.x, so resolution reports a conflict the sbt build never had. It's the conflict
-      // every sbt plugin build knows, and the usual answer: scala-xml is not checked
+      // An sbt plugin compiles against sbt, and resolution reports a conflict the sbt build never had, which it is not checked for:
+      //   - sbt 1 brings scala-compiler and scala-xml 1.x. bleep keeps the scala artifacts of a 2.12 project at the project's scala version, and newer 2.12
+      //     compilers depend on scala-xml 2.x. It's the conflict every sbt plugin build knows, and the usual answer: scala-xml is not checked
+      //   - sbt 2 brings zinc 2, whose compiler-interface 2.x replaces the 1.x scala3-compiler asks for. 2.x only adds to it
       val isSbtPlugin = dependencies.exists(dep => dep.organization.value == "org.scala-sbt" && dep.baseModuleName.value == "sbt")
-      val sbtPluginVersionSchemes =
-        if (isSbtPlugin && !libraryVersionSchemes.exists(_.dep.baseModuleName.value == "scala-xml"))
-          List(model.LibraryVersionScheme(model.LibraryVersionScheme.VersionScheme.Always, model.Dep.Scala("org.scala-lang.modules", "scala-xml", "always")))
-        else Nil
+      val sbtPluginVersionSchemes: List[model.LibraryVersionScheme] =
+        if (!isSbtPlugin) Nil
+        else if (scalaVersion.exists(_.is3)) {
+          if (libraryVersionSchemes.exists(_.dep.baseModuleName.value == "compiler-interface")) Nil
+          else
+            List(model.LibraryVersionScheme(model.LibraryVersionScheme.VersionScheme.Always, model.Dep.Java("org.scala-sbt", "compiler-interface", "always")))
+        } else if (libraryVersionSchemes.exists(_.dep.baseModuleName.value == "scala-xml")) Nil
+        else List(model.LibraryVersionScheme(model.LibraryVersionScheme.VersionScheme.Always, model.Dep.Scala("org.scala-lang.modules", "scala-xml", "always")))
 
       val configuredJava: Option[model.Java] =
         bloopProject.java.map(translateJava(replacements))
@@ -482,49 +487,69 @@ object buildFromBloopFiles {
         case Nil => Publication.empty
       }
 
-    JavaOrScalaModule.parse(platformId, moduleID.organization, moduleID.name, moduleID.crossVersion).map {
-      case x: JavaOrScalaModule.JavaModule if extractIsSbt(moduleID.extraAttributes)._1 =>
-        // an sbt 1 plugin. As `org::name` it is also the sbt 2 build of the plugin, for the scala 3 build of a plugin which depends on it
-        model.Dep.ScalaDependency(
-          organization = x.module.organization,
-          baseModuleName = x.module.name,
-          version = moduleID.revision,
-          fullCrossVersion = false,
-          attributes = extractIsSbt(moduleID.extraAttributes)._2,
-          configuration = configuration,
-          exclusions = exclusions,
-          publication = publication,
-          transitive = moduleID.isTransitive,
-          isSbtPlugin = true
+    moduleID.crossVersion match {
+      // an sbt 2 plugin: sbt names it `name_sbt2_3` with this prefix. As `org::name` it is also the sbt 1 build of the plugin, for the scala 2.12 build of a
+      // plugin which depends on it
+      case binary: librarymanagement.Binary if binary.prefix == "sbt2_" =>
+        Right(
+          model.Dep.ScalaDependency(
+            organization = Organization(moduleID.organization),
+            baseModuleName = ModuleName(moduleID.name),
+            version = moduleID.revision,
+            fullCrossVersion = false,
+            attributes = moduleID.extraAttributes,
+            configuration = configuration,
+            exclusions = exclusions,
+            publication = publication,
+            transitive = moduleID.isTransitive,
+            isSbtPlugin = true
+          )
         )
-      case x: JavaOrScalaModule.JavaModule =>
-        val (isSbtPlugin, attrs) = extractIsSbt(moduleID.extraAttributes)
-        model.Dep.JavaDependency(
-          organization = x.module.organization,
-          moduleName = x.module.name,
-          version = moduleID.revision,
-          attributes = attrs,
-          configuration = configuration,
-          exclusions = exclusions,
-          publication = publication,
-          transitive = moduleID.isTransitive,
-          isSbtPlugin = isSbtPlugin
-        )
-      case x: JavaOrScalaModule.ScalaModule =>
-        model.Dep.ScalaDependency(
-          organization = x.baseModule.organization,
-          baseModuleName = x.baseModule.name,
-          version = moduleID.revision,
-          fullCrossVersion = x.fullCrossVersion,
-          forceJvm = x.forceJvm,
-          for3Use213 = x.for3Use213,
-          for213Use3 = x.for213Use3,
-          attributes = moduleID.extraAttributes,
-          configuration = configuration,
-          exclusions = exclusions,
-          publication = publication,
-          transitive = moduleID.isTransitive
-        )
+      case _ =>
+        JavaOrScalaModule.parse(platformId, moduleID.organization, moduleID.name, moduleID.crossVersion).map {
+          case x: JavaOrScalaModule.JavaModule if extractIsSbt(moduleID.extraAttributes)._1 =>
+            // an sbt 1 plugin. As `org::name` it is also the sbt 2 build of the plugin, for the scala 3 build of a plugin which depends on it
+            model.Dep.ScalaDependency(
+              organization = x.module.organization,
+              baseModuleName = x.module.name,
+              version = moduleID.revision,
+              fullCrossVersion = false,
+              attributes = extractIsSbt(moduleID.extraAttributes)._2,
+              configuration = configuration,
+              exclusions = exclusions,
+              publication = publication,
+              transitive = moduleID.isTransitive,
+              isSbtPlugin = true
+            )
+          case x: JavaOrScalaModule.JavaModule =>
+            val (isSbtPlugin, attrs) = extractIsSbt(moduleID.extraAttributes)
+            model.Dep.JavaDependency(
+              organization = x.module.organization,
+              moduleName = x.module.name,
+              version = moduleID.revision,
+              attributes = attrs,
+              configuration = configuration,
+              exclusions = exclusions,
+              publication = publication,
+              transitive = moduleID.isTransitive,
+              isSbtPlugin = isSbtPlugin
+            )
+          case x: JavaOrScalaModule.ScalaModule =>
+            model.Dep.ScalaDependency(
+              organization = x.baseModule.organization,
+              baseModuleName = x.baseModule.name,
+              version = moduleID.revision,
+              fullCrossVersion = x.fullCrossVersion,
+              forceJvm = x.forceJvm,
+              for3Use213 = x.for3Use213,
+              for213Use3 = x.for213Use3,
+              attributes = moduleID.extraAttributes,
+              configuration = configuration,
+              exclusions = exclusions,
+              publication = publication,
+              transitive = moduleID.isTransitive
+            )
+        }
     }
   }
 

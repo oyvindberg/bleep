@@ -1,0 +1,77 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:17
+projects:
+  sbt-ci-release:
+    cross:
+      jvm212:
+        extends: template-scala-2.12
+      jvm3:
+        extends: template-scala-3
+    dependencies:
+    - isSbtPlugin: true
+      module: com.github.sbt::sbt-dynver:5.1.1
+    - isSbtPlugin: true
+      module: com.github.sbt::sbt-pgp:2.3.2
+    folder: ../sbt-build/plugin
+    publish:
+      groupId: com.github.sbt
+    sbt-scope: main
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  sbt-ci-release-test:
+    cross:
+      jvm212:
+        extends: template-scala-2.12
+      jvm3:
+        extends: template-scala-3
+    dependencies: org.scalameta::munit:1.3.6
+    dependsOn: sbt-ci-release
+    folder: ../sbt-build/plugin
+    isTestProject: true
+    sbt-scope: test
+    testFrameworks:
+    - hedgehog.sbt.Framework
+    - weaver.framework.CatsEffect
+    - zio.test.sbt.ZTestFramework
+  scripts:
+    dependencies: build.bleep:bleepscript:1.0.0-M14
+    platform:
+      name: jvm
+    resources: ./resources
+templates:
+  template-scala-2.12:
+    dependencies:
+      configuration: provided
+      module: org.scala-sbt:sbt:1.5.8
+    ignoreEvictionErrors: no
+    libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
+    platform:
+      name: jvm
+    scala:
+      options: -Wconf:cat=unused-nowarn:s -Xsource:3 -deprecation -release:8
+      sbtPlugin: true
+      setup:
+        order: mixed
+      version: 2.12.21
+    sources: ./src/${SCOPE}/scala-sbt-1.0
+  template-scala-3:
+    dependencies:
+      configuration: provided
+      module: org.scala-sbt:sbt:2.0.0
+    ignoreEvictionErrors: no
+    libraryVersionSchemes: org.scala-sbt:compiler-interface:always
+    platform:
+      name: jvm
+    scala:
+      options: -deprecation
+      sbtPlugin: true
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false
+        order: mixed
+      version: 3.8.4
+    sources: ./src/${SCOPE}/scala-sbt-2
