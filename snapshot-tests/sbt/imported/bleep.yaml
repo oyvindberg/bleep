@@ -510,7 +510,6 @@ projects:
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts
-    sources: ./src/${SCOPE}/scala-sbt-1.0
   sbt-test:
     dependsOn: sbt
     extends:

@@ -52,6 +52,7 @@
         "java",
         "kotlin",
         "normal",
+        "sbt-plugin",
         "cross-pure",
         "cross-full",
         "sbt-matrix"

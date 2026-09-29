@@ -45,4 +45,11 @@ class SbtPluginTest extends AnyFunSuite {
     assert(scala.intersect(scala).sbtPlugin == Some(true))
     assert(scala.removeAll(scala).sbtPlugin == None)
   }
+
+  test("an sbt plugin project has the sbt-plugin source layout by default") {
+    val plugin = Project.empty.copy(scala = Some(Scala(Some(VersionScala.Scala212), Options.empty, None, JsonSet.empty, None, None, None, Some(true))))
+    assert(rewrites.Defaults.add.project(plugin).`source-layout` == Some(SourceLayout.SbtPlugin))
+    assert(rewrites.Defaults.remove.project(plugin.copy(`source-layout` = Some(SourceLayout.SbtPlugin))).`source-layout` == None)
+    assert(rewrites.Defaults.add.project(plugin.copy(scala = plugin.scala.map(_.copy(sbtPlugin = None)))).`source-layout` == Some(SourceLayout.Normal))
+  }
 }

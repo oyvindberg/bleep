@@ -129,62 +129,6 @@ object buildFromBloopFiles {
       val replacementsWithVersions =
         replacements ++ model.Replacements.versions(None, versionCombo, includeEpoch = false, includeBinVersion = true, buildDir = None)
 
-      val sources: Sources = {
-        val sourcesRelPaths = {
-          // a directory holding source files sbt does not compile becomes the files it does compile there
-          val sources = bloopProject.sources.filterNot(_.startsWith(originalTarget)).flatMap { dir =>
-            inputProjects.notCompiledBySbt.get(dir) match {
-              case None              => List(dir)
-              case Some(notCompiled) =>
-                logger
-                  .withContext("project", crossName.value)
-                  .withContext("dir", dir)
-                  .warn(
-                    s"sbt does not compile ${notCompiled.size} files in this generated sources directory, so the project lists the files it does: ${notCompiled.map(_.getFileName).mkString(", ")}"
-                  )
-                inputProject.sbtExportFile.managedSources.map(Path.of(_)).filter(_.startsWith(dir)).toList.sorted
-            }
-          }
-          model.JsonSet.fromIterable(sources.map {
-            // this case was needed for scalameta, where a stray "semanticdb/semanticdb" relative directory appeared.
-            case relative if !relative.isAbsolute => RelPath.relativeTo(directory, bloopProject.workspaceDir.get.resolve(relative))
-            case absoluteDir                      => RelPath.relativeTo(directory, absoluteDir)
-          })
-        }
-
-        val resourcesRelPaths = {
-          val resources = bloopProject.resources.getOrElse(Nil).filterNot(_.startsWith(originalTarget))
-          model.JsonSet.fromIterable(resources.map {
-            // this case was needed for scalameta, where a stray "semanticdb/semanticdb" relative directory appeared.
-            case relative if !relative.isAbsolute => RelPath.relativeTo(directory, bloopProject.workspaceDir.get.resolve(relative))
-            case absoluteDir                      => RelPath.relativeTo(directory, absoluteDir)
-          })
-        }
-
-        val maybePlatformId = configuredPlatform.flatMap(_.name)
-
-        val inferredSourceLayout: model.SourceLayout =
-          model.SourceLayout.All.values.maxBy { layout =>
-            val fromLayout = layout.sources(scalaVersion, maybePlatformId, crossPlatforms(crossName.name), Some(projectType.sbtScope))
-            val fromProject = sourcesRelPaths
-            val matching = fromLayout.intersect(fromProject).size
-            val notMatching = fromLayout.removeAll(fromProject).size
-            (matching, -notMatching)
-          }
-
-        val shortenedSourcesRelPaths =
-          sourcesRelPaths
-            .filterNot(inferredSourceLayout.sources(scalaVersion, maybePlatformId, crossPlatforms(crossName.name), Some(projectType.sbtScope)))
-            .map(templatizeSourcePath(replacementsWithVersions))
-
-        val shortenedResourcesRelPaths =
-          resourcesRelPaths
-            .filterNot(inferredSourceLayout.resources(scalaVersion, maybePlatformId, crossPlatforms(crossName.name), Some(projectType.sbtScope)))
-            .map(templatizeSourcePath(replacementsWithVersions))
-
-        Sources(inferredSourceLayout, shortenedSourcesRelPaths, shortenedResourcesRelPaths)
-      }
-
       val depReplacements = model.Replacements.versions(None, versionCombo, includeEpoch = false, includeBinVersion = false, buildDir = None)
       val (compilerPlugins, dependencies) = {
         val providedDeps = versionCombo.libraries(isTest = projectType.testLike)
@@ -255,6 +199,65 @@ object buildFromBloopFiles {
             .map(translateScala(compilerPlugins, replacements, versionCombo, depReplacements))
             // `sbtPlugin := true` is what gives a project its dependency on sbt
             .map(scala => if (isSbtPlugin) scala.copy(sbtPlugin = Some(true)) else scala)
+
+      val isSbtPluginProject = configuredScala.flatMap(_.sbtPlugin).contains(true)
+
+      val sources: Sources = {
+        val sourcesRelPaths = {
+          // a directory holding source files sbt does not compile becomes the files it does compile there
+          val sources = bloopProject.sources.filterNot(_.startsWith(originalTarget)).flatMap { dir =>
+            inputProjects.notCompiledBySbt.get(dir) match {
+              case None              => List(dir)
+              case Some(notCompiled) =>
+                logger
+                  .withContext("project", crossName.value)
+                  .withContext("dir", dir)
+                  .warn(
+                    s"sbt does not compile ${notCompiled.size} files in this generated sources directory, so the project lists the files it does: ${notCompiled.map(_.getFileName).mkString(", ")}"
+                  )
+                inputProject.sbtExportFile.managedSources.map(Path.of(_)).filter(_.startsWith(dir)).toList.sorted
+            }
+          }
+          model.JsonSet.fromIterable(sources.map {
+            // this case was needed for scalameta, where a stray "semanticdb/semanticdb" relative directory appeared.
+            case relative if !relative.isAbsolute => RelPath.relativeTo(directory, bloopProject.workspaceDir.get.resolve(relative))
+            case absoluteDir                      => RelPath.relativeTo(directory, absoluteDir)
+          })
+        }
+
+        val resourcesRelPaths = {
+          val resources = bloopProject.resources.getOrElse(Nil).filterNot(_.startsWith(originalTarget))
+          model.JsonSet.fromIterable(resources.map {
+            // this case was needed for scalameta, where a stray "semanticdb/semanticdb" relative directory appeared.
+            case relative if !relative.isAbsolute => RelPath.relativeTo(directory, bloopProject.workspaceDir.get.resolve(relative))
+            case absoluteDir                      => RelPath.relativeTo(directory, absoluteDir)
+          })
+        }
+
+        val maybePlatformId = configuredPlatform.flatMap(_.name)
+
+        val inferredSourceLayout: model.SourceLayout =
+          // `sbt-plugin` is the layout of a plugin project, and has nothing to say about the others
+          model.SourceLayout.All.values.filter(layout => (layout == model.SourceLayout.SbtPlugin) == isSbtPluginProject).maxBy { layout =>
+            val fromLayout = layout.sources(scalaVersion, maybePlatformId, crossPlatforms(crossName.name), Some(projectType.sbtScope))
+            val fromProject = sourcesRelPaths
+            val matching = fromLayout.intersect(fromProject).size
+            val notMatching = fromLayout.removeAll(fromProject).size
+            (matching, -notMatching)
+          }
+
+        val shortenedSourcesRelPaths =
+          sourcesRelPaths
+            .filterNot(inferredSourceLayout.sources(scalaVersion, maybePlatformId, crossPlatforms(crossName.name), Some(projectType.sbtScope)))
+            .map(templatizeSourcePath(replacementsWithVersions))
+
+        val shortenedResourcesRelPaths =
+          resourcesRelPaths
+            .filterNot(inferredSourceLayout.resources(scalaVersion, maybePlatformId, crossPlatforms(crossName.name), Some(projectType.sbtScope)))
+            .map(templatizeSourcePath(replacementsWithVersions))
+
+        Sources(inferredSourceLayout, shortenedSourcesRelPaths, shortenedResourcesRelPaths)
+      }
 
       val testFrameworks: model.JsonSet[model.TestFrameworkName] =
         if (projectType.testLike) {

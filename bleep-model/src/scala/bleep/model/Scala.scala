@@ -73,17 +73,17 @@ case class Scala(
 object Scala {
 
   /** Which sbt a plugin is for, which its scala version says: sbt 1 plugins are scala 2.12, sbt 2 plugins scala 3 */
-  sealed abstract class SbtPlugin(val sbtMajor: Int) {
+  sealed abstract class SbtPlugin(val sbtMajor: Int, val sbtBinaryVersion: String) {
 
     /** the name a plugin is published and looked up under: `sbt-ci-release_2.12_1.0`, `sbt-ci-release_sbt2_3` */
     def artifactName(name: String): String
   }
 
   object SbtPlugin {
-    case object Sbt1 extends SbtPlugin(sbtMajor = 1) {
+    case object Sbt1 extends SbtPlugin(sbtMajor = 1, sbtBinaryVersion = "1.0") {
       def artifactName(name: String): String = s"${name}_2.12_1.0"
     }
-    case object Sbt2 extends SbtPlugin(sbtMajor = 2) {
+    case object Sbt2 extends SbtPlugin(sbtMajor = 2, sbtBinaryVersion = "2") {
       def artifactName(name: String): String = s"${name}_sbt2_3"
     }
 

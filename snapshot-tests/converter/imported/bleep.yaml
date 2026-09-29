@@ -83,7 +83,6 @@ projects:
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts
-    sources: ./src/${SCOPE}/scala-sbt-1.0
   scalajs:
     dependencies: org.scala-lang.modules::scala-xml:2.1.0
     dependsOn:

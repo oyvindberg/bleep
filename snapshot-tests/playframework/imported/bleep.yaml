@@ -168,7 +168,6 @@ projects:
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts
-    sources: ./src/${SCOPE}/scala-sbt-1.0
   play-ehcache:
     dependencies:
     - javax.cache:cache-api:1.1.1
@@ -682,7 +681,6 @@ projects:
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts
-    sources: ./src/${SCOPE}/scala-sbt-1.0
   sbt-plugin-test:
     dependencies:
     - ch.qos.logback:logback-classic:1.5.18
@@ -695,7 +693,6 @@ projects:
     - template-scala-2.12-sbt
     - template-scala-2.12-wconf
     folder: ../sbt-build/dev-mode/sbt-plugin
-    sources: ./src/${SCOPE}/scala-sbt-1.0
   sbt-routes-compiler:
     dependencies:
     - org.playframework.twirl::twirl-api:2.1.0-M4
@@ -727,7 +724,6 @@ projects:
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts
-    sources: ./src/${SCOPE}/scala-sbt-1.0
   scripts:
     dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:

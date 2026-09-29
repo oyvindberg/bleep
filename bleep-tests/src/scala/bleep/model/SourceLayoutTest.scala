@@ -45,6 +45,19 @@ class SourceLayoutTest extends AnyFunSuite {
     List("src/main/scalajs", "src/main/scalajs-2.13", "src/main/javajs").foreach(dir => assert(sources.contains(dir), dir))
   }
 
+  test("sbt-plugin has the directory sbt adds for the sbt version a plugin is built for") {
+    def extra(scalaVersion: Option[VersionScala]): List[String] =
+      SourceLayout.SbtPlugin
+        .sources(scalaVersion, Some(Jvm), Set(Jvm), "main")
+        .removeAll(SourceLayout.Normal.sources(scalaVersion, Some(Jvm), Set(Jvm), "main"))
+        .values
+        .toList
+        .map(_.asString)
+    assert(extra(Some(VersionScala.Scala212)) === List("src/main/scala-sbt-1.0"))
+    assert(extra(scala3) === List("src/main/scala-sbt-2"))
+    assertThrows[BleepException](SourceLayout.SbtPlugin.sources(scala213, Some(Jvm), Set(Jvm), "main"))
+  }
+
   test("resources too") {
     val resources = SourceLayout.CrossFull.resources(scala213, Some(Native), Set(Jvm, Js, Native), "test").values.toList.map(_.asString)
     assert(resources.sorted === List("js-native/src/test/resources", "jvm-native/src/test/resources", "native/src/test/resources", "shared/src/test/resources"))

@@ -54,7 +54,6 @@ projects:
         libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
         scala:
           options: -Wconf:cat=unused-nowarn:s -Xsource:3
-        sources: ./src/${SCOPE}/scala-sbt-1.0
       jvm3:
         dependencies:
           configuration: provided
@@ -63,7 +62,6 @@ projects:
         libraryVersionSchemes: org.scala-sbt:compiler-interface:always
         scala:
           version: 3.8.4
-        sources: ./src/${SCOPE}/scala-sbt-2
     dependsOn: dynver
     folder: ../sbt-build/sbtdynver
     platform:

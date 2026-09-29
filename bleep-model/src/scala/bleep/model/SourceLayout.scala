@@ -34,7 +34,7 @@ sealed abstract class SourceLayout(val id: String) {
 }
 
 object SourceLayout {
-  val All = List(SbtMatrix, CrossPure, CrossFull, Normal, Java, Kotlin, None_).map(x => x.id -> x).toMap
+  val All = List(SbtMatrix, CrossPure, CrossFull, Normal, SbtPlugin, Java, Kotlin, None_).map(x => x.id -> x).toMap
 
   implicit val decoder: Decoder[SourceLayout] =
     Decoder[Option[String]].emap {
@@ -135,6 +135,35 @@ object SourceLayout {
       JsonSet(
         RelPath.force(s"src/$scope/resources")
       )
+  }
+
+  /** The layout of an sbt plugin: `normal`, and the directory sbt adds for the sbt version the plugin is built for, `scala-sbt-1.0` or `scala-sbt-2`
+    * (`makePluginCrossSources` in sbt's `Defaults.scala`). The default for a project with `scala.sbtPlugin`
+    */
+  case object SbtPlugin extends SourceLayout("sbt-plugin") {
+    override def sources(
+        maybeScalaVersion: Option[VersionScala],
+        maybePlatformId: Option[model.PlatformId],
+        crossPlatforms: Set[model.PlatformId],
+        scope: String
+    ): JsonSet[RelPath] =
+      maybeScalaVersion match {
+        case Some(scalaVersion) =>
+          val sbtPlugin = model.Scala.SbtPlugin.forScalaVersion(scalaVersion) match {
+            case Right(sbtPlugin) => sbtPlugin
+            case Left(error)      => throw new BleepException.Text(s"source-layout $id: $error")
+          }
+          Normal.sources(maybeScalaVersion, maybePlatformId, crossPlatforms, scope) ++
+            JsonSet(RelPath.force(s"src/$scope/scala-sbt-${sbtPlugin.sbtBinaryVersion}"))
+        case None => JsonSet.empty
+      }
+    override def resources(
+        maybeScalaVersion: Option[VersionScala],
+        maybePlatformId: Option[model.PlatformId],
+        crossPlatforms: Set[model.PlatformId],
+        scope: String
+    ): JsonSet[RelPath] =
+      Normal.resources(maybeScalaVersion, maybePlatformId, crossPlatforms, scope)
   }
 
   case object CrossPure extends SourceLayout("cross-pure") {

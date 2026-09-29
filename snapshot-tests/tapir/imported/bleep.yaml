@@ -15,7 +15,7 @@ projects:
         libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
         scala:
           options: -Wconf:cat=unused-nowarn:s -Xsource:3
-        sources: ./src/${SCOPE}/scala-sbt-1.0
+        sources: ./src/${SCOPE}/scalajvm-2
       jvm3:
         dependencies:
           configuration: provided
@@ -24,7 +24,6 @@ projects:
         libraryVersionSchemes: org.scala-sbt:compiler-interface:always
         scala:
           version: 3.7.4
-        sources: ./src/${SCOPE}/scala-sbt-2
     dependsOn: tapir-openapi-codegen-core
     extends: template-common-main
     folder: ../sbt-build/openapi-codegen/sbt-plugin
@@ -33,12 +32,19 @@ projects:
     sourcegen:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts
+    sources:
+    - ./src/${SCOPE}/javajvm
+    - ./src/${SCOPE}/scalajvm
+    - ./src/${SCOPE}/scalajvm-${SCALA_BIN_VERSION}
   scripts:
     dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
     resources: ./resources
   sttp-mock-server:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - io.circe::circe-core:0.14.16
     - io.circe::circe-generic:0.14.16
@@ -62,6 +68,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/sttp-mock-server
   tapir-akka-grpc-server:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: com.lightbend.akka.grpc::akka-grpc-runtime:2.1.6
     dependsOn: tapir-akka-http-server
     extends:
@@ -69,6 +78,9 @@ projects:
     - template-cross-jvm-212-213
     folder: ../sbt-build/server/akka-grpc-server
   tapir-akka-http-server:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - com.softwaremill.sttp.shared::akka:1.5.2
     - com.typesafe.akka::akka-http:10.2.10
@@ -94,7 +106,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
-    - template-cross-native-3
+    - template-cross-jvm-212-native-3
     folder: ../sbt-build/docs/apispec-docs
   tapir-apispec-docs-test:
     dependencies:
@@ -109,6 +121,9 @@ projects:
     - template-cross-native-3
     folder: ../sbt-build/docs/apispec-docs
   tapir-armeria-server:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - com.linecorp.armeria:armeria:1.41.1
     - com.softwaremill.sttp.shared::armeria:1.5.2
@@ -119,6 +134,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/armeria-server
   tapir-armeria-server-cats:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - co.fs2::fs2-reactive-streams:3.14.0
     - com.softwaremill.sttp.shared::fs2:1.5.2
@@ -147,6 +165,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/armeria-server
   tapir-armeria-server-zio:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: dev.zio::zio-interop-reactivestreams:2.0.2
     dependsOn:
     - tapir-armeria-server
@@ -164,6 +185,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/armeria-server/zio
   tapir-asyncapi-docs:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependsOn: tapir-apispec-docs
     extends:
     - template-common-main
@@ -182,6 +206,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/docs/asyncapi-docs
   tapir-aws-cdk:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: io.circe::circe-yaml:0.15.2
     dependsOn: tapir-aws-lambda
     extends:
@@ -197,6 +224,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/serverless/aws/cdk
   tapir-aws-cdk-tests:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependsOn:
     - tapir-aws-cdk
     - tapir-server-tests
@@ -221,6 +251,7 @@ projects:
         - tapir-aws-cdk
         - tapir-aws-sam
         - tapir-aws-terraform
+        extends: template-scala-2-and-3.3.8
       jvm213:
         dependsOn:
         - tapir-aws-cdk
@@ -238,6 +269,8 @@ projects:
         dependencies: com.amazonaws:aws-lambda-java-runtime-interface-client:2.12.1
       js213:
         dependencies: com.amazonaws:aws-lambda-java-runtime-interface-client:2.12.1
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - com.softwaremill.sttp.client4::fs2:4.0.26
     - org.slf4j:slf4j-api:2.0.19
@@ -251,6 +284,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/serverless/aws/lambda-cats-effect
   tapir-aws-lambda-cats-effect-tests:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependsOn:
     - tapir-aws-lambda
     - tapir-aws-sam
@@ -269,6 +305,7 @@ projects:
     cross:
       jvm212:
         dependencies: com.amazonaws:aws-lambda-java-runtime-interface-client:2.12.1
+        extends: template-scala-2-and-3.3.8
       jvm213:
         dependencies: com.amazonaws:aws-lambda-java-runtime-interface-client:2.12.1
       jvm3:
@@ -298,6 +335,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/serverless/aws/lambda-cats-effect
   tapir-aws-lambda-zio:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependsOn:
     - tapir-aws-lambda-core
     - tapir-zio-http-server
@@ -306,6 +346,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/serverless/aws/lambda-zio
   tapir-aws-lambda-zio-tests:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: dev.zio::zio-interop-cats:23.1.0.13
     dependsOn:
     - tapir-aws-lambda-zio
@@ -322,6 +365,9 @@ projects:
     - template-cross-jvm-212-213
     folder: ../sbt-build/serverless/aws/lambda-zio-tests
   tapir-aws-sam:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - io.circe::circe-generic:0.14.16
     - io.circe::circe-yaml:0.15.2
@@ -339,6 +385,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/serverless/aws/sam
   tapir-aws-terraform:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - io.circe::circe-generic:0.14.16
     - io.circe::circe-literal:0.14.16
@@ -363,7 +412,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
-    - template-cross-native-3
+    - template-cross-jvm-212-native-3
     folder: ../sbt-build/integrations/cats
   tapir-cats-effect:
     dependencies:
@@ -373,7 +422,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
-    - template-cross-native-3
+    - template-cross-jvm-212-native-3
     folder: ../sbt-build/integrations/cats-effect
   tapir-cats-test:
     cross:
@@ -397,7 +446,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
-    - template-cross-native-3
+    - template-cross-jvm-212-native-3
     folder: ../sbt-build/client/core
   tapir-client-tests:
     cross:
@@ -433,12 +482,13 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
-    - template-cross-native-3
+    - template-cross-jvm-212-native-3
     folder: ../sbt-build/client/tests
   tapir-codegen:
     cross:
       jvm212:
         extends:
+        - template-scala-2-and-3.3.8
         - template-scala-2-jvm
         - template-scala-2.12
       jvm3:
@@ -480,6 +530,7 @@ projects:
         - com.softwaremill.magnolia1_2::magnolia:1.1.14
         - configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
+        extends: template-scala-2-and-3.3.8
       jvm213:
         dependencies:
         - com.softwaremill.magnolia1_2::magnolia:1.1.14
@@ -560,6 +611,9 @@ projects:
     - template-cross-native-all
     folder: ../sbt-build/core
   tapir-datadog-metrics:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: com.datadoghq:java-dogstatsd-client:4.4.5
     dependsOn: tapir-server
     extends:
@@ -577,6 +631,7 @@ projects:
   tapir-derevo:
     cross:
       jvm212:
+        extends: template-scala-2-and-3.3.8
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
       jvm213:
@@ -609,6 +664,9 @@ projects:
     - template-cross-jvm-212-213
     folder: ../sbt-build/integrations/derevo
   tapir-enumeratum:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: com.beachape::enumeratum:1.9.8
     dependsOn: tapir-core
     extends:
@@ -693,7 +751,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
-    - template-cross-native-3
+    - template-cross-jvm-212-native-3
     folder: ../sbt-build/files
   tapir-files-test:
     dependencies: org.scalatest::scalatest:3.2.18
@@ -706,6 +764,7 @@ projects:
     cross:
       jvm212:
         dependencies: com.lightbend.akka.grpc:akka-grpc-runtime_2.12:2.1.4
+        extends: template-scala-2-and-3.3.8
         platform:
           jvmOptions: -Duser.dir=${BUILD_DIR}/.sbt/matrix/grpcExamples2_12
       jvm213:
@@ -729,6 +788,9 @@ projects:
       project: scripts
     sources: ./src/${SCOPE}/proto
   tapir-grpc-protobuf:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: org.slf4j:slf4j-api:2.0.19
     dependsOn: tapir-protobuf-pbdirect
     extends:
@@ -743,6 +805,9 @@ projects:
     - template-cross-jvm-212-213
     folder: ../sbt-build/grpc/protobuf
   tapir-http4s-client:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - configuration: optional
       module: com.softwaremill.sttp.shared::fs2:1.5.2
@@ -774,8 +839,8 @@ projects:
     - tapir-server
     extends:
     - template-common-main
+    - template-cross-jvm-212-native-3
     - template-cross-jvm-all
-    - template-cross-native-3
     folder: ../sbt-build/server/http4s-server
   tapir-http4s-server-test:
     cross:
@@ -795,6 +860,9 @@ projects:
     - template-cross-native-3
     folder: ../sbt-build/server/http4s-server
   tapir-http4s-server-zio:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: dev.zio::zio-interop-cats:23.1.0.13
     dependsOn:
     - tapir-http4s-server
@@ -864,7 +932,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
-    - template-cross-native-3
+    - template-cross-jvm-212-native-3
     folder: ../sbt-build/json/circe
   tapir-json-circe-test:
     dependencies: org.scalatest::scalatest:3.2.18
@@ -874,6 +942,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/json/circe
   tapir-json-json4s:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: io.github.json4s::json4s-core:4.1.1
     dependsOn: tapir-core
     extends:
@@ -915,6 +986,9 @@ projects:
     extends: template-common-test
     folder: ../sbt-build/json/pickler
   tapir-json-play:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: org.playframework::play-json:3.0.1
     dependsOn: tapir-core
     extends:
@@ -936,6 +1010,9 @@ projects:
     - template-cross-js-all-jvm-all
     folder: ../sbt-build/json/playjson
   tapir-json-play29:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: org.playframework::play-json:3.0.6
     dependsOn: tapir-core
     extends:
@@ -968,6 +1045,9 @@ projects:
     folder: ../sbt-build/json/play29json
     sources: ../playjson/src/${SCOPE}/scala
   tapir-json-spray:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: io.spray::spray-json:1.3.6
     dependsOn: tapir-core
     extends:
@@ -982,6 +1062,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/json/sprayjson
   tapir-json-tethys:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - com.tethys-json::tethys-core:0.29.8
     - com.tethys-json::tethys-jackson213:0.29.8
@@ -1005,7 +1088,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
-    - template-cross-native-3
+    - template-cross-jvm-212-native-3
     folder: ../sbt-build/json/upickle
   tapir-json-upickle-test:
     cross:
@@ -1023,6 +1106,9 @@ projects:
     - template-cross-native-3
     folder: ../sbt-build/json/upickle
   tapir-json-zio:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: dev.zio::zio-json:0.10.0
     dependsOn: tapir-core
     extends:
@@ -1044,7 +1130,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
-    - template-cross-native-3
+    - template-cross-jvm-212-native-3
     folder: ../sbt-build/json/jsoniter
   tapir-jsoniter-scala-test:
     dependencies:
@@ -1065,6 +1151,7 @@ projects:
         scala:
           options: -Ymacro-annotations
       jvm212:
+        extends: template-scala-2-and-3.3.8
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
       jvm213:
@@ -1097,6 +1184,9 @@ projects:
     - template-cross-js-all-jvm-all
     folder: ../sbt-build/integrations/monix-newtype
   tapir-netty-server:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - io.netty:netty-all:4.2.18.Final
     - org.apache.httpcomponents:httpmime:4.5.14
@@ -1111,6 +1201,9 @@ projects:
       main: scripts.CopyImportedGeneratedFiles
       project: scripts
   tapir-netty-server-cats:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - co.fs2::fs2-reactive-streams:3.14.0
     - com.softwaremill.sttp.shared::fs2:1.5.2
@@ -1159,6 +1252,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/netty-server
   tapir-netty-server-zio:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - dev.zio::zio-interop-cats:23.1.0.13
     - dev.zio::zio-interop-reactivestreams:2.0.2
@@ -1186,6 +1282,7 @@ projects:
         scala:
           options: -Ymacro-annotations
       jvm212:
+        extends: template-scala-2-and-3.3.8
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
       jvm213:
@@ -1251,6 +1348,7 @@ projects:
       jvm212:
         dependencies: org.scala-lang:scala-reflect:${SCALA_VERSION}
         extends:
+        - template-scala-2-and-3.3.8
         - template-scala-2-jvm
         - template-scala-2.12
       jvm3:
@@ -1295,6 +1393,9 @@ projects:
     extends: template-common-test-dependencies
     folder: ../sbt-build/openapi-codegen/core
   tapir-openapi-docs:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - com.softwaremill.quicklens::quicklens:1.9.15
     - com.softwaremill.sttp.apispec::openapi-model:0.11.10
@@ -1314,6 +1415,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/docs/openapi-docs
   tapir-openapi-verifier:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - com.softwaremill.sttp.apispec::openapi-circe:0.11.10
     - io.circe::circe-parser:0.14.16
@@ -1336,6 +1440,9 @@ projects:
     - template-cross-js-all-jvm-all
     folder: ../sbt-build/docs/openapi-verifier
   tapir-opentelemetry-metrics:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - io.opentelemetry.semconv:opentelemetry-semconv:1.44.0
     - io.opentelemetry:opentelemetry-api:1.66.0
@@ -1357,6 +1464,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/metrics/opentelemetry-metrics
   tapir-opentelemetry-tracing:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - io.opentelemetry.semconv:opentelemetry-semconv:1.44.0
     - io.opentelemetry:opentelemetry-api:1.66.0
@@ -1422,6 +1532,7 @@ projects:
     cross:
       jvm212:
         dependencies: org.apache.pekko:pekko-grpc-runtime_2.12:1.2.0
+        extends: template-scala-2-and-3.3.8
         platform:
           jvmOptions: -Duser.dir=${BUILD_DIR}/.sbt/matrix/pekkoGrpcExamples2_12
       jvm213:
@@ -1445,6 +1556,9 @@ projects:
       project: scripts
     sources: ./src/${SCOPE}/proto
   tapir-pekko-grpc-server:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: org.apache.pekko::pekko-grpc-runtime:1.2.0
     dependsOn: tapir-pekko-http-server
     extends:
@@ -1452,6 +1566,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/pekko-grpc-server
   tapir-pekko-http-server:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - com.softwaremill.sttp.shared::pekko:1.5.2
     - org.apache.pekko::pekko-http:1.3.0
@@ -1618,6 +1735,9 @@ projects:
     - template-cross-jvm-213-3
     folder: ../sbt-build/server/play29-server
   tapir-prometheus-metrics:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - io.prometheus:prometheus-metrics-core:1.9.0
     - io.prometheus:prometheus-metrics-exposition-formats:1.9.0
@@ -1635,6 +1755,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/metrics/prometheus-metrics
   tapir-prometheus-simpleclient-metrics:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: io.prometheus:simpleclient_common:0.16.0
     dependsOn: tapir-server
     extends:
@@ -1650,6 +1773,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/metrics/prometheus-simpleclient-metrics
   tapir-protobuf-pbdirect:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: com.47deg::pbdirect:0.7.0
     dependsOn: tapir-core
     extends:
@@ -1657,12 +1783,18 @@ projects:
     - template-cross-jvm-212-213
     folder: ../sbt-build/grpc/pbdirect
   tapir-redoc:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
     folder: ../sbt-build/docs/redoc
   tapir-redoc-bundle:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: com.softwaremill.sttp.apispec::openapi-circe-yaml:0.11.10
     dependsOn:
     - tapir-openapi-docs
@@ -1684,6 +1816,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/docs/redoc-bundle
   tapir-refined:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: eu.timepit::refined:0.11.4
     dependsOn: tapir-core
     extends:
@@ -1709,12 +1844,18 @@ projects:
     - template-cross-js-all-jvm-all
     folder: ../sbt-build/integrations/refined
   tapir-scalar:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
     folder: ../sbt-build/docs/scalar
   tapir-scalar-bundle:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: com.softwaremill.sttp.apispec::openapi-circe-yaml:0.11.10
     dependsOn:
     - tapir-openapi-docs
@@ -1736,6 +1877,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/docs/scalar-bundle
   tapir-server:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependsOn: tapir-core
     extends:
     - template-common-main
@@ -1752,6 +1896,9 @@ projects:
     - template-cross-native-all
     folder: ../sbt-build/server/core
   tapir-server-tests:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: com.softwaremill.sttp.client4::fs2:4.0.26
     dependsOn:
     - tapir-enumeratum
@@ -1878,6 +2025,9 @@ projects:
     - template-cross-native-3
     folder: ../sbt-build/client/sttp-client4
   tapir-sttp-stub-server:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependsOn:
     - tapir-server
     - tapir-sttp-client
@@ -1894,6 +2044,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/sttp-stub-server
   tapir-sttp-stub4-server:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependsOn:
     - tapir-server
     - tapir-sttp-client4
@@ -1910,6 +2063,9 @@ projects:
     - template-cross-js-all-jvm-all
     folder: ../sbt-build/server/sttp-stub4-server
   tapir-swagger-ui:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: org.webjars:swagger-ui:5.32.15
     dependsOn: tapir-files
     extends:
@@ -1917,6 +2073,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/docs/swagger-ui
   tapir-swagger-ui-bundle:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: com.softwaremill.sttp.apispec::openapi-circe-yaml:0.11.10
     dependsOn:
     - tapir-openapi-docs
@@ -1949,7 +2108,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
-    - template-cross-native-3
+    - template-cross-jvm-212-native-3
     folder: ../sbt-build/testing
   tapir-testing-test:
     dependencies:
@@ -1982,9 +2141,12 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all-jvm-all
-    - template-cross-native-3
+    - template-cross-jvm-212-native-3
     folder: ../sbt-build/tests
   tapir-vertx-server:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - configuration: provided
       module: io.vertx:vertx-codegen:5.2.0
@@ -1996,6 +2158,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/vertx-server
   tapir-vertx-server-cats:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - co.fs2::fs2-reactive-streams:3.14.0
     - com.softwaremill.sttp.shared::fs2:1.5.2
@@ -2030,6 +2195,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/vertx-server
   tapir-vertx-server-zio:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
       configuration: provided
       module: io.vertx:vertx-codegen:5.2.0
@@ -2053,6 +2221,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/vertx-server/zio
   tapir-zio:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - com.softwaremill.sttp.shared::zio:1.5.2
     - dev.zio::zio-streams:2.1.26
@@ -2064,6 +2235,9 @@ projects:
     - template-cross-native-all
     folder: ../sbt-build/integrations/zio
   tapir-zio-http-server:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: dev.zio::zio-http:3.11.6
     dependsOn:
     - tapir-server
@@ -2082,6 +2256,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/server/zio-http-server
   tapir-zio-metrics:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies: dev.zio::zio:2.1.26
     dependsOn: tapir-server
     extends:
@@ -2100,6 +2277,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/metrics/zio-metrics
   tapir-zio-opentelemetry:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
     dependencies:
     - dev.zio::zio-opentelemetry:3.1.19
     - io.opentelemetry.semconv:opentelemetry-semconv:1.44.0
@@ -2133,6 +2313,7 @@ projects:
         scala:
           options: -Ymacro-annotations
       jvm212:
+        extends: template-scala-2-and-3.3.8
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
       jvm213:
@@ -2206,7 +2387,6 @@ templates:
       setup:
         order: mixed
       strict: true
-    source-layout: sbt-matrix
     sources: ./src/${SCOPE}/protobuf
   template-common-main:
     extends: template-common
@@ -2214,7 +2394,7 @@ templates:
       groupId: com.softwaremill.sttp.tapir
     sbt-scope: main
   template-common-test:
-    extends: template-common
+    extends: template-scala-2-and-3.3.8
     isTestProject: true
     sbt-scope: test
     testFrameworks:
@@ -2254,6 +2434,11 @@ templates:
         - template-scala-2.12
       jvm213:
         extends: template-scala-2.13-jvm
+  template-cross-jvm-212-native-3:
+    cross:
+      jvm212:
+        extends: template-scala-2-and-3.3.8
+    extends: template-cross-native-3
   template-cross-jvm-213-3:
     cross:
       jvm213:
@@ -2295,7 +2480,7 @@ templates:
         - template-scala-2.13
     extends: template-cross-native-3
   template-js:
-    extends: template-common
+    extends: template-scala-2-and-3.3.8
     platform:
       jsEmitSourceMaps: false
       jsJsdom: false
@@ -2309,7 +2494,7 @@ templates:
       module: com.softwaremill.sttp.shared::fs2:1.5.2
     - configuration: optional
       module: com.softwaremill.sttp.shared::zio:1.5.2
-    extends: template-common
+    extends: template-scala-2-and-3.3.8
   template-jvm:
     extends: template-common
     platform:
@@ -2320,7 +2505,9 @@ templates:
       module: com.softwaremill.sttp.shared::akka:1.5.2
     - configuration: optional
       module: com.typesafe.akka::akka-stream:2.6.20
-    extends: template-jvm
+    extends:
+    - template-jvm
+    - template-scala-2-and-3.3.8
   template-jvm-main-dependencies:
     dependencies:
     - ch.qos.logback:logback-classic:1.6.3
@@ -2329,15 +2516,18 @@ templates:
     extends:
     - template-common-main
     - template-jvm
+    - template-scala-2-and-3.3.8
   template-jvm-pekko:
     dependencies:
     - configuration: optional
       module: com.softwaremill.sttp.shared::pekko:1.5.2
     - configuration: optional
       module: org.apache.pekko::pekko-stream:1.7.0
-    extends: template-jvm
+    extends:
+    - template-jvm
+    - template-scala-2-and-3.3.8
   template-native:
-    extends: template-common
+    extends: template-scala-2-and-3.3.8
     platform:
       name: native
       nativeEmbedResources: false
@@ -2350,6 +2540,9 @@ templates:
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.4
       options: -Ywarn-macros:after
+  template-scala-2-and-3.3.8:
+    extends: template-common
+    source-layout: sbt-matrix
   template-scala-2-jvm:
     extends:
     - template-jvm
@@ -2364,6 +2557,7 @@ templates:
   template-scala-2.13:
     extends:
     - template-scala-2
+    - template-scala-2-and-3.3.8
     - template-scala-2.13-and-3
     scala:
       options: -Wconf:cat=other-match-analysis:error
@@ -2392,7 +2586,9 @@ templates:
     - template-scala-3
     sources: ./src/${SCOPE}/scalajvm-3-2.13+
   template-scala-3.3.8:
-    extends: template-scala-3
+    extends:
+    - template-scala-2-and-3.3.8
+    - template-scala-3
     scala:
       version: 3.3.8
   template-scala-3.3.8-jvm:

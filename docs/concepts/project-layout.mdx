@@ -33,19 +33,21 @@ So a project named `myapp` lives in `./myapp/` unless told otherwise.
 
 `source-layout` is the rule bleep uses to derive default `sources` and
 `resources` paths *inside* the project folder. For everyday projects there
-are four values:
+are five values:
 
 | `source-layout` | When you'd use it                                   |
 | --------------- | --------------------------------------------------- |
 | `kotlin`        | Default for Kotlin projects.                        |
 | `normal`        | Default for Scala projects.                         |
+| `sbt-plugin`    | Default for sbt plugins (`scala.sbtPlugin: true`).  |
 | `java`          | Default for plain Java projects.                    |
 | `none`          | No defaults at all. Use only `sources:` / `resources:`. |
 
 Bleep auto-fills `source-layout` based on what your project compiles. The
-priority is **Kotlin &rarr; Scala &rarr; Java**, so:
+priority is **Kotlin &rarr; sbt plugin &rarr; Scala &rarr; Java**, so:
 
 - A project with a `kotlin:` block gets `kotlin` layout.
+- A project with `scala.sbtPlugin: true` gets `sbt-plugin` layout.
 - A project with a `scala:` block gets `normal` layout.
 - A project with neither (Java only) gets `java` layout.
 
@@ -57,6 +59,7 @@ You can override by setting the field explicitly.
 | --------- | --------------------------------------------------------- | -------------------------- |
 | `kotlin`  | `<folder>/src/kotlin`, `<folder>/src/java`                 | `<folder>/src/resources`   |
 | `normal`  | `<folder>/src/scala`, `<folder>/src/java`, *plus version-specific paths* | `<folder>/src/resources`   |
+| `sbt-plugin` | as `normal`, plus `<folder>/src/scala-sbt-1.0` for sbt 1 (Scala 2.12) or `<folder>/src/scala-sbt-2` for sbt 2 (Scala 3), as sbt has them | `<folder>/src/resources`   |
 | `java`    | `<folder>/src/java`                                        | `<folder>/src/resources`   |
 | `none`    | (none)                                                    | (none)                     |
 

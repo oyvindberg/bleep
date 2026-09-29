@@ -56,7 +56,6 @@ templates:
       setup:
         order: mixed
       version: 2.12.21
-    sources: ./src/${SCOPE}/scala-sbt-1.0
   template-scala-3:
     dependencies:
       configuration: provided
@@ -74,4 +73,3 @@ templates:
         manageBootClasspath: false
         order: mixed
       version: 3.8.4
-    sources: ./src/${SCOPE}/scala-sbt-2
