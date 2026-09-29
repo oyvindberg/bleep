@@ -1,12 +1,13 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
 jvm:
-  name: temurin:8
+  name: temurin:17
 projects: {}
 templates:
   template-common:
     java:
       options: --release 8
+      scanForAnnotationProcessors: if-present
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
       name: jvm

@@ -1,10 +1,12 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
 jvm:
-  name: temurin:17
+  name: temurin:25
 projects: {}
 templates:
   template-common:
+    java:
+      scanForAnnotationProcessors: if-present
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
       name: jvm
@@ -17,18 +19,35 @@ templates:
     publish:
       groupId: io.github.openfeign
     sbt-scope: main
-  template-common-test:
+  template-java-11:
+    extends: template-common-main
+    java:
+      options: -source 11 -target 11
+  template-java-17:
+    extends: template-common-main
+    java:
+      options: -source 17 -target 17
+  template-java-25:
     extends: template-common
     isTestProject: true
+    java:
+      options: -parameters -source 25 -target 25
     sbt-scope: test
-  template-common-test-dependencies:
+  template-java-25-add-opens:
+    extends: template-java-25-dependencies
+    platform:
+      jvmOptions: --add-opens jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-opens
+        jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-opens jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED
+        --add-opens jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-opens
+        jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-opens jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
+  template-java-25-dependencies:
     dependencies:
     - org.assertj:assertj-core:3.27.7
     - org.junit.jupiter:junit-jupiter-api:6.1.3
     - org.junit.jupiter:junit-jupiter-engine:6.1.3
     - org.junit.jupiter:junit-jupiter:6.1.3
-    extends: template-common-test
-  template-common-test-jsonassert:
+    extends: template-java-25
+  template-java-25-jsonassert:
     dependencies:
     - org.mockito:mockito-core:5.23.0
     - org.mockito:mockito-junit-jupiter:5.23.0
@@ -37,29 +56,12 @@ templates:
     - org.skyscreamer:jsonassert:1.5.3
     - org.springframework.boot:spring-boot-starter-test:4.1.1
     - org.springframework.boot:spring-boot-starter-web:4.1.1
-    extends: template-common-test-user.language
-  template-common-test-user.language:
-    extends: template-common-test
+    extends: template-java-25-user.language
+  template-java-25-user.language:
+    extends: template-java-25
     platform:
       jvmOptions: -Duser.language=en
-  template-java-11:
-    extends: template-common
-    java:
-      options: -source 11 -target 11
-  template-java-17:
-    extends: template-common
-    java:
-      options: -source 17 -target 17
-  template-java-17-test-add-opens:
-    extends:
-    - template-common-test-dependencies
-    - template-java-17
-    platform:
-      jvmOptions: --add-opens jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-opens
-        jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-opens jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED
-        --add-opens jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-opens
-        jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-opens jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
   template-java-8:
-    extends: template-common
+    extends: template-common-main
     java:
       options: -source 1.8 -target 1.8

@@ -1,12 +1,14 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
+jvm:
+  name: temurin:17
 projects:
   pekko-actor:
     dependencies: com.typesafe:config:1.4.9
     extends: template-cross-all
     folder: ../sbt-build/actor
     sourcegen:
-      main: scripts.GenerateForPekkoActor
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-actor-test:
     dependencies: com.github.sbt.junit:jupiter-interface:0.19.0
@@ -31,7 +33,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/actor-testkit-typed
     sourcegen:
-      main: scripts.GenerateForPekkoActorTestkitTyped
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-actor-testkit-typed-test:
     dependencies:
@@ -50,7 +52,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/actor-tests
     sourcegen:
-      main: scripts.GenerateForPekkoActorTests
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-actor-tests-test:
     dependencies:
@@ -81,7 +83,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/actor-typed
     sourcegen:
-      main: scripts.GenerateForPekkoActorTyped
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-actor-typed-test:
     dependencies:
@@ -98,7 +100,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/actor-typed-tests
     sourcegen:
-      main: scripts.GenerateForPekkoActorTypedTests
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-actor-typed-tests-test:
     dependsOn:
@@ -130,7 +132,7 @@ projects:
     java:
       options: -parameters
     sourcegen:
-      main: scripts.GenerateForPekkoBenchJmh
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-cluster:
     dependsOn:
@@ -139,7 +141,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/cluster
     sourcegen:
-      main: scripts.GenerateForPekkoCluster
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-cluster-metrics:
     dependencies:
@@ -149,7 +151,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/cluster-metrics
     sourcegen:
-      main: scripts.GenerateForPekkoClusterMetrics
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-cluster-metrics-test:
     dependencies:
@@ -177,7 +179,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/cluster-sharding
     sourcegen:
-      main: scripts.GenerateForPekkoClusterSharding
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-cluster-sharding-test:
     dependencies:
@@ -206,7 +208,7 @@ projects:
     java:
       options: -parameters
     sourcegen:
-      main: scripts.GenerateForPekkoClusterShardingTyped
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-cluster-sharding-typed-test:
     dependencies:
@@ -240,7 +242,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/cluster-tools
     sourcegen:
-      main: scripts.GenerateForPekkoClusterTools
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-cluster-tools-test:
     cross:
@@ -266,7 +268,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/cluster-typed
     sourcegen:
-      main: scripts.GenerateForPekkoClusterTyped
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-cluster-typed-test:
     cross:
@@ -290,7 +292,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/coordination
     sourcegen:
-      main: scripts.GenerateForPekkoCoordination
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-coordination-test:
     cross:
@@ -313,7 +315,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/discovery
     sourcegen:
-      main: scripts.GenerateForPekkoDiscovery
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-discovery-test:
     cross:
@@ -333,7 +335,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/distributed-data
     sourcegen:
-      main: scripts.GenerateForPekkoDistributedData
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-distributed-data-test:
     dependsOn:
@@ -366,7 +368,7 @@ projects:
       options: -parameters
     resources: ./src/${SCOPE}/paradox/stream/operators/index.md
     sourcegen:
-      main: scripts.GenerateForPekkoDocs
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-docs-test:
     cross:
@@ -404,7 +406,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/multi-node-testkit
     sourcegen:
-      main: scripts.GenerateForPekkoMultiNodeTestkit
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-osgi:
     cross:
@@ -418,7 +420,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/osgi
     sourcegen:
-      main: scripts.GenerateForPekkoOsgi
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-osgi-test:
     cross:
@@ -454,7 +456,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/persistence
     sourcegen:
-      main: scripts.GenerateForPekkoPersistence
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-persistence-query:
     dependencies:
@@ -470,7 +472,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/persistence-query
     sourcegen:
-      main: scripts.GenerateForPekkoPersistenceQuery
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-persistence-query-test:
     dependencies:
@@ -503,7 +505,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/persistence-shared
     sourcegen:
-      main: scripts.GenerateForPekkoPersistenceShared
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-persistence-shared-test:
     cross:
@@ -540,7 +542,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/persistence-tck
     sourcegen:
-      main: scripts.GenerateForPekkoPersistenceTck
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-persistence-tck-test:
     dependencies:
@@ -579,7 +581,11 @@ projects:
         scala:
           options: -Ywarn-numeric-widen
     dependencies:
-      configuration: optional
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
       module: org.jspecify:jspecify:1.0.1
     dependsOn:
     - pekko-actor-testkit-typed
@@ -587,7 +593,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/persistence-testkit
     sourcegen:
-      main: scripts.GenerateForPekkoPersistenceTestkit
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-persistence-testkit-test:
     cross:
@@ -595,7 +601,11 @@ projects:
         scala:
           options: -Ywarn-numeric-widen
     dependencies:
-      configuration: optional
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
       module: org.jspecify:jspecify:1.0.1
     dependsOn:
     - pekko-persistence-tck
@@ -621,7 +631,7 @@ projects:
     java:
       options: -parameters
     sourcegen:
-      main: scripts.GenerateForPekkoPersistenceTyped
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-persistence-typed-test:
     dependencies:
@@ -652,7 +662,7 @@ projects:
     java:
       options: -parameters
     sourcegen:
-      main: scripts.GenerateForPekkoPersistenceTypedTests
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-persistence-typed-tests-test:
     cross:
@@ -685,7 +695,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/pki
     sourcegen:
-      main: scripts.GenerateForPekkoPki
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-pki-test:
     cross:
@@ -711,7 +721,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/protobuf-v3
     sourcegen:
-      main: scripts.GenerateForPekkoProtobufV3
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-remote:
     dependencies:
@@ -730,7 +740,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/remote
     sourcegen:
-      main: scripts.GenerateForPekkoRemote
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-remote-test:
     dependencies:
@@ -759,7 +769,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/remote-tests
     sourcegen:
-      main: scripts.GenerateForPekkoRemoteTests
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-remote-tests-test:
     dependsOn:
@@ -794,7 +804,7 @@ projects:
     java:
       options: -parameters
     sourcegen:
-      main: scripts.GenerateForPekkoSerializationJackson
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-serialization-jackson-test:
     cross:
@@ -832,7 +842,7 @@ projects:
     java:
       options: -parameters
     sourcegen:
-      main: scripts.GenerateForPekkoSerializationJackson3
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-serialization-jackson3-test:
     cross:
@@ -858,7 +868,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/slf4j
     sourcegen:
-      main: scripts.GenerateForPekkoSlf4j
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-slf4j-test:
     cross:
@@ -884,7 +894,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/stream
     sourcegen:
-      main: scripts.GenerateForPekkoStream
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-stream-test:
     dependencies:
@@ -907,7 +917,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/stream-testkit
     sourcegen:
-      main: scripts.GenerateForPekkoStreamTestkit
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-stream-testkit-test:
     dependencies:
@@ -926,14 +936,14 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/stream-tests
     sourcegen:
-      main: scripts.GenerateForPekkoStreamTests
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-stream-tests-tck:
     dependsOn: pekko-stream
     extends: template-cross-all
     folder: ../sbt-build/stream-tests-tck
     sourcegen:
-      main: scripts.GenerateForPekkoStreamTestsTck
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-stream-tests-tck-test:
     dependencies:
@@ -972,7 +982,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/stream-typed
     sourcegen:
-      main: scripts.GenerateForPekkoStreamTyped
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-stream-typed-test:
     cross:
@@ -999,7 +1009,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/stream-typed-tests
     sourcegen:
-      main: scripts.GenerateForPekkoStreamTypedTests
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-stream-typed-tests-test:
     cross:
@@ -1024,7 +1034,7 @@ projects:
     extends: template-cross-all
     folder: ../sbt-build/testkit
     sourcegen:
-      main: scripts.GenerateForPekkoTestkit
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   pekko-testkit-test:
     dependencies:
@@ -1045,11 +1055,10 @@ projects:
     - template-cross-all-common-unchecked
     folder: ../sbt-build/testkit
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 3.9.0
+    resources: ./resources
 templates:
   template-common:
     ignoreEvictionErrors: no

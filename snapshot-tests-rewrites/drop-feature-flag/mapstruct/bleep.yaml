@@ -1,12 +1,18 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
+jvm:
+  name: temurin:21
 projects:
   mapstruct:
     extends: template-common-main
     folder: ../maven-build/core
+    java:
+      scanForAnnotationProcessors: if-present
   mapstruct-build-config:
     extends: template-common-main
     folder: ../maven-build/build-config
+    java:
+      scanForAnnotationProcessors: if-present
   mapstruct-distribution:
     dependencies:
     - configuration: provided
@@ -17,12 +23,16 @@ projects:
     dependsOn: mapstruct-processor
     extends: template-common-main
     folder: ../maven-build/distribution
+    java:
+      scanForAnnotationProcessors: if-present
   mapstruct-integrationtest:
     dependencies:
       configuration: provided
       module: javax.xml.bind:jaxb-api:2.3.1
     extends: template-common-main
     folder: ../maven-build/integrationtest
+    java:
+      scanForAnnotationProcessors: if-present
   mapstruct-integrationtest-test:
     dependencies:
     - commons-io:commons-io:2.15.0
@@ -35,28 +45,28 @@ projects:
     - org.junit.jupiter:junit-jupiter:5.14.1
     - org.slf4j:slf4j-api:1.6.1
     dependsOn: mapstruct-integrationtest
-    extends: template-common-test
+    extends:
+    - template-common-test
+    - template-java-8
     folder: ../maven-build/integrationtest
+    java:
+      scanForAnnotationProcessors: if-present
     platform:
       jvmOptions: -Dverifier.forkMode=auto
   mapstruct-jdk8:
     extends: template-common-main
     folder: ../maven-build/core-jdk8
+    java:
+      scanForAnnotationProcessors: if-present
   mapstruct-processor:
     dependencies:
-    - configuration: provided
-      module: jakarta.xml.bind:jakarta.xml.bind-api:3.0.1
-    - configuration: provided
-      module: javax.xml.bind:jaxb-api:2.3.1
     - org.freemarker:freemarker:2.3.34
-    - configuration: provided
-      module: org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0
     - org.mapstruct.tools.gem:gem-api:1.0.0.Alpha3
     dependsOn: mapstruct
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-mapstruct-processor
     folder: ../maven-build/processor
-    kotlin:
-      version: 2.3.0
   mapstruct-processor-test:
     dependencies:
     - com.google.guava:guava:32.0.0-jre
@@ -67,12 +77,8 @@ projects:
     - commons-logging:commons-logging:1.1.3
     - jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1
     - jakarta.inject:jakarta.inject-api:2.0.1
-    - configuration: provided
-      module: jakarta.xml.bind:jakarta.xml.bind-api:3.0.1
     - javax.enterprise:cdi-api:2.0.SP1
     - javax.inject:javax.inject:1
-    - configuration: provided
-      module: javax.xml.bind:jaxb-api:2.3.1
     - joda-time:joda-time:2.12.5
     - org.codehaus.plexus:plexus-classworlds:2.5.1
     - org.codehaus.plexus:plexus-component-annotations:1.7.1
@@ -80,8 +86,6 @@ projects:
     - org.codehaus.plexus:plexus-utils:3.0.24
     - org.eclipse.tycho:tycho-compiler-jdt:1.6.0
     - org.jetbrains.kotlin:kotlin-compiler-embeddable:2.3.0
-    - configuration: provided
-      module: org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0
     - org.jspecify:jspecify:1.0.0
     - org.junit-pioneer:junit-pioneer:2.2.0
     - org.junit.jupiter:junit-jupiter-api:5.14.1
@@ -92,15 +96,21 @@ projects:
     - org.springframework:spring-context:7.0.3
     - org.springframework:spring-test:7.0.3
     dependsOn: mapstruct-processor
-    extends: template-common-test
+    extends:
+    - template-common-test
+    - template-mapstruct-processor
     folder: ../maven-build/processor
-    kotlin:
-      version: 2.3.0
+    java:
+      options: --release 21
   mapstruct-test:
     dependencies: org.junit.jupiter:junit-jupiter:5.14.1
     dependsOn: mapstruct
-    extends: template-common-test
+    extends:
+    - template-common-test
+    - template-java-8
     folder: ../maven-build/core
+    java:
+      scanForAnnotationProcessors: if-present
 resolvers:
   name: gradle
   type: maven
@@ -115,7 +125,7 @@ templates:
     - org.jboss.arquillian:arquillian-bom:1.7.2.Final
     - org.jetbrains.kotlin:kotlin-bom:2.3.0
     - org.junit:junit-bom:5.14.1
-    extends: template-common
+    extends: template-java-8
     publish:
       groupId: org.mapstruct
     sbt-scope: main
@@ -126,3 +136,21 @@ templates:
     platform:
       jvmOptions: -Xms1024m -Xmx3072m
     sbt-scope: test
+  template-java-8:
+    extends: template-common
+    java:
+      options: -source 1.8 -target 1.8
+  template-mapstruct-processor:
+    dependencies:
+    - configuration: provided
+      module: jakarta.xml.bind:jakarta.xml.bind-api:3.0.1
+    - configuration: provided
+      module: javax.xml.bind:jaxb-api:2.3.1
+    - configuration: provided
+      module: org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0
+    extends: template-common
+    java:
+      annotationProcessors: org.mapstruct.tools.gem:gem-processor:1.0.0.Alpha3
+    kotlin:
+      jvmTarget: '21'
+      version: 2.3.0

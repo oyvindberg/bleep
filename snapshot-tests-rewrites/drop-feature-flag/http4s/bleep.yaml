@@ -1,5 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
+jvm:
+  name: temurin:17
 projects:
   http4s-bench:
     dependencies:
@@ -154,7 +156,7 @@ projects:
     - template-cross-all
     folder: ../sbt-build/core
     sourcegen:
-      main: scripts.GenerateForHttp4sCore
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   http4s-core-test:
     cross:
@@ -182,7 +184,7 @@ projects:
     - ./js-jvm/src/${SCOPE}/resources
     - ./jvm-native/src/${SCOPE}/resources
     sourcegen:
-      main: scripts.GenerateForHttp4sCoreTest
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
     sources:
     - ./js-jvm/src/${SCOPE}/scala
@@ -211,7 +213,7 @@ projects:
     - template-cross-all
     folder: ../sbt-build/dsl
     sourcegen:
-      main: scripts.GenerateForHttp4sDslTest
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   http4s-ember-client:
     dependencies: org.typelevel::keypool:0.4.11
@@ -425,7 +427,7 @@ projects:
     - template-cross-all
     folder: ../sbt-build/server
     sourcegen:
-      main: scripts.GenerateForHttp4sServerTest
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   http4s-tests:
     dependencies:
@@ -504,15 +506,14 @@ projects:
     - template-jvm
     folder: ../sbt-build/scalafix-internal/tests
     sourcegen:
-      main: scripts.GenerateForScalafixinternaltestsTest
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
     sources: ./src/${SCOPE}/scala-2.13+
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 3.9.0
+    resources: ./resources
 templates:
   template-common:
     ignoreEvictionErrors: no

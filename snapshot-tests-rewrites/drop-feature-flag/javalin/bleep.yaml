@@ -31,7 +31,9 @@ projects:
   javalin-context-mock:
     dependencies: org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api:5.0.2
     dependsOn: javalin
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-scanforannotationprocessors
     folder: ../maven-build/javalin-utils/javalin-context-mock
   javalin-context-mock-test:
     dependencies:
@@ -51,7 +53,9 @@ projects:
     - configuration: provided
       module: org.slf4j:slf4j-api:2.0.18
     dependsOn: javalin
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-scanforannotationprocessors
     folder: ../maven-build/javalin-micrometer
   javalin-micrometer-test:
     dependencies:
@@ -72,7 +76,9 @@ projects:
     - configuration: provided
       module: org.slf4j:slf4j-api:2.0.18
     dependsOn: javalin
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-scanforannotationprocessors
     folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-commonmark
   javalin-rendering-commonmark-test:
     dependencies:
@@ -91,7 +97,9 @@ projects:
     - configuration: provided
       module: org.slf4j:slf4j-api:2.0.18
     dependsOn: javalin
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-scanforannotationprocessors
     folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-freemarker
   javalin-rendering-freemarker-test:
     dependencies:
@@ -107,7 +115,9 @@ projects:
   javalin-rendering-handlebars:
     dependencies: com.github.jknack:handlebars:4.5.4
     dependsOn: javalin
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-scanforannotationprocessors
     folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-handlebars
   javalin-rendering-handlebars-test:
     dependsOn:
@@ -123,7 +133,9 @@ projects:
     - configuration: provided
       module: org.slf4j:slf4j-api:2.0.18
     dependsOn: javalin
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-scanforannotationprocessors
     folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-jte
   javalin-rendering-jte-test:
     dependencies:
@@ -142,7 +154,9 @@ projects:
     - configuration: provided
       module: org.slf4j:slf4j-api:2.0.18
     dependsOn: javalin
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-scanforannotationprocessors
     folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-mustache
   javalin-rendering-mustache-test:
     dependencies:
@@ -158,7 +172,9 @@ projects:
   javalin-rendering-pebble:
     dependencies: io.pebbletemplates:pebble:4.1.2
     dependsOn: javalin
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-scanforannotationprocessors
     folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-pebble
   javalin-rendering-pebble-test:
     dependsOn:
@@ -171,7 +187,9 @@ projects:
   javalin-rendering-thymeleaf:
     dependencies: org.thymeleaf:thymeleaf:3.1.5.RELEASE
     dependsOn: javalin
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-scanforannotationprocessors
     folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-thymeleaf
   javalin-rendering-thymeleaf-test:
     dependsOn:
@@ -184,7 +202,9 @@ projects:
   javalin-rendering-velocity:
     dependencies: org.apache.velocity:velocity-engine-core:2.4.1
     dependsOn: javalin
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-scanforannotationprocessors
     folder: ../maven-build/javalin-utils/javalin-rendering/javalin-rendering-velocity
   javalin-rendering-velocity-test:
     dependsOn:
@@ -203,7 +223,9 @@ projects:
     - org.eclipse.jetty.http2:jetty-http2-server:12.1.12
     - org.eclipse.jetty:jetty-alpn-java-server:12.1.12
     dependsOn: javalin
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-scanforannotationprocessors
     folder: ../maven-build/javalin-ssl
     publish:
       groupId: io.javalin.community.ssl
@@ -243,12 +265,11 @@ projects:
     - template-common-test
     - template-javalin
     folder: ../maven-build/javalin
-    sourcegen:
-      main: scripts.GenerateForJavalinTest
-      project: scripts
   javalin-testtools:
     dependsOn: javalin
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-scanforannotationprocessors
     folder: ../maven-build/javalin-testtools
   javalin-testtools-test:
     dependencies: org.eclipse.jetty.websocket:jetty-websocket-core-server:12.1.12
@@ -257,12 +278,6 @@ projects:
     - template-common-jackson-databind
     - template-common-test-slf4j-simple
     folder: ../maven-build/javalin-testtools
-  scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
-    platform:
-      name: jvm
-    scala:
-      version: 3.9.0
 templates:
   template-common:
     dependencies:
@@ -271,6 +286,7 @@ templates:
     java:
       options: --release 17
     kotlin:
+      jvmTarget: '17'
       version: 2.2.20
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
@@ -279,7 +295,7 @@ templates:
     dependencies:
     - com.fasterxml.jackson.core:jackson-databind:2.22.2
     - com.fasterxml.jackson.module:jackson-module-kotlin:2.22.2
-    extends: template-common
+    extends: template-common-scanforannotationprocessors
   template-common-main:
     boms:
     - org.eclipse.jetty:jetty-bom:12.1.12
@@ -288,6 +304,10 @@ templates:
     publish:
       groupId: io.javalin
     sbt-scope: main
+  template-common-scanforannotationprocessors:
+    extends: template-common
+    java:
+      scanForAnnotationProcessors: if-present
   template-common-test:
     dependencies:
     - org.assertj:assertj-core:3.27.7
@@ -298,7 +318,9 @@ templates:
     sbt-scope: test
   template-common-test-slf4j-simple:
     dependencies: org.slf4j:slf4j-simple:2.0.18
-    extends: template-common-test
+    extends:
+    - template-common-scanforannotationprocessors
+    - template-common-test
   template-javalin:
     dependencies:
     - configuration: optional
@@ -318,3 +340,5 @@ templates:
     - configuration: optional
       module: tools.jackson.module:jackson-module-kotlin:3.2.2
     extends: template-common
+    java:
+      annotationProcessors: org.openjdk.jmh:jmh-generator-annprocess:1.37

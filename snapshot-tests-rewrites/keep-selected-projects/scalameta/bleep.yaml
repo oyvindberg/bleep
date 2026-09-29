@@ -1,5 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
+jvm:
+  name: temurin:17
 projects:
   bench:
     dependencies:
@@ -9,50 +11,46 @@ projects:
     dependsOn: testssemanticdb
     extends:
     - template-common-main
-    - template-cross-jvm-211-212-213
+    - template-cross-jvm-212-213
     - template-scala-2-jvm-protobuf
     folder: ../sbt-build/bench/suite
     sourcegen:
-      main: scripts.GenerateForBench
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   common:
-    cross:
-      jvm213:
-        dependencies: com.lihaoyi::sourcecode:0.4.2
     dependencies:
-      configuration: provided
+    - com.lihaoyi::sourcecode:0.4.2
+    - configuration: provided
       module: org.scala-lang:scala-reflect:${SCALA_VERSION}
     extends:
-    - template-common-cross-full
     - template-common-main
-    - template-cross-js-all-jvm-211-212-213-native-all
+    - template-cross-js-all-jvm-212-213-native-all
+    - template-scala-2.12-and-2.13.16-and-3-cross-full
     folder: ../sbt-build/scalameta/common
     sourcegen:
-      main: scripts.GenerateForCommon
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   communitytest:
-    cross:
-      jvm213:
-        dependencies: org.scalameta::munit:1.1.0
+    dependencies: org.scalameta::munit:1.1.0
     dependsOn: scalameta
     extends:
     - template-common-main
-    - template-cross-jvm-211-212-213
+    - template-cross-jvm-212-213
     - template-scala-2-jvm-protobuf
     folder: ../sbt-build/community-test
   communitytest-test:
     dependsOn: communitytest
     extends:
-    - template-cross-jvm-211-212-213
+    - template-cross-jvm-212-213
     - template-scala-2-jvm-protobuf
     folder: ../sbt-build/community-test
     isTestProject: true
     sbt-scope: test
   io:
     extends:
-    - template-common-cross-full
     - template-common-main
-    - template-cross-js-all-jvm-211-212-213-native-all
+    - template-cross-js-all-jvm-212-213-native-all
+    - template-scala-2.12-and-2.13.16-and-3-cross-full
     folder: ../sbt-build/scalameta/io
   metac:
     dependsOn: semanticdb-scalac-core
@@ -77,12 +75,12 @@ projects:
         - ../transversers/shared/src/${SCOPE}/scala-2
     dependsOn: trees
     extends:
-    - template-common-cross-full
     - template-common-main
-    - template-cross-js-all-jvm-211-212-213-native-all
+    - template-cross-js-all-jvm-212-213-native-all
+    - template-scala-2.12-and-2.13.16-and-3-cross-full
     folder: ../sbt-build/scalameta/parsers
     sourcegen:
-      main: scripts.GenerateForParsers
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
     sources:
     - ../quasiquotes/${PLATFORM}/src/${SCOPE}/scala
@@ -117,9 +115,9 @@ projects:
         sources: ../contrib/shared/src/${SCOPE}/scala-2
     dependsOn: parsers
     extends:
-    - template-common-cross-full
     - template-common-main
-    - template-cross-js-all-jvm-211-212-213-native-all
+    - template-cross-js-all-jvm-212-213-native-all
+    - template-scala-2.12-and-2.13.16-and-3-cross-full
     folder: ../sbt-build/scalameta/scalameta
     sources:
     - ../contrib/${PLATFORM}/src/${SCOPE}/scala
@@ -134,14 +132,13 @@ projects:
     - template-scala-2.13.16
     folder: ../sbt-build/scalameta-docs
     sourcegen:
-      main: scripts.GenerateForScalametaDocs
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 3.9.0
+    resources: ./resources
   semanticdb-metacp:
     dependsOn: semanticdb-scalac-core
     extends:
@@ -172,14 +169,13 @@ projects:
     - template-scala-2-jvm-protobuf
     folder: ../sbt-build/semanticdb/scalac/library
   semanticdb-shared:
-    cross:
-      jvm213:
-        dependencies: com.thesamet.scalapb::scalapb-runtime:0.11.17
-    dependencies: org.scala-lang:scalap:${SCALA_VERSION}
+    dependencies:
+    - com.thesamet.scalapb::scalapb-runtime:0.11.17
+    - org.scala-lang:scalap:${SCALA_VERSION}
     dependsOn: scalameta
     extends:
     - template-common-main
-    - template-cross-js-all-jvm-211-212-213-native-all
+    - template-cross-js-all-jvm-212-213-native-all
     folder: ../sbt-build/semanticdb/semanticdb
     resources:
     - ./shared/src/${SCOPE}/proto
@@ -187,7 +183,7 @@ projects:
     - ./shared/src/${SCOPE}/proto/semanticidx.proto
     source-layout: cross-full
     sourcegen:
-      main: scripts.GenerateForSemanticdbShared
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
     sources: ./shared/src/${SCOPE}/proto
   semanticdbintegration:
@@ -215,7 +211,7 @@ projects:
       module: org.scala-lang:scala-reflect:${SCALA_VERSION}
     extends:
     - template-common-main
-    - template-cross-jvm-211-212-213
+    - template-cross-jvm-212-213
     - template-scala-2-jvm-protobuf
     folder: ../sbt-build/semanticdb/integration-macros
   testkit:
@@ -224,28 +220,27 @@ projects:
         dependencies: org.rauschig:jarchivelib:1.2.0
     dependsOn: scalameta
     extends:
-    - template-common-cross-full
     - template-common-main
-    - template-cross-js-all-jvm-211-212-213-native-all
+    - template-cross-js-all-jvm-212-213-native-all
+    - template-scala-2.12-and-2.13.16-and-3-cross-full
     folder: ../sbt-build/scalameta/testkit
   tests:
     cross:
       jvm213:
-        dependencies:
-        - for3Use213: true
-          forceJvm: true
-          module: io.get-coursier::coursier:2.1.24
-        - org.scala-lang:scala-reflect:${SCALA_VERSION}
-        - org.scalameta::munit:1.1.0
+        dependencies: org.scala-lang:scala-reflect:${SCALA_VERSION}
+    dependencies:
+    - for3Use213: true
+      forceJvm: true
+      module: io.get-coursier::coursier:2.1.24
+    - org.scalameta::munit:1.1.0
     dependsOn: testkit
     extends:
-    - template-common-cross-full
     - template-common-main
-    - template-cross-js-all-jvm-212-213-3-native-all
-    - template-cross-jvm-211-212-213
+    - template-cross-js-all-jvm-all-native-all
+    - template-scala-2.12-and-2.13.16-and-3-cross-full
     folder: ../sbt-build/tests
     sourcegen:
-      main: scripts.GenerateForTests
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   tests-test:
     cross:
@@ -255,20 +250,17 @@ projects:
         - org.scala-lang:scala-compiler:${SCALA_VERSION}
     dependsOn: tests
     extends:
-    - template-common-cross-full
-    - template-cross-js-all-jvm-212-213-3-native-all
-    - template-cross-jvm-211-212-213
+    - template-cross-js-all-jvm-all-native-all
+    - template-scala-2.12-and-2.13.16-and-3-cross-full
     folder: ../sbt-build/tests
     isTestProject: true
     sbt-scope: test
     sources: ./${PLATFORM}/src/${SCOPE}/scala-${SCALA_VERSION}
   testssemanticdb:
-    cross:
-      jvm213:
-        dependencies:
-        - for3Use213: true
-          module: io.get-coursier::coursier:2.1.24
-        - org.scalameta::munit:1.1.0
+    dependencies:
+    - for3Use213: true
+      module: io.get-coursier::coursier:2.1.24
+    - org.scalameta::munit:1.1.0
     dependsOn:
     - metac
     - semanticdb-metacp
@@ -277,16 +269,16 @@ projects:
     - testkit
     extends:
     - template-common-main
-    - template-cross-jvm-211-212-213
+    - template-cross-jvm-212-213
     - template-scala-2-jvm-protobuf
     folder: ../sbt-build/tests-semanticdb
     sourcegen:
-      main: scripts.GenerateForTestssemanticdb
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   testssemanticdb-test:
     dependsOn: testssemanticdb
     extends:
-    - template-cross-jvm-211-212-213
+    - template-cross-jvm-212-213
     - template-scala-2-jvm-protobuf
     folder: ../sbt-build/tests-semanticdb
     isTestProject: true
@@ -305,9 +297,9 @@ projects:
     - common
     - io
     extends:
-    - template-common-cross-full
     - template-common-main
-    - template-cross-js-all-jvm-211-212-213-native-all
+    - template-cross-js-all-jvm-212-213-native-all
+    - template-scala-2.12-and-2.13.16-and-3-cross-full
     folder: ../sbt-build/scalameta/trees
     sources:
     - ../dialects/${PLATFORM}/src/${SCOPE}/scala
@@ -332,11 +324,6 @@ templates:
     scala:
       setup:
         order: mixed
-  template-common-cross-full:
-    extends: template-common-feature
-    resources: ./${PLATFORM}/src/${SCOPE}/protobuf
-    source-layout: cross-full
-    sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   template-common-feature:
     extends: template-common
     scala:
@@ -346,18 +333,21 @@ templates:
     publish:
       groupId: org.scalameta
     sbt-scope: main
-  template-cross-js-all-jvm-211-212-213-native-all:
+  template-cross-js-all-jvm-212-213-native-all:
     cross:
       jvm213:
         extends:
         - template-jvm
         - template-scala-2.13-wconf
         - template-scala-2.13.16
-  template-cross-js-all-jvm-212-213-3-native-all:
+  template-cross-js-all-jvm-all-native-all:
     cross:
       jvm213:
-        extends: template-jvm
-  template-cross-jvm-211-212-213:
+        extends:
+        - template-jvm
+        - template-scala-2.13-wconf
+        - template-scala-2.13.16
+  template-cross-jvm-212-213:
     cross:
       jvm213:
         extends:
@@ -398,28 +388,27 @@ templates:
     extends: template-jvm
     resources: ./src/${SCOPE}/protobuf
     sources: ./src/${SCOPE}/protobuf
-  template-scala-2.11:
-    extends:
-    - template-jvm
-    - template-scala-2.11-and-2.12
-    scala:
-      version: 2.11.12
-  template-scala-2.11-and-2.12:
+  template-scala-2.12:
     extends: template-common-feature
     scala:
       compilerPlugins: org.scalamacros:::paradise:2.1.1
+  template-scala-2.12-and-2.13.16-and-3-cross-full:
+    extends: template-common-feature
+    resources: ./${PLATFORM}/src/${SCOPE}/protobuf
+    source-layout: cross-full
+    sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   template-scala-2.12.17:
     extends:
     - template-common-main
     - template-jvm
-    - template-scala-2.11-and-2.12
+    - template-scala-2.12
     scala:
       version: 2.12.17
   template-scala-2.12.18:
     extends:
     - template-common-main
     - template-scala-2-jvm-protobuf
-    - template-scala-2.11-and-2.12
+    - template-scala-2.12
     scala:
       version: 2.12.18
     sources: ./src/${SCOPE}/scala-${SCALA_VERSION}
@@ -427,12 +416,12 @@ templates:
     extends:
     - template-common-main
     - template-scala-2-jvm-protobuf
-    - template-scala-2.11-and-2.12
+    - template-scala-2.12
     scala:
       version: 2.12.19
     sources: ./src/${SCOPE}/scala-${SCALA_VERSION}
   template-scala-2.12.20:
-    extends: template-scala-2.11-and-2.12
+    extends: template-scala-2.12
     scala:
       version: 2.12.20
   template-scala-2.13:

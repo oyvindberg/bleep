@@ -1,7 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
 jvm:
-  name: temurin:8
+  name: temurin:17
 projects:
   javaparser-core:
     extends: template-common-main
@@ -9,7 +9,7 @@ projects:
     java:
       options: -parameters
     sourcegen:
-      main: scripts.GenerateForJavaparserCore
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
     sources: ./src/main/javacc-support
   javaparser-core-generators:
@@ -94,15 +94,15 @@ projects:
     platform:
       jvmOptions: -Xms256m -Xmx2g -verbose:gc
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 3.9.0
+    resources: ./resources
 templates:
   template-common:
     java:
       options: --release 8
+      scanForAnnotationProcessors: if-present
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
       name: jvm

@@ -1,5 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
+jvm:
+  name: temurin:17
 projects:
   bloop-cli:
     dependencies:
@@ -16,13 +18,13 @@ projects:
       module: org.graalvm.nativeimage:svm:24.2.1
     dependsOn: bloop-rifle
     extends:
-    - template-common-main-resources
+    - template-scala-2-main-resources
     - template-scala-2.13
     folder: ../sbt-build/cli
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
     sourcegen:
-      main: scripts.GenerateForBloopCli
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-rifle:
     dependencies:
@@ -31,11 +33,11 @@ projects:
     - io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc2
     - org.scala-lang.modules::scala-collection-compat:2.13.0
     extends:
-    - template-common-main-resources
+    - template-scala-2-main-resources
     - template-scala-2.13
     folder: ../sbt-build/bloop-rifle
     sourcegen:
-      main: scripts.GenerateForBloopRifle
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-rifle-test:
     dependencies:
@@ -48,17 +50,16 @@ projects:
     folder: ../sbt-build/bloop-rifle
     sbt-scope: test
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 2.13.16
+    resources: ./resources
 templates:
   template-bloop-frontend:
     dependencies:
       configuration: provided
       module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
-    extends: template-scala-2.12-xlint
+    extends: template-scala-2.12.20-xlint
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
         -Xms1g -Xmx3g
@@ -66,47 +67,63 @@ templates:
     ignoreEvictionErrors: no
     platform:
       name: jvm
-    scala:
-      options: -Xfuture -Ywarn-numeric-widen -Ywarn-value-discard -encoding UTF-8
-        -feature -language:existentials -language:higherKinds -language:implicitConversions
-        -unchecked
-      setup:
-        order: mixed
   template-common-main:
     extends: template-common
-    publish:
-      groupId: ch.epfl.scala
     sbt-scope: main
-  template-common-main-resources:
+  template-common-main-git.localdir:
     extends: template-common-main
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
+    platform:
+      jvmOptions: -Dgit.localdir=. -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.10.11/sbt-1.10.11.zip/sbt/bin/sbt-launch.jar
+        -DscalaRef=v2.12.19 -DscalaVersion=2.12.19
   template-common-test:
-    extends: template-common
+    extends: template-scala-2.12.20-and-2.13
     isTestProject: true
     testFrameworks:
     - hedgehog.sbt.Framework
     - weaver.framework.CatsEffect
     - zio.test.sbt.ZTestFramework
-  template-scala-2.12:
+  template-scala-2:
     extends: template-common
+    scala:
+      setup:
+        order: mixed
+  template-scala-2-main:
+    extends:
+    - template-common-main
+    - template-scala-2
+    publish:
+      groupId: ch.epfl.scala
+  template-scala-2-main-resources:
+    extends:
+    - template-scala-2-main
+    - template-scala-2.12.20-and-2.13
+    resources:
+    - ../LICENSE.md
+    - ../NOTICE.md
+  template-scala-2.12.20:
+    extends: template-scala-2.12.20-and-2.13
     scala:
       options: -Yno-adapted-args -deprecation
       version: 2.12.20
-  template-scala-2.12-main-resources:
+  template-scala-2.12.20-and-2.13:
+    extends: template-scala-2
+    scala:
+      options: -Xfuture -Ywarn-numeric-widen -Ywarn-value-discard -encoding UTF-8
+        -feature -language:existentials -language:higherKinds -language:implicitConversions
+        -unchecked
+  template-scala-2.12.20-main-resources:
     extends:
-    - template-common-main
-    - template-scala-2.12
+    - template-scala-2-main
+    - template-scala-2.12.20
     resources:
     - ../../LICENSE.md
     - ../../NOTICE.md
-  template-scala-2.12-xlint:
-    extends: template-scala-2.12
+  template-scala-2.12.20-xlint:
+    extends: template-scala-2.12.20
     scala:
       options: -Xlint:unused -Yrangepos -Ywarn-unused
   template-scala-2.13:
-    extends: template-common
+    extends: template-scala-2.12.20-and-2.13
     scala:
       setup:
         addLibraryToBootClasspath: false

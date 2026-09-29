@@ -1,0 +1,100 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:17
+projects:
+  dynver:
+    cross:
+      jvm212:
+        extends: template-scala-2.12
+      jvm213:
+        extends: template-scala-2.13-and-3
+        scala:
+          version: 2.13.18
+      jvm3:
+        extends: template-scala-2.13-and-3
+        scala:
+          version: 3.3.8
+    folder: ../sbt-build/dynver
+    platform:
+      jvmRuntimeOptions: -Duser.dir=${BUILD_DIR}
+    publish:
+      groupId: com.github.sbt
+    sbt-scope: main
+  dynver-test:
+    cross:
+      jvm212:
+        extends: template-scala-2.12
+      jvm213:
+        extends: template-scala-2.13-and-3
+        scala:
+          version: 2.13.18
+      jvm3:
+        extends: template-scala-2.13-and-3
+        scala:
+          version: 3.3.8
+    dependencies:
+    - org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r
+    - org.scalacheck::scalacheck:1.20.0
+    dependsOn: dynver
+    folder: ../sbt-build/dynver
+    isTestProject: true
+    sbt-scope: test
+    testFrameworks:
+    - hedgehog.sbt.Framework
+    - weaver.framework.CatsEffect
+    - zio.test.sbt.ZTestFramework
+  sbt-dynver:
+    cross:
+      jvm212:
+        dependencies:
+          configuration: provided
+          module: org.scala-sbt:sbt:1.12.3
+        extends: template-scala-2.12
+        libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
+        scala:
+          options: -Wconf:cat=unused-nowarn:s -Xsource:3
+      jvm3:
+        dependencies:
+          configuration: provided
+          module: org.scala-sbt:sbt:2.0.2
+        extends: template-scala-2.13-and-3
+        libraryVersionSchemes: org.scala-sbt:compiler-interface:always
+        scala:
+          version: 3.8.4
+    dependsOn: dynver
+    folder: ../sbt-build/sbtdynver
+    platform:
+      jvmRuntimeOptions: -Duser.dir=${BUILD_DIR}
+    publish:
+      groupId: com.github.sbt
+    sbt-scope: main
+    scala:
+      sbtPlugin: true
+  scripts:
+    dependencies: build.bleep:bleepscript:1.0.0-M14
+    platform:
+      name: jvm
+    resources: ./resources
+templates:
+  template-common:
+    ignoreEvictionErrors: no
+    platform:
+      name: jvm
+    scala:
+      options: -deprecation -encoding utf8 -unchecked
+      setup:
+        order: mixed
+  template-scala-2.12:
+    extends: template-common
+    scala:
+      options: -Xfuture -Xlint -Yno-adapted-args -Ywarn-dead-code -Ywarn-numeric-widen
+        -Ywarn-value-discard -release:8
+      version: 2.12.21
+  template-scala-2.13-and-3:
+    extends: template-common
+    scala:
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false

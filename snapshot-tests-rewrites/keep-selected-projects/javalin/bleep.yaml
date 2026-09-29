@@ -11,6 +11,7 @@ templates:
     java:
       options: --release 17
     kotlin:
+      jvmTarget: '17'
       version: 2.2.20
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
@@ -19,7 +20,7 @@ templates:
     dependencies:
     - com.fasterxml.jackson.core:jackson-databind:2.22.2
     - com.fasterxml.jackson.module:jackson-module-kotlin:2.22.2
-    extends: template-common
+    extends: template-common-scanforannotationprocessors
   template-common-main:
     boms:
     - org.eclipse.jetty:jetty-bom:12.1.12
@@ -28,6 +29,10 @@ templates:
     publish:
       groupId: io.javalin
     sbt-scope: main
+  template-common-scanforannotationprocessors:
+    extends: template-common
+    java:
+      scanForAnnotationProcessors: if-present
   template-common-test:
     dependencies:
     - org.assertj:assertj-core:3.27.7
@@ -38,7 +43,9 @@ templates:
     sbt-scope: test
   template-common-test-slf4j-simple:
     dependencies: org.slf4j:slf4j-simple:2.0.18
-    extends: template-common-test
+    extends:
+    - template-common-scanforannotationprocessors
+    - template-common-test
   template-javalin:
     dependencies:
     - configuration: optional
@@ -58,3 +65,5 @@ templates:
     - configuration: optional
       module: tools.jackson.module:jackson-module-kotlin:3.2.2
     extends: template-common
+    java:
+      annotationProcessors: org.openjdk.jmh:jmh-generator-annprocess:1.37
