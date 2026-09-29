@@ -31,7 +31,7 @@ class JdkCompilerOpensTest extends AnyFunSuite {
 
   test("asks the JDK once, then reads what it said") {
     val cacheDir = Files.createTempDirectory("jdk-compiler-opens")
-    val javaBin = Path.of(sys.props("java.home"), "bin", "java")
+    val javaBin = Path.of(sys.props("java.home"), "bin", if (scala.util.Properties.isWin) "java.exe" else "java")
     val logger = ryddig.Loggers.storing()
 
     val first = JdkCompilerOpens.packages(javaBin, cacheDir, logger)
