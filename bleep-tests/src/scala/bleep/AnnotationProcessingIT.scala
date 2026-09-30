@@ -179,4 +179,116 @@ class AnnotationProcessingIT extends IntegrationTestHarness {
       s"unexpected error message: $msg"
     )
   }
+
+  integrationTest("scanForAnnotationProcessors: if-present with no processors compiles without processing") { ws =>
+    ws.yaml(
+      """projects:
+        |  a:
+        |    dependencies: org.slf4j:slf4j-api:2.0.9
+        |    source-layout: java
+        |    platform:
+        |      name: jvm
+        |    java:
+        |      scanForAnnotationProcessors: if-present
+        |""".stripMargin
+    )
+    ws.file("a/src/java/test/Person.java", "package test; public class Person {}")
+    val (_, commands, _) = ws.start()
+    commands.compile(List(model.CrossProjectName(model.ProjectName("a"), None))).discard()
+    succeed
+  }
+
+  integrationTest("scanForAnnotationProcessors: if-present runs the processors it finds: lombok") { ws =>
+    ws.yaml(
+      """projects:
+        |  a:
+        |    dependencies:
+        |      - configuration: provided
+        |        module: org.projectlombok:lombok:1.18.46
+        |    source-layout: java
+        |    platform:
+        |      name: jvm
+        |    java:
+        |      scanForAnnotationProcessors: if-present
+        |""".stripMargin
+    )
+    // `getName` only exists if lombok ran
+    ws.file(
+      "a/src/java/test/Person.java",
+      """package test;
+        |@lombok.Getter
+        |public class Person {
+        |    private String name = "a";
+        |    public static String nameOf(Person p) { return p.getName(); }
+        |}""".stripMargin
+    )
+    val (_, commands, storingLogger) = ws.start()
+    commands.compile(List(model.CrossProjectName(model.ProjectName("a"), None))).discard()
+    assert(storingLogger.underlying.exists(_.message.plainText.contains("auto-discovered annotation processor")))
+  }
+
+  integrationTest("the java sources of a kotlin project are processed too, and again on the next compile") { ws =>
+    ws.yaml(
+      """projects:
+        |  a:
+        |    dependencies: org.mapstruct:mapstruct:1.5.5.Final
+        |    source-layout: kotlin
+        |    kotlin:
+        |      version: 2.1.20
+        |    platform:
+        |      name: jvm
+        |    java:
+        |      annotationProcessors:
+        |        - org.mapstruct:mapstruct-processor:1.5.5.Final
+        |      annotationProcessorOptions:
+        |        mapstruct.suppressGeneratorTimestamp: "true"
+        |""".stripMargin
+    )
+    ws.file("a/src/kotlin/test/Hello.kt", "package test\n\nfun greet(name: String): String = \"Hello, $name!\"\n")
+    ws.file("a/src/java/test/User.java", "package test; public class User { public String name; }")
+    ws.file("a/src/java/test/UserDto.java", "package test; public class UserDto { public String name; }")
+    ws.file(
+      "a/src/java/test/UserMapper.java",
+      """package test;
+        |@org.mapstruct.Mapper
+        |public interface UserMapper {
+        |    UserDto userToUserDto(User user);
+        |}""".stripMargin
+    )
+    val (started, commands, _) = ws.start()
+    val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+    commands.compile(List(projectName)).discard()
+    val classes = started.projectPaths(projectName).classes
+    assert(Files.isRegularFile(classes.resolve("test/UserMapperImpl.class")), s"expected UserMapperImpl.class in $classes")
+
+    // the generated sources are now in a source directory. compiling again must not ask javac to generate what it is given as a source
+    ws.file("a/src/java/test/UserDto.java", "package test; public class UserDto { public String name; public int age; }")
+    commands.compile(List(projectName)).discard()
+    assert(Files.isRegularFile(classes.resolve("test/UserMapperImpl.class")))
+  }
+
+  integrationTest("a processor found on the classpath runs with the rest of the classpath: auto-service needs auto-common") { ws =>
+    ws.yaml(
+      """projects:
+        |  a:
+        |    dependencies: com.google.auto.service:auto-service:1.1.1
+        |    source-layout: java
+        |    platform:
+        |      name: jvm
+        |    java:
+        |      scanForAnnotationProcessors: true
+        |""".stripMargin
+    )
+    ws.file(
+      "a/src/java/test/Task.java",
+      """package test;
+        |@com.google.auto.service.AutoService(Runnable.class)
+        |public class Task implements Runnable { public void run() {} }""".stripMargin
+    )
+    val (started, commands, _) = ws.start()
+    val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+    commands.compile(List(projectName)).discard()
+    val registration = started.projectPaths(projectName).classes.resolve("META-INF/services/java.lang.Runnable")
+    assert(Files.readString(registration).contains("test.Task"), s"expected auto-service to register test.Task in $registration")
+  }
 }

@@ -15,7 +15,8 @@ class RemoteCacheUnsupportedTest extends AnyFunSuite with Matchers {
     compilerPlugins = model.JsonSet.empty,
     strict = None,
     skipStdlib = None,
-    compilerProject = None
+    compilerProject = None,
+    sbtPlugin = None
   )
 
   private val build = model.Build.Exploded(

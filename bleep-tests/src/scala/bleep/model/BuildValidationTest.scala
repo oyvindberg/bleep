@@ -17,7 +17,8 @@ class BuildValidationTest extends AnyFunSuite with Matchers {
     compilerPlugins = JsonSet.empty,
     strict = None,
     skipStdlib = None,
-    compilerProject = None
+    compilerProject = None,
+    sbtPlugin = None
   )
   private val scalaUnversioned = scalaVersioned.copy(version = None)
 

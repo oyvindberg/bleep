@@ -40,7 +40,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.6.0/jawn-parser_2.13-1.6.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.1.0/literally_2.13-1.1.0.jar",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-core@jvm213/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-core@jvm213/generated-resources/scripts.GenerateForDoobieCore",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-core@jvm213/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-free@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/projects/doobie-postgres@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/core/src/main/resources",

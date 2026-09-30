@@ -41,15 +41,13 @@ sealed trait VersionCombo {
             fullCrossVersion = false
           )
         }
-        // javalib is explicitly excluded from scala3lib/scalalib POMs,
-        // so it must be added separately for the linker classpath
-        val javalib = Dep.ScalaDependency(
-          VersionScalaNative.org,
-          ModuleName("javalib"),
-          scalaNative.scalaNativeVersion,
-          fullCrossVersion = false
-        )
-        List(libs, scalaVersion.library, javalib) ++ testLibs.toList
+        // the standard libraries sbt-scala-native adds from 0.5 (`nativeStandardLibraries` in its `ScalaNativePluginInternal`). javalib is excluded from the
+        // scala3lib/scalalib POMs, so it must be added for the linker classpath in any case
+        val standardLibraries: List[String] =
+          if (scalaNative.majorVersionNum < 0.5) List("javalib") else List("nativelib", "clib", "posixlib", "windowslib", "javalib", "auxlib")
+        val standard =
+          standardLibraries.map(name => Dep.ScalaDependency(VersionScalaNative.org, ModuleName(name), scalaNative.scalaNativeVersion, fullCrossVersion = false))
+        List(libs) ++ standard ++ scalaVersion.library.toList ++ testLibs.toList
     }
 
   /** Version schemes for the test-harness libraries [[libraries]] injects.

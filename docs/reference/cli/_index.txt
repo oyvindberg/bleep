@@ -38,8 +38,8 @@
 - bleep history
   - bleep history show
   - bleep history diff
-- bleep import
 - bleep import-maven
+- bleep import-sbt
 - bleep install-tab-completions-bash
 - bleep install-tab-completions-zsh
 - bleep link

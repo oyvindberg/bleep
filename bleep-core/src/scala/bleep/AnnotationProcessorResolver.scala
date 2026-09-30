@@ -16,11 +16,14 @@ case class AnnotationProcessorResult(
     genSourcesDir: Path,
     aFlags: SortedMap[String, String]
 ) {
-  def javacFlags: List[String] = {
-    val processorPath = processorJars.mkString(File.pathSeparator)
-    val aArgs = aFlags.iterator.map { case (k, v) => s"-A$k=$v" }.toList
-    List("-processorpath", processorPath, "-s", genSourcesDir.toString) ++ aArgs
-  }
+  def javacFlags: List[String] =
+    // `scanForAnnotationProcessors: if-present` which found nothing
+    if (processorJars.isEmpty) List("-proc:none")
+    else {
+      val processorPath = processorJars.mkString(File.pathSeparator)
+      val aArgs = aFlags.iterator.map { case (k, v) => s"-A$k=$v" }.toList
+      List("-processorpath", processorPath, "-s", genSourcesDir.toString) ++ aArgs
+    }
 }
 
 object AnnotationProcessorResolver {
@@ -31,7 +34,8 @@ object AnnotationProcessorResolver {
     *   - `annotationProcessorOptions`: `-A<k>=<v>` flags
     *
     * Loud-fails (`sys.error`) when:
-    *   - `scanForAnnotationProcessors: true` is set but neither scanning nor the explicit list yields any processor jars (no-op opt-in)
+    *   - `scanForAnnotationProcessors: true` is set but neither scanning nor the explicit list yields any processor jars (no-op opt-in). `if-present` finds
+    *     nothing without failing, and javac runs no processor
     *   - the user wrote conflicting flags into `java.options` (manual `-processorpath`, `-A`, `-proc:`, or ` -s `)
     *
     * The escape hatch (`-proc:none` already in `java.options`) is NOT handled here — callers should detect that case and skip calling `resolve` entirely.
@@ -58,7 +62,7 @@ object AnnotationProcessorResolver {
         s"project ${crossName.value}: cannot use manual -A flags in java.options when annotation processing is configured (use annotationProcessorOptions)"
       )
 
-    val wantsScan = java.scanForAnnotationProcessors.contains(true)
+    val wantsScan = java.scanForAnnotationProcessors.exists(_.scans)
     val explicitDeps: Set[model.Dep] = java.annotationProcessors.values.toSet
 
     val explicitJars: List[Path] = explicitDeps.toList.flatMap { dep =>
@@ -86,12 +90,14 @@ object AnnotationProcessorResolver {
           }
         }
 
-    if (wantsScan && explicitJars.isEmpty && scannedJars.isEmpty)
+    if (java.scanForAnnotationProcessors.contains(model.ScanForAnnotationProcessors.Yes) && explicitJars.isEmpty && scannedJars.isEmpty)
       sys.error(
         s"project ${crossName.value}: scanForAnnotationProcessors: true was set but no annotation processor JARs were found in dependencies and annotationProcessors is empty"
       )
 
-    val processorJars: List[Path] = (scannedJars ++ explicitJars).distinct
+    // a processor found on the classpath is loaded from the classpath, as javac does without a processor path: jmh's needs jmh-generator-core, auto-service's
+    // needs auto-service-annotations
+    val processorJars: List[Path] = (if (scannedJars.isEmpty) explicitJars else resolvedDependencyJars ++ explicitJars).distinct
     AnnotationProcessorResult(
       processorJars = processorJars,
       genSourcesDir = genSourcesDir,

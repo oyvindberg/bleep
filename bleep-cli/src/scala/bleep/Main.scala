@@ -71,7 +71,7 @@ object Main {
         newCommand(logger, userPaths, buildPaths.cwd)
       ),
       importCmd(buildLoader, userPaths, buildPaths, logger),
-      importMavenCmd(buildPaths, logger),
+      importMavenCmd(buildPaths, userPaths, logger),
       configCommand(userPaths).map(mkCommand => mkCommand(logger)),
       installTabCompletions(userPaths, logger),
       serverCommand(userPaths, currentWorkspace = None).map(mkCommand => mkCommand(logger)),
@@ -916,7 +916,7 @@ object Main {
             importCmd(buildLoader, started.userPaths, buildPaths, started.logger)
           }, {
             val buildPaths0 = BuildPaths(started.buildPaths.cwd, BuildLoader.nonExisting(started.buildPaths.cwd), model.BuildVariant.Normal)
-            importMavenCmd(buildPaths0, started.logger)
+            importMavenCmd(buildPaths0, started.userPaths, started.logger)
           },
           configCommand(started.pre.userPaths).map(mkCommand =>
             new BleepBuildCommand {
@@ -1255,25 +1255,28 @@ object Main {
       ).foldK
     )
 
-  def importCmd(buildLoader: BuildLoader, userPaths: UserPaths, buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
-    Opts.subcommand("import", "import an existing sbt build by reading the Bloop JSON files in .bloop (run after `sbt bloopInstall`)")(
-      sbtimport.ImportOptions.opts.map { opts =>
-        val cacheLogger = new BleepCacheLogger(logger)
-        val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ec)
+  def importCmd(buildLoader: BuildLoader, userPaths: UserPaths, buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] = {
+    def importSbt(opts: sbtimport.ImportOptions): BleepCommand = {
+      val cacheLogger = new BleepCacheLogger(logger)
+      val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ec)
 
-        val existingBuild = buildLoader.existing.flatMap(_.buildFile.forceGet).toOption
+      val existingBuild = buildLoader.existing.flatMap(_.buildFile.forceGet).toOption
 
-        commands.Import(existingBuild, sbtBuildDir = buildPaths.cwd, fetchJvm, buildPaths, logger, opts, model.BleepVersion.current)
-      }
+      commands.ImportSbt(existingBuild, sbtBuildDir = buildPaths.cwd, fetchJvm, buildPaths, logger, opts, model.BleepVersion.current)
+    }
+
+    Opts.subcommand("import-sbt", "import an existing sbt build into a bleep.yaml in the same directory. bleep runs sbt itself to read the build")(
+      sbtimport.ImportOptions.opts.map(importSbt)
     )
+  }
 
-  def importMavenCmd(buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
+  def importMavenCmd(buildPaths: BuildPaths, userPaths: UserPaths, logger: Logger): Opts[BleepCommand] =
     Opts.subcommand(
       "import-maven",
       "import an existing Maven build by reading pom.xml (uses `mvn help:effective-pom` to resolve parent POMs and dependencyManagement)"
     )(
       mavenimport.MavenImportOptions.opts.map { opts =>
-        commands.ImportMaven(mavenBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.BleepVersion.current)
+        commands.ImportMaven(mavenBuildDir = buildPaths.cwd, buildPaths, userPaths, logger, opts, model.BleepVersion.current)
       }
     )
 

@@ -108,7 +108,10 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
 
   // === project resolution ===
 
-  final def project(crossName: model.CrossProjectName, p: model.Project): ProjectPaths = {
+  /** @param crossPlatforms
+    *   the platforms the project is built for, across its cross projects. See [[model.Build.crossPlatforms]]
+    */
+  final def project(crossName: model.CrossProjectName, p: model.Project, crossPlatforms: Set[model.PlatformId]): ProjectPaths = {
     val dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value))
     val scalaVersion: Option[model.VersionScala] = p.scala.flatMap(_.version)
     val maybePlatformId = p.platform.flatMap(_.name)
@@ -136,12 +139,12 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
     }
 
     val sources = {
-      val fromSourceLayout = sourceLayout.sources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
+      val fromSourceLayout = sourceLayout.sources(scalaVersion, maybePlatformId, crossPlatforms, p.`sbt-scope`).values.map(dir / _)
       val fromJson = p.sources.values.map(relPath => (relPath, dir / replacements.fill.relPath(relPath))).toMap
       val generated = p.sourcegen.values.iterator.map(sourceGen => (sourceGen, generatedSourcesDir(crossName, sourceGen.folderName))).toMap
       val annotationProcessing =
         p.java
-          .filter(j => j.scanForAnnotationProcessors.contains(true) || j.annotationProcessors.values.nonEmpty)
+          .filter(j => j.scanForAnnotationProcessors.exists(_.scans) || j.annotationProcessors.values.nonEmpty)
           .map(_ => generatedSourcesDir(crossName, "annotations"))
       val ksp: List[Path] =
         p.kotlin.filter(_.hasSymbolProcessing).toList.flatMap { _ =>
@@ -152,7 +155,7 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
     }
 
     val resources = {
-      val fromSourceLayout = sourceLayout.resources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
+      val fromSourceLayout = sourceLayout.resources(scalaVersion, maybePlatformId, crossPlatforms, p.`sbt-scope`).values.map(dir / _)
       val fromJson = p.resources.values.iterator.map(relPath => (relPath, dir / replacements.fill.relPath(relPath))).toMap
       val generated = p.sourcegen.values.iterator.map(sourceGen => (sourceGen, generatedResourcesDir(crossName, sourceGen.folderName))).toMap
       // KSP resources land at .bleep/projects/<cross>/generated-sources/ksp/resources/; expose them so they're packaged like normal resources.

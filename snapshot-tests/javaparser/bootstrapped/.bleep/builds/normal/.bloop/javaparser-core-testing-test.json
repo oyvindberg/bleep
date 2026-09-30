@@ -1,0 +1,279 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "javaparser-core-testing-test",
+    "directory": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-testing-test/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-testing-test/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core-testing/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-testing-test/generated-sources/annotations"
+    ],
+    "dependencies": [
+      "javaparser-core",
+      "javaparser-core-testing"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy-agent/1.18.14-jdk5/byte-buddy-agent-1.18.14-jdk5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.18.14-jdk5/byte-buddy-1.18.14-jdk5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/5.14.4/junit-jupiter-api-5.14.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.14.4/junit-jupiter-engine-5.14.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/5.14.4/junit-jupiter-params-5.14.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/1.14.4/junit-platform-commons-1.14.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/1.14.4/junit-platform-engine-1.14.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-core/4.11.0/mockito-core-4.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-inline/4.11.0/mockito-inline-4.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/objenesis/objenesis/3.3/objenesis-3.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-testing/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core-testing/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-testing-test/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core-testing-test/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core-testing/src/test/resources"
+    ],
+    "java": {
+      "options": [
+        "--release",
+        "8"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.novocode.junit.JUnitFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalatest.tools.Framework",
+            "org.scalatest.tools.ScalaTestFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalacheck.ScalaCheckFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.specs.runner.SpecsFramework",
+            "org.specs2.runner.Specs2Framework",
+            "org.specs2.runner.SpecsFramework"
+          ]
+        },
+        {
+          "names": [
+            "utest.runner.Framework"
+          ]
+        },
+        {
+          "names": [
+            "munit.Framework"
+          ]
+        },
+        {
+          "names": [
+            "mill.testng.TestNGFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core-testing"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy",
+          "version": "1.18.14-jdk5",
+          "artifacts": [
+            {
+              "name": "byte-buddy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.18.14-jdk5/byte-buddy-1.18.14-jdk5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.mockito",
+          "name": "mockito-inline",
+          "version": "4.11.0",
+          "artifacts": [
+            {
+              "name": "mockito-inline",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-inline/4.11.0/mockito-inline-4.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy-agent",
+          "version": "1.18.14-jdk5",
+          "artifacts": [
+            {
+              "name": "byte-buddy-agent",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy-agent/1.18.14-jdk5/byte-buddy-agent-1.18.14-jdk5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.opentest4j",
+          "name": "opentest4j",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "opentest4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-engine",
+          "version": "5.14.4",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/5.14.4/junit-jupiter-engine-5.14.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.assertj",
+          "name": "assertj-core",
+          "version": "3.27.7",
+          "artifacts": [
+            {
+              "name": "assertj-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-params",
+          "version": "5.14.4",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-params",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/5.14.4/junit-jupiter-params-5.14.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-engine",
+          "version": "1.14.4",
+          "artifacts": [
+            {
+              "name": "junit-platform-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/1.14.4/junit-platform-engine-1.14.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apiguardian",
+          "name": "apiguardian-api",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "apiguardian-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-commons",
+          "version": "1.14.4",
+          "artifacts": [
+            {
+              "name": "junit-platform-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/1.14.4/junit-platform-commons-1.14.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.objenesis",
+          "name": "objenesis",
+          "version": "3.3",
+          "artifacts": [
+            {
+              "name": "objenesis",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/objenesis/objenesis/3.3/objenesis-3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hamcrest",
+          "name": "hamcrest",
+          "version": "3.0",
+          "artifacts": [
+            {
+              "name": "hamcrest",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.mockito",
+          "name": "mockito-core",
+          "version": "4.11.0",
+          "artifacts": [
+            {
+              "name": "mockito-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-core/4.11.0/mockito-core-4.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-api",
+          "version": "5.14.4",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/5.14.4/junit-jupiter-api-5.14.4.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

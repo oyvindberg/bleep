@@ -1,27 +1,8 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
+jvm:
+  name: temurin:17
 projects:
-  benchmarks:
-    dependencies:
-    - org.openjdk.jmh:jmh-core:1.37
-    - org.openjdk.jmh:jmh-generator-bytecode:1.37
-    - org.openjdk.jmh:jmh-generator-reflection:1.37
-    dependsOn: bloop-frontend-it
-    extends:
-    - template-common-main
-    - template-scala-2.12
-    folder: ../sbt-build/benchmarks
-    platform:
-      jvmOptions: -DbloopRef=2.0.10-0-051ce0a1-20250622-0035-SNAPSHOT -DbloopVersion=2.0.10-0-051ce0a1-20250622-0035-SNAPSHOT
-        -Dgit.localdir=${BUILD_DIR} -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.10.11/sbt-1.10.11.zip/sbt/bin/sbt-launch.jar
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
-    scala:
-      options: -Xlint:unused -Yrangepos -Ywarn-unused
-    sourcegen:
-      main: scripts.GenerateForBenchmarks
-      project: scripts
   bloop-backend:
     dependencies:
     - ch.epfl.scala:directory-watcher:0.8.0+6-f651bd93
@@ -39,16 +20,11 @@ projects:
     - org.zeroturnaround:zt-zip:1.17
     dependsOn: bloop-shared
     extends:
-    - template-common-main
-    - template-scala-2.12
+    - template-scala-2-main-resources
+    - template-scala-2.12.20-xlint
     folder: ../sbt-build/backend
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
-    scala:
-      options: -Xlint:unused -Yrangepos -Ywarn-unused
     sourcegen:
-      main: scripts.GenerateForBloopBackend
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-backend-test:
     dependencies:
@@ -57,11 +33,9 @@ projects:
     dependsOn: bloop-backend
     extends:
     - template-common-test
-    - template-scala-2.12
+    - template-scala-2.12.20-xlint
     folder: ../sbt-build/backend
     sbt-scope: test
-    scala:
-      options: -Xlint:unused -Yrangepos -Ywarn-unused
   bloop-cli:
     dependencies:
     - com.github.alexarchambault::case-app:2.1.0-M30
@@ -77,32 +51,24 @@ projects:
       module: org.graalvm.nativeimage:svm:24.2.1
     dependsOn: bloop-rifle
     extends:
-    - template-common-main
+    - template-scala-2-main-resources
     - template-scala-2.13
     folder: ../sbt-build/cli
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
     sourcegen:
-      main: scripts.GenerateForBloopCli
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-docs:
     dependencies: org.scalameta::mdoc:2.7.1
     dependsOn: bloop-frontend
     extends:
-    - template-common-main
-    - template-scala-2.12
+    - template-scala-2-main-resources
+    - template-scala-2.12.20-xlint
     folder: ../sbt-build/docs-gen
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
-    - ../docs
-    scala:
-      options: -Xlint:unused -Yrangepos -Ywarn-unused
+    resources: ../docs
     sourcegen:
-      main: scripts.GenerateForBloopDocs
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-frontend:
     dependencies:
@@ -111,62 +77,37 @@ projects:
     - ch.epfl.scala::scala-debug-adapter:4.2.5
     - ch.qos.logback:logback-classic:1.5.18
     - com.github.alexarchambault::case-app:2.0.6
-    - configuration: provided
-      module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
     dependsOn: bloop-backend
     extends:
-    - template-common-main
-    - template-scala-2.12
+    - template-bloop-frontend
+    - template-scala-2-main-resources
     folder: ../sbt-build/frontend
-    platform:
-      jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
-        -Xms1g -Xmx3g
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
-    scala:
-      options: -Xlint:unused -Yrangepos -Ywarn-unused
     sourcegen:
-      main: scripts.GenerateForBloopFrontend
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-frontend-it:
     dependencies:
-    - configuration: provided
-      module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
     - com.github.sbt:junit-interface:0.13.3
     - com.lihaoyi::utest:0.8.5
     dependsOn:
     - bloop-frontend
     - buildpressconfig
     extends:
+    - template-bloop-frontend
     - template-common-test
-    - template-scala-2.12
     folder: ../sbt-build/frontend
-    platform:
-      jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
-        -Xms1g -Xmx3g
     sbt-scope: it
-    scala:
-      options: -Xlint:unused -Yrangepos -Ywarn-unused
   bloop-frontend-test:
-    dependencies:
-      configuration: provided
-      module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
     dependsOn:
     - bloop-backend-test
     - bloop-frontend
     extends:
+    - template-bloop-frontend
     - template-common-test
-    - template-scala-2.12
     folder: ../sbt-build/frontend
-    platform:
-      jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
-        -Xms1g -Xmx3g
     sbt-scope: test
-    scala:
-      options: -Xlint:unused -Yrangepos -Ywarn-unused
     sourcegen:
-      main: scripts.GenerateForBloopFrontendTest
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-js-bridge-0-6:
     dependencies:
@@ -177,13 +118,8 @@ projects:
     - configuration: provided
       module: org.scala-js::scalajs-tools:0.6.33
     dependsOn: bloop-frontend
-    extends:
-    - template-common-main
-    - template-scala-2.12
+    extends: template-scala-2.12.20-main-resources
     folder: ../sbt-build/bridges/scalajs-0.6
-    resources:
-    - ../../LICENSE.md
-    - ../../NOTICE.md
   bloop-js-bridge-0-6-test:
     dependencies:
     - configuration: provided
@@ -197,7 +133,7 @@ projects:
     - bloop-js-bridge-0-6
     extends:
     - template-common-test
-    - template-scala-2.12
+    - template-scala-2.12.20
     folder: ../sbt-build/bridges/scalajs-0.6
     sbt-scope: test
   bloop-js-bridge-1:
@@ -216,39 +152,24 @@ projects:
     - configuration: provided
       module: org.scala-js::scalajs-sbt-test-adapter:1.19.0
     dependsOn: bloop-shared
-    extends:
-    - template-common-main
-    - template-scala-2.12
+    extends: template-scala-2.12.20-main-resources
     folder: ../sbt-build/bridges/scalajs-1
-    resources:
-    - ../../LICENSE.md
-    - ../../NOTICE.md
   bloop-native-bridge-0-4:
     dependencies:
     - ch.epfl.scala::bloop-config:2.3.2
     - configuration: provided
       module: org.scala-native::tools:0.4.17
     dependsOn: bloop-shared
-    extends:
-    - template-common-main
-    - template-scala-2.12
+    extends: template-scala-2.12.20-main-resources
     folder: ../sbt-build/bridges/scala-native-0.4
-    resources:
-    - ../../LICENSE.md
-    - ../../NOTICE.md
   bloop-native-bridge-0-5:
     dependencies:
     - ch.epfl.scala::bloop-config:2.3.2
     - configuration: provided
       module: org.scala-native::tools:0.5.7
     dependsOn: bloop-shared
-    extends:
-    - template-common-main
-    - template-scala-2.12
+    extends: template-scala-2.12.20-main-resources
     folder: ../sbt-build/bridges/scala-native-0.5
-    resources:
-    - ../../LICENSE.md
-    - ../../NOTICE.md
   bloop-rifle:
     dependencies:
     - ch.epfl.scala::libdaemon:0.0.12
@@ -256,14 +177,11 @@ projects:
     - io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc2
     - org.scala-lang.modules::scala-collection-compat:2.13.0
     extends:
-    - template-common-main
+    - template-scala-2-main-resources
     - template-scala-2.13
     folder: ../sbt-build/bloop-rifle
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
     sourcegen:
-      main: scripts.GenerateForBloopRifle
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   bloop-rifle-test:
     dependencies:
@@ -293,14 +211,9 @@ projects:
     - org.scala-sbt:test-agent:1.10.11
     - org.scala-sbt:test-interface:1.0
     extends:
-    - template-common-main
-    - template-scala-2.12
+    - template-scala-2-main-resources
+    - template-scala-2.12.20-xlint
     folder: ../sbt-build/shared
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
-    scala:
-      options: -Xlint:unused -Yrangepos -Ywarn-unused
   buildpress:
     dependencies:
     - com.github.alexarchambault::case-app:2.0.6
@@ -309,81 +222,166 @@ projects:
     - bloop-shared
     - buildpressconfig
     extends:
-    - template-common-main
-    - template-scala-2.12
+    - template-scala-2-main-resources
+    - template-scala-2.12.20-xlint
     folder: ../sbt-build/buildpress
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
-    scala:
-      options: -Xlint:unused -Yrangepos -Ywarn-unused
   buildpressconfig:
     dependencies:
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.13.3.2
     - configuration: provided
       module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
     extends:
-    - template-common-main
-    - template-scala-2.12
+    - template-scala-2-main-resources
+    - template-scala-2.12.20-xlint
     folder: ../sbt-build/buildpress-config
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
     scala:
       compilerPlugins: org.scalamacros:::paradise:2.1.1
-      options: -Xlint:unused -Yrangepos -Ywarn-unused
+  compilation:
+    dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
+    dependsOn: infrastructure
+    extends:
+    - template-common-main-git.localdir
+    - template-scala-2-main
+    folder: ../sbt-build/benchmark-bridge/compilation
+    platform:
+      jvmOptions: -Duser.dir=${BUILD_DIR}/benchmark-bridge
+    publish:
+      groupId: compilation
+    scala:
+      version: 2.12.19
+    sources: ./src/${SCOPE}/scalac
+  infrastructure:
+    dependencies:
+    - ch.qos.logback:logback-classic:1.2.1
+    - com.google.guava:guava:21.0
+    - com.typesafe:config:1.3.1
+    - org.apache.commons:commons-lang3:3.5
+    - org.eclipse.jgit:org.eclipse.jgit:4.6.0.201612231935-r
+    - org.influxdb:influxdb-java:2.5
+    - org.openjdk.jmh:jmh-core:1.37
+    - org.openjdk.jmh:jmh-generator-bytecode:1.37
+    - org.openjdk.jmh:jmh-generator-reflection:1.37
+    - org.slf4j:log4j-over-slf4j:1.7.24
+    - org.slf4j:slf4j-api:1.7.24
+    extends: template-common-main
+    folder: ../sbt-build/benchmark-bridge/infrastructure
+    platform:
+      jvmOptions: -Duser.dir=${BUILD_DIR}/benchmark-bridge
+    publish:
+      groupId: infrastructure
+  jvm:
+    dependsOn: infrastructure
+    extends: template-common-main-git.localdir
+    folder: ../sbt-build/benchmark-bridge
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    publish:
+      groupId: jvm
+    source-layout: cross-full
+  micro:
+    dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
+    dependsOn: infrastructure
+    extends:
+    - template-common-main-git.localdir
+    - template-scala-2-main
+    folder: ../sbt-build/benchmark-bridge/micro
+    platform:
+      jvmOptions: -Duser.dir=${BUILD_DIR}/benchmark-bridge
+    publish:
+      groupId: micro
+    scala:
+      version: 2.12.19
   sbt-bloop:
     dependencies:
     - ch.epfl.scala::bloop-config:2.3.2
     - configuration: provided
       module: org.scala-sbt:sbt:1.5.8
-    extends:
-    - template-common-main
-    - template-scala-2.12
+    extends: template-scala-2.12.20-main-resources
     folder: ../sbt-build/integrations/sbt-bloop
-    resources:
-    - ../../LICENSE.md
-    - ../../NOTICE.md
+    libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
     scala:
       options: -Wconf:cat=unused-nowarn:s -Xsource:3
+      sbtPlugin: true
     sourcegen:
-      main: scripts.GenerateForSbtBloop
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
-    sources: ./src/${SCOPE}/scala-sbt-1.0
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 2.13.16
+    resources: ./resources
 templates:
+  template-bloop-frontend:
+    dependencies:
+      configuration: provided
+      module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
+    extends: template-scala-2.12.20-xlint
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
+        -Xms1g -Xmx3g
   template-common:
     ignoreEvictionErrors: no
     platform:
       name: jvm
-    scala:
-      options: -Xfuture -Ywarn-numeric-widen -Ywarn-value-discard -encoding UTF-8
-        -feature -language:existentials -language:higherKinds -language:implicitConversions
-        -unchecked
-      setup:
-        order: mixed
   template-common-main:
     extends: template-common
     sbt-scope: main
+  template-common-main-git.localdir:
+    extends: template-common-main
+    platform:
+      jvmOptions: -Dgit.localdir=. -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.10.11/sbt-1.10.11.zip/sbt/bin/sbt-launch.jar
+        -DscalaRef=v2.12.19 -DscalaVersion=2.12.19
   template-common-test:
-    extends: template-common
+    extends: template-scala-2.12.20-and-2.13
     isTestProject: true
     testFrameworks:
     - hedgehog.sbt.Framework
     - weaver.framework.CatsEffect
     - zio.test.sbt.ZTestFramework
-  template-scala-2.12:
+  template-scala-2:
+    extends: template-common
+    scala:
+      setup:
+        order: mixed
+  template-scala-2-main:
+    extends:
+    - template-common-main
+    - template-scala-2
+    publish:
+      groupId: ch.epfl.scala
+  template-scala-2-main-resources:
+    extends:
+    - template-scala-2-main
+    - template-scala-2.12.20-and-2.13
+    resources:
+    - ../LICENSE.md
+    - ../NOTICE.md
+  template-scala-2.12.20:
+    extends: template-scala-2.12.20-and-2.13
     scala:
       options: -Yno-adapted-args -deprecation
       version: 2.12.20
+  template-scala-2.12.20-and-2.13:
+    extends: template-scala-2
+    scala:
+      options: -Xfuture -Ywarn-numeric-widen -Ywarn-value-discard -encoding UTF-8
+        -feature -language:existentials -language:higherKinds -language:implicitConversions
+        -unchecked
+  template-scala-2.12.20-main-resources:
+    extends:
+    - template-scala-2-main
+    - template-scala-2.12.20
+    resources:
+    - ../../LICENSE.md
+    - ../../NOTICE.md
+  template-scala-2.12.20-xlint:
+    extends: template-scala-2.12.20
+    scala:
+      options: -Xlint:unused -Yrangepos -Ywarn-unused
   template-scala-2.13:
+    extends: template-scala-2.12.20-and-2.13
     scala:
       setup:
         addLibraryToBootClasspath: false

@@ -1,0 +1,133 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-spring",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-spring/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-spring/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/spring/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-spring/generated-sources/annotations"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.5/commons-logging-1.3.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.16.7/micrometer-commons-1.16.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.16.7/micrometer-observation-1.16.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-beans/7.0.9/spring-beans-7.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-core/7.0.9/spring-core-7.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-web/7.0.9/spring-web-7.0.9.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-spring/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-spring/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/spring/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "17",
+        "-target",
+        "17"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/spring"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.3.5",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.5/commons-logging-1.3.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-core",
+          "version": "7.0.9",
+          "artifacts": [
+            {
+              "name": "spring-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-core/7.0.9/spring-core-7.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-beans",
+          "version": "7.0.9",
+          "artifacts": [
+            {
+              "name": "spring-beans",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-beans/7.0.9/spring-beans-7.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-web",
+          "version": "7.0.9",
+          "artifacts": [
+            {
+              "name": "spring-web",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-web/7.0.9/spring-web-7.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-observation",
+          "version": "1.16.7",
+          "artifacts": [
+            {
+              "name": "micrometer-observation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.16.7/micrometer-observation-1.16.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-commons",
+          "version": "1.16.7",
+          "artifacts": [
+            {
+              "name": "micrometer-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.16.7/micrometer-commons-1.16.7.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

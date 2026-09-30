@@ -136,7 +136,7 @@ object Demo {
          |git checkout v2.0.0-RC11>/dev/null
          |
          |# import into bleep. note that this is a one-time, slow step
-         |$bleep import
+         |$bleep import-sbt
          |${pinVersion(bleepVersion)}
          |: printf 'jvm:\\n  name: graalvm-community:25.0.1\\n' >> bleep.yaml
          |

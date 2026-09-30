@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/generated-sources/scripts.GenerateForScalametaDocs",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta-docs/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta-docs/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta-docs/src/main/scala",
@@ -120,7 +120,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/generated-resources/scripts.GenerateForScalametaDocs",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/projects/scalameta-docs/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta-docs/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta-docs/src/main/resources"
     ],

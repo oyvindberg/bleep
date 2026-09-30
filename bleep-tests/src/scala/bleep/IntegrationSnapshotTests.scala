@@ -1,15 +1,13 @@
 package bleep
 
 import bleep.internal.FileUtils
-import bleep.testing.{BloopConversions, GenBloopFiles, SnapshotTest}
-import bloop.config.Config
+import bleep.testing.{GenBloopFiles, ImportRoundtrip, SnapshotTest, TemplateStats}
 import io.circe.syntax.EncoderOps
 import org.scalatest.Assertion
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 import scala.concurrent.ExecutionContext
-import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 class IntegrationSnapshotTests extends SnapshotTest {
   absolutePaths.sortedValues.foreach(println)
@@ -26,6 +24,13 @@ class IntegrationSnapshotTests extends SnapshotTest {
     */
   private val fillPaths: model.Replacements =
     model.Replacements.ofReplacements(absolutePaths.sortedValues.map { case (abs, placeholder) => (abs.replace('\\', '/'), placeholder) })
+
+  /** What the input and the imported build are templatized with: [[absolutePaths]] without the os and architecture masks. Both are read back and resolved, and
+    * a mask cannot be undone: play depends on netty for `linux-aarch_64`, which came back as `<MASKED_OS>-aarch_64`. The masks are for what is only compared,
+    * bloop files and reports. Inputs recorded before keep their masks, which reading still fills
+    */
+  private val inputPaths: model.Replacements =
+    model.Replacements.ofReplacements(absolutePaths.sortedValues.filterNot { case (_, placeholder) => placeholder.startsWith("<MASKED_") })
 
   /** Substitute `<BLEEP_GIT>`-style placeholders into the parsed snapshot JSON, before it is decoded into [[sbtimport.ImportInputData]].
     *
@@ -54,12 +59,13 @@ class IntegrationSnapshotTests extends SnapshotTest {
   private val jvm8: model.Jvm = model.Jvm("liberica:8.0.452", None)
 
   test("tapir") {
-    // has a dependency it's impossible to resolve with coursier. need to investigate why it works in sbt
+    // coursier refuses to resolve it: jackson-module-guice 2.14.3 wants guice [4.0,5.0), inject-core 24.2.0 wants guice-assistedinject 5.1.0 and with it
+    // guice 5.1.0. sbt picks guice 5.1.0 anyway
     val finatraServer = model.ProjectName("tapir-finatra-server")
     testIn(
       "tapir",
       "https://github.com/softwaremill/tapir.git",
-      "fdf0f99",
+      "918a074",
       xmx = "12g",
       filtering = sbtimport.ImportFiltering.empty.copy(excludeProjects = Set(finatraServer))
     )
@@ -70,11 +76,13 @@ class IntegrationSnapshotTests extends SnapshotTest {
   }
 
   test("http4s") {
-    testIn("http4s", "https://github.com/http4s/http4s.git", "6e6ba2c")
+    testIn("http4s", "https://github.com/http4s/http4s.git", "f4419aa")
   }
 
   test("bloop") {
-    testIn("bloop", "https://github.com/scalacenter/bloop.git", "051ce0a")
+    // depends on `compilation`, a project of another sbt build (`ProjectRef(BenchmarkBridgeProject.build, "compilation")`), which an import cannot have
+    val benchmarks = model.ProjectName("benchmarks")
+    testIn("bloop", "https://github.com/scalacenter/bloop.git", "051ce0a", filtering = sbtimport.ImportFiltering.empty.copy(excludeProjects = Set(benchmarks)))
   }
 
   test("sbt") {
@@ -107,8 +115,41 @@ class IntegrationSnapshotTests extends SnapshotTest {
     )
   }
 
+  // an sbt plugin built for sbt 1 (scala 2.12) and sbt 2 (scala 3), by a build which itself runs on sbt 2
+  test("sbt-dynver") {
+    testIn("sbt-dynver", "https://github.com/sbt/sbt-dynver.git", "431f109")
+  }
+
+  // an sbt plugin built for sbt 1 and sbt 2, depending on plugins built for both, by a build which runs on sbt 1
+  test("sbt-ci-release") {
+    testIn("sbt-ci-release", "https://github.com/sbt/sbt-ci-release.git", "5223f16")
+  }
+
   test("scalameta") {
     testIn("scalameta", "https://github.com/scalameta/scalameta.git", "0e19b94", jvm = jvm8, xmx = "12g")
+  }
+
+  // a large build of java and scala modules
+  test("pekko") {
+    testIn("pekko", "https://github.com/apache/pekko.git", "c2bc0f1cc1", xmx = "12g")
+  }
+
+  // cross built for jvm, js and native with sbt-crossproject, with directories of its own for scala versions
+  test("zio") {
+    // both pin zio-json below what their other dependencies want with `dependencyOverrides`, which bleep has no way to say, and sbt's export doesn't show
+    val overridingDependencies = Set(model.ProjectName("zio-docs"), model.ProjectName("docs_make_zio_app_configurable"))
+    testIn(
+      "zio",
+      "https://github.com/zio/zio.git",
+      "18e9a9185b2",
+      xmx = "12g",
+      filtering = sbtimport.ImportFiltering.empty.copy(excludeProjects = overridingDependencies)
+    )
+  }
+
+  // java and scala apis side by side, and an sbt plugin. the last revision before it cross built its sbt projects for sbt 2, which bleep does not support
+  test("playframework") {
+    testIn("playframework", "https://github.com/playframework/playframework.git", "193d60338", xmx = "12g")
   }
 
   test("converter") {
@@ -138,6 +179,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
       jvm = jvm,
       sbtPath = None,
       xmx = Some(xmx),
+      buildJvm = None,
       filtering = filtering
     )
 
@@ -161,16 +203,28 @@ class IntegrationSnapshotTests extends SnapshotTest {
         val sbtBuildLoader = BuildLoader.inDirectory(sbtBuildDir)
         val sbtDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, sbtBuildLoader, model.BuildVariant.Normal)
         val cacheLogger = new BleepCacheLogger(logger)
+        // unpacking a jdk logs through slf4j
+        bleep.internal.Slf4jBridge.install(logger)
         val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ExecutionContext.global)
         val fetchedJvm = fetchJvm(jvm)
-        sbtimport.runSbt(logger, sbtBuildDir, sbtDestinationPaths, fetchedJvm, None, Some(xmx), importerOptions.filtering)
+        // sbt-export-dependencies at this bleep's version, which sbt finds in ~/.ivy2/local after `bleep publish local-ivy`
+        sbtimport.runSbt(
+          logger,
+          sbtBuildDir,
+          sbtDestinationPaths,
+          fetchedJvm,
+          None,
+          Some(xmx),
+          importerOptions.filtering,
+          exportPluginVersion = model.BleepVersion.current
+        )
 
         val inputData = sbtimport.ImportInputData.collectFromFileSystem(sbtDestinationPaths, logger)
         FileUtils.writeGzippedBytes(
           inputDataPath,
           inputData
             // remove machine-specific paths inside bloop files files
-            .replace(absolutePaths.templatize, rewriteGeneratedFiles = true)
+            .replace(inputPaths.templatize, rewriteGeneratedFiles = true)
             .asJson
             .spaces2
             .getBytes(StandardCharsets.UTF_8)
@@ -196,13 +250,13 @@ class IntegrationSnapshotTests extends SnapshotTest {
         importerOptions,
         model.BleepVersion.dev,
         inputData,
-        bleepTasksVersion = model.BleepVersion("0.0.12"),
+        bleepTasksVersion = model.BleepVersion("1.0.0-M14"),
         maybeExistingBuildFile = None
       )
 
     writeAndCompare(
       importedDestinationPaths.buildDir,
-      buildFiles.map { case (p, s) => (p, absolutePaths.templatize.string(s)) },
+      buildFiles.map { case (p, s) => (p, inputPaths.templatize.string(s)) },
       logger
     ).discard()
 
@@ -218,8 +272,15 @@ class IntegrationSnapshotTests extends SnapshotTest {
       val generatedBloopFiles: Map[Path, String] =
         GenBloopFiles.encodedFiles(GenBloopFiles.defaultBloopFilePath(bootstrappedDestinationPaths), started.resolvedProjects)
 
-      // further property checks to see that we haven't made any illegal rewrites
-      assertSameIshBloopFiles(inputData, started).discard()
+      // what template inference achieved, and what the import lost or changed compared to sbt's own bloop export. checked in, so every change is reviewed
+      val roundtrip = ImportRoundtrip.report(
+        inputData,
+        started.resolvedProjects.collect { case (crossName, lazyResolved) if crossName.name.value != "scripts" => (crossName, lazyResolved.forceGet) },
+        started.buildPaths.buildDir
+      )
+      val report = List("# template inference", TemplateStats.render(buildFiles(importedDestinationPaths.bleepYamlFile)), "", "# roundtrip", roundtrip)
+      val reportPath = testFolder / "import-report.txt"
+      writeAndCompare(reportPath, Map(reportPath -> absolutePaths.templatize.string(report.mkString("", "\n", "\n"))), logger).discard()
 
       // flush templated bloop files to disk if local, compare to checked in if test is running in CI
       // note, keep last. locally it "succeeds" with a `pending`
@@ -229,123 +290,5 @@ class IntegrationSnapshotTests extends SnapshotTest {
         logger
       )
     }
-  }
-
-  // compare some key properties before and after import
-  def assertSameIshBloopFiles(inputProjects: sbtimport.ImportInputData, started: Started): Assertion = {
-    started.resolvedProjects.foreach {
-      case (crossProjectName, _) if crossProjectName.value == "scripts" => ()
-      case (crossProjectName, lazyOutputFile)                           =>
-        val output = BloopConversions.toBloopConfig(lazyOutputFile.forceGet).project
-        val input = inputProjects.projects(crossProjectName).bloopFile.project
-
-        // todo: this needs further work,
-        //      assert(
-        //        output.platform == input.platform,
-        //        crossProjectName.value
-        //      )
-
-        // scalacOptions are the same, modulo ordering, duplicates, target directory and semanticdb
-        def patchedOptions(project: Config.Project, targetDir: Path): (Int, List[String]) = {
-          val isMain = project.tags.exists(_.contains(bloop.config.Tag.Library))
-
-          val replacements = model.Replacements.targetDir(targetDir) ++
-            model.Replacements.ofReplacements(List(("sbt-build", "bootstrapped"))) ++
-            model.Replacements.scope(if (isMain) "main" else "test")
-
-          val original = project.scala.map(_.options).getOrElse(Nil)
-          val all = model.Options.parse(original, Some(replacements)).values.toList.sorted.flatMap {
-            case opt if opt.toString.contains("semanticdb") => Nil
-            // bleep adds `-sourceroot` to Scala 3 builds, so TASTy holds no absolute paths; sbt leaves it out
-            case opt if opt.toString.contains("-sourceroot") => Nil
-            case opt                                         => opt.render
-          }
-          // compiler plugins are also resolved by ivy in sbt, so paths are completely different
-          val (compilerPlugins, rest) = all.partition(_.startsWith(constants.ScalaPluginPrefix))
-          (compilerPlugins.length, rest)
-        }
-
-        val originalTargetDir = sbtimport.findOriginalTargetDir.force(crossProjectName, input)
-        val outPatched = patchedOptions(output, output.out)
-        val inPatched = patchedOptions(input, originalTargetDir)
-
-        assert(outPatched == inPatched, crossProjectName.value).discard()
-
-        // assert that all source folders are conserved. currently bleep may add some. also we drop folders for generated stuff
-        val target = Path.of("target")
-        val lostSources = input.sources
-          .map(_.normalize())
-          .filterNot(_.startsWith(originalTargetDir))
-          .filterNot(output.sources.contains)
-          .filter(_.isAbsolute)
-          .sorted
-        assert(lostSources.isEmpty, crossProjectName.value).discard()
-
-        // assert that all resource folders are conserved. currently bleep may add some
-        val lostResources = input.resources
-          .getOrElse(Nil)
-          .filterNot(_.iterator().asScala.contains(target))
-          .filterNot(output.resources.getOrElse(Nil).contains)
-          .filter(_.isAbsolute)
-          .sorted
-        assert(lostResources.isEmpty, crossProjectName.value).discard()
-
-        /** @param classesDirs
-          *   classes directories are completely different in bleep. we may also drop projects, so no comparisons are done for these, unfortunately.
-          *
-          * For instance:
-          *   - ~/bleep/snapshot-tests/converter/.bleep/.bloop/phases/classes
-          *   - ~/bleep/snapshot-tests/converter/.bleep/import/bloop/2.12/phases/scala-2.12/classes,
-          *
-          * @param scalaJars
-          *   paths expected to be completely different because in sbt they may be resolved by launcher/ivy
-          *
-          * For instance:
-          *   - ~/.sbt/boot/scala-2.12.14/lib/scala-reflect.jar
-          *   - ~/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.2/scala-reflect-2.12.2.jar,
-          *
-          * @param restJars
-          *   the remaining set of differing jars should be empty
-          */
-        case class AnalyzedClassPathDiff(classesDirs: Set[Path], scalaJars: Set[Path], restJars: Set[Path])
-        object AnalyzedClassPathDiff {
-          val transitiveResources: Set[Path] =
-            started.build.transitiveDependenciesFor(crossProjectName).flatMap { case (name, _) => started.resolvedProject(name).resources(Usage.Runtime) }.toSet
-
-          def from(paths: Set[Path]): AnalyzedClassPathDiff = {
-            val (classes, jars) = paths
-              // the bloop build has this added for all projects. no idea where it comes from and what to do with it
-              .filterNot(_.getFileName.toString == "tools.jar")
-              // drop classes and resources directories
-              .partition(p => p.endsWith("classes") || p.endsWith("test-classes") || p.endsWith("it-classes") || transitiveResources(p))
-            // note that paths are difficult here, we may receive files from sbt launcher in boot folder
-            val (scalaJars, restJars) = jars.partition(p => p.getFileName.toString.startsWith("scala"))
-            AnalyzedClassPathDiff(classes, scalaJars, restJars)
-          }
-        }
-
-        val added = AnalyzedClassPathDiff.from(output.classpath.toSet -- input.classpath)
-        val removed = AnalyzedClassPathDiff.from(input.classpath.toSet -- output.classpath)
-
-        def render(paths: Iterable[Path]): String =
-          if (paths.isEmpty) "nothing"
-          else paths.mkString("\n", ",\n", "\n")
-
-        if (added.scalaJars.size != removed.scalaJars.size) {
-          System.err.println {
-            List(
-              crossProjectName.value,
-              ": Expected there to be equal number of scala jars. added :",
-              render(added.scalaJars),
-              ", removed: ",
-              render(removed.scalaJars)
-            ).mkString("")
-          }
-        }
-        if (added.restJars.nonEmpty || removed.restJars.nonEmpty) {
-          started.logger.warn(s"${crossProjectName.value}: Added ${render(added.restJars)} to classPath, Removed ${render(removed.restJars)} from classPath")
-        }
-    }
-    succeed
   }
 }

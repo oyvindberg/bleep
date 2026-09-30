@@ -1,0 +1,1327 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "pekko-cluster-test@jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-cluster-test@jvm3/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/cluster/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/cluster/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/cluster/src/test/scala-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/cluster/src/test/scala-3"
+    ],
+    "dependencies": [
+      "pekko-actor-tests-test@jvm3",
+      "pekko-actor-tests@jvm3",
+      "pekko-actor-typed@jvm3",
+      "pekko-actor@jvm3",
+      "pekko-cluster@jvm3",
+      "pekko-coordination-test@jvm3",
+      "pekko-coordination@jvm3",
+      "pekko-multi-node-testkit@jvm3",
+      "pekko-pki@jvm3",
+      "pekko-protobuf-v3@jvm3",
+      "pekko-remote-test@jvm3",
+      "pekko-remote-tests-test@jvm3",
+      "pekko-remote-tests@jvm3",
+      "pekko-remote@jvm3",
+      "pekko-serialization-jackson-test@jvm3",
+      "pekko-serialization-jackson@jvm3",
+      "pekko-slf4j@jvm3",
+      "pekko-stream-testkit@jvm3",
+      "pekko-stream@jvm3",
+      "pekko-testkit-test@jvm3",
+      "pekko-testkit@jvm3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/at/yawk/lz4/lz4-java/1.11.3/lz4-java-1.11.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.6.3/logback-classic-1.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.6.3/logback-core-1.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.3/jackson-core-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.3/jackson-databind-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-cbor/2.22.3/jackson-dataformat-cbor-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-guava/2.22.3/jackson-datatype-guava-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.22.3/jackson-datatype-jdk8-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.22.3/jackson-datatype-jsr310-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/jaxrs/jackson-jaxrs-base/2.22.3/jackson-jaxrs-base-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/jaxrs/jackson-jaxrs-json-provider/2.22.3/jackson-jaxrs-json-provider-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-jaxb-annotations/2.22.3/jackson-module-jaxb-annotations-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-parameter-names/2.22.3/jackson-module-parameter-names-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_3/2.22.3/jackson-module-scala_3-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-api/3.7.1/docker-java-api-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-core/3.7.1/docker-java-core-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-transport-httpclient5/3.7.1/docker-java-transport-httpclient5-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-transport/3.7.1/docker-java-transport-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/sbt/junit/jupiter-interface/0.19.0/jupiter-interface-0.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.50.0/error_prone_annotations-2.50.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.7.1-jre/guava-33.7.1-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/jimfs/jimfs/1.3.2/jimfs-1.3.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.36.2/protobuf-java-4.36.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/hierynomus/asn-one/0.6.0/asn-one-0.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8.3/paranamer-2.8.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.9/config-1.4.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.22.1/commons-codec-1.22.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.21.0/commons-io-2.21.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/aeron/aeron-annotations/1.53.2/aeron-annotations-1.53.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/aeron/aeron-client/1.53.2/aeron-client-1.53.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/aeron/aeron-driver/1.53.2/aeron-driver-1.53.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics/metrics-core/4.2.40/metrics-core-4.2.40.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics/metrics-jvm/4.2.40/metrics-jvm-4.2.40.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.18.Final/netty-buffer-4.2.18.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.18.Final/netty-codec-base-4.2.18.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.18.Final/netty-common-4.2.18.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.18.Final/netty-handler-4.2.18.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.18.Final/netty-resolver-4.2.18.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.18.Final/netty-transport-native-unix-common-4.2.18.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.18.Final/netty-transport-4.2.18.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/1.2.2/jakarta.activation-api-1.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.2.12/jaxb-api-2.2.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.18.1/jna-5.18.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/agrona/agrona/2.6.1/agrona-2.6.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.19.0/commons-lang3-3.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/client5/httpclient5/5.5.1/httpclient5-5.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/core5/httpcore5-h2/5.3.6/httpcore5-h2-5.3.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/core5/httpcore5/5.3.6/httpcore5-5.3.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.82/bcpkix-jdk18on-1.82.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.82/bcprov-jdk18on-1.82.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcutil-jdk18on/1.82/bcutil-jdk18on-1.82.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.1.3/junit-jupiter-api-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.1.3/junit-jupiter-engine-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.1.3/junit-platform-commons-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.1.3/junit-platform-engine-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-launcher/6.1.3/junit-platform-launcher-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.1.0/scala-xml_3-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.19.0/scalacheck_3-1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_3/3.2.20/scalactic_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.20/scalatest-compatible-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_3/3.2.20/scalatest-core_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_3/3.2.20/scalatest-diagrams_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_3/3.2.20/scalatest-featurespec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_3/3.2.20/scalatest-flatspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_3/3.2.20/scalatest-freespec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_3/3.2.20/scalatest-funspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_3/3.2.20/scalatest-funsuite_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_3/3.2.20/scalatest-matchers-core_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_3/3.2.20/scalatest-mustmatchers_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_3/3.2.20/scalatest-propspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_3/3.2.20/scalatest-refspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_3/3.2.20/scalatest-shouldmatchers_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.20/scalatest-wordspec_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.20/scalatest_3-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/junit-4-13_3/3.2.20.0/junit-4-13_3-3.2.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-19_3/3.2.20.0/scalacheck-1-19_3-3.2.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.20/slf4j-api-2.0.20.jar",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor-tests-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor-tests@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor-tests@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor-typed@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor-typed@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-actor@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-cluster@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-cluster@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-coordination-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-coordination@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-coordination@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-multi-node-testkit@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-multi-node-testkit@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-pki@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-pki@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-protobuf-v3@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-protobuf-v3@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-remote-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-remote-tests-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-remote-tests@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-remote-tests@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-remote@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-remote@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-serialization-jackson-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-serialization-jackson@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-serialization-jackson@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-slf4j@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-slf4j@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-stream-testkit@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-stream-testkit@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-stream@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-stream@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-testkit-test@jvm3/builds/normal/test-classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-testkit@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-testkit@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor-tests/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor-tests/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor-typed/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/actor/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/cluster/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/coordination/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/coordination/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/multi-node-testkit/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/pki/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/protobuf-v3/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/remote-tests/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/remote-tests/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/remote/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/remote/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/serialization-jackson/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/serialization-jackson/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/slf4j/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/stream-testkit/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/stream/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/testkit/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/testkit/src/test/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-cluster-test@jvm3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-cluster-test@jvm3/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/cluster/src/test/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.3.8",
+      "options": [
+        "-Wconf:cat=deprecation:s",
+        "-Xtarget:17",
+        "-Yfuture-lazy-vals",
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-language:higherKinds",
+        "-release",
+        "17",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.8/scala3-compiler_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.8/scala3-interfaces-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.8/tasty-core_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.9.0-scala-1/scala-asm-9.9.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.29.0/jline-reader-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped/.bleep/projects/pekko-cluster-test@jvm3/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "--release",
+        "17",
+        "-Xlint:unchecked",
+        "-encoding",
+        "UTF-8",
+        "-proc:none"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.github.sbt.junit.jupiter.api.JupiterFramework",
+            "hedgehog.sbt.Framework",
+            "weaver.framework.CatsEffect",
+            "zio.test.sbt.ZTestFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "--add-opens=java.base/java.lang=ALL-UNNAMED",
+          "--add-opens=java.base/java.nio=ALL-UNNAMED",
+          "--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED",
+          "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+          "-Djava.security.egd=file:/dev/urandom",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/pekko/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/pekko/sbt-build/cluster",
+          "-XX:+PerfDisableSharedMem",
+          "-XX:+UseG1GC",
+          "-XX:MaxDirectMemorySize=256m",
+          "-XX:MaxGCPauseMillis=300",
+          "-Xms3g",
+          "-Xmx3g",
+          "-Xss2m"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "io.netty",
+          "name": "netty-transport",
+          "version": "4.2.18.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.18.Final/netty-transport-4.2.18.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.module",
+          "name": "jackson-module-scala_3",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-module-scala_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_3/2.22.3/jackson-module-scala_3-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-unix-common",
+          "version": "4.2.18.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-unix-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.18.Final/netty-transport-native-unix-common-4.2.18.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-jdk8",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-datatype-jdk8",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.22.3/jackson-datatype-jdk8-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-compatible",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.20/scalatest-compatible-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.xml.bind",
+          "name": "jaxb-api",
+          "version": "2.2.12",
+          "artifacts": [
+            {
+              "name": "jaxb-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.2.12/jaxb-api-2.2.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_3/3.2.20/scalatest-refspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hamcrest",
+          "name": "hamcrest-core",
+          "version": "1.3",
+          "artifacts": [
+            {
+              "name": "hamcrest-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-freespec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-freespec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_3/3.2.20/scalatest-freespec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.bouncycastle",
+          "name": "bcpkix-jdk18on",
+          "version": "1.82",
+          "artifacts": [
+            {
+              "name": "bcpkix-jdk18on",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk18on/1.82/bcpkix-jdk18on-1.82.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.docker-java",
+          "name": "docker-java-transport",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "docker-java-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-transport/3.7.1/docker-java-transport-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.aeron",
+          "name": "aeron-client",
+          "version": "1.53.2",
+          "artifacts": [
+            {
+              "name": "aeron-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/aeron/aeron-client/1.53.2/aeron-client-1.53.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.protobuf",
+          "name": "protobuf-java",
+          "version": "4.36.2",
+          "artifacts": [
+            {
+              "name": "protobuf-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.36.2/protobuf-java-4.36.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-guava",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-datatype-guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-guava/2.22.3/jackson-datatype-guava-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-funsuite_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_3/3.2.20/scalatest-funsuite_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.module",
+          "name": "jackson-module-jaxb-annotations",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-module-jaxb-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-jaxb-annotations/2.22.3/jackson-module-jaxb-annotations-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-base",
+          "version": "4.2.18.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-base",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.18.Final/netty-codec-base-4.2.18.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-common",
+          "version": "4.2.18.Final",
+          "artifacts": [
+            {
+              "name": "netty-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.18.Final/netty-common-4.2.18.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.jaxrs",
+          "name": "jackson-jaxrs-json-provider",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-jaxrs-json-provider",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/jaxrs/jackson-jaxrs-json-provider/2.22.3/jackson-jaxrs-json-provider-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-io",
+          "name": "commons-io",
+          "version": "2.21.0",
+          "artifacts": [
+            {
+              "name": "commons-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.21.0/commons-io-2.21.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "at.yawk.lz4",
+          "name": "lz4-java",
+          "version": "1.11.3",
+          "artifacts": [
+            {
+              "name": "lz4-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/at/yawk/lz4/lz4-java/1.11.3/lz4-java-1.11.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.50.0",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.50.0/error_prone_annotations-2.50.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents.client5",
+          "name": "httpclient5",
+          "version": "5.5.1",
+          "artifacts": [
+            {
+              "name": "httpclient5",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/client5/httpclient5/5.5.1/httpclient5-5.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.6.3",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.6.3/logback-core-1.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.3/jackson-databind-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-api",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.1.3/junit-jupiter-api-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatestplus",
+          "name": "junit-4-13_3",
+          "version": "3.2.20.0",
+          "artifacts": [
+            {
+              "name": "junit-4-13_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/junit-4-13_3/3.2.20.0/junit-4-13_3-3.2.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-matchers-core_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-matchers-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_3/3.2.20/scalatest-matchers-core_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-lang3",
+          "version": "3.19.0",
+          "artifacts": [
+            {
+              "name": "commons-lang3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.19.0/commons-lang3-3.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.6.3",
+          "artifacts": [
+            {
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.6.3/logback-classic-1.6.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-buffer",
+          "version": "4.2.18.Final",
+          "artifacts": [
+            {
+              "name": "netty-buffer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.18.Final/netty-buffer-4.2.18.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-featurespec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_3/3.2.20/scalatest-featurespec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.20/scalatest_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.jaxrs",
+          "name": "jackson-jaxrs-base",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-jaxrs-base",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/jaxrs/jackson-jaxrs-base/2.22.3/jackson-jaxrs-base-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-launcher",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-launcher",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-launcher/6.1.3/junit-platform-launcher-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.4",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hdrhistogram",
+          "name": "HdrHistogram",
+          "version": "2.2.2",
+          "artifacts": [
+            {
+              "name": "HdrHistogram",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.agrona",
+          "name": "agrona",
+          "version": "2.6.1",
+          "artifacts": [
+            {
+              "name": "agrona",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/agrona/agrona/2.6.1/agrona-2.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.18.1",
+          "artifacts": [
+            {
+              "name": "jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.18.1/jna-5.18.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.jimfs",
+          "name": "jimfs",
+          "version": "1.3.2",
+          "artifacts": [
+            {
+              "name": "jimfs",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/jimfs/jimfs/1.3.2/jimfs-1.3.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.bouncycastle",
+          "name": "bcutil-jdk18on",
+          "version": "1.82",
+          "artifacts": [
+            {
+              "name": "bcutil-jdk18on",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcutil-jdk18on/1.82/bcutil-jdk18on-1.82.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.bouncycastle",
+          "name": "bcprov-jdk18on",
+          "version": "1.82",
+          "artifacts": [
+            {
+              "name": "bcprov-jdk18on",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.82/bcprov-jdk18on-1.82.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.opentest4j",
+          "name": "opentest4j",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "opentest4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-engine",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.1.3/junit-jupiter-engine-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "junit",
+          "name": "junit",
+          "version": "4.13.2",
+          "artifacts": [
+            {
+              "name": "junit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.sbt.junit",
+          "name": "jupiter-interface",
+          "version": "0.19.0",
+          "artifacts": [
+            {
+              "name": "jupiter-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/sbt/junit/jupiter-interface/0.19.0/jupiter-interface-0.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-mustmatchers_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-mustmatchers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_3/3.2.20/scalatest-mustmatchers_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-codec",
+          "name": "commons-codec",
+          "version": "1.22.1",
+          "artifacts": [
+            {
+              "name": "commons-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.22.1/commons-codec-1.22.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalacheck",
+          "name": "scalacheck_3",
+          "version": "1.19.0",
+          "artifacts": [
+            {
+              "name": "scalacheck_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.19.0/scalacheck_3-1.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_3/3.2.20/scalatest-diagrams_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "33.7.1-jre",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.7.1-jre/guava-33.7.1-jre.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler",
+          "version": "4.2.18.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.18.Final/netty-handler-4.2.18.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_3/3.2.20/scalatest-propspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.dropwizard.metrics",
+          "name": "metrics-core",
+          "version": "4.2.40",
+          "artifacts": [
+            {
+              "name": "metrics-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics/metrics-core/4.2.40/metrics-core-4.2.40.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.20/scalatest-wordspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.module",
+          "name": "jackson-module-parameter-names",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-module-parameter-names",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-parameter-names/2.22.3/jackson-module-parameter-names-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.8",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-funspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_3/3.2.20/scalatest-funspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.docker-java",
+          "name": "docker-java-api",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "docker-java-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-api/3.7.1/docker-java-api-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatestplus",
+          "name": "scalacheck-1-19_3",
+          "version": "3.2.20.0",
+          "artifacts": [
+            {
+              "name": "scalacheck-1-19_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-19_3/3.2.20.0/scalacheck-1-19_3-3.2.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.3/jackson-core-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.aeron",
+          "name": "aeron-annotations",
+          "version": "1.53.2",
+          "artifacts": [
+            {
+              "name": "aeron-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/aeron/aeron-annotations/1.53.2/aeron-annotations-1.53.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents.core5",
+          "name": "httpcore5-h2",
+          "version": "5.3.6",
+          "artifacts": [
+            {
+              "name": "httpcore5-h2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/core5/httpcore5-h2/5.3.6/httpcore5-h2-5.3.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-engine",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.1.3/junit-platform-engine-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.aeron",
+          "name": "aeron-driver",
+          "version": "1.53.2",
+          "artifacts": [
+            {
+              "name": "aeron-driver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/aeron/aeron-driver/1.53.2/aeron-driver-1.53.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.dataformat",
+          "name": "jackson-dataformat-cbor",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-dataformat-cbor",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-cbor/2.22.3/jackson-dataformat-cbor-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.9",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.9/config-1.4.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.docker-java",
+          "name": "docker-java-core",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "docker-java-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-core/3.7.1/docker-java-core-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents.core5",
+          "name": "httpcore5",
+          "version": "5.3.6",
+          "artifacts": [
+            {
+              "name": "httpcore5",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/core5/httpcore5/5.3.6/httpcore5-5.3.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thoughtworks.paranamer",
+          "name": "paranamer",
+          "version": "2.8.3",
+          "artifacts": [
+            {
+              "name": "paranamer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8.3/paranamer-2.8.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.hierynomus",
+          "name": "asn-one",
+          "version": "0.6.0",
+          "artifacts": [
+            {
+              "name": "asn-one",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/hierynomus/asn-one/0.6.0/asn-one-0.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_3/3.2.20/scalatest-core_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-compress",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "commons-compress",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver",
+          "version": "4.2.18.Final",
+          "artifacts": [
+            {
+              "name": "netty-resolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.18.Final/netty-resolver-4.2.18.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_3/3.2.20/scalatest-shouldmatchers_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.20",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.20/slf4j-api-2.0.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apiguardian",
+          "name": "apiguardian-api",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "apiguardian-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_3",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.1.0/scala-xml_3-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-jsr310",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-datatype-jsr310",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.22.3/jackson-datatype-jsr310-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-commons",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.1.3/junit-platform-commons-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.latencyutils",
+          "name": "LatencyUtils",
+          "version": "2.0.3",
+          "artifacts": [
+            {
+              "name": "LatencyUtils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.22",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "3.1",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.docker-java",
+          "name": "docker-java-transport-httpclient5",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "docker-java-transport-httpclient5",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-transport-httpclient5/3.7.1/docker-java-transport-httpclient5-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.dropwizard.metrics",
+          "name": "metrics-jvm",
+          "version": "4.2.40",
+          "artifacts": [
+            {
+              "name": "metrics-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics/metrics-jvm/4.2.40/metrics-jvm-4.2.40.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalactic_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_3/3.2.20/scalactic_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_3",
+          "version": "3.2.20",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_3/3.2.20/scalatest-flatspec_3-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.activation",
+          "name": "jakarta.activation-api",
+          "version": "1.2.2",
+          "artifacts": [
+            {
+              "name": "jakarta.activation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/1.2.2/jakarta.activation-api-1.2.2.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,147 @@
+# template inference
+templates: 7
+projects: 27
+settings: 238 (194 in projects, 44 in templates)
+
+# roundtrip
+maven classpaths (dependency:build-classpath) vs bleep resolved projects, normalized. `-` only in maven, `+` only in bleep, `~` same jar at another version
+maven modules without a bleep project: none
+compared: 27, identical: 13
+
+most common differences (projects, aspect, difference):
+   12  classpath + jar jackson-core:2.22.2
+
+javalin-test
+  classpath
+    ~ byte-buddy: 1.18.3 -> 1.18.11
+    ~ byte-buddy-agent: 1.17.7 -> 1.18.2
+    ~ commons-codec: 1.15 -> 1.19.0
+    ~ commons-io: 2.20.0 -> 2.21.0
+    ~ jspecify: 1.0.0 -> 1.0.1
+    ~ kotlin-reflect: 2.1.21 -> 2.2.21
+    ~ kotlin-stdlib: 2.2.20 -> 2.2.21
+    ~ objenesis: 3.3 -> 3.4
+
+javalin-context-mock
+  classpath
+    + jar asm-commons:9.10.1
+    + jar asm-tree:9.10.1
+    + jar asm:9.10.1
+    + jar jackson-core:2.22.2
+    + jar jakarta.annotation-api:2.1.1
+    + jar jakarta.enterprise.cdi-api:4.0.1
+    + jar jakarta.enterprise.lang-model:4.0.1
+    + jar jakarta.inject-api:2.0.1
+    + jar jakarta.interceptor-api:2.1.0
+    + jar jakarta.servlet-api:6.0.0
+    + jar jakarta.transaction-api:2.0.1
+    + jar jetty-annotations:12.1.12
+    + jar jetty-ee-webapp:12.1.12
+    + jar jetty-ee10-annotations:12.1.12
+    + jar jetty-ee10-plus:12.1.12
+    + jar jetty-ee10-servlet:12.1.12
+    + jar jetty-ee10-webapp:12.1.12
+    + jar jetty-ee10-websocket-jetty-server:12.1.12
+    + jar jetty-ee10-websocket-servlet:12.1.12
+    + jar jetty-http:12.1.12
+    + jar jetty-io:12.1.12
+    + jar jetty-jndi:12.1.12
+    + jar jetty-plus:12.1.12
+    + jar jetty-security:12.1.12
+    + jar jetty-server:12.1.12
+    + jar jetty-session:12.1.12
+    + jar jetty-util:12.1.12
+    + jar jetty-websocket-core-common:12.1.12
+    + jar jetty-websocket-core-server:12.1.12
+    + jar jetty-websocket-jetty-api:12.1.12
+    + jar jetty-websocket-jetty-common:12.1.12
+    + jar jetty-websocket-jetty-server:12.1.12
+    + jar jetty-xml:12.1.12
+
+javalin-micrometer
+  classpath
+    + jar HdrHistogram:2.2.2
+    + jar jackson-core:2.22.2
+    + jar prometheus-metrics-exposition-formats:1.7.0
+    + jar prometheus-metrics-exposition-textformats:1.7.0
+
+javalin-rendering-commonmark
+  classpath
+    + jar jackson-core:2.22.2
+
+javalin-rendering-freemarker
+  classpath
+    + jar jackson-core:2.22.2
+
+javalin-rendering-handlebars
+  classpath
+    + jar jackson-core:2.22.2
+    ~ asm: 7.3.1 -> 9.10.1
+    ~ asm-commons: 7.3.1 -> 9.10.1
+    ~ asm-tree: 7.3.1 -> 9.10.1
+
+javalin-rendering-handlebars-test
+  classpath
+    ~ asm: 7.3.1 -> 9.10.1
+    ~ asm-commons: 7.3.1 -> 9.10.1
+    ~ asm-tree: 7.3.1 -> 9.10.1
+
+javalin-rendering-jte
+  classpath
+    + jar jackson-core:2.22.2
+
+javalin-rendering-mustache
+  classpath
+    + jar jackson-core:2.22.2
+
+javalin-rendering-pebble
+  classpath
+    + jar jackson-core:2.22.2
+
+javalin-rendering-thymeleaf
+  classpath
+    + jar jackson-core:2.22.2
+
+javalin-rendering-velocity
+  classpath
+    + jar jackson-core:2.22.2
+
+javalin-ssl
+  classpath
+    + jar jackson-core:2.22.2
+
+javalin-testtools
+  classpath
+    + jar asm-commons:9.10.1
+    + jar asm-tree:9.10.1
+    + jar asm:9.10.1
+    + jar jackson-core:2.22.2
+    + jar jakarta.annotation-api:2.1.1
+    + jar jakarta.enterprise.cdi-api:4.0.1
+    + jar jakarta.enterprise.lang-model:4.0.1
+    + jar jakarta.inject-api:2.0.1
+    + jar jakarta.interceptor-api:2.1.0
+    + jar jakarta.servlet-api:6.0.0
+    + jar jakarta.transaction-api:2.0.1
+    + jar jetty-annotations:12.1.12
+    + jar jetty-ee-webapp:12.1.12
+    + jar jetty-ee10-annotations:12.1.12
+    + jar jetty-ee10-plus:12.1.12
+    + jar jetty-ee10-servlet:12.1.12
+    + jar jetty-ee10-webapp:12.1.12
+    + jar jetty-ee10-websocket-jetty-server:12.1.12
+    + jar jetty-ee10-websocket-servlet:12.1.12
+    + jar jetty-http:12.1.12
+    + jar jetty-io:12.1.12
+    + jar jetty-jndi:12.1.12
+    + jar jetty-plus:12.1.12
+    + jar jetty-security:12.1.12
+    + jar jetty-server:12.1.12
+    + jar jetty-session:12.1.12
+    + jar jetty-util:12.1.12
+    + jar jetty-websocket-core-common:12.1.12
+    + jar jetty-websocket-core-server:12.1.12
+    + jar jetty-websocket-jetty-api:12.1.12
+    + jar jetty-websocket-jetty-common:12.1.12
+    + jar jetty-websocket-jetty-server:12.1.12
+    + jar jetty-xml:12.1.12

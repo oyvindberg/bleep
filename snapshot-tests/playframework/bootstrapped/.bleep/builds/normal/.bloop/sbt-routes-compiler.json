@@ -1,0 +1,130 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "sbt-routes-compiler",
+    "directory": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-routes-compiler/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-routes-compiler/generated-sources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-routes-compiler/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-routes-compiler/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-routes-compiler/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-routes-compiler/src/main/scala-2.12"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/twirl/twirl-api_2.12/2.1.0-M4/twirl-api_2.12-2.1.0-M4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-routes-compiler/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-routes-compiler/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-routes-compiler/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-routes-compiler/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.20",
+      "options": [
+        "-Xsource:3",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-release:17",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/sbt-routes-compiler/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        "--release",
+        "17",
+        "-Xlint:-options",
+        "-Xlint:deprecation",
+        "-Xlint:unchecked",
+        "-encoding",
+        "UTF-8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-parser-combinators_2.12",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "scala-parser-combinators_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework.twirl",
+          "name": "twirl-api_2.12",
+          "version": "2.1.0-M4",
+          "artifacts": [
+            {
+              "name": "twirl-api_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/twirl/twirl-api_2.12/2.1.0-M4/twirl-api_2.12-2.1.0-M4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.12",
+          "version": "2.3.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

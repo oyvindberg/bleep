@@ -11,7 +11,7 @@ import scala.collection.immutable.SortedMap
 class JavaTest extends AnyFunSuite with TripleEqualsSupport {
   private def java(
       options: Options = Options.empty,
-      scan: Option[Boolean] = None,
+      scan: Option[ScanForAnnotationProcessors] = None,
       processors: JsonSet[Dep] = JsonSet.empty,
       processorOptions: AnnotationProcessorOptions = AnnotationProcessorOptions.empty
   ): Java =
@@ -33,13 +33,14 @@ class JavaTest extends AnyFunSuite with TripleEqualsSupport {
 
   test("Java model annotation processor round-trip") {
     roundtrip(java())
-    roundtrip(java(scan = Some(true)))
-    roundtrip(java(scan = Some(false)))
+    roundtrip(java(scan = Some(ScanForAnnotationProcessors.Yes)))
+    roundtrip(java(scan = Some(ScanForAnnotationProcessors.No)))
+    roundtrip(java(scan = Some(ScanForAnnotationProcessors.IfPresent)))
     roundtrip(java(processors = JsonSet(lombok)))
     roundtrip(java(processors = JsonSet(lombok, autoValue)))
     roundtrip(
       java(
-        scan = Some(true),
+        scan = Some(ScanForAnnotationProcessors.Yes),
         processors = JsonSet(autoValue),
         processorOptions = AnnotationProcessorOptions(SortedMap("autovalue.no_assigned" -> "true"))
       )
@@ -65,15 +66,25 @@ class JavaTest extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("Java model setlike — scanForAnnotationProcessors union/intersect/removeAll") {
-    val tEnabled = java(scan = Some(true))
-    val tDisabled = java(scan = Some(false))
+    val tEnabled = java(scan = Some(ScanForAnnotationProcessors.Yes))
+    val tDisabled = java(scan = Some(ScanForAnnotationProcessors.No))
     val tUnset = java(scan = None)
 
-    assert(tEnabled.union(tDisabled).scanForAnnotationProcessors === Some(true)) // self wins via orElse
-    assert(tUnset.union(tEnabled).scanForAnnotationProcessors === Some(true))
-    assert(tEnabled.intersect(tEnabled).scanForAnnotationProcessors === Some(true))
+    assert(tEnabled.union(tDisabled).scanForAnnotationProcessors === Some(ScanForAnnotationProcessors.Yes)) // self wins via orElse
+    assert(tUnset.union(tEnabled).scanForAnnotationProcessors === Some(ScanForAnnotationProcessors.Yes))
+    assert(tEnabled.intersect(tEnabled).scanForAnnotationProcessors === Some(ScanForAnnotationProcessors.Yes))
     assert(tEnabled.intersect(tDisabled).scanForAnnotationProcessors === None)
     assert(tEnabled.removeAll(tEnabled).scanForAnnotationProcessors === None)
-    assert(tEnabled.removeAll(tDisabled).scanForAnnotationProcessors === Some(true))
+    assert(tEnabled.removeAll(tDisabled).scanForAnnotationProcessors === Some(ScanForAnnotationProcessors.Yes))
+  }
+
+  test("scanForAnnotationProcessors is written as true, false or if-present") {
+    assert(java(scan = Some(ScanForAnnotationProcessors.Yes)).asJson.hcursor.downField("scanForAnnotationProcessors").focus === Some(io.circe.Json.True))
+    assert(java(scan = Some(ScanForAnnotationProcessors.No)).asJson.hcursor.downField("scanForAnnotationProcessors").focus === Some(io.circe.Json.False))
+    assert(
+      java(scan = Some(ScanForAnnotationProcessors.IfPresent)).asJson.hcursor.downField("scanForAnnotationProcessors").focus ===
+        Some(io.circe.Json.fromString("if-present"))
+    )
+    assert(io.circe.Json.fromString("sometimes").as[ScanForAnnotationProcessors].isLeft)
   }
 }

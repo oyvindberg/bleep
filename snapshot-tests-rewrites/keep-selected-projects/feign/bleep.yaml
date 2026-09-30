@@ -1,0 +1,67 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:25
+projects: {}
+templates:
+  template-common:
+    java:
+      scanForAnnotationProcessors: if-present
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+      name: jvm
+  template-common-main:
+    boms:
+    - com.fasterxml.jackson:jackson-bom:2.22.3
+    - com.squareup.okhttp3:okhttp-bom:5.5.0
+    - org.junit:junit-bom:6.1.3
+    extends: template-common
+    publish:
+      groupId: io.github.openfeign
+    sbt-scope: main
+  template-java-11:
+    extends: template-common-main
+    java:
+      options: -source 11 -target 11
+  template-java-17:
+    extends: template-common-main
+    java:
+      options: -source 17 -target 17
+  template-java-25:
+    extends: template-common
+    isTestProject: true
+    java:
+      options: -parameters -source 25 -target 25
+    sbt-scope: test
+  template-java-25-add-opens:
+    extends: template-java-25-dependencies
+    platform:
+      jvmOptions: --add-opens jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-opens
+        jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-opens jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED
+        --add-opens jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-opens
+        jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-opens jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
+  template-java-25-dependencies:
+    dependencies:
+    - org.assertj:assertj-core:3.27.7
+    - org.junit.jupiter:junit-jupiter-api:6.1.3
+    - org.junit.jupiter:junit-jupiter-engine:6.1.3
+    - org.junit.jupiter:junit-jupiter:6.1.3
+    extends: template-java-25
+  template-java-25-jsonassert:
+    dependencies:
+    - org.mockito:mockito-core:5.23.0
+    - org.mockito:mockito-junit-jupiter:5.23.0
+    - configuration: provided
+      module: org.projectlombok:lombok:1.18.48
+    - org.skyscreamer:jsonassert:1.5.3
+    - org.springframework.boot:spring-boot-starter-test:4.1.1
+    - org.springframework.boot:spring-boot-starter-web:4.1.1
+    extends: template-java-25-user.language
+  template-java-25-user.language:
+    extends: template-java-25
+    platform:
+      jvmOptions: -Duser.language=en
+  template-java-8:
+    extends: template-common-main
+    java:
+      options: -source 1.8 -target 1.8

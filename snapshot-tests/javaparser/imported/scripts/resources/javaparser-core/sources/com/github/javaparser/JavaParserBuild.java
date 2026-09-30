@@ -1,0 +1,30 @@
+/*
+ * Copyright (C) 2013-2026 The JavaParser Team.
+ *
+ * This file is part of JavaParser.
+ *
+ * JavaParser can be used either under the terms of
+ * a) the GNU Lesser General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * b) the terms of the Apache License
+ *
+ * You should have received a copy of both licenses in LICENCE.LGPL and
+ * LICENCE.APACHE. Please refer to those files for details.
+ *
+ * JavaParser is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ */
+
+package com.github.javaparser;
+
+/**
+ * Core information about this library.
+ */
+public class JavaParserBuild {
+    public static final String PROJECT_VERSION = "3.29.0-SNAPSHOT";
+    public static final String PROJECT_NAME = "com.github.javaparser:javaparser-core";
+    public static final String PROJECT_BUILD_FINAL_NAME = "javaparser-core-3.29.0-SNAPSHOT";
+}

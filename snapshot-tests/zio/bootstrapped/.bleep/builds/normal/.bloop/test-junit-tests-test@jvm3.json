@@ -1,0 +1,896 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "test-junit-tests-test@jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/test-junit-tests-test@jvm3/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-junit-tests/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-junit-tests/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-junit-tests/src/test/scala-3"
+    ],
+    "dependencies": [
+      "test-junit-tests@jvm3",
+      "zio+test@jvm3",
+      "zio-internal-macros@jvm3",
+      "zio-stacktracer@jvm3",
+      "zio-streams@jvm3",
+      "zio-test-sbt@jvm3",
+      "zio@jvm3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.13.2/gson-2.13.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.41.0/error_prone_annotations-2.41.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.6.0-jre/guava-33.6.0-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/6.0.0/guice-6.0.0-classes.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/6.0.0/guice-6.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-cli/commons-cli/1.11.0/commons-cli-1.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.21.0/commons-codec-1.21.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_3/3.0.10/izumi-reflect-thirdparty-boopickle-shaded_3-3.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_3/3.0.10/izumi-reflect_3-3.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/annotation/javax.annotation-api/1.3.2/javax.annotation-api-1.3.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.6/jopt-simple-4.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-artifact/3.9.16/maven-artifact-3.9.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-builder-support/3.9.16/maven-builder-support-3.9.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-compat/3.9.16/maven-compat-3.9.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-core/3.9.16/maven-core-3.9.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-embedder/3.9.16/maven-embedder-3.9.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-model-builder/3.9.16/maven-model-builder-3.9.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-model/3.9.16/maven-model-3.9.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-plugin-api/3.9.16/maven-plugin-api-3.9.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-repository-metadata/3.9.16/maven-repository-metadata-3.9.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-resolver-provider/3.9.16/maven-resolver-provider-3.9.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-settings-builder/3.9.16/maven-settings-builder-3.9.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-settings/3.9.16/maven-settings-3.9.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-api/1.9.27/maven-resolver-api-1.9.27.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-connector-basic/1.9.27/maven-resolver-connector-basic-1.9.27.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-impl/1.9.27/maven-resolver-impl-1.9.27.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-named-locks/1.9.27/maven-resolver-named-locks-1.9.27.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-spi/1.9.27/maven-resolver-spi-1.9.27.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-transport-http/1.9.27/maven-resolver-transport-http-1.9.27.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-util/1.9.27/maven-resolver-util-1.9.27.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/shared/maven-shared-utils/3.4.2/maven-shared-utils-3.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/wagon/wagon-provider-api/3.5.3/wagon-provider-api-3.5.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-cipher/2.0/plexus-cipher-2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-classworlds/2.11.0/plexus-classworlds-2.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-component-annotations/2.2.0/plexus-component-annotations-2.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-interpolation/1.29/plexus-interpolation-1.29.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-sec-dispatcher/2.0/plexus-sec-dispatcher-2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/3.6.1/plexus-utils-3.6.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/sisu/org.eclipse.sisu.inject/1.1.0/org.eclipse.sisu.inject-1.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/sisu/org.eclipse.sisu.plexus/1.0.0/org.eclipse.sisu.plexus-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jcstress/jcstress-core/0.3/jcstress-core-0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.10.1/asm-9.10.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.14.0/scala-collection-compat_3-2.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.5.0/scala-xml_3-2.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.36/jcl-over-slf4j-1.7.36.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.20/slf4j-api-2.0.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-simple/2.0.20/slf4j-simple-2.0.20.jar",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/test-junit-tests@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio+test@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-internal-macros@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-streams@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-streams@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-test-sbt@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/internal-macros/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/internal-macros/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-junit-tests/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/shared/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/test-junit-tests-test@jvm3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/test-junit-tests-test@jvm3/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-junit-tests/src/test/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.3.8",
+      "options": [
+        "-Xignore-scala2-macros",
+        "-Xmax-inlines:64",
+        "-deprecation",
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-language:implicitConversions",
+        "-language:noAutoTupling",
+        "-noindent",
+        "-release",
+        "11",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.8/scala3-compiler_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.8/scala3-interfaces-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.8/tasty-core_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.9.0-scala-1/scala-asm-9.9.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.29.0/jline-reader-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/test-junit-tests-test@jvm3/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "hedgehog.sbt.Framework",
+            "weaver.framework.CatsEffect",
+            "zio.test.sbt.ZTestFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Dproject.dir=<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-junit-tests",
+          "-Dproject.version=2.1.26+231-18e9a918-SNAPSHOT",
+          "-Dscala.compat.version=3",
+          "-Dscala.version=3.3.8",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-junit-tests"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-plugin-api",
+          "version": "3.9.16",
+          "artifacts": [
+            {
+              "name": "maven-plugin-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-plugin-api/3.9.16/maven-plugin-api-3.9.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-sec-dispatcher",
+          "version": "2.0",
+          "artifacts": [
+            {
+              "name": "plexus-sec-dispatcher",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-sec-dispatcher/2.0/plexus-sec-dispatcher-2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_3",
+          "version": "3.0.10",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_3/3.0.10/izumi-reflect-thirdparty-boopickle-shaded_3-3.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-embedder",
+          "version": "3.9.16",
+          "artifacts": [
+            {
+              "name": "maven-embedder",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-embedder/3.9.16/maven-embedder-3.9.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-compat",
+          "version": "3.9.16",
+          "artifacts": [
+            {
+              "name": "maven-compat",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-compat/3.9.16/maven-compat-3.9.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.resolver",
+          "name": "maven-resolver-connector-basic",
+          "version": "1.9.27",
+          "artifacts": [
+            {
+              "name": "maven-resolver-connector-basic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-connector-basic/1.9.27/maven-resolver-connector-basic-1.9.27.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.inject",
+          "name": "jakarta.inject-api",
+          "version": "2.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.inject-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-core",
+          "version": "3.9.16",
+          "artifacts": [
+            {
+              "name": "maven-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-core/3.9.16/maven-core-3.9.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-repository-metadata",
+          "version": "3.9.16",
+          "artifacts": [
+            {
+              "name": "maven-repository-metadata",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-repository-metadata/3.9.16/maven-repository-metadata-3.9.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-interpolation",
+          "version": "1.29",
+          "artifacts": [
+            {
+              "name": "plexus-interpolation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-interpolation/1.29/plexus-interpolation-1.29.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm",
+          "version": "9.10.1",
+          "artifacts": [
+            {
+              "name": "asm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.10.1/asm-9.10.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_3",
+          "version": "3.0.10",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_3/3.0.10/izumi-reflect_3-3.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.resolver",
+          "name": "maven-resolver-spi",
+          "version": "1.9.27",
+          "artifacts": [
+            {
+              "name": "maven-resolver-spi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-spi/1.9.27/maven-resolver-spi-1.9.27.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.inject",
+          "name": "guice",
+          "version": "6.0.0",
+          "artifacts": [
+            {
+              "name": "guice",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/6.0.0/guice-6.0.0.jar"
+            },
+            {
+              "name": "guice",
+              "classifier": "classes",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/6.0.0/guice-6.0.0-classes.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hamcrest",
+          "name": "hamcrest-core",
+          "version": "1.3",
+          "artifacts": [
+            {
+              "name": "hamcrest-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-settings",
+          "version": "3.9.16",
+          "artifacts": [
+            {
+              "name": "maven-settings",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-settings/3.9.16/maven-settings-3.9.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.openjdk.jcstress",
+          "name": "jcstress-core",
+          "version": "0.3",
+          "artifacts": [
+            {
+              "name": "jcstress-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jcstress/jcstress-core/0.3/jcstress-core-0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-model",
+          "version": "3.9.16",
+          "artifacts": [
+            {
+              "name": "maven-model",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-model/3.9.16/maven-model-3.9.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.inject",
+          "name": "javax.inject",
+          "version": "1",
+          "artifacts": [
+            {
+              "name": "javax.inject",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.gson",
+          "name": "gson",
+          "version": "2.13.2",
+          "artifacts": [
+            {
+              "name": "gson",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.13.2/gson-2.13.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpclient",
+          "version": "4.5.14",
+          "artifacts": [
+            {
+              "name": "httpclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_2.13",
+          "version": "1.1.3",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-builder-support",
+          "version": "3.9.16",
+          "artifacts": [
+            {
+              "name": "maven-builder-support",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-builder-support/3.9.16/maven-builder-support-3.9.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "jcl-over-slf4j",
+          "version": "1.7.36",
+          "artifacts": [
+            {
+              "name": "jcl-over-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.36/jcl-over-slf4j-1.7.36.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-utils",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "plexus-utils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/3.6.1/plexus-utils-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-artifact",
+          "version": "3.9.16",
+          "artifacts": [
+            {
+              "name": "maven-artifact",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-artifact/3.9.16/maven-artifact-3.9.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.41.0",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.41.0/error_prone_annotations-2.41.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.resolver",
+          "name": "maven-resolver-api",
+          "version": "1.9.27",
+          "artifacts": [
+            {
+              "name": "maven-resolver-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-api/1.9.27/maven-resolver-api-1.9.27.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-resolver-provider",
+          "version": "3.9.16",
+          "artifacts": [
+            {
+              "name": "maven-resolver-provider",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-resolver-provider/3.9.16/maven-resolver-provider-3.9.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.sf.jopt-simple",
+          "name": "jopt-simple",
+          "version": "4.6",
+          "artifacts": [
+            {
+              "name": "jopt-simple",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.6/jopt-simple-4.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.sisu",
+          "name": "org.eclipse.sisu.inject",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "org.eclipse.sisu.inject",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/sisu/org.eclipse.sisu.inject/1.1.0/org.eclipse.sisu.inject-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "junit",
+          "name": "junit",
+          "version": "4.13.2",
+          "artifacts": [
+            {
+              "name": "junit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-cipher",
+          "version": "2.0",
+          "artifacts": [
+            {
+              "name": "plexus-cipher",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-cipher/2.0/plexus-cipher-2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-component-annotations",
+          "version": "2.2.0",
+          "artifacts": [
+            {
+              "name": "plexus-component-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-component-annotations/2.2.0/plexus-component-annotations-2.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-codec",
+          "name": "commons-codec",
+          "version": "1.21.0",
+          "artifacts": [
+            {
+              "name": "commons-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.21.0/commons-codec-1.21.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_3",
+          "version": "2.14.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.14.0/scala-collection-compat_3-2.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "33.6.0-jre",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.6.0-jre/guava-33.6.0-jre.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.wagon",
+          "name": "wagon-provider-api",
+          "version": "3.5.3",
+          "artifacts": [
+            {
+              "name": "wagon-provider-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/wagon/wagon-provider-api/3.5.3/wagon-provider-api-3.5.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.8",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.resolver",
+          "name": "maven-resolver-util",
+          "version": "1.9.27",
+          "artifacts": [
+            {
+              "name": "maven-resolver-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-util/1.9.27/maven-resolver-util-1.9.27.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.annotation",
+          "name": "javax.annotation-api",
+          "version": "1.3.2",
+          "artifacts": [
+            {
+              "name": "javax.annotation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/annotation/javax.annotation-api/1.3.2/javax.annotation-api-1.3.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-cli",
+          "name": "commons-cli",
+          "version": "1.11.0",
+          "artifacts": [
+            {
+              "name": "commons-cli",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-cli/commons-cli/1.11.0/commons-cli-1.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-classworlds",
+          "version": "2.11.0",
+          "artifacts": [
+            {
+              "name": "plexus-classworlds",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-classworlds/2.11.0/plexus-classworlds-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpcore",
+          "version": "4.4.16",
+          "artifacts": [
+            {
+              "name": "httpcore",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.20",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.20/slf4j-api-2.0.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_3",
+          "version": "2.5.0",
+          "artifacts": [
+            {
+              "name": "scala-xml_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.5.0/scala-xml_3-2.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.sisu",
+          "name": "org.eclipse.sisu.plexus",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "org.eclipse.sisu.plexus",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/sisu/org.eclipse.sisu.plexus/1.0.0/org.eclipse.sisu.plexus-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.resolver",
+          "name": "maven-resolver-named-locks",
+          "version": "1.9.27",
+          "artifacts": [
+            {
+              "name": "maven-resolver-named-locks",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-named-locks/1.9.27/maven-resolver-named-locks-1.9.27.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.resolver",
+          "name": "maven-resolver-impl",
+          "version": "1.9.27",
+          "artifacts": [
+            {
+              "name": "maven-resolver-impl",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-impl/1.9.27/maven-resolver-impl-1.9.27.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-model-builder",
+          "version": "3.9.16",
+          "artifacts": [
+            {
+              "name": "maven-model-builder",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-model-builder/3.9.16/maven-model-builder-3.9.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "aopalliance",
+          "name": "aopalliance",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "aopalliance",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.shared",
+          "name": "maven-shared-utils",
+          "version": "3.4.2",
+          "artifacts": [
+            {
+              "name": "maven-shared-utils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/shared/maven-shared-utils/3.4.2/maven-shared-utils-3.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven.resolver",
+          "name": "maven-resolver-transport-http",
+          "version": "1.9.27",
+          "artifacts": [
+            {
+              "name": "maven-resolver-transport-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/resolver/maven-resolver-transport-http/1.9.27/maven-resolver-transport-http-1.9.27.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-simple",
+          "version": "2.0.20",
+          "artifacts": [
+            {
+              "name": "slf4j-simple",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-simple/2.0.20/slf4j-simple-2.0.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "3.1",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.maven",
+          "name": "maven-settings-builder",
+          "version": "3.9.16",
+          "artifacts": [
+            {
+              "name": "maven-settings-builder",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/maven/maven-settings-builder/3.9.16/maven-settings-builder-3.9.16.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

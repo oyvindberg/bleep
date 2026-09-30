@@ -35,7 +35,10 @@ projects:
     - template-scala-3
     platform:
       mainClass: bleep.Main
-    sources: ./bleep-cli/src/scala-3
+    sources:
+    - ./bleep-cli/src/scala-3
+    # what sbt-export-dependencies writes, from the plugin's own source
+    - ../sbt-export-dependencies/src/schema
   bleep-core:
     dependencies:
     # coursier-cache refers to GraalVM's native-image API, which the GraalVM JDK building bleep carries, but compiling against the JDK 17 API does not.
@@ -305,6 +308,7 @@ projects:
     - bleep-test-runner
     extends:
     - template-common
+    - template-java-17
     - template-scala-3
   bleep-bsp-protocol:
     dependencies:
@@ -391,6 +395,31 @@ projects:
       - "**ScalaJsTestModuleKindIT"
       - "**ScalaNativeSharedBinaryIT"
       - "**TestLinkOutputDirIT"
+  sbt-export-dependencies:
+    # The sbt plugin `bleep import-sbt` adds to the build it imports: it writes out what sbt knows about each project and bloop's export leaves out. Built
+    # for sbt 1 (scala 2.12) and sbt 2 (scala 3), and published with bleep, so an import asks for it at bleep's own version.
+    # `sbt/sbt.autoplugins` is checked in: bleep does not generate the descriptor sbt enables a plugin's AutoPlugins by.
+    cross:
+      jvm212:
+        dependencies:
+          configuration: provided
+          module: org.scala-sbt:sbt:1.5.8
+        libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
+        scala:
+          # `?` wildcards and `given` imports in the code shared with sbt 2. sbt 1's macros put `@nowarn` on code they generate, where it suppresses nothing
+          options: -Xsource:3 -Wconf:cat=unused-nowarn:s
+          version: 2.12.20
+      jvm3:
+        dependencies:
+          configuration: provided
+          module: org.scala-sbt:sbt:2.0.9
+        scala:
+          version: 3.8.4
+    extends: template-common
+    scala:
+      sbtPlugin: true
+    # what the plugin writes and bleep reads, compiled into bleep-cli too
+    sources: ./src/schema
   scripts:
     dependencies:
     - build.bleep::bleep-plugin-native-image:${BLEEP_VERSION}

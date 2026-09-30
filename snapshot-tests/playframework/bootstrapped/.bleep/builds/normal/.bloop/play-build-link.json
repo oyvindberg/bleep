@@ -1,0 +1,53 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "play-build-link",
+    "directory": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-build-link/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-build-link/src/main/java"
+    ],
+    "dependencies": [
+      "play-exceptions"
+    ],
+    "classpath": [
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-exceptions/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-exceptions/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-build-link/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-build-link/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-build-link/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "--release",
+        "11",
+        "--release",
+        "17",
+        "-Xlint:-options",
+        "-Xlint:deprecation",
+        "-Xlint:unchecked",
+        "-encoding",
+        "UTF-8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        
+      ]
+    }
+  }
+}

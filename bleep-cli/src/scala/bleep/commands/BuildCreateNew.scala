@@ -2,7 +2,7 @@ package bleep
 package commands
 
 import bleep.internal.BleepTemplateLogger
-import bleep.templates.templatesInfer
+import bleep.templates.{mineTemplates, templatesInfer}
 import cats.data.NonEmptyList
 import ryddig.Logger
 
@@ -285,7 +285,8 @@ object BuildCreateNew {
             compilerPlugins = model.JsonSet.empty,
             strict = Some(true),
             skipStdlib = None,
-            compilerProject = None
+            compilerProject = None,
+            sbtPlugin = None
           )
         ),
         kotlin = None,
@@ -365,6 +366,6 @@ object BuildCreateNew {
       remoteCache = None
     )
 
-    templatesInfer(new BleepTemplateLogger(logger), explodedBuild, ignoreWhenInferringTemplates = _ => false)
+    templatesInfer(new BleepTemplateLogger(logger), explodedBuild, ignoreWhenInferringTemplates = _ => false, mineTemplates.Costs.newBuild)
   }
 }

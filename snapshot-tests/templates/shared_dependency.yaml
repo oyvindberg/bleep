@@ -7,11 +7,21 @@
     },
     "b" : {
       "extends" : "template-common"
+    },
+    "c" : {
+      "extends" : "template-common"
+    },
+    "d" : {
+      "extends" : "template-common"
     }
   },
   "templates" : {
     "template-common" : {
-      "dependencies" : "com.example:libx:1.0.0"
+      "dependencies" : "com.example:libx:1.0.0",
+      "scala" : {
+        "options" : "-Xlint -deprecation -feature -unchecked",
+        "version" : "2.13.18"
+      }
     }
   }
 }

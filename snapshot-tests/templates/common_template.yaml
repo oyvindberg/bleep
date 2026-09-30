@@ -6,15 +6,19 @@
       "extends" : "template-common"
     },
     "b" : {
-      "extends" : "template-common",
-      "scala" : {
-        "options" : "foo"
-      }
+      "extends" : "template-common"
+    },
+    "c" : {
+      "extends" : "template-common"
+    },
+    "d" : {
+      "extends" : "template-common"
     }
   },
   "templates" : {
     "template-common" : {
       "scala" : {
+        "options" : "-Xlint -deprecation -feature -unchecked",
         "version" : "2.13.18"
       }
     }

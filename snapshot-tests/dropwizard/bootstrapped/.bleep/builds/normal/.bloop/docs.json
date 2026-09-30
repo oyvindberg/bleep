@@ -1,0 +1,46 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "docs",
+    "directory": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/docs/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/docs/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/docs/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/docs/generated-sources/annotations"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/docs/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped/.bleep/projects/docs/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/docs/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/dropwizard/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/dropwizard/maven-build/docs"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        
+      ]
+    }
+  }
+}

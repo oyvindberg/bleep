@@ -1,0 +1,24 @@
+{
+  "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
+  "$version" : "dev",
+  "projects" : {
+    "a" : {
+      "scala" : {
+        "options" : "-Xlint -deprecation -feature -unchecked",
+        "version" : "2.13.18"
+      }
+    },
+    "b" : {
+      "scala" : {
+        "options" : "-Xlint -deprecation -feature -unchecked",
+        "version" : "2.13.18"
+      }
+    },
+    "c" : {
+      "scala" : {
+        "options" : "-Xlint -deprecation -feature -unchecked",
+        "version" : "2.13.18"
+      }
+    }
+  }
+}

@@ -81,21 +81,48 @@ The full set of `normal` paths, prefixed with both `shared/` and
 …
 ```
 
-Closer to how some Scala.js / Scala Native projects are laid out, with a
-clean separation between shared and platform-specific source trees.
+This is the layout of sbt-crossproject's `CrossType.Full`, with a clean
+separation between shared and platform-specific source trees.
+
+A project built for three platforms also has code that only two of them
+share. For every group of some, but not all, of the platforms the project
+is built for, `cross-full` adds a directory named after them, joined with
+`-` in alphabetical order. Each platform reads the directories of the
+groups it belongs to:
+
+| the project is built for | `jvm` reads          | `js` reads           | `native` reads          |
+| ------------------------ | -------------------- | -------------------- | ----------------------- |
+| `jvm`, `js`, `native`    | `js-jvm/`, `jvm-native/` | `js-jvm/`, `js-native/` | `js-native/`, `jvm-native/` |
+| `jvm`, `js`              | nothing extra        | nothing extra        |                         |
+
+These directories hold the same `normal` paths as `shared/` does
+(`js-jvm/src/scala`, `js-jvm/src/scala-3`, `js-jvm/src/resources`, …).
+A project built for two platforms has none, since whatever both
+platforms share is in `shared/`.
+
+"The platforms the project is built for" are the platforms across all of
+its cross-ids, so a project whose `cross:` has `jvm3`, `js3` and
+`native3` reads `js-jvm/` in its jvm and js variants. This is the same
+rule sbt-crossproject uses (`makePartiallySharedSettings` in its
+`CrossProject.scala`), so a build imported from sbt reads the same
+directories it did there.
 
 ### `sbt-matrix`
 
 The full set of `normal` paths, plus folders whose names mash the platform
-and the Scala version together, the layout sbt uses for the
-`projectMatrix` style cross builds:
+and the Scala version together, the layout sbt-projectmatrix uses for its
+cross builds:
 
 ```
 <folder>/src/scala
 <folder>/src/scalajvm
 <folder>/src/scalajvm-2.13
-<folder>/src/scalajvm-3
+<folder>/src/scalajvm-2
+<folder>/src/javajvm
 ```
+
+For the `js` cross axis, replace `jvm` with `js`: `scalajs`,
+`scalajs-2.13`, `javajs`.
 
 Generally only seen on builds imported from sbt. New bleep builds should
 prefer `cross-pure` or `cross-full`.
@@ -113,7 +140,7 @@ test code is its own project, with `isTestProject: true`. There is no
 bleep-native build the `<scope>` segment is empty, and the layout
 produces short folder names (`src/scala`, not `src/main/scala`).
 
-When you run [`bleep import`](/docs/reference/cli/import/) on an sbt build, however, bleep preserves the
+When you run [`bleep import-sbt`](/docs/reference/cli/import-sbt/) on an sbt build, however, bleep preserves the
 original `src/main/...` / `src/test/...` shape. Each imported project
 gets an `sbt-scope` of `main`, `test`, or `it`, and the layout fills the
 segment in:

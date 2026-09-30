@@ -4,9 +4,14 @@ package mavenimport
 import java.nio.file.Path
 
 object parsePom {
+  def apply(fs: MavenFs, effectivePomPath: Path): List[MavenProject] =
+    new Parser(fs).apply(effectivePomPath)
+}
+
+private class Parser(fs: MavenFs) {
 
   def apply(effectivePomPath: Path): List[MavenProject] = {
-    val xml = scala.xml.XML.loadFile(effectivePomPath.toFile)
+    val xml = scala.xml.XML.loadString(fs.readString(effectivePomPath))
 
     xml.label match {
       case "projects" =>
@@ -46,9 +51,11 @@ object parsePom {
     val testResources = parseResourceDirs(build \ "testResources" \ "testResource")
 
     val dependencies = parseDependencies(node \ "dependencies" \ "dependency")
+    val dependencyManagement = parseDependencies(node \ "dependencyManagement" \ "dependencies" \ "dependency")
     val plugins = parsePlugins(allPlugins)
     val repositories = parseRepositories(node \ "repositories" \ "repository")
     val modules = (node \ "modules" \ "module").iterator.map(_.text.trim).toList
+    val properties = (node \ "properties").flatMap(_.child).collect { case e: scala.xml.Elem => e.label -> e.text.trim }.toMap
 
     MavenProject(
       groupId = groupId,
@@ -63,9 +70,11 @@ object parsePom {
       resources = resources,
       testResources = testResources,
       dependencies = dependencies,
+      dependencyManagement = dependencyManagement,
       plugins = plugins,
       repositories = repositories,
-      modules = modules
+      modules = modules,
+      properties = properties
     )
   }
 
@@ -84,7 +93,9 @@ object parsePom {
         version = textOrEmpty(dep, "version"),
         scope = textOrDefault(dep, "scope", "compile"),
         optional = textOrDefault(dep, "optional", "false") == "true",
-        exclusions = exclusions
+        exclusions = exclusions,
+        tpe = textOrDefault(dep, "type", "jar"),
+        classifier = textOrEmpty(dep, "classifier")
       )
     }.toList
 
@@ -94,7 +105,15 @@ object parsePom {
         groupId = textOrDefault(plugin, "groupId", "org.apache.maven.plugins"),
         artifactId = textOrEmpty(plugin, "artifactId"),
         version = textOrEmpty(plugin, "version"),
-        configuration = plugin \ "configuration"
+        configuration = plugin \ "configuration",
+        executions = (plugin \ "executions" \ "execution").iterator.map { execution =>
+          MavenExecution(
+            id = textOrEmpty(execution, "id"),
+            phase = textOrEmpty(execution, "phase"),
+            goals = (execution \ "goals" \ "goal").iterator.map(_.text.trim).toList,
+            configuration = execution \ "configuration"
+          )
+        }.toList
       )
     }.toList
 
@@ -140,7 +159,7 @@ object parsePom {
 
   /** Resolve symlinks to real path (handles macOS /tmp -> /private/tmp etc.) */
   private def realPath(path: Path): Path =
-    if (path.toFile.exists()) path.toRealPath()
+    if (fs.exists(path)) fs.realPath(path)
     else path.toAbsolutePath.normalize()
 
   private def pathOrDefault(parent: scala.xml.NodeSeq, childName: String, default: Path): Path = {

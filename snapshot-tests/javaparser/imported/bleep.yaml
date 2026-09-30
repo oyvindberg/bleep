@@ -1,0 +1,118 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:17
+projects:
+  javaparser-core:
+    extends: template-common-main
+    folder: ../maven-build/javaparser-core
+    java:
+      options: -parameters
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+    sources: ./src/main/javacc-support
+  javaparser-core-generators:
+    dependsOn: javaparser-core
+    extends: template-common-main
+    folder: ../maven-build/javaparser-core-generators
+  javaparser-core-generators-test:
+    dependencies: org.junit.jupiter:junit-jupiter-engine:5.14.4
+    dependsOn: javaparser-core-generators
+    extends: template-common-test
+    folder: ../maven-build/javaparser-core-generators
+  javaparser-core-metamodel-generator:
+    dependsOn: javaparser-core
+    extends: template-common-main
+    folder: ../maven-build/javaparser-core-metamodel-generator
+  javaparser-core-serialization:
+    dependencies:
+    - jakarta.json:jakarta.json-api:2.1.3
+    - org.junit.jupiter:junit-jupiter-engine:5.14.4
+    dependsOn: javaparser-core
+    extends: template-common-main
+    folder: ../maven-build/javaparser-core-serialization
+  javaparser-core-serialization-test:
+    dependencies: org.eclipse.parsson:parsson:1.1.9
+    dependsOn: javaparser-core-serialization
+    extends: template-common-test
+    folder: ../maven-build/javaparser-core-serialization
+  javaparser-core-testing:
+    dependsOn: javaparser-core
+    extends: template-common-main
+    folder: ../maven-build/javaparser-core-testing
+  javaparser-core-testing-bdd:
+    dependencies:
+    - org.junit.jupiter:junit-jupiter-engine:5.14.4
+    - org.junit.vintage:junit-vintage-engine:5.14.4
+    dependsOn: javaparser-core
+    extends: template-common-main
+    folder: ../maven-build/javaparser-core-testing-bdd
+  javaparser-core-testing-bdd-test:
+    dependencies:
+    - org.hamcrest:hamcrest:3.0
+    - org.jbehave:jbehave-core:5.2.0
+    dependsOn: javaparser-core-testing-bdd
+    extends: template-common-test
+    folder: ../maven-build/javaparser-core-testing-bdd
+  javaparser-core-testing-test:
+    dependencies:
+    - net.bytebuddy:byte-buddy-agent:1.18.14-jdk5
+    - net.bytebuddy:byte-buddy:1.18.14-jdk5
+    - org.assertj:assertj-core:3.27.7
+    - org.hamcrest:hamcrest:3.0
+    - org.junit.jupiter:junit-jupiter-engine:5.14.4
+    - org.junit.jupiter:junit-jupiter-params:5.14.4
+    - org.mockito:mockito-inline:4.11.0
+    dependsOn: javaparser-core-testing
+    extends: template-common-test
+    folder: ../maven-build/javaparser-core-testing
+  javaparser-symbol-solver-core:
+    dependencies:
+    - com.google.guava:guava:33.7.1-jre
+    - org.checkerframework:checker-qual:3.55.1
+    - org.javassist:javassist:3.33.0-GA
+    dependsOn: javaparser-core
+    extends: template-common-main
+    folder: ../maven-build/javaparser-symbol-solver-core
+  javaparser-symbol-solver-testing:
+    dependencies:
+    - org.junit.jupiter:junit-jupiter-engine:5.14.4
+    - org.junit.jupiter:junit-jupiter-params:5.14.4
+    dependsOn: javaparser-symbol-solver-core
+    extends: template-common-main
+    folder: ../maven-build/javaparser-symbol-solver-testing
+  javaparser-symbol-solver-testing-test:
+    dependencies:
+    - net.bytebuddy:byte-buddy-agent:1.18.14-jdk5
+    - net.bytebuddy:byte-buddy:1.18.14-jdk5
+    - org.hamcrest:hamcrest:3.0
+    - org.mockito:mockito-inline:4.11.0
+    dependsOn: javaparser-symbol-solver-testing
+    extends: template-common-test
+    folder: ../maven-build/javaparser-symbol-solver-testing
+    platform:
+      jvmOptions: -Xms256m -Xmx2g -verbose:gc
+  scripts:
+    dependencies: build.bleep:bleepscript:1.0.0-M14
+    platform:
+      name: jvm
+    resources: ./resources
+templates:
+  template-common:
+    java:
+      options: --release 8
+      scanForAnnotationProcessors: if-present
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+      name: jvm
+  template-common-main:
+    boms: org.junit:junit-bom:5.14.4
+    extends: template-common
+    publish:
+      groupId: com.github.javaparser
+    sbt-scope: main
+  template-common-test:
+    extends: template-common
+    isTestProject: true
+    sbt-scope: test

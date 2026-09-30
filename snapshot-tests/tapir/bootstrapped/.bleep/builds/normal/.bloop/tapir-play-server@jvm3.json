@@ -12,13 +12,15 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scala-3-2.13+",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scalajvm",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scalajvm-3"
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scalajvm-3",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scalajvm-3-2.13+"
     ],
     "dependencies": [
       "tapir-core@jvm3",
       "tapir-server@jvm3"
     ],
     "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/at/yawk/lz4/lz4-java/1.11.0/lz4-java-1.11.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.14.3/jackson-annotations-2.14.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.14.3/jackson-core-2.14.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.3/jackson-databind-2.14.3.jar",
@@ -33,13 +35,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/32.1.3-jre/guava-32.1.3-jre.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.18/magnolia_3-1.3.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.0/core_3-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/pekko_3/1.5.0/pekko_3-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.23/magnolia_3-1.3.23.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.8.1/core_3-1.8.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.2/core_3-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/pekko_3/1.5.2/pekko_3-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.2/ws_3-1.5.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.8/config-1.4.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_3/0.6.1/ssl-config-core_3-0.6.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-api/0.11.5/jjwt-api-0.11.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-impl/0.11.5/jjwt-impl-0.11.5.jar",
@@ -54,27 +56,26 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-slf4j_3/1.0.3/pekko-slf4j_3-1.0.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-stream_3/1.0.3/pekko-stream_3-1.0.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.37.0/checker-qual-3.37.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/lz4/lz4-java/1.8.0/lz4-java-1.8.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/parboiled/parboiled_3/2.5.0/parboiled_3-2.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-build-link/3.0.6/play-build-link-3.0.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-configuration_3/3.0.6/play-configuration_3-3.0.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-exceptions/3.0.6/play-exceptions-3.0.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_3/3.0.4/play-functional_3-3.0.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_3/3.0.4/play-json_3-3.0.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-pekko-http-server_3/3.0.6/play-pekko-http-server_3-3.0.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-server_3/3.0.6/play-server_3-3.0.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-streams_3/3.0.6/play-streams_3-3.0.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play_3/3.0.6/play_3-3.0.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/twirl/twirl-api_3/2.0.7/twirl-api_3-2.0.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-build-link/3.0.11/play-build-link-3.0.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-configuration_3/3.0.11/play-configuration_3-3.0.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-exceptions/3.0.11/play-exceptions-3.0.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_3/3.0.6/play-functional_3-3.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_3/3.0.6/play-json_3-3.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-pekko-http-server_3/3.0.11/play-pekko-http-server_3-3.0.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-server_3/3.0.11/play-server_3-3.0.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-streams_3/3.0.11/play-streams_3-3.0.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play_3/3.0.11/play_3-3.0.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/twirl/twirl-api_3/2.0.9/twirl-api_3-2.0.9.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.13.0/scala-collection-compat_3-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.14.0/scala-collection-compat_3-2.14.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_3/2.3.0/scala-parser-combinators_3-2.3.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.2.0/scala-xml_3-2.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/2.0.16/jcl-over-slf4j-2.0.16.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.16/jul-to-slf4j-2.0.16.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/2.0.18/jcl-over-slf4j-2.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.18/jul-to-slf4j-2.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-server@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
@@ -91,8 +92,10 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala3-compiler_3",
-      "version": "3.3.6",
+      "version": "3.3.8",
       "options": [
+        "-Wconf:msg=unused value of type org.scalatest.Assertion:s",
+        "-Wconf:msg=unused value of type org.scalatest.compatible.Assertion:s",
         "-Wnonunit-statement",
         "-Wunused:explicits",
         "-Wunused:implicits",
@@ -103,11 +106,14 @@
         "-Wvalue-discard",
         "-Xmax-inlines",
         "64",
+        "-Yfuture-lazy-vals",
         "-Ykind-projector",
         "-deprecation",
         "-encoding",
         "utf8",
         "-feature",
+        "-java-output-version",
+        "11",
         "-language:experimental.macros",
         "-language:higherKinds",
         "-language:implicitConversions",
@@ -116,18 +122,18 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.6/scala3-compiler_3-3.3.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.6/scala3-interfaces-3.3.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.6/tasty-core_3-3.3.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.4/compiler-interface-1.10.4.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.1/jline-reader-3.27.1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.1/jline-terminal-3.27.1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.27.1/jline-terminal-jni-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.8/scala3-compiler_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.8/scala3-interfaces-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.8/tasty-core_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.9.0-scala-1/scala-asm-9.9.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.29.0/jline-reader-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.4/util-interface-1.10.4.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-play-server@jvm3/builds/normal/inc_compile.zip",
       "setup": {
@@ -160,22 +166,22 @@
         {
           "organization": "org.playframework",
           "name": "play-exceptions",
-          "version": "3.0.6",
+          "version": "3.0.11",
           "artifacts": [
             {
               "name": "play-exceptions",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-exceptions/3.0.6/play-exceptions-3.0.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-exceptions/3.0.11/play-exceptions-3.0.11.jar"
             }
           ]
         },
         {
           "organization": "org.slf4j",
           "name": "jul-to-slf4j",
-          "version": "2.0.16",
+          "version": "2.0.18",
           "artifacts": [
             {
               "name": "jul-to-slf4j",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.16/jul-to-slf4j-2.0.16.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.18/jul-to-slf4j-2.0.18.jar"
             }
           ]
         },
@@ -226,11 +232,11 @@
         {
           "organization": "org.playframework.twirl",
           "name": "twirl-api_3",
-          "version": "2.0.7",
+          "version": "2.0.9",
           "artifacts": [
             {
               "name": "twirl-api_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/twirl/twirl-api_3/2.0.7/twirl-api_3-2.0.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/twirl/twirl-api_3/2.0.9/twirl-api_3-2.0.9.jar"
             }
           ]
         },
@@ -281,22 +287,22 @@
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_3",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "ws_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.0/ws_3-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.5.2/ws_3-1.5.2.jar"
             }
           ]
         },
         {
           "organization": "org.playframework",
           "name": "play-functional_3",
-          "version": "3.0.4",
+          "version": "3.0.6",
           "artifacts": [
             {
               "name": "play-functional_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_3/3.0.4/play-functional_3-3.0.4.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_3/3.0.6/play-functional_3-3.0.6.jar"
             }
           ]
         },
@@ -325,11 +331,11 @@
         {
           "organization": "org.playframework",
           "name": "play-json_3",
-          "version": "3.0.4",
+          "version": "3.0.6",
           "artifacts": [
             {
               "name": "play-json_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_3/3.0.4/play-json_3-3.0.4.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_3/3.0.6/play-json_3-3.0.6.jar"
             }
           ]
         },
@@ -369,33 +375,44 @@
         {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_3",
-          "version": "1.7.14",
+          "version": "1.8.1",
           "artifacts": [
             {
               "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.7.14/core_3-1.7.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.8.1/core_3-1.8.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "at.yawk.lz4",
+          "name": "lz4-java",
+          "version": "1.11.0",
+          "artifacts": [
+            {
+              "name": "lz4-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/at/yawk/lz4/lz4-java/1.11.0/lz4-java-1.11.0.jar"
             }
           ]
         },
         {
           "organization": "org.slf4j",
           "name": "jcl-over-slf4j",
-          "version": "2.0.16",
+          "version": "2.0.18",
           "artifacts": [
             {
               "name": "jcl-over-slf4j",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/2.0.16/jcl-over-slf4j-2.0.16.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/2.0.18/jcl-over-slf4j-2.0.18.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_3",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.0/core_3-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.5.2/core_3-1.5.2.jar"
             }
           ]
         },
@@ -446,11 +463,11 @@
         {
           "organization": "org.playframework",
           "name": "play-server_3",
-          "version": "3.0.6",
+          "version": "3.0.11",
           "artifacts": [
             {
               "name": "play-server_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-server_3/3.0.6/play-server_3-3.0.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-server_3/3.0.11/play-server_3-3.0.11.jar"
             }
           ]
         },
@@ -468,33 +485,33 @@
         {
           "organization": "org.playframework",
           "name": "play_3",
-          "version": "3.0.6",
+          "version": "3.0.11",
           "artifacts": [
             {
               "name": "play_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play_3/3.0.6/play_3-3.0.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play_3/3.0.11/play_3-3.0.11.jar"
             }
           ]
         },
         {
           "organization": "org.playframework",
           "name": "play-build-link",
-          "version": "3.0.6",
+          "version": "3.0.11",
           "artifacts": [
             {
               "name": "play-build-link",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-build-link/3.0.6/play-build-link-3.0.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-build-link/3.0.11/play-build-link-3.0.11.jar"
             }
           ]
         },
         {
           "organization": "org.playframework",
           "name": "play-configuration_3",
-          "version": "3.0.6",
+          "version": "3.0.11",
           "artifacts": [
             {
               "name": "play-configuration_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-configuration_3/3.0.6/play-configuration_3-3.0.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-configuration_3/3.0.11/play-configuration_3-3.0.11.jar"
             }
           ]
         },
@@ -512,22 +529,22 @@
         {
           "organization": "com.softwaremill.magnolia1_3",
           "name": "magnolia_3",
-          "version": "1.3.18",
+          "version": "1.3.23",
           "artifacts": [
             {
               "name": "magnolia_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.18/magnolia_3-1.3.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.3.23/magnolia_3-1.3.23.jar"
             }
           ]
         },
         {
           "organization": "org.playframework",
           "name": "play-streams_3",
-          "version": "3.0.6",
+          "version": "3.0.11",
           "artifacts": [
             {
               "name": "play-streams_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-streams_3/3.0.6/play-streams_3-3.0.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-streams_3/3.0.11/play-streams_3-3.0.11.jar"
             }
           ]
         },
@@ -567,11 +584,11 @@
         {
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_3",
-          "version": "2.13.0",
+          "version": "2.14.0",
           "artifacts": [
             {
               "name": "scala-collection-compat_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.13.0/scala-collection-compat_3-2.13.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.14.0/scala-collection-compat_3-2.14.0.jar"
             }
           ]
         },
@@ -598,46 +615,35 @@
           ]
         },
         {
-          "organization": "org.lz4",
-          "name": "lz4-java",
-          "version": "1.8.0",
-          "artifacts": [
-            {
-              "name": "lz4-java",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/lz4/lz4-java/1.8.0/lz4-java-1.8.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
-          "version": "3.3.6",
+          "version": "3.3.8",
           "artifacts": [
             {
               "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "pekko_3",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "pekko_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/pekko_3/1.5.0/pekko_3-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/pekko_3/1.5.2/pekko_3-1.5.2.jar"
             }
           ]
         },
         {
           "organization": "org.playframework",
           "name": "play-pekko-http-server_3",
-          "version": "3.0.6",
+          "version": "3.0.11",
           "artifacts": [
             {
               "name": "play-pekko-http-server_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-pekko-http-server_3/3.0.6/play-pekko-http-server_3-3.0.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-pekko-http-server_3/3.0.11/play-pekko-http-server_3-3.0.11.jar"
             }
           ]
         },
@@ -677,11 +683,11 @@
         {
           "organization": "com.typesafe",
           "name": "config",
-          "version": "1.4.3",
+          "version": "1.4.8",
           "artifacts": [
             {
               "name": "config",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.8/config-1.4.8.jar"
             }
           ]
         },
@@ -710,11 +716,11 @@
         {
           "organization": "org.slf4j",
           "name": "slf4j-api",
-          "version": "2.0.16",
+          "version": "2.0.18",
           "artifacts": [
             {
               "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar"
             }
           ]
         },

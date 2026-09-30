@@ -1,0 +1,182 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-kotlin",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-kotlin/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-kotlin/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/kotlin/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/kotlin/src/main/kotlin",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-kotlin/generated-sources/annotations"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/io/projectreactor/reactor-core/3.4.1/reactor-core-3.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/23.0.0/annotations-23.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-reflect/2.4.20/kotlin-reflect-2.4.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/2.4.20/kotlin-stdlib-jdk7-2.4.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/2.4.20/kotlin-stdlib-jdk8-2.4.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.4.20/kotlin-stdlib-2.4.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.11.0/kotlinx-coroutines-core-jvm-1.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-jdk8/1.11.0/kotlinx-coroutines-jdk8-1.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-reactive/1.11.0/kotlinx-coroutines-reactive-1.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-reactor/1.11.0/kotlinx-coroutines-reactor-1.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-kotlin/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-kotlin/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/kotlin/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/kotlin"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.jetbrains.kotlinx",
+          "name": "kotlinx-coroutines-reactor",
+          "version": "1.11.0",
+          "artifacts": [
+            {
+              "name": "kotlinx-coroutines-reactor",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-reactor/1.11.0/kotlinx-coroutines-reactor-1.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlinx",
+          "name": "kotlinx-coroutines-core-jvm",
+          "version": "1.11.0",
+          "artifacts": [
+            {
+              "name": "kotlinx-coroutines-core-jvm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.11.0/kotlinx-coroutines-core-jvm-1.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains",
+          "name": "annotations",
+          "version": "23.0.0",
+          "artifacts": [
+            {
+              "name": "annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/23.0.0/annotations-23.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib-jdk7",
+          "version": "2.4.20",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib-jdk7",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/2.4.20/kotlin-stdlib-jdk7-2.4.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-reflect",
+          "version": "2.4.20",
+          "artifacts": [
+            {
+              "name": "kotlin-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-reflect/2.4.20/kotlin-reflect-2.4.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlinx",
+          "name": "kotlinx-coroutines-reactive",
+          "version": "1.11.0",
+          "artifacts": [
+            {
+              "name": "kotlinx-coroutines-reactive",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-reactive/1.11.0/kotlinx-coroutines-reactive-1.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib",
+          "version": "2.4.20",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.4.20/kotlin-stdlib-2.4.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlinx",
+          "name": "kotlinx-coroutines-jdk8",
+          "version": "1.11.0",
+          "artifacts": [
+            {
+              "name": "kotlinx-coroutines-jdk8",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-jdk8/1.11.0/kotlinx-coroutines-jdk8-1.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib-jdk8",
+          "version": "2.4.20",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib-jdk8",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/2.4.20/kotlin-stdlib-jdk8-2.4.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.projectreactor",
+          "name": "reactor-core",
+          "version": "3.4.1",
+          "artifacts": [
+            {
+              "name": "reactor-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/projectreactor/reactor-core/3.4.1/reactor-core-3.4.1.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

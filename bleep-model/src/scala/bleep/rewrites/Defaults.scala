@@ -86,10 +86,11 @@ object Defaults {
       )
   }
 
-  /** Determine the default source layout based on project language configuration. Priority: Kotlin > Scala > Java
+  /** Determine the default source layout based on project language configuration. Priority: Kotlin > sbt plugin > Scala > Java
     */
   private def defaultSourceLayout(proj: model.Project): model.SourceLayout =
     if (proj.kotlin.flatMap(_.version).isDefined) model.SourceLayout.Kotlin
+    else if (proj.scala.flatMap(_.sbtPlugin).contains(true)) model.SourceLayout.SbtPlugin
     else if (proj.scala.isDefined) model.SourceLayout.Normal
     else model.SourceLayout.Java
 }

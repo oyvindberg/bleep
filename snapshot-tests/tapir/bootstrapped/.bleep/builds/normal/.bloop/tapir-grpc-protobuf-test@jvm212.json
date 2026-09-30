@@ -22,25 +22,25 @@
       "tapir-protobuf-pbdirect@jvm212"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.6.3/logback-classic-1.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.6.3/logback-core-1.6.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/47deg/pbdirect_2.12/0.7.0/pbdirect_2.12-0.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.12/1.6.1/enumeratum-macros_2.12-1.6.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.12/1.7.0/enumeratum_2.12-1.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.7/shapeless_2.12-2.3.7.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.18.0/protobuf-java-3.18.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.14/magnolia_2.12-1.1.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.8.1/core_2.12-1.8.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.2/core_2.12-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.2/ws_2.12-1.5.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.21/scala-reflect-2.12.21.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.12/1.18.1/scalacheck_2.12-1.18.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.19/scalactic_2.12-3.2.19.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.19/scalatest-compatible-3.2.19.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.19/scalatest-core_2.12-3.2.19.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.12/1.19.0/scalacheck_2.12-1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.20/scalactic_2.12-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.20/scalatest-compatible-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.20/scalatest-core_2.12-3.2.20.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.18/scalatest-diagrams_2.12-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.18/scalatest-featurespec_2.12-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.18/scalatest-flatspec_2.12-3.2.18.jar",
@@ -54,8 +54,8 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.18/scalatest-shouldmatchers_2.12-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.18/scalatest-wordspec_2.12-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.18/scalatest_2.12-3.2.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_2.12/3.2.19.0/scalacheck-1-18_2.12-3.2.19.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-19_2.12/3.2.20.0/scalacheck-1-19_2.12-3.2.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.19/slf4j-api-2.0.19.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.6.1/cats-core_2.12-2.6.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.6.1/cats-kernel_2.12-2.6.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar",
@@ -78,18 +78,10 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.12.20",
+      "version": "2.12.21",
       "options": [
-        "-Wconf:msg=unused",
-        "value",
-        "of",
-        "type",
-        "org.scalatest.Assertion:s",
-        "-Wconf:msg=unused",
-        "value",
-        "of",
-        "type",
-        "org.scalatest.compatible.Assertion:s",
+        "-Wconf:msg=unused value of type org.scalatest.Assertion:s",
+        "-Wconf:msg=unused value of type org.scalatest.compatible.Assertion:s",
         "-Xlint:adapted-args",
         "-Xlint:by-name-right-associative",
         "-Xlint:constant",
@@ -108,7 +100,7 @@
         "-Xlint:stars-align",
         "-Xlint:type-parameter-shadow",
         "-Xlint:unsound-match",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.20/0.13.3/kind-projector_2.12.20-0.13.3.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.21/0.13.4/kind-projector_2.12.21-0.13.4.jar",
         "-Yno-adapted-args",
         "-Ypartial-unification",
         "-Ywarn-dead-code",
@@ -137,9 +129,9 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.21/scala-compiler-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.21/scala-reflect-2.12.21.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-grpc-protobuf-test@jvm212/builds/normal/inc_compile.zip",
@@ -202,11 +194,11 @@
         {
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
-          "version": "3.2.19",
+          "version": "3.2.20",
           "artifacts": [
             {
               "name": "scalatest-compatible",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.19/scalatest-compatible-3.2.19.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.20/scalatest-compatible-3.2.20.jar"
             }
           ]
         },
@@ -235,22 +227,33 @@
         {
           "organization": "org.scalactic",
           "name": "scalactic_2.12",
-          "version": "3.2.19",
+          "version": "3.2.20",
           "artifacts": [
             {
               "name": "scalactic_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.19/scalactic_2.12-3.2.19.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.20/scalactic_2.12-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatestplus",
+          "name": "scalacheck-1-19_2.12",
+          "version": "3.2.20.0",
+          "artifacts": [
+            {
+              "name": "scalacheck-1-19_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-19_2.12/3.2.20.0/scalacheck-1-19_2.12-3.2.20.0.jar"
             }
           ]
         },
         {
           "organization": "ch.qos.logback",
           "name": "logback-core",
-          "version": "1.5.18",
+          "version": "1.6.3",
           "artifacts": [
             {
               "name": "logback-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.18/logback-core-1.5.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.6.3/logback-core-1.6.3.jar"
             }
           ]
         },
@@ -267,34 +270,45 @@
         },
         {
           "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_2.12",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.18/scalatest-shouldmatchers_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
           "name": "scalatest-core_2.12",
-          "version": "3.2.19",
+          "version": "3.2.20",
           "artifacts": [
             {
               "name": "scalatest-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.19/scalatest-core_2.12-3.2.19.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.20/scalatest-core_2.12-3.2.20.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
-          "version": "1.7.14",
+          "version": "1.8.1",
           "artifacts": [
             {
               "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.8.1/core_2.12-1.8.1.jar"
             }
           ]
         },
         {
           "organization": "org.scalacheck",
           "name": "scalacheck_2.12",
-          "version": "1.18.1",
+          "version": "1.19.0",
           "artifacts": [
             {
               "name": "scalacheck_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.12/1.18.1/scalacheck_2.12-1.18.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.12/1.19.0/scalacheck_2.12-1.19.0.jar"
             }
           ]
         },
@@ -312,22 +326,22 @@
         {
           "organization": "org.slf4j",
           "name": "slf4j-api",
-          "version": "2.0.17",
+          "version": "2.0.19",
           "artifacts": [
             {
               "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.19/slf4j-api-2.0.19.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
-          "version": "1.1.10",
+          "version": "1.1.14",
           "artifacts": [
             {
               "name": "magnolia_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.14/magnolia_2.12-1.1.14.jar"
             }
           ]
         },
@@ -433,11 +447,11 @@
         {
           "organization": "ch.qos.logback",
           "name": "logback-classic",
-          "version": "1.5.18",
+          "version": "1.6.3",
           "artifacts": [
             {
               "name": "logback-classic",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.18/logback-classic-1.5.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.6.3/logback-classic-1.6.3.jar"
             }
           ]
         },
@@ -464,46 +478,24 @@
           ]
         },
         {
-          "organization": "org.scalatest",
-          "name": "scalatest-shouldmatchers_2.12",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-shouldmatchers_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.18/scalatest-shouldmatchers_2.12-3.2.18.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatestplus",
-          "name": "scalacheck-1-18_2.12",
-          "version": "3.2.19.0",
-          "artifacts": [
-            {
-              "name": "scalacheck-1-18_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_2.12/3.2.19.0/scalacheck-1-18_2.12-3.2.19.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scala-lang",
           "name": "scala-reflect",
-          "version": "2.12.20",
+          "version": "2.12.21",
           "artifacts": [
             {
               "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.21/scala-reflect-2.12.21.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.12.20",
+          "version": "2.12.21",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar"
             }
           ]
         },
@@ -554,22 +546,22 @@
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.2/core_2.12-1.5.2.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "ws_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.2/ws_2.12-1.5.2.jar"
             }
           ]
         },

@@ -1,5 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
+jvm:
+  name: temurin:17
 projects:
   cli:
     dependencies: com.github.scopt::scopt:4.1.0
@@ -25,39 +27,31 @@ projects:
     - ch.epfl.scala::bloop-frontend:1.5.4
     - io.get-coursier::coursier:2.1.0-RC1
     dependsOn: importer-portable
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-opt-inline-from
     folder: ../sbt-build/importer
-    scala:
-      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
-        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
-        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps
   importer-portable:
     dependsOn:
     - phases
     - scalajs
     - ts
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-opt-inline-from
     folder: ../sbt-build/importer-portable
-    scala:
-      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
-        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
-        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps
     sourcegen:
-      main: scripts.GenerateForImporterPortable
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   importer-test:
     dependencies: org.scalatest::scalatest:3.2.14
     dependsOn: importer
-    extends: template-common
+    extends: template-common-opt-inline-from
     folder: ../sbt-build/importer
     isTestProject: true
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
     sbt-scope: test
-    scala:
-      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
-        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
-        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps
     testFrameworks: zio.test.sbt.ZTestFramework
   logging:
     dependencies:
@@ -69,16 +63,14 @@ projects:
     dependsOn:
     - core
     - logging
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-opt-inline-from
     folder: ../sbt-build/phases
-    scala:
-      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
-        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
-        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps
   sbt-converter:
     dependencies:
     - isSbtPlugin: true
-      module: ch.epfl.scala:sbt-scalajs-bundler:0.21.1
+      module: ch.epfl.scala::sbt-scalajs-bundler:0.21.1
     - configuration: provided
       module: org.scala-sbt:sbt:1.8.0
     - software.amazon.awssdk:s3:2.15.28
@@ -87,38 +79,33 @@ projects:
     folder: ../sbt-build/sbt-converter
     scala:
       options: -Wconf:cat=unused-nowarn:s -Xsource:3
+      sbtPlugin: true
     sourcegen:
-      main: scripts.GenerateForSbtConverter
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
-    sources: ./src/${SCOPE}/scala-sbt-1.0
   scalajs:
     dependencies: org.scala-lang.modules::scala-xml:2.1.0
     dependsOn:
     - core
     - logging
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-opt-inline-from
     folder: ../sbt-build/scalajs
-    scala:
-      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
-        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
-        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 3.9.0
+    resources: ./resources
   ts:
     dependencies: org.scala-lang.modules::scala-parser-combinators:1.1.2
     dependsOn:
     - core
     - logging
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-common-opt-inline-from
     folder: ../sbt-build/ts
-    scala:
-      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
-        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
-        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps
 resolvers:
   type: ivy
   uri: https://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/
@@ -144,4 +131,12 @@ templates:
       version: 2.12.17
   template-common-main:
     extends: template-common
+    publish:
+      groupId: org.scalablytyped.converter
     sbt-scope: main
+  template-common-opt-inline-from:
+    extends: template-common
+    scala:
+      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
+        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
+        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps

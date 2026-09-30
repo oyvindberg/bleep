@@ -1,0 +1,2159 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "spring-petclinic-test",
+    "directory": "<BLEEP_GIT>/snapshot-tests/spring-petclinic/bootstrapped/.bleep/projects/spring-petclinic-test/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/spring-petclinic/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/spring-petclinic/bootstrapped/.bleep/projects/spring-petclinic-test/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/spring-petclinic/maven-build/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/spring-petclinic/bootstrapped/.bleep/projects/spring-petclinic-test/generated-sources/annotations"
+    ],
+    "dependencies": [
+      "spring-petclinic"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.34/logback-classic-1.5.34.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.34/logback-core-1.5.34.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/classmate/1.7.3/classmate-1.7.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.21/jackson-annotations-2.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/3.2.4/caffeine-3.2.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-api/3.7.1/docker-java-api-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-transport-zerodep/3.7.1/docker-java-transport-zerodep-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-transport/3.7.1/docker-java-transport-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.49.0/error_prone_annotations-2.49.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/h2database/h2/2.4.240/h2-2.4.240.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/jayway/jsonpath/json-path/2.10.0/json-path-2.10.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.7.0/mysql-connector-j-9.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/sun/istack/istack-commons-runtime/4.1.2/istack-commons-runtime-4.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/zaxxer/HikariCP/7.0.2/HikariCP-7.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.21.0/commons-codec-1.21.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.20.0/commons-io-2.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.6/commons-logging-1.3.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.17.0/micrometer-commons-1.17.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-core/1.17.0/micrometer-core-1.17.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-jakarta9/1.17.0/micrometer-jakarta9-1.17.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation-test/1.17.0/micrometer-observation-test-1.17.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.17.0/micrometer-observation-1.17.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/annotation/jakarta.annotation-api/3.0.0/jakarta.annotation-api-3.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/persistence/jakarta.persistence-api/3.2.0/jakarta.persistence-api-3.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/validation/jakarta.validation-api/3.1.1/jakarta.validation-api-3.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/4.0.5/jakarta.xml.bind-api-4.0.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/cache/cache-api/1.1.1/cache-api-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy-agent/1.18.10/byte-buddy-agent-1.18.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.18.10/byte-buddy-1.18.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.18.1/jna-5.18.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/accessors-smart/2.6.0/accessors-smart-2.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/json-smart/2.6.0/json-smart-2.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/antlr/antlr4-runtime/4.13.2/antlr4-runtime-4.13.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.20.0/commons-lang3-3.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.25.4/log4j-api-2.25.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-to-slf4j/2.25.4/log4j-to-slf4j-2.25.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-core/11.0.22/tomcat-embed-core-11.0.22.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-el/11.0.22/tomcat-embed-el-11.0.22.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-websocket/11.0.22/tomcat-embed-websocket-11.0.22.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.25.1/aspectjweaver-1.9.25.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.7.RELEASE/attoparser-2.0.7.RELEASE.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/awaitility/awaitility/4.3.0/awaitility-4.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/angus/angus-activation/2.0.3/angus-activation-2.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-core/4.0.9/jaxb-core-4.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-runtime/4.0.9/jaxb-runtime-4.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/txw2/4.0.9/txw2-4.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hibernate/models/hibernate-models/1.1.1/hibernate-models-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hibernate/orm/hibernate-core/7.4.1.Final/hibernate-core-7.4.1.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hibernate/validator/hibernate-validator/9.1.0.Final/hibernate-validator-9.1.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/logging/jboss-logging/3.6.3.Final/jboss-logging-3.6.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.0.3/junit-jupiter-api-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.0.3/junit-jupiter-engine-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/6.0.3/junit-jupiter-params-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter/6.0.3/junit-jupiter-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.0.3/junit-platform-commons-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.0.3/junit-platform-engine-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-core/5.23.0/mockito-core-5.23.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-junit-jupiter/5.23.0/mockito-junit-jupiter-5.23.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/objenesis/objenesis/3.3/objenesis-3.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/postgresql/postgresql/42.7.11/postgresql-42.7.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.18/jul-to-slf4j-2.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-actuator-autoconfigure/4.1.0/spring-boot-actuator-autoconfigure-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-actuator/4.1.0/spring-boot-actuator-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-autoconfigure/4.1.0/spring-boot-autoconfigure-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-cache-test/4.1.0/spring-boot-cache-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-cache/4.1.0/spring-boot-cache-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-data-commons/4.1.0/spring-boot-data-commons-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-data-jpa-test/4.1.0/spring-boot-data-jpa-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-data-jpa/4.1.0/spring-boot-data-jpa-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-devtools/4.1.0/spring-boot-devtools-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-docker-compose/4.1.0/spring-boot-docker-compose-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-health/4.1.0/spring-boot-health-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-hibernate/4.1.0/spring-boot-hibernate-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-http-client/4.1.0/spring-boot-http-client-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-http-converter/4.1.0/spring-boot-http-converter-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-jackson/4.1.0/spring-boot-jackson-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-jdbc-test/4.1.0/spring-boot-jdbc-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-jdbc/4.1.0/spring-boot-jdbc-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-jpa-test/4.1.0/spring-boot-jpa-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-jpa/4.1.0/spring-boot-jpa-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-micrometer-metrics-test/4.1.0/spring-boot-micrometer-metrics-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-micrometer-metrics/4.1.0/spring-boot-micrometer-metrics-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-micrometer-observation/4.1.0/spring-boot-micrometer-observation-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-persistence/4.1.0/spring-boot-persistence-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-restclient-test/4.1.0/spring-boot-restclient-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-restclient/4.1.0/spring-boot-restclient-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-resttestclient/4.1.0/spring-boot-resttestclient-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-servlet/4.1.0/spring-boot-servlet-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-sql/4.1.0/spring-boot-sql-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-actuator-test/4.1.0/spring-boot-starter-actuator-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-actuator/4.1.0/spring-boot-starter-actuator-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-cache-test/4.1.0/spring-boot-starter-cache-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-cache/4.1.0/spring-boot-starter-cache-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-data-jpa-test/4.1.0/spring-boot-starter-data-jpa-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-data-jpa/4.1.0/spring-boot-starter-data-jpa-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-jackson-test/4.1.0/spring-boot-starter-jackson-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-jackson/4.1.0/spring-boot-starter-jackson-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-jdbc-test/4.1.0/spring-boot-starter-jdbc-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-jdbc/4.1.0/spring-boot-starter-jdbc-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-logging/4.1.0/spring-boot-starter-logging-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-micrometer-metrics-test/4.1.0/spring-boot-starter-micrometer-metrics-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-micrometer-metrics/4.1.0/spring-boot-starter-micrometer-metrics-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-restclient-test/4.1.0/spring-boot-starter-restclient-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-restclient/4.1.0/spring-boot-starter-restclient-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-test/4.1.0/spring-boot-starter-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-thymeleaf-test/4.1.0/spring-boot-starter-thymeleaf-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-thymeleaf/4.1.0/spring-boot-starter-thymeleaf-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-tomcat-runtime/4.1.0/spring-boot-starter-tomcat-runtime-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-tomcat/4.1.0/spring-boot-starter-tomcat-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-validation-test/4.1.0/spring-boot-starter-validation-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-validation/4.1.0/spring-boot-starter-validation-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-webmvc-test/4.1.0/spring-boot-starter-webmvc-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-webmvc/4.1.0/spring-boot-starter-webmvc-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter/4.1.0/spring-boot-starter-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-test-autoconfigure/4.1.0/spring-boot-test-autoconfigure-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-test/4.1.0/spring-boot-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-testcontainers/4.1.0/spring-boot-testcontainers-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-thymeleaf/4.1.0/spring-boot-thymeleaf-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-tomcat/4.1.0/spring-boot-tomcat-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-transaction/4.1.0/spring-boot-transaction-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-validation/4.1.0/spring-boot-validation-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-web-server/4.1.0/spring-boot-web-server-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-webmvc-test/4.1.0/spring-boot-webmvc-test-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-webmvc/4.1.0/spring-boot-webmvc-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot/4.1.0/spring-boot-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/data/spring-data-commons/4.1.0/spring-data-commons-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/data/spring-data-jpa/4.1.0/spring-data-jpa-4.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-aop/7.0.8/spring-aop-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-aspects/7.0.8/spring-aspects-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-beans/7.0.8/spring-beans-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-context-support/7.0.8/spring-context-support-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-context/7.0.8/spring-context-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-core/7.0.8/spring-core-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-expression/7.0.8/spring-expression-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-jdbc/7.0.8/spring-jdbc-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-orm/7.0.8/spring-orm-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-test/7.0.8/spring-test-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-tx/7.0.8/spring-tx-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-web/7.0.8/spring-web-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-webmvc/7.0.8/spring-webmvc-7.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/testcontainers/testcontainers-database-commons/2.0.5/testcontainers-database-commons-2.0.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/testcontainers/testcontainers-jdbc/2.0.5/testcontainers-jdbc-2.0.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/testcontainers/testcontainers-junit-jupiter/2.0.5/testcontainers-junit-jupiter-2.0.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/testcontainers/testcontainers-mysql/2.0.5/testcontainers-mysql-2.0.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/testcontainers/testcontainers/2.0.5/testcontainers-2.0.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf-spring6/3.1.5.RELEASE/thymeleaf-spring6-3.1.5.RELEASE.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.5.RELEASE/thymeleaf-3.1.5.RELEASE.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/webjars/npm/bootstrap/5.3.8/bootstrap-5.3.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/webjars/npm/font-awesome/4.7.0/font-awesome-4.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/webjars/webjars-locator-lite/1.1.3/webjars-locator-lite-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/xmlunit/xmlunit-core/2.11.0/xmlunit-core-2.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.6/snakeyaml-2.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-core/3.1.4/jackson-core-3.1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-databind/3.1.4/jackson-databind-3.1.4.jar",
+      "<BLEEP_GIT>/snapshot-tests/spring-petclinic/bootstrapped/.bleep/projects/spring-petclinic/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/spring-petclinic/maven-build/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/spring-petclinic/bootstrapped/.bleep/projects/spring-petclinic-test/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/spring-petclinic/bootstrapped/.bleep/projects/spring-petclinic-test/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/spring-petclinic/maven-build/src/test/resources"
+    ],
+    "java": {
+      "options": [
+        "--release",
+        "17"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.novocode.junit.JUnitFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalatest.tools.Framework",
+            "org.scalatest.tools.ScalaTestFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalacheck.ScalaCheckFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.specs.runner.SpecsFramework",
+            "org.specs2.runner.Specs2Framework",
+            "org.specs2.runner.SpecsFramework"
+          ]
+        },
+        {
+          "names": [
+            "utest.runner.Framework"
+          ]
+        },
+        {
+          "names": [
+            "munit.Framework"
+          ]
+        },
+        {
+          "names": [
+            "mill.testng.TestNGFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/spring-petclinic/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/spring-petclinic/maven-build"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "jakarta.inject",
+          "name": "jakarta.inject-api",
+          "version": "2.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.inject-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.testcontainers",
+          "name": "testcontainers-jdbc",
+          "version": "2.0.5",
+          "artifacts": [
+            {
+              "name": "testcontainers-jdbc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/testcontainers/testcontainers-jdbc/2.0.5/testcontainers-jdbc-2.0.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.cache",
+          "name": "cache-api",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "cache-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/cache/cache-api/1.1.1/cache-api-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy",
+          "version": "1.18.10",
+          "artifacts": [
+            {
+              "name": "byte-buddy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.18.10/byte-buddy-1.18.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.postgresql",
+          "name": "postgresql",
+          "version": "42.7.11",
+          "artifacts": [
+            {
+              "name": "postgresql",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/postgresql/postgresql/42.7.11/postgresql-42.7.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-jdbc-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-jdbc-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-jdbc-test/4.1.0/spring-boot-jdbc-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-webmvc",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-webmvc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-webmvc/4.1.0/spring-boot-starter-webmvc-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-persistence",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-persistence",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-persistence/4.1.0/spring-boot-persistence-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "jul-to-slf4j",
+          "version": "2.0.18",
+          "artifacts": [
+            {
+              "name": "jul-to-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.18/jul-to-slf4j-2.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.objenesis",
+          "name": "objenesis",
+          "version": "3.3",
+          "artifacts": [
+            {
+              "name": "objenesis",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/objenesis/objenesis/3.3/objenesis-3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hamcrest",
+          "name": "hamcrest",
+          "version": "3.0",
+          "artifacts": [
+            {
+              "name": "hamcrest",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-restclient",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-restclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-restclient/4.1.0/spring-boot-restclient-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.docker-java",
+          "name": "docker-java-transport",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "docker-java-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-transport/3.7.1/docker-java-transport-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-jdbc",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-jdbc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-jdbc/4.1.0/spring-boot-jdbc-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-sql",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-sql",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-sql/4.1.0/spring-boot-sql-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.mockito",
+          "name": "mockito-junit-jupiter",
+          "version": "5.23.0",
+          "artifacts": [
+            {
+              "name": "mockito-junit-jupiter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-junit-jupiter/5.23.0/mockito-junit-jupiter-5.23.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-test/4.1.0/spring-boot-starter-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-aspects",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-aspects",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-aspects/7.0.8/spring-aspects-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-cache-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-cache-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-cache-test/4.1.0/spring-boot-cache-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.angus",
+          "name": "angus-activation",
+          "version": "2.0.3",
+          "artifacts": [
+            {
+              "name": "angus-activation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/angus/angus-activation/2.0.3/angus-activation-2.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.logging.log4j",
+          "name": "log4j-api",
+          "version": "2.25.4",
+          "artifacts": [
+            {
+              "name": "log4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.25.4/log4j-api-2.25.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-data-jpa",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-data-jpa",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-data-jpa/4.1.0/spring-boot-data-jpa-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.mysql",
+          "name": "mysql-connector-j",
+          "version": "9.7.0",
+          "artifacts": [
+            {
+              "name": "mysql-connector-j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.7.0/mysql-connector-j-9.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-micrometer-metrics",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-micrometer-metrics",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-micrometer-metrics/4.1.0/spring-boot-starter-micrometer-metrics-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-cache",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-cache",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-cache/4.1.0/spring-boot-cache-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-tomcat-runtime",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-tomcat-runtime",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-tomcat-runtime/4.1.0/spring-boot-starter-tomcat-runtime-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-micrometer-observation",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-micrometer-observation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-micrometer-observation/4.1.0/spring-boot-micrometer-observation-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.tomcat.embed",
+          "name": "tomcat-embed-core",
+          "version": "11.0.22",
+          "artifacts": [
+            {
+              "name": "tomcat-embed-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-core/11.0.22/tomcat-embed-core-11.0.22.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-web-server",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-web-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-web-server/4.1.0/spring-boot-web-server-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.persistence",
+          "name": "jakarta.persistence-api",
+          "version": "3.2.0",
+          "artifacts": [
+            {
+              "name": "jakarta.persistence-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/persistence/jakarta.persistence-api/3.2.0/jakarta.persistence-api-3.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-actuator",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-actuator",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-actuator/4.1.0/spring-boot-starter-actuator-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-io",
+          "name": "commons-io",
+          "version": "2.20.0",
+          "artifacts": [
+            {
+              "name": "commons-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.20.0/commons-io-2.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot/4.1.0/spring-boot-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.data",
+          "name": "spring-data-jpa",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-data-jpa",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/data/spring-data-jpa/4.1.0/spring-data-jpa-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-webmvc-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-webmvc-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-webmvc-test/4.1.0/spring-boot-webmvc-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.49.0",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.49.0/error_prone_annotations-2.49.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.5.34",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.34/logback-core-1.5.34.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-thymeleaf",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-thymeleaf",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-thymeleaf/4.1.0/spring-boot-thymeleaf-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.mockito",
+          "name": "mockito-core",
+          "version": "5.23.0",
+          "artifacts": [
+            {
+              "name": "mockito-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-core/5.23.0/mockito-core-5.23.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-api",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.0.3/junit-jupiter-api-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-tomcat",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-tomcat",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-tomcat/4.1.0/spring-boot-tomcat-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-tomcat",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-tomcat",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-tomcat/4.1.0/spring-boot-starter-tomcat-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-actuator-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-actuator-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-actuator-test/4.1.0/spring-boot-starter-actuator-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.yaml",
+          "name": "snakeyaml",
+          "version": "2.6",
+          "artifacts": [
+            {
+              "name": "snakeyaml",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.6/snakeyaml-2.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-lang3",
+          "version": "3.20.0",
+          "artifacts": [
+            {
+              "name": "commons-lang3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.20.0/commons-lang3-3.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains",
+          "name": "annotations",
+          "version": "17.0.0",
+          "artifacts": [
+            {
+              "name": "annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/17.0.0/annotations-17.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-actuator",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-actuator",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-actuator/4.1.0/spring-boot-actuator-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-thymeleaf-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-thymeleaf-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-thymeleaf-test/4.1.0/spring-boot-starter-thymeleaf-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.5.34",
+          "artifacts": [
+            {
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.34/logback-classic-1.5.34.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.zaxxer",
+          "name": "HikariCP",
+          "version": "7.0.2",
+          "artifacts": [
+            {
+              "name": "HikariCP",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/zaxxer/HikariCP/7.0.2/HikariCP-7.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.3.6",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.6/commons-logging-1.3.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-restclient",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-restclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-restclient/4.1.0/spring-boot-starter-restclient-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-health",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-health",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-health/4.1.0/spring-boot-health-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-data-jpa-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-data-jpa-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-data-jpa-test/4.1.0/spring-boot-data-jpa-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-aop",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-aop",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-aop/7.0.8/spring-aop-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-logging",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-logging/4.1.0/spring-boot-starter-logging-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.xmlunit",
+          "name": "xmlunit-core",
+          "version": "2.11.0",
+          "artifacts": [
+            {
+              "name": "xmlunit-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/xmlunit/xmlunit-core/2.11.0/xmlunit-core-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-validation",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-validation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-validation/4.1.0/spring-boot-starter-validation-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-context",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-context/7.0.8/spring-context-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.testcontainers",
+          "name": "testcontainers-mysql",
+          "version": "2.0.5",
+          "artifacts": [
+            {
+              "name": "testcontainers-mysql",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/testcontainers/testcontainers-mysql/2.0.5/testcontainers-mysql-2.0.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-core",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-core/7.0.8/spring-core-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hibernate.orm",
+          "name": "hibernate-core",
+          "version": "7.4.1.Final",
+          "artifacts": [
+            {
+              "name": "hibernate-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hibernate/orm/hibernate-core/7.4.1.Final/hibernate-core-7.4.1.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "tools.jackson.core",
+          "name": "jackson-databind",
+          "version": "3.1.4",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-databind/3.1.4/jackson-databind-3.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-jpa",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-jpa",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-jpa/4.1.0/spring-boot-jpa-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.annotation",
+          "name": "jakarta.annotation-api",
+          "version": "3.0.0",
+          "artifacts": [
+            {
+              "name": "jakarta.annotation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/annotation/jakarta.annotation-api/3.0.0/jakarta.annotation-api-3.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-jdbc",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-jdbc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-jdbc/7.0.8/spring-jdbc-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hibernate.validator",
+          "name": "hibernate-validator",
+          "version": "9.1.0.Final",
+          "artifacts": [
+            {
+              "name": "hibernate-validator",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hibernate/validator/hibernate-validator/9.1.0.Final/hibernate-validator-9.1.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-micrometer-metrics",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-micrometer-metrics",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-micrometer-metrics/4.1.0/spring-boot-micrometer-metrics-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.logging.log4j",
+          "name": "log4j-to-slf4j",
+          "version": "2.25.4",
+          "artifacts": [
+            {
+              "name": "log4j-to-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-to-slf4j/2.25.4/log4j-to-slf4j-2.25.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-resttestclient",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-resttestclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-resttestclient/4.1.0/spring-boot-resttestclient-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-validation",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-validation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-validation/4.1.0/spring-boot-validation-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hdrhistogram",
+          "name": "HdrHistogram",
+          "version": "2.2.2",
+          "artifacts": [
+            {
+              "name": "HdrHistogram",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy-agent",
+          "version": "1.18.10",
+          "artifacts": [
+            {
+              "name": "byte-buddy-agent",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy-agent/1.18.10/byte-buddy-agent-1.18.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.glassfish.jaxb",
+          "name": "jaxb-core",
+          "version": "4.0.9",
+          "artifacts": [
+            {
+              "name": "jaxb-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-core/4.0.9/jaxb-core-4.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.antlr",
+          "name": "antlr4-runtime",
+          "version": "4.13.2",
+          "artifacts": [
+            {
+              "name": "antlr4-runtime",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/antlr/antlr4-runtime/4.13.2/antlr4-runtime-4.13.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.18.1",
+          "artifacts": [
+            {
+              "name": "jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.18.1/jna-5.18.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-observation-test",
+          "version": "1.17.0",
+          "artifacts": [
+            {
+              "name": "micrometer-observation-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation-test/1.17.0/micrometer-observation-test-1.17.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-micrometer-metrics-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-micrometer-metrics-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-micrometer-metrics-test/4.1.0/spring-boot-micrometer-metrics-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.opentest4j",
+          "name": "opentest4j",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "opentest4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-engine",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.0.3/junit-jupiter-engine-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-orm",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-orm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-orm/7.0.8/spring-orm-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-test/4.1.0/spring-boot-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-webmvc",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-webmvc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-webmvc/4.1.0/spring-boot-webmvc-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-thymeleaf",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-thymeleaf",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-thymeleaf/4.1.0/spring-boot-starter-thymeleaf-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.rnorth.duct-tape",
+          "name": "duct-tape",
+          "version": "1.0.8",
+          "artifacts": [
+            {
+              "name": "duct-tape",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/rnorth/duct-tape/duct-tape/1.0.8/duct-tape-1.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.data",
+          "name": "spring-data-commons",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-data-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/data/spring-data-commons/4.1.0/spring-data-commons-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.awaitility",
+          "name": "awaitility",
+          "version": "4.3.0",
+          "artifacts": [
+            {
+              "name": "awaitility",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/awaitility/awaitility/4.3.0/awaitility-4.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-context-support",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-context-support",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-context-support/7.0.8/spring-context-support-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-autoconfigure",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-autoconfigure",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-autoconfigure/4.1.0/spring-boot-autoconfigure-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-codec",
+          "name": "commons-codec",
+          "version": "1.21.0",
+          "artifacts": [
+            {
+              "name": "commons-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.21.0/commons-codec-1.21.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml",
+          "name": "classmate",
+          "version": "1.7.3",
+          "artifacts": [
+            {
+              "name": "classmate",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/classmate/1.7.3/classmate-1.7.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-beans",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-beans",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-beans/7.0.8/spring-beans-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-docker-compose",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-docker-compose",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-docker-compose/4.1.0/spring-boot-docker-compose-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-data-jpa",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-data-jpa",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-data-jpa/4.1.0/spring-boot-starter-data-jpa-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.assertj",
+          "name": "assertj-core",
+          "version": "3.27.7",
+          "artifacts": [
+            {
+              "name": "assertj-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm",
+          "version": "9.7.1",
+          "artifacts": [
+            {
+              "name": "asm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-expression",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-expression",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-expression/7.0.8/spring-expression-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-validation-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-validation-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-validation-test/4.1.0/spring-boot-starter-validation-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-webmvc",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-webmvc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-webmvc/7.0.8/spring-webmvc-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter/6.0.3/junit-jupiter-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.attoparser",
+          "name": "attoparser",
+          "version": "2.0.7.RELEASE",
+          "artifacts": [
+            {
+              "name": "attoparser",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.7.RELEASE/attoparser-2.0.7.RELEASE.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-data-commons",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-data-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-data-commons/4.1.0/spring-boot-data-commons-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.validation",
+          "name": "jakarta.validation-api",
+          "version": "3.1.1",
+          "artifacts": [
+            {
+              "name": "jakarta.validation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/validation/jakarta.validation-api/3.1.1/jakarta.validation-api-3.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.testcontainers",
+          "name": "testcontainers",
+          "version": "2.0.5",
+          "artifacts": [
+            {
+              "name": "testcontainers",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/testcontainers/testcontainers/2.0.5/testcontainers-2.0.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jboss.logging",
+          "name": "jboss-logging",
+          "version": "3.6.3.Final",
+          "artifacts": [
+            {
+              "name": "jboss-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/logging/jboss-logging/3.6.3.Final/jboss-logging-3.6.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-jdbc-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-jdbc-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-jdbc-test/4.1.0/spring-boot-starter-jdbc-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.tomcat.embed",
+          "name": "tomcat-embed-el",
+          "version": "11.0.22",
+          "artifacts": [
+            {
+              "name": "tomcat-embed-el",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-el/11.0.22/tomcat-embed-el-11.0.22.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-test-autoconfigure",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-test-autoconfigure",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-test-autoconfigure/4.1.0/spring-boot-test-autoconfigure-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-hibernate",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-hibernate",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-hibernate/4.1.0/spring-boot-hibernate-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-test",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-test/7.0.8/spring-test-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-cache-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-cache-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-cache-test/4.1.0/spring-boot-starter-cache-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.aspectj",
+          "name": "aspectjweaver",
+          "version": "1.9.25.1",
+          "artifacts": [
+            {
+              "name": "aspectjweaver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.25.1/aspectjweaver-1.9.25.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.webjars.npm",
+          "name": "font-awesome",
+          "version": "4.7.0",
+          "artifacts": [
+            {
+              "name": "font-awesome",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/webjars/npm/font-awesome/4.7.0/font-awesome-4.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.docker-java",
+          "name": "docker-java-api",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "docker-java-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-api/3.7.1/docker-java-api-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-jackson",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-jackson",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-jackson/4.1.0/spring-boot-starter-jackson-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-data-jpa-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-data-jpa-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-data-jpa-test/4.1.0/spring-boot-starter-data-jpa-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-http-converter",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-http-converter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-http-converter/4.1.0/spring-boot-http-converter-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.skyscreamer",
+          "name": "jsonassert",
+          "version": "1.5.3",
+          "artifacts": [
+            {
+              "name": "jsonassert",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-params",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-params",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/6.0.3/junit-jupiter-params-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-webmvc-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-webmvc-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-webmvc-test/4.1.0/spring-boot-starter-webmvc-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.unbescape",
+          "name": "unbescape",
+          "version": "1.1.6.RELEASE",
+          "artifacts": [
+            {
+              "name": "unbescape",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter/4.1.0/spring-boot-starter-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.glassfish.jaxb",
+          "name": "txw2",
+          "version": "4.0.9",
+          "artifacts": [
+            {
+              "name": "txw2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/txw2/4.0.9/txw2-4.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-restclient-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-restclient-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-restclient-test/4.1.0/spring-boot-restclient-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-transaction",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-transaction",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-transaction/4.1.0/spring-boot-transaction-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.xml.bind",
+          "name": "jakarta.xml.bind-api",
+          "version": "4.0.5",
+          "artifacts": [
+            {
+              "name": "jakarta.xml.bind-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/4.0.5/jakarta.xml.bind-api-4.0.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-http-client",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-http-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-http-client/4.1.0/spring-boot-http-client-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-engine",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.0.3/junit-platform-engine-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-actuator-autoconfigure",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-actuator-autoconfigure",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-actuator-autoconfigure/4.1.0/spring-boot-actuator-autoconfigure-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.tomcat.embed",
+          "name": "tomcat-embed-websocket",
+          "version": "11.0.22",
+          "artifacts": [
+            {
+              "name": "tomcat-embed-websocket",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-websocket/11.0.22/tomcat-embed-websocket-11.0.22.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-core",
+          "version": "1.17.0",
+          "artifacts": [
+            {
+              "name": "micrometer-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-core/1.17.0/micrometer-core-1.17.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.minidev",
+          "name": "accessors-smart",
+          "version": "2.6.0",
+          "artifacts": [
+            {
+              "name": "accessors-smart",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/accessors-smart/2.6.0/accessors-smart-2.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.testcontainers",
+          "name": "testcontainers-junit-jupiter",
+          "version": "2.0.5",
+          "artifacts": [
+            {
+              "name": "testcontainers-junit-jupiter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/testcontainers/testcontainers-junit-jupiter/2.0.5/testcontainers-junit-jupiter-2.0.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-micrometer-metrics-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-micrometer-metrics-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-micrometer-metrics-test/4.1.0/spring-boot-starter-micrometer-metrics-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-jackson-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-jackson-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-jackson-test/4.1.0/spring-boot-starter-jackson-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.sun.istack",
+          "name": "istack-commons-runtime",
+          "version": "4.1.2",
+          "artifacts": [
+            {
+              "name": "istack-commons-runtime",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/istack/istack-commons-runtime/4.1.2/istack-commons-runtime-4.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-jdbc",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-jdbc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-jdbc/4.1.0/spring-boot-starter-jdbc-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.jayway.jsonpath",
+          "name": "json-path",
+          "version": "2.10.0",
+          "artifacts": [
+            {
+              "name": "json-path",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/jayway/jsonpath/json-path/2.10.0/json-path-2.10.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.transaction",
+          "name": "jakarta.transaction-api",
+          "version": "2.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.transaction-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-compress",
+          "version": "1.28.0",
+          "artifacts": [
+            {
+              "name": "commons-compress",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.28.0/commons-compress-1.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-restclient-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-restclient-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-restclient-test/4.1.0/spring-boot-starter-restclient-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.webjars",
+          "name": "webjars-locator-lite",
+          "version": "1.1.3",
+          "artifacts": [
+            {
+              "name": "webjars-locator-lite",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/webjars/webjars-locator-lite/1.1.3/webjars-locator-lite-1.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-testcontainers",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-testcontainers",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-testcontainers/4.1.0/spring-boot-testcontainers-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-servlet",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-servlet",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-servlet/4.1.0/spring-boot-servlet-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.thymeleaf",
+          "name": "thymeleaf-spring6",
+          "version": "3.1.5.RELEASE",
+          "artifacts": [
+            {
+              "name": "thymeleaf-spring6",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf-spring6/3.1.5.RELEASE/thymeleaf-spring6-3.1.5.RELEASE.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-devtools",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-devtools",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-devtools/4.1.0/spring-boot-devtools-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.18",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apiguardian",
+          "name": "apiguardian-api",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "apiguardian-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.h2database",
+          "name": "h2",
+          "version": "2.4.240",
+          "artifacts": [
+            {
+              "name": "h2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/h2database/h2/2.4.240/h2-2.4.240.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-jackson",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-jackson",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-jackson/4.1.0/spring-boot-jackson-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.minidev",
+          "name": "json-smart",
+          "version": "2.6.0",
+          "artifacts": [
+            {
+              "name": "json-smart",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/json-smart/2.6.0/json-smart-2.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vaadin.external.google",
+          "name": "android-json",
+          "version": "0.0.20131108.vaadin1",
+          "artifacts": [
+            {
+              "name": "android-json",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-commons",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.0.3/junit-platform-commons-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-web",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-web",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-web/7.0.8/spring-web-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-tx",
+          "version": "7.0.8",
+          "artifacts": [
+            {
+              "name": "spring-tx",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-tx/7.0.8/spring-tx-7.0.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.glassfish.jaxb",
+          "name": "jaxb-runtime",
+          "version": "4.0.9",
+          "artifacts": [
+            {
+              "name": "jaxb-runtime",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-runtime/4.0.9/jaxb-runtime-4.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.webjars.npm",
+          "name": "bootstrap",
+          "version": "5.3.8",
+          "artifacts": [
+            {
+              "name": "bootstrap",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/webjars/npm/bootstrap/5.3.8/bootstrap-5.3.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.thymeleaf",
+          "name": "thymeleaf",
+          "version": "3.1.5.RELEASE",
+          "artifacts": [
+            {
+              "name": "thymeleaf",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.5.RELEASE/thymeleaf-3.1.5.RELEASE.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.21",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.21/jackson-annotations-2.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "tools.jackson.core",
+          "name": "jackson-core",
+          "version": "3.1.4",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-core/3.1.4/jackson-core-3.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hibernate.models",
+          "name": "hibernate-models",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "hibernate-models",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hibernate/models/hibernate-models/1.1.1/hibernate-models-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-observation",
+          "version": "1.17.0",
+          "artifacts": [
+            {
+              "name": "micrometer-observation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.17.0/micrometer-observation-1.17.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.testcontainers",
+          "name": "testcontainers-database-commons",
+          "version": "2.0.5",
+          "artifacts": [
+            {
+              "name": "testcontainers-database-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/testcontainers/testcontainers-database-commons/2.0.5/testcontainers-database-commons-2.0.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-jpa-test",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-jpa-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-jpa-test/4.1.0/spring-boot-jpa-test-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-cache",
+          "version": "4.1.0",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-cache",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-cache/4.1.0/spring-boot-starter-cache-4.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.activation",
+          "name": "jakarta.activation-api",
+          "version": "2.1.4",
+          "artifacts": [
+            {
+              "name": "jakarta.activation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.docker-java",
+          "name": "docker-java-transport-zerodep",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "docker-java-transport-zerodep",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/docker-java/docker-java-transport-zerodep/3.7.1/docker-java-transport-zerodep-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-commons",
+          "version": "1.17.0",
+          "artifacts": [
+            {
+              "name": "micrometer-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.17.0/micrometer-commons-1.17.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.ben-manes.caffeine",
+          "name": "caffeine",
+          "version": "3.2.4",
+          "artifacts": [
+            {
+              "name": "caffeine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/3.2.4/caffeine-3.2.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-jakarta9",
+          "version": "1.17.0",
+          "artifacts": [
+            {
+              "name": "micrometer-jakarta9",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-jakarta9/1.17.0/micrometer-jakarta9-1.17.0.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

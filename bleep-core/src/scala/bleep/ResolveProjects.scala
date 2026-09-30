@@ -34,6 +34,12 @@ object ResolveProjects {
   private[bleep] def providedOrOptional(dep: model.Dep): Boolean =
     dep.configuration == Configuration.provided || dep.configuration == Configuration.optional
 
+  /** Maven's `runtime`: not there to compile against, there when the code runs. It travels to a consumer as runtime too, and tests compile against it, since
+    * maven's test classpath has the runtime scope in it: a jdbc driver, `jersey-hk2`
+    */
+  private[bleep] def runtimeOnly(dep: model.Dep): Boolean =
+    dep.configuration == Configuration.runtime
+
   case class Result(build: model.Build, projects: Projects, bspServerClasspathSource: bsp.BspServerClasspathSource)
 
   object InMemory extends ResolveProjects {
@@ -84,7 +90,8 @@ object ResolveProjects {
                 .toRight(s"couldn't find $bleepDep in bleep build")
                 .orThrowTextWithContext(crossName)
 
-              bleepBuild.forceGet.build.resolvedDependsOn(bleepProjectName) ++ List(bleepProjectName)
+              // all of them, not just those it names: `dependsOn` need not repeat what a dependency brings (bleep-core gets bleep-model from bleep-nosbt)
+              bleepBuild.forceGet.build.transitiveDependenciesFor(bleepProjectName).keySet ++ List(bleepProjectName)
             }
 
           if (transitiveBleepProjectNames.nonEmpty) b(crossName) = transitiveBleepProjectNames
@@ -157,7 +164,7 @@ object ResolveProjects {
             // Take bleep-core's transitive bleep-internal projects (via resolveClassesDir + resolveResourceDirs so the legacy-layout fallback kicks in) plus
             // the Coursier-resolved third-party jars from bleep-core's classpath (filtering out the v2-layout class/resource paths the test fixture may not
             // have populated).
-            val coreBleepProjects = bleepBuild.forceGet.build.resolvedDependsOn(coreCpn) ++ List(coreCpn)
+            val coreBleepProjects = bleepBuild.forceGet.build.transitiveDependenciesFor(coreCpn).keySet ++ List(coreCpn)
             val bleepInternalPaths =
               coreBleepProjects.toList.map(classesEntry) ::: coreBleepProjects.toList.flatMap(resolveResourceDirs)
             val coreCoursierJars: List[PathsByUsage.Entry] =
@@ -189,7 +196,7 @@ object ResolveProjects {
   ): ResolvedProject = {
 
     val projectPaths: ProjectPaths =
-      pre.buildPaths.project(crossName, explodedProject)
+      pre.buildPaths.project(crossName, explodedProject, build.crossPlatforms(crossName.name))
 
     val allTransitiveResolved: Map[model.CrossProjectName, ResolvedProject] = {
       val builder = Map.newBuilder[model.CrossProjectName, ResolvedProject]
@@ -223,11 +230,13 @@ object ResolveProjects {
     val versionCombo: model.VersionCombo =
       model.VersionCombo.fromExplodedProject(explodedProject).orThrowTextWithContext(crossName)
 
+    // the same replacements the source directories are filled with (see `BuildPaths.project`), so an option can point into them
     val templateDirs =
       model.Replacements.paths(build = pre.buildPaths.buildDir) ++
         model.Replacements.projectPaths(project = projectPaths.dir) ++
         model.Replacements.projectSources(projectPaths.sourcesDirs.all(Usage.Compile)) ++
         model.Replacements.targetDir(projectPaths.targetDir) ++
+        model.Replacements.scope(explodedProject.`sbt-scope`.getOrElse("")) ++
         model.Replacements.versions(Some(build.$version), versionCombo, includeEpoch = true, includeBinVersion = true, buildDir = Some(pre.buildPaths.buildDir))
 
     def require[T](ot: Option[T], name: String): T =
@@ -304,6 +313,21 @@ object ResolveProjects {
       * declaring `boms: io.quarkus:quarkus-bom:X` constrains its consumers' resolutions too, so the whole dependency subtree resolves against one version
       * universe — Maven's dependencyManagement-import semantics.
       */
+    /** The coordinates the given projects are published under, for those which are published */
+    def publishedCoordinates(projects: Iterable[(model.CrossProjectName, model.Project)]): Set[(Organization, ModuleName)] =
+      projects.iterator.flatMap { case (name, project) =>
+        project.publish.filter(_.isEnabled).flatMap(_.groupId).map { groupId =>
+          val artifact = name.name.fileSafeValue
+          val coordinates = project.scala.flatMap(_.version) match {
+            case Some(_) =>
+              val combo = model.VersionCombo.fromExplodedProject(project).orThrowTextWithContext(name)
+              model.Dep.Scala(org = groupId, name = artifact, version = "0").asJava(combo).orThrowTextWithContext(name)
+            case None => model.Dep.Java(org = groupId, name = artifact, version = "0")
+          }
+          (coordinates.organization, coordinates.moduleName)
+        }
+      }.toSet
+
     val boms: SortedSet[model.Dep] =
       SortedSet.empty[model.Dep] ++
         explodedProject.boms.values ++
@@ -311,7 +335,7 @@ object ResolveProjects {
 
     val bomResolver = if (boms.isEmpty) resolver else resolver.updatedParams(_.copy(boms = boms))
 
-    val (resolvedDependencies, resolvedRuntimeDependencies) = {
+    val (resolvedDependencies, resolvedRuntimeDependencies, compiledAgainstModules) = {
       // `scala.skipStdlib`: this project is the standard library, or reaches it through `dependsOn`. So no standard library comes from a repository: not the
       // one bleep would add, and not one a dependency drags in transitively either (the coursier interface jar does) — resolved from Maven it would sit next
       // to the build's own on the classpath and shadow it. On Scala.js the standard library is `scala3-library_sjs1` and `scalajs-scalalib_2.13` (the
@@ -337,15 +361,50 @@ object ResolveProjects {
         if (skipStdlib) all.filterNot(stdlib) else all
       }
 
+      // A scala 3 project may depend on a 2.13 project and the other way around. What that project depends on is resolved for its own scala version, or the
+      // two would bring two binary versions of one library: sbt's `for3Use2_13` between projects
       val inherited =
-        build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }
+        build.transitiveDependenciesFor(crossName).flatMap { case (_, p) =>
+          val upstreamScala = p.scala.flatMap(_.version)
+          p.dependencies.values.map { dep =>
+            (scalaVersion, upstreamScala) match {
+              case (Some(own), Some(upstream)) if own.is3 && upstream.is213 => dep.mapScala(_.copy(for3Use213 = true))
+              case (Some(own), Some(upstream)) if own.is213 && upstream.is3 => dep.mapScala(_.copy(for213Use3 = true))
+              case _                                                        => dep
+            }
+          }
+        }
 
       // Inherited `provided`/`optional` deps are dropped from BOTH classpaths, which is Maven's rule: those scopes do not travel to a consumer. A project that
       // needs one says so itself. Deliberate, and load-bearing — `bleep-test-runner` declares a `provided` junit-platform-launcher precisely so that
       // `bleep-bsp`, which dependsOn it, does not end up carrying junit classes that would then shadow a project's own via classloader delegation.
       val filteredInherited = inherited.filterNot(providedOrOptional)
 
-      val deps = (explodedProject.dependencies.values ++ (filteredInherited ++ fromPlatform)).map(withoutRepositoryStdlib)
+      // A module this build publishes itself comes from the project that builds it, never from a repository. A library on the classpath may depend on the
+      // published version of such a module (sbt's own modules through zinc, for instance); without this, both it and the project would be on the classpath.
+      // sbt and maven substitute the project in the same way.
+      val publishedUpstream: Map[Organization, Set[ModuleName]] =
+        publishedCoordinates(build.transitiveDependenciesFor(crossName)).groupMap(_._1)(_._2)
+
+      def withoutPublishedUpstream(dep: model.Dep): model.Dep =
+        if (publishedUpstream.isEmpty) dep
+        else {
+          val exclusions: model.JsonMap[Organization, model.JsonSet[ModuleName]] =
+            model.JsonMap((dep.exclusions.value.keySet ++ publishedUpstream.keySet).map { org =>
+              (org, model.JsonSet.fromIterable(dep.exclusions.value.get(org).toList.flatMap(_.values) ++ publishedUpstream.getOrElse(org, Set.empty)))
+            }.toMap)
+          dep match {
+            case java: model.Dep.JavaDependency   => java.copy(exclusions = exclusions)
+            case scala: model.Dep.ScalaDependency => scala.copy(exclusions = exclusions)
+          }
+        }
+
+      // `runtime` deps are resolved like any other here. Which of what they bring is only there at runtime is decided below
+      def asCompiled(dep: model.Dep): model.Dep = if (runtimeOnly(dep)) dep.withConfiguration(Configuration.empty) else dep
+
+      val deps = (explodedProject.dependencies.values.map(asCompiled) ++ (filteredInherited.map(asCompiled) ++ fromPlatform))
+        .map(withoutPublishedUpstream)
+        .map(withoutRepositoryStdlib)
       val normal = bomResolver.force(
         deps,
         versionCombo,
@@ -357,25 +416,53 @@ object ResolveProjects {
       // Only the project's OWN provided/optional deps come back at runtime. This used to also trigger on an inherited one having been filtered out, but the
       // body below still built from `filteredInherited`, so that case recomputed a dep set identical to `normal` — a second full coursier resolution for a
       // result already in hand, on every project whose dependsOn graph contains a provided dep anywhere.
+      def withOwnProvided(keep: model.Dep => Boolean): Set[model.Dep] = {
+        val (optionalsFromProject, restFromProject) =
+          explodedProject.dependencies.values.filter(keep).partition(providedOrOptional)
+
+        val noLongerOptionalsFromProject =
+          optionalsFromProject.map(_.withConfiguration(Configuration.empty))
+
+        (filteredInherited.filter(keep).map(asCompiled) ++ restFromProject.map(asCompiled) ++ noLongerOptionalsFromProject ++ fromPlatform)
+          .map(withoutPublishedUpstream)
+          .map(withoutRepositoryStdlib)
+          .toSet
+      }
+
       val runtime =
-        if (explodedProject.dependencies.values.exists(providedOrOptional)) {
-          val (optionalsFromProject, restFromProject) =
-            explodedProject.dependencies.values.partition(providedOrOptional)
-
-          val noLongerOptionalsFromProject =
-            optionalsFromProject.map(_.withConfiguration(Configuration.empty))
-
-          val deps = (filteredInherited ++ restFromProject ++ noLongerOptionalsFromProject ++ fromPlatform).toSet.map(withoutRepositoryStdlib)
+        if (explodedProject.dependencies.values.exists(providedOrOptional))
           bomResolver.force(
-            deps,
+            withOwnProvided(_ => true),
             versionCombo,
             libraryVersionSchemes,
             crossName.value,
             explodedProject.ignoreEvictionErrors.getOrElse(model.IgnoreEvictionErrors.No)
           )
-        } else normal
+        else normal
 
-      (normal, runtime)
+      // the libraries there to compile against, when `runtime` deps, own or inherited, bring some which are not. Tests compile against those too, as maven's
+      // test classpath has the runtime scope in it.
+      //
+      // What a library itself needs only at runtime stays, unlike in maven: sbt compiles against it (doobie gets postgresql's checker-qual), and the two differ
+      val compiledAgainst: Option[Set[coursier.core.Module]] =
+        if (explodedProject.isTestProject.contains(true)) None
+        else if (!explodedProject.dependencies.values.exists(runtimeOnly) && !filteredInherited.exists(runtimeOnly)) None
+        else
+          Some(
+            bomResolver
+              .force(
+                withOwnProvided(dep => !runtimeOnly(dep)),
+                versionCombo,
+                libraryVersionSchemes,
+                crossName.value,
+                explodedProject.ignoreEvictionErrors.getOrElse(model.IgnoreEvictionErrors.No)
+              )
+              .detailedArtifacts
+              .map(_._1.module)
+              .toSet
+          )
+
+      (normal, runtime, compiledAgainst)
     }
 
     val resolution: ResolvedProject.Resolution = {
@@ -411,10 +498,18 @@ object ResolveProjects {
 
     // Each dependency contributes its classes and its resources with the tiers they already carry, so a dependency's stamps directory arrives tagged
     // `Runtime` and javac, which asks for `Compile`, never sees it. Sorted and deduplicated as before, when this was a `JsonSet`.
+    //
+    // A library only the runtime resolution has, a `runtime` dependency and what it brings, is there when the code runs and not to compile against. By module,
+    // so a library both have is on the classpath once, at the version the compile resolution picked
+    val runtimeOnlyJars: Set[Path] =
+      compiledAgainstModules.fold(Set.empty[Path]) { compiled =>
+        resolvedRuntimeDependencies.detailedArtifacts.collect { case (dep, _, _, file) if !compiled(dep.module) => file.toPath }.toSet
+      }
     val classPath: PathsByUsage =
       PathsByUsage.sortedDistinct(
         allTransitiveResolved.values.flatMap(x => PathsByUsage.Entry(x.classesDir, Usage.Compile) :: x.resources.entries) ++
-          (resolvedRuntimeDependencies.jars ++ unmanagedJars).map(PathsByUsage.Entry(_, Usage.Compile))
+          resolvedRuntimeDependencies.jars.map(jar => PathsByUsage.Entry(jar, if (runtimeOnlyJars(jar)) Usage.Runtime else Usage.Compile)) ++
+          unmanagedJars.map(PathsByUsage.Entry(_, Usage.Compile))
       )
 
     // Annotation-processor wiring is split between this function and the AP DAG task:
@@ -429,7 +524,7 @@ object ResolveProjects {
     //     for that case we don't add `-proc:none` again and we don't enable the DAG task.
     val annotationProcessingGenSourcesDir: Option[Path] =
       explodedJava match {
-        case Some(java) if java.scanForAnnotationProcessors.contains(true) || java.annotationProcessors.values.nonEmpty =>
+        case Some(java) if java.scanForAnnotationProcessors.exists(_.scans) || java.annotationProcessors.values.nonEmpty =>
           Some(pre.buildPaths.generatedSourcesDir(crossName, "annotations"))
         case _ => None
       }
@@ -438,7 +533,7 @@ object ResolveProjects {
       val baseOptions = explodedJava.map(_.options).getOrElse(model.Options.empty)
       val rendered = templateDirs.fill.opts(baseOptions).render
       val userHasProcNone = baseOptions.values.exists(_.render.contains("-proc:none"))
-      val apConfigured = explodedJava.exists(j => j.scanForAnnotationProcessors.contains(true) || j.annotationProcessors.values.nonEmpty)
+      val apConfigured = explodedJava.exists(j => j.scanForAnnotationProcessors.exists(_.scans) || j.annotationProcessors.values.nonEmpty)
       if (userHasProcNone || apConfigured) rendered
       else rendered :+ "-proc:none"
     }
@@ -544,10 +639,15 @@ object ResolveProjects {
           )
         }
 
+        // A plugin runs inside scalac, next to the compiler and standard library scalac already has. Its own dependency on those would be resolved at
+        // whatever version the plugin was built against, and put an old scala-compiler next to the real one
+        val scalaArtifacts: model.JsonMap[Organization, model.JsonSet[ModuleName]] =
+          model.JsonMap(Map(Organization("org.scala-lang") -> model.JsonSet(ModuleName("*"))))
+
         val compilerPlugins: model.Options = {
           val deps: Set[model.Dep] =
             (versionCombo.compilerPlugin.toSet ++ maybeScala.fold(Set.empty[model.Dep])(_.compilerPlugins.values))
-              .map(_.mapScala(_.copy(forceJvm = true)))
+              .map(_.mapScala(dep => dep.copy(forceJvm = true, exclusions = dep.exclusions.union(scalaArtifacts))))
 
           model.Options.fromIterable(
             deps.toSeq.map { dep =>
@@ -564,10 +664,18 @@ object ResolveProjects {
           )
         }
 
+        // what the compiler reads to know where a source file is, for platforms which record it: scala native, see `positionRelativizationPaths`
+        val sourcePathOptions: model.Options =
+          versionCombo match {
+            case model.VersionCombo.Native(_, scalaNative) =>
+              model.Options.fromIterable(scalaNative.positionRelativizationPaths(projectPaths.sourcesDirs.all(Usage.Compile)).toList)
+            case _ => model.Options.empty
+          }
+
         val scalacOptions: model.Options =
           maybeScala match {
             case Some(scala) =>
-              val base = scala.options.union(compilerPlugins).union(versionCombo.compilerOptions).union(sourceRoot(scala.options))
+              val base = scala.options.union(compilerPlugins).union(versionCombo.compilerOptions).union(sourceRoot(scala.options)).union(sourcePathOptions)
               if (scala.strict.getOrElse(false)) {
                 val tpolecat = new TpolecatPlugin(DevMode).scalacOptions(scalaVersion.scalaVersion)
                 base.union(tpolecat)

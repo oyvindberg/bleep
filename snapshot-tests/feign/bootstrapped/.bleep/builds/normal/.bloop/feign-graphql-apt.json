@@ -1,0 +1,133 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-graphql-apt",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-graphql-apt/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-graphql-apt/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/graphql-apt/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-graphql-apt/generated-sources/annotations"
+    ],
+    "dependencies": [
+      "feign-core",
+      "feign-graphql"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/auto-common/1.2.1/auto-common-1.2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/service/auto-service-annotations/1.1.1/auto-service-annotations-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/service/auto-service/1.1.1/auto-service-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.18.0/error_prone_annotations-2.18.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/32.0.1-jre/guava-32.0.1-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/graphql-java/graphql-java/26.1/graphql-java-26.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/graphql-java/java-dataloader/6.0.0/java-dataloader-6.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/javapoet/1.13.0/javapoet-1.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.33.0/checker-qual-3.33.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-graphql/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/graphql/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-graphql-apt/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-graphql-apt/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/graphql-apt/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "17",
+        "-target",
+        "17"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/graphql-apt"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.google.auto.service",
+          "name": "auto-service",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "auto-service",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/service/auto-service/1.1.1/auto-service-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.graphql-java",
+          "name": "graphql-java",
+          "version": "26.1",
+          "artifacts": [
+            {
+              "name": "graphql-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/graphql-java/graphql-java/26.1/graphql-java-26.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.squareup",
+          "name": "javapoet",
+          "version": "1.13.0",
+          "artifacts": [
+            {
+              "name": "javapoet",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/javapoet/1.13.0/javapoet-1.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.graphql-java",
+          "name": "java-dataloader",
+          "version": "6.0.0",
+          "artifacts": [
+            {
+              "name": "java-dataloader",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/graphql-java/java-dataloader/6.0.0/java-dataloader-6.0.0.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

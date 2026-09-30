@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/sbt-converter/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/sbt-converter/generated-sources/scripts.GenerateForSbtConverter",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/sbt-converter/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/sbt-converter/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/sbt-converter/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/sbt-converter/src/main/scala-2",
@@ -176,7 +176,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/software/amazon/eventstream/eventstream/1.0.1/eventstream-1.0.1.jar",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/core/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/generated-resources/scripts.GenerateForImporterPortable",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/logging/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/phases/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/scalajs/builds/normal/classes",
@@ -191,7 +191,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/sbt-converter/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/sbt-converter/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/sbt-converter/generated-resources/scripts.GenerateForSbtConverter",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/sbt-converter/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/sbt-converter/src/main/resources"
     ],
     "scala": {

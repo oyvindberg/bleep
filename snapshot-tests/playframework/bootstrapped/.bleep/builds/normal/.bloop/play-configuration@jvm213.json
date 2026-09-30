@@ -1,0 +1,119 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "play-configuration@jvm213",
+    "directory": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-configuration@jvm213/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-configuration/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-configuration/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-configuration/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-configuration/src/main/scala-2.13"
+    ],
+    "dependencies": [
+      "play-exceptions"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.4/config-1.4.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-exceptions/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-exceptions/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-configuration@jvm213/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-configuration@jvm213/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-configuration/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.13.16",
+      "options": [
+        "-Xsource:3",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-release:17",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-configuration@jvm213/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "--release",
+        "17",
+        "-Xlint:-options",
+        "-Xlint:deprecation",
+        "-Xlint:unchecked",
+        "-encoding",
+        "UTF-8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.17",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.4",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.4/config-1.4.4.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

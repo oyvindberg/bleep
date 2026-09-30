@@ -1,0 +1,92 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-vertx",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-vertx/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-vertx/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/vertx/feign-vertx/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-vertx/generated-sources/annotations"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.3/jackson-core-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.5.Final/netty-buffer-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.5.Final/netty-codec-base-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.5.Final/netty-codec-compression-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.2.5.Final/netty-codec-dns-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.5.Final/netty-codec-http-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.2.5.Final/netty-codec-http2-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.2.5.Final/netty-codec-socks-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.5.Final/netty-common-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.5.Final/netty-handler-proxy-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.5.Final/netty-handler-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.2.5.Final/netty-resolver-dns-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.5.Final/netty-resolver-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.5.Final/netty-transport-native-unix-common-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.5.Final/netty-transport-4.2.5.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-auth-common/5.0.4/vertx-auth-common-5.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core-logging/5.0.4/vertx-core-logging-5.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core/5.0.4/vertx-core-5.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-uri-template/5.0.4/vertx-uri-template-5.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-web-client/5.0.4/vertx-web-client-5.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-web-common/5.0.4/vertx-web-common-5.0.4.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-vertx/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-vertx/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/vertx/feign-vertx/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "11",
+        "-target",
+        "11"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/vertx/feign-vertx"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "io.vertx",
+          "name": "vertx-web-client",
+          "version": "5.0.4",
+          "artifacts": [
+            {
+              "name": "vertx-web-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-web-client/5.0.4/vertx-web-client-5.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.vertx",
+          "name": "vertx-core",
+          "version": "5.0.4",
+          "artifacts": [
+            {
+              "name": "vertx-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core/5.0.4/vertx-core-5.0.4.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

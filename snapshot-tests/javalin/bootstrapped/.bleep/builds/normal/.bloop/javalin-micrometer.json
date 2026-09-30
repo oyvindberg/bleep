@@ -1,0 +1,636 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "javalin-micrometer",
+    "directory": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-micrometer/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-micrometer/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-micrometer/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-micrometer/src/main/kotlin",
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-micrometer/generated-sources/annotations"
+    ],
+    "dependencies": [
+      "javalin"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.2/jackson-core-2.22.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.17.1/micrometer-commons-1.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-core/1.17.1/micrometer-core-1.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-jetty12/1.17.1/micrometer-jetty12-1.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.17.1/micrometer-observation-1.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-registry-prometheus/1.17.1/micrometer-registry-prometheus-1.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-config/1.7.0/prometheus-metrics-config-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-core/1.7.0/prometheus-metrics-core-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-formats/1.7.0/prometheus-metrics-exposition-formats-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-textformats/1.7.0/prometheus-metrics-exposition-textformats-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-model/1.7.0/prometheus-metrics-model-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-common/1.7.0/prometheus-metrics-tracer-common-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/enterprise/jakarta.enterprise.cdi-api/4.0.1/jakarta.enterprise.cdi-api-4.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/enterprise/jakarta.enterprise.lang-model/4.0.1/jakarta.enterprise.lang-model-4.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/interceptor/jakarta.interceptor-api/2.1.0/jakarta.interceptor-api-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/6.0.0/jakarta.servlet-api-6.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee/jetty-ee-webapp/12.1.12/jetty-ee-webapp-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-annotations/12.1.12/jetty-ee10-annotations-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-plus/12.1.12/jetty-ee10-plus-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-servlet/12.1.12/jetty-ee10-servlet-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-webapp/12.1.12/jetty-ee10-webapp-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/websocket/jetty-ee10-websocket-jetty-server/12.1.12/jetty-ee10-websocket-jetty-server-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/websocket/jetty-ee10-websocket-servlet/12.1.12/jetty-ee10-websocket-servlet-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-annotations/12.1.12/jetty-annotations-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-http/12.1.12/jetty-http-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-io/12.1.12/jetty-io-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-jndi/12.1.12/jetty-jndi-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-plus/12.1.12/jetty-plus-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-security/12.1.12/jetty-security-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-server/12.1.12/jetty-server-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-session/12.1.12/jetty-session-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-util/12.1.12/jetty-util-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-xml/12.1.12/jetty-xml-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-core-common/12.1.12/jetty-websocket-core-common-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-core-server/12.1.12/jetty-websocket-core-server-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-api/12.1.12/jetty-websocket-jetty-api-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-common/12.1.12/jetty-websocket-jetty-common-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-server/12.1.12/jetty-websocket-jetty-server-12.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/26.1.0/annotations-26.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.2.20/kotlin-stdlib-2.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-commons/9.10.1/asm-commons-9.10.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/9.10.1/asm-tree-9.10.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.10.1/asm-9.10.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar",
+      "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-micrometer/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped/.bleep/projects/javalin-micrometer/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-micrometer/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "--release",
+        "17"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/javalin/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/javalin/maven-build/javalin-micrometer"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-core",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-core/1.7.0/prometheus-metrics-core-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "jetty-websocket-core-server",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-websocket-core-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-core-server/12.1.12/jetty-websocket-core-server-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "jetty-websocket-jetty-api",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-websocket-jetty-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-api/12.1.12/jetty-websocket-jetty-api-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-server",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-server/12.1.12/jetty-server-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.annotation",
+          "name": "jakarta.annotation-api",
+          "version": "2.1.1",
+          "artifacts": [
+            {
+              "name": "jakarta.annotation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-annotations",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-annotations/12.1.12/jetty-annotations-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-model",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-model",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-model/1.7.0/prometheus-metrics-model-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.transaction",
+          "name": "jakarta.transaction-api",
+          "version": "2.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.transaction-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "jetty-websocket-core-common",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-websocket-core-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-core-common/12.1.12/jetty-websocket-core-common-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-commons",
+          "version": "1.17.1",
+          "artifacts": [
+            {
+              "name": "micrometer-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.17.1/micrometer-commons-1.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm-commons",
+          "version": "9.10.1",
+          "artifacts": [
+            {
+              "name": "asm-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-commons/9.10.1/asm-commons-9.10.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-io",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-io/12.1.12/jetty-io-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-util",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-util/12.1.12/jetty-util-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-tracer-common",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-tracer-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-common/1.7.0/prometheus-metrics-tracer-common-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-security",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-security",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-security/12.1.12/jetty-security-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee10.websocket",
+          "name": "jetty-ee10-websocket-jetty-server",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee10-websocket-jetty-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/websocket/jetty-ee10-websocket-jetty-server/12.1.12/jetty-ee10-websocket-jetty-server-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains",
+          "name": "annotations",
+          "version": "26.1.0",
+          "artifacts": [
+            {
+              "name": "annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/26.1.0/annotations-26.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.enterprise",
+          "name": "jakarta.enterprise.lang-model",
+          "version": "4.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.enterprise.lang-model",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/enterprise/jakarta.enterprise.lang-model/4.0.1/jakarta.enterprise.lang-model-4.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.inject",
+          "name": "jakarta.inject-api",
+          "version": "2.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.inject-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-session",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-session",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-session/12.1.12/jetty-session-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee",
+          "name": "jetty-ee-webapp",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee-webapp",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee/jetty-ee-webapp/12.1.12/jetty-ee-webapp-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-jetty12",
+          "version": "1.17.1",
+          "artifacts": [
+            {
+              "name": "micrometer-jetty12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-jetty12/1.17.1/micrometer-jetty12-1.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm-tree",
+          "version": "9.10.1",
+          "artifacts": [
+            {
+              "name": "asm-tree",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/9.10.1/asm-tree-9.10.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hdrhistogram",
+          "name": "HdrHistogram",
+          "version": "2.2.2",
+          "artifacts": [
+            {
+              "name": "HdrHistogram",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-xml",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-xml",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-xml/12.1.12/jetty-xml-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee10",
+          "name": "jetty-ee10-webapp",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee10-webapp",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-webapp/12.1.12/jetty-ee10-webapp-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee10.websocket",
+          "name": "jetty-ee10-websocket-servlet",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee10-websocket-servlet",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/websocket/jetty-ee10-websocket-servlet/12.1.12/jetty-ee10-websocket-servlet-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-exposition-textformats",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-exposition-textformats",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-textformats/1.7.0/prometheus-metrics-exposition-textformats-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-registry-prometheus",
+          "version": "1.17.1",
+          "artifacts": [
+            {
+              "name": "micrometer-registry-prometheus",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-registry-prometheus/1.17.1/micrometer-registry-prometheus-1.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.servlet",
+          "name": "jakarta.servlet-api",
+          "version": "6.0.0",
+          "artifacts": [
+            {
+              "name": "jakarta.servlet-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/6.0.0/jakarta.servlet-api-6.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm",
+          "version": "9.10.1",
+          "artifacts": [
+            {
+              "name": "asm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.10.1/asm-9.10.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-plus",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-plus",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-plus/12.1.12/jetty-plus-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "jetty-websocket-jetty-common",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-websocket-jetty-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-common/12.1.12/jetty-websocket-jetty-common-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee10",
+          "name": "jetty-ee10-annotations",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee10-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-annotations/12.1.12/jetty-ee10-annotations-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-http",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-http/12.1.12/jetty-http-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.22.2",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.2/jackson-core-2.22.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee10",
+          "name": "jetty-ee10-plus",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee10-plus",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-plus/12.1.12/jetty-ee10-plus-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jetbrains.kotlin",
+          "name": "kotlin-stdlib",
+          "version": "2.2.20",
+          "artifacts": [
+            {
+              "name": "kotlin-stdlib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.2.20/kotlin-stdlib-2.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-core",
+          "version": "1.17.1",
+          "artifacts": [
+            {
+              "name": "micrometer-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-core/1.17.1/micrometer-core-1.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.interceptor",
+          "name": "jakarta.interceptor-api",
+          "version": "2.1.0",
+          "artifacts": [
+            {
+              "name": "jakarta.interceptor-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/interceptor/jakarta.interceptor-api/2.1.0/jakarta.interceptor-api-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.18",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-config",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-config/1.7.0/prometheus-metrics-config-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.websocket",
+          "name": "jetty-websocket-jetty-server",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-websocket-jetty-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/websocket/jetty-websocket-jetty-server/12.1.12/jetty-websocket-jetty-server-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty.ee10",
+          "name": "jetty-ee10-servlet",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-ee10-servlet",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/ee10/jetty-ee10-servlet/12.1.12/jetty-ee10-servlet-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "prometheus-metrics-exposition-formats",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "prometheus-metrics-exposition-formats",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-formats/1.7.0/prometheus-metrics-exposition-formats-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.enterprise",
+          "name": "jakarta.enterprise.cdi-api",
+          "version": "4.0.1",
+          "artifacts": [
+            {
+              "name": "jakarta.enterprise.cdi-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/enterprise/jakarta.enterprise.cdi-api/4.0.1/jakarta.enterprise.cdi-api-4.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.jetty",
+          "name": "jetty-jndi",
+          "version": "12.1.12",
+          "artifacts": [
+            {
+              "name": "jetty-jndi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/jetty/jetty-jndi/12.1.12/jetty-jndi-12.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-observation",
+          "version": "1.17.1",
+          "artifacts": [
+            {
+              "name": "micrometer-observation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.17.1/micrometer-observation-1.17.1.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

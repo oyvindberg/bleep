@@ -1199,7 +1199,7 @@ function MigrationSection() {
           }
         >
           Adopting a build tool is a bet, so bleep works to make it a small one.{" "}
-          <code>bleep import</code> reads an sbt build,{" "}
+          <code>bleep import-sbt</code> reads an sbt build,{" "}
           <code>bleep import-maven</code> a Maven one, and writes the equivalent{" "}
           <code>bleep.yaml</code> — project graph derived, templates inferred
           from whatever repeats. You should be compiling and testing after one
@@ -1214,8 +1214,8 @@ function MigrationSection() {
                 One command <em>in</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                <Link to="/docs/reference/cli/import/">
-                  <code>bleep import</code>
+                <Link to="/docs/reference/cli/import-sbt/">
+                  <code>bleep import-sbt</code>
                 </Link>{" "}
                 for sbt,{" "}
                 <Link to="/docs/reference/cli/import-maven/">

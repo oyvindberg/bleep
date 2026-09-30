@@ -1,0 +1,103 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "play-run-support",
+    "directory": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-run-support/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-run-support/src/main/java"
+    ],
+    "dependencies": [
+      "play-build-link",
+      "play-exceptions"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/io/methvin/directory-watcher/0.19.0/directory-watcher-0.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.16.0/jna-5.16.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-file-watch/3.0.0-M4/play-file-watch-3.0.0-M4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-build-link/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-exceptions/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/core/play-exceptions/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-build-link/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-run-support/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped/.bleep/projects/play-run-support/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/playframework/sbt-build/dev-mode/play-run-support/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "--release",
+        "11",
+        "--release",
+        "17",
+        "-Xlint:-options",
+        "-Xlint:deprecation",
+        "-Xlint:unchecked",
+        "-encoding",
+        "UTF-8",
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/playframework/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.playframework",
+          "name": "play-file-watch",
+          "version": "3.0.0-M4",
+          "artifacts": [
+            {
+              "name": "play-file-watch",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-file-watch/3.0.0-M4/play-file-watch-3.0.0-M4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.methvin",
+          "name": "directory-watcher",
+          "version": "0.19.0",
+          "artifacts": [
+            {
+              "name": "directory-watcher",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/methvin/directory-watcher/0.19.0/directory-watcher-0.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.16.0",
+          "artifacts": [
+            {
+              "name": "jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.16.0/jna-5.16.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.36",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

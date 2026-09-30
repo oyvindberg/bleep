@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend-test/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend-test/generated-sources/scripts.GenerateForBloopFrontendTest",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend-test/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/frontend/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/frontend/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/frontend/src/test/scala-2",
@@ -145,9 +145,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-zip/1.17/zt-zip-1.17.jar",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-backend-test/builds/normal/test-classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-backend/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-backend/generated-resources/scripts.GenerateForBloopBackend",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-backend/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend/generated-resources/scripts.GenerateForBloopFrontend",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-shared/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
@@ -159,7 +159,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend-test/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend-test/builds/normal/test-classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend-test/generated-resources/scripts.GenerateForBloopFrontendTest",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-frontend-test/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/frontend/src/test/resources"
     ],
     "scala": {

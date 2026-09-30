@@ -21,7 +21,7 @@ import ryddig.Logger
 
 import java.io.File
 import java.nio.file.{Files, Path}
-import scala.collection.immutable.SortedSet
+import scala.collection.immutable.{SortedMap, SortedSet}
 
 trait CoursierResolver {
   val params: CoursierResolver.Params
@@ -242,8 +242,7 @@ object CoursierResolver {
 
     /** The version pins the declared BOMs imply, Maven-style. Computed once per resolver instance — params (and with them the BOM set) are immutable here. */
     lazy val bomPins: BomPins.Pins =
-      if (params.boms.isEmpty) scala.collection.immutable.SortedMap.empty
-      else BomPins(params.boms, fetchPomFile)
+      if (params.boms.isEmpty) SortedMap.empty else BomPins(params.boms, fetchPomFile)
 
     private def fetchPomFile(g: String, a: String, v: String): Option[Path] = {
       val dep = Dependency(Module(Organization(g), ModuleName(a), Map.empty), VersionConstraint(v))
@@ -320,11 +319,17 @@ object CoursierResolver {
         }
 
         // BOM pins force transitive versions the way Maven's dependencyManagement does — except for
-        // modules the build declares directly, where Maven lets the explicit declaration win.
-        val directModules: Set[Module] = deps.iterator.map(_.module).toSet
+        // modules the build declares directly with another version, where Maven lets the explicit
+        // declaration win. A direct dependency without a version, or at the BOM's own version, is
+        // pinned like any other: left unforced, coursier would let any transitive request for a
+        // higher version win.
+        val directVersions: Map[Module, String] = deps.iterator.map(d => (d.module, d.versionConstraint.asString)).toMap
         val pinnedResolutionParams = bomPins.foldLeft(resolutionParams) { case (rp, ((g, a), v)) =>
           val module = Module(Organization(g), ModuleName(a), Map.empty)
-          if (directModules(module)) rp else rp.addForceVersion0((module, VersionConstraint(v)))
+          directVersions.get(module) match {
+            case Some(declared) if declared.nonEmpty && declared != v => rp
+            case _                                                    => rp.addForceVersion0((module, VersionConstraint(v)))
+          }
         }
 
         (try

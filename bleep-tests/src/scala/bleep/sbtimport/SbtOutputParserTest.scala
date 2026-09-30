@@ -115,4 +115,29 @@ class SbtOutputParserTest extends AnyFunSuite with TripleEqualsSupport {
     val expected = Map(model.VersionScala("3.2.0") -> Set(projectName))
     assert(result === expected)
   }
+
+  test("parse sbt 2's scala version output, one element per line") {
+    val output = """[?2004h>....[info] dynver / scalaVersion
+                   |[info] 	2.12.21
+                   |[info] sbtdynver / scalaVersion
+                   |[info] 	2.12.21
+                   |[info] dynver / crossScalaVersions
+                   |[info] 	* 2.12.21
+                   |[info] 	* 2.13.18
+                   |[info] 	* 3.3.8
+                   |[info] sbtdynver / crossScalaVersions
+                   |[info] 	* 2.12.21
+                   |[info] 	* 3.8.4
+                   |[info] dynverRoot / crossScalaVersions
+                   |[info] disconnected""".stripMargin
+
+    val result = runSbt.ScalaVersionOutput.parse(output.split("\n"), None).combined
+    val expected = Map(
+      model.VersionScala("2.12.21") -> Set("dynver", "sbtdynver"),
+      model.VersionScala("2.13.18") -> Set("dynver"),
+      model.VersionScala("3.3.8") -> Set("dynver"),
+      model.VersionScala("3.8.4") -> Set("sbtdynver")
+    )
+    assert(result === expected)
+  }
 }

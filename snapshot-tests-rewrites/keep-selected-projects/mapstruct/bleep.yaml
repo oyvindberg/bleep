@@ -1,0 +1,48 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:21
+projects: {}
+resolvers:
+  name: gradle
+  type: maven
+  uri: https://repo.gradle.org/artifactory/libs-releases/
+templates:
+  template-common:
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+      name: jvm
+  template-common-main:
+    boms:
+    - org.jboss.arquillian:arquillian-bom:1.7.2.Final
+    - org.jetbrains.kotlin:kotlin-bom:2.3.0
+    - org.junit:junit-bom:5.14.1
+    extends: template-java-8
+    publish:
+      groupId: org.mapstruct
+    sbt-scope: main
+  template-common-test:
+    dependencies: org.assertj:assertj-core:3.27.7
+    extends: template-common
+    isTestProject: true
+    platform:
+      jvmOptions: -Xms1024m -Xmx3072m
+    sbt-scope: test
+  template-java-8:
+    extends: template-common
+    java:
+      options: -source 1.8 -target 1.8
+  template-mapstruct-processor:
+    dependencies:
+    - configuration: provided
+      module: jakarta.xml.bind:jakarta.xml.bind-api:3.0.1
+    - configuration: provided
+      module: javax.xml.bind:jaxb-api:2.3.1
+    - configuration: provided
+      module: org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0
+    extends: template-common
+    java:
+      annotationProcessors: org.mapstruct.tools.gem:gem-processor:1.0.0.Alpha3
+    kotlin:
+      jvmTarget: '21'
+      version: 2.3.0

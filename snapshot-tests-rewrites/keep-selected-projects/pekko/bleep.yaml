@@ -1,0 +1,1139 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:17
+projects:
+  pekko-actor:
+    dependencies: com.typesafe:config:1.4.9
+    extends: template-cross-all
+    folder: ../sbt-build/actor
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-actor-test:
+    dependencies: com.github.sbt.junit:jupiter-interface:0.19.0
+    dependsOn: pekko-actor
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/actor
+  pekko-actor-testkit-typed:
+    dependencies:
+    - configuration: optional
+      module: ch.qos.logback:logback-classic:1.6.3
+    - configuration: optional
+      module: junit:junit:4.13.2
+    - configuration: optional
+      module: org.junit.jupiter:junit-jupiter-engine:6.1.3
+    - configuration: optional
+      module: org.scalatest::scalatest:3.2.20
+    dependsOn:
+    - pekko-actor-typed
+    - pekko-testkit
+    extends: template-cross-all
+    folder: ../sbt-build/actor-testkit-typed
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-actor-testkit-typed-test:
+    dependencies:
+    - ch.qos.logback:logback-classic:1.6.3
+    - com.github.sbt:junit-interface:0.13.3
+    - org.scalatestplus::junit-4-13:3.2.20.0
+    dependsOn:
+    - pekko-actor-testkit-typed
+    - pekko-testkit-test
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/actor-testkit-typed
+  pekko-actor-tests:
+    dependsOn: pekko-testkit
+    extends: template-cross-all
+    folder: ../sbt-build/actor-tests
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-actor-tests-test:
+    dependencies:
+    - com.fasterxml.jackson.core:jackson-annotations:2.22
+    - com.fasterxml.jackson.core:jackson-core:2.22.3
+    - com.fasterxml.jackson.core:jackson-databind:2.22.3
+    - com.fasterxml.jackson.datatype:jackson-datatype-guava:2.22.3
+    - com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:2.22.3
+    - com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.22.3
+    - com.github.docker-java:docker-java-core:3.7.1
+    - com.github.docker-java:docker-java-transport-httpclient5:3.7.1
+    - com.google.jimfs:jimfs:1.3.2
+    - commons-codec:commons-codec:1.22.1
+    - org.scalatestplus::junit-4-13:3.2.20.0
+    - org.scalatestplus::scalacheck-1-19:3.2.20.0
+    dependsOn:
+    - pekko-actor-tests
+    - pekko-testkit-test
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/actor-tests
+  pekko-actor-typed:
+    dependencies:
+      configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn: pekko-slf4j
+    extends: template-cross-all
+    folder: ../sbt-build/actor-typed
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-actor-typed-test:
+    dependencies:
+    - com.github.sbt.junit:jupiter-interface:0.19.0
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn: pekko-actor-typed
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/actor-typed
+  pekko-actor-typed-tests:
+    dependsOn: pekko-actor-testkit-typed
+    extends: template-cross-all
+    folder: ../sbt-build/actor-typed-tests
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-actor-typed-tests-test:
+    dependsOn:
+    - pekko-actor-testkit-typed-test
+    - pekko-actor-typed-tests
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/actor-typed-tests
+  pekko-bench-jmh:
+    dependencies:
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - org.jctools:jctools-core:4.0.7
+    - org.openjdk.jmh:jmh-core:1.37
+    - org.openjdk.jmh:jmh-generator-bytecode:1.37
+    - org.openjdk.jmh:jmh-generator-reflection:1.37
+    dependsOn:
+    - pekko-actor-test
+    - pekko-actor-typed-test
+    - pekko-distributed-data-test
+    - pekko-persistence-test
+    - pekko-stream-test
+    - pekko-stream-testkit-test
+    extends: template-cross-all
+    folder: ../sbt-build/bench-jmh
+    java:
+      options: -parameters
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-cluster:
+    dependsOn:
+    - pekko-coordination
+    - pekko-remote
+    extends: template-cross-all
+    folder: ../sbt-build/cluster
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-cluster-metrics:
+    dependencies:
+      configuration: optional
+      module: io.kamon:sigar-loader:1.6.6
+    dependsOn: pekko-cluster
+    extends: template-cross-all
+    folder: ../sbt-build/cluster-metrics
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-cluster-metrics-test:
+    dependencies:
+    - io.kamon:sigar-loader:1.6.6
+    - org.scalatestplus::mockito-5-23:3.2.20.0
+    - org.slf4j:jul-to-slf4j:2.0.20
+    - org.slf4j:log4j-over-slf4j:2.0.20
+    dependsOn:
+    - pekko-cluster-metrics
+    - pekko-cluster-test
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/cluster-metrics
+  pekko-cluster-sharding:
+    dependencies:
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    dependsOn:
+    - pekko-cluster-tools
+    - pekko-distributed-data
+    - pekko-persistence
+    extends: template-cross-all
+    folder: ../sbt-build/cluster-sharding
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-cluster-sharding-test:
+    dependencies:
+    - commons-io:commons-io:2.22.0
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - org.iq80.leveldb:leveldb:0.12
+    - site.ycsb:core:0.17.0
+    dependsOn:
+    - pekko-cluster-sharding
+    - pekko-cluster-tools-test
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/cluster-sharding
+  pekko-cluster-sharding-typed:
+    dependencies:
+      configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn:
+    - pekko-cluster-sharding
+    - pekko-cluster-typed
+    - pekko-persistence-typed
+    extends: template-cross-all
+    folder: ../sbt-build/cluster-sharding-typed
+    java:
+      options: -parameters
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-cluster-sharding-typed-test:
+    dependencies:
+      configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn:
+    - pekko-cluster-sharding-typed
+    - pekko-persistence-testkit-test
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/cluster-sharding-typed
+    java:
+      options: -parameters
+  pekko-cluster-test:
+    dependencies: ch.qos.logback:logback-classic:1.6.3
+    dependsOn:
+    - pekko-cluster
+    - pekko-coordination-test
+    - pekko-remote-tests-test
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/cluster
+  pekko-cluster-tools:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependsOn: pekko-cluster
+    extends: template-cross-all
+    folder: ../sbt-build/cluster-tools
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-cluster-tools-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependsOn:
+    - pekko-cluster-test
+    - pekko-cluster-tools
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/cluster-tools
+  pekko-cluster-typed:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependsOn:
+    - pekko-actor-typed
+    - pekko-cluster-tools
+    - pekko-distributed-data
+    extends: template-cross-all
+    folder: ../sbt-build/cluster-typed
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-cluster-typed-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependsOn:
+    - pekko-actor-typed-tests-test
+    - pekko-cluster-test
+    - pekko-cluster-typed
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/cluster-typed
+  pekko-coordination:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependsOn: pekko-actor
+    extends: template-cross-all
+    folder: ../sbt-build/coordination
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-coordination-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependsOn:
+    - pekko-actor-tests-test
+    - pekko-coordination
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/coordination
+  pekko-discovery:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependsOn: pekko-actor
+    extends: template-cross-all
+    folder: ../sbt-build/discovery
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-discovery-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependsOn:
+    - pekko-actor-tests-test
+    - pekko-discovery
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/discovery
+  pekko-distributed-data:
+    dependencies: org.lmdbjava:lmdbjava:0.9.3
+    dependsOn: pekko-cluster
+    extends: template-cross-all
+    folder: ../sbt-build/distributed-data
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-distributed-data-test:
+    dependsOn:
+    - pekko-cluster-test
+    - pekko-distributed-data
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/distributed-data
+  pekko-docs:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-main
+        scala:
+          options: -Wconf:any:e,cat=unused:s,cat=deprecation:s,cat=unchecked:s
+    dependencies:
+      configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    dependsOn:
+    - pekko-actor-typed-tests
+    - pekko-cluster-metrics
+    - pekko-cluster-sharding-typed
+    - pekko-discovery
+    - pekko-osgi
+    - pekko-persistence-tck
+    - pekko-persistence-testkit
+    - pekko-stream-testkit
+    folder: ../sbt-build/docs
+    java:
+      options: -parameters
+    resources: ./src/${SCOPE}/paradox/stream/operators/index.md
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-docs-test:
+    cross:
+      jvm213:
+        extends: template-scala-2.13
+        scala:
+          options: -Wconf:any:e,cat=unused:s,cat=deprecation:s,cat=unchecked:s
+    dependencies:
+    - com.google.code.gson:gson:2.14.0
+    - io.spray::spray-json:1.3.6
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    dependsOn:
+    - pekko-actor-typed-test
+    - pekko-cluster-sharding-test
+    - pekko-cluster-sharding-typed-test
+    - pekko-discovery-test
+    - pekko-docs
+    - pekko-stream-testkit-test
+    extends: template-common-test
+    folder: ../sbt-build/docs
+    java:
+      options: -parameters
+  pekko-multi-node-testkit:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+    - io.netty:netty-handler:4.2.18.Final
+    - io.netty:netty-transport:4.2.18.Final
+    dependsOn:
+    - pekko-remote
+    - pekko-testkit
+    extends: template-cross-all
+    folder: ../sbt-build/multi-node-testkit
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-osgi:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+    - org.osgi:org.osgi.compendium:5.0.0
+    - org.osgi:org.osgi.core:6.0.0
+    dependsOn: pekko-actor
+    extends: template-cross-all
+    folder: ../sbt-build/osgi
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-osgi-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+    - biz.aQute.bnd:biz.aQute.bndlib:7.4.0
+    - ch.qos.logback:logback-classic:1.6.3
+    - com.github.sbt.junit:jupiter-interface:0.19.0
+    - com.googlecode.pojosr:de.kalpatec.pojosr.framework:0.2.1
+    - commons-io:commons-io:2.22.0
+    - junit:junit:4.13.2
+    - org.ops4j.pax.exam:pax-exam-cm:4.14.0
+    - org.ops4j.pax.exam:pax-exam-container-forked:4.14.0
+    - org.ops4j.pax.exam:pax-exam:4.14.0
+    - org.ops4j.pax.tinybundles:tinybundles:4.0.1
+    - org.scalatest::scalatest:3.2.20
+    dependsOn: pekko-osgi
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/osgi
+  pekko-persistence:
+    dependencies:
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn: pekko-stream
+    extends: template-cross-all
+    folder: ../sbt-build/persistence
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-persistence-query:
+    dependencies:
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn:
+    - pekko-persistence
+    - pekko-remote
+    extends: template-cross-all
+    folder: ../sbt-build/persistence-query
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-persistence-query-test:
+    dependencies:
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn:
+    - pekko-persistence-query
+    - pekko-persistence-test
+    - pekko-stream-testkit
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/persistence-query
+  pekko-persistence-shared:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    extends: template-cross-all
+    folder: ../sbt-build/persistence-shared
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-persistence-shared-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+    - ch.qos.logback:logback-classic:1.6.3
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn:
+    - pekko-persistence-shared
+    - pekko-persistence-test
+    - pekko-remote
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/persistence-shared
+  pekko-persistence-tck:
+    dependencies:
+    - junit:junit:4.13.2
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - org.scalatest::scalatest:3.2.20
+    dependsOn:
+    - pekko-persistence
+    - pekko-testkit
+    extends: template-cross-all
+    folder: ../sbt-build/persistence-tck
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-persistence-tck-test:
+    dependencies:
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    dependsOn:
+    - pekko-persistence-tck
+    - pekko-persistence-test
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/persistence-tck
+  pekko-persistence-test:
+    dependencies:
+    - commons-codec:commons-codec:1.22.1
+    - commons-io:commons-io:2.22.0
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    - org.scalatestplus::junit-4-13:3.2.20.0
+    dependsOn:
+    - pekko-persistence
+    - pekko-testkit-test
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/persistence
+  pekko-persistence-testkit:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn:
+    - pekko-actor-testkit-typed
+    - pekko-persistence-typed
+    extends: template-cross-all
+    folder: ../sbt-build/persistence-testkit
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-persistence-testkit-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn:
+    - pekko-persistence-tck
+    - pekko-persistence-testkit
+    - pekko-persistence-typed-test
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/persistence-testkit
+  pekko-persistence-typed:
+    dependencies:
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn:
+    - pekko-persistence-query
+    - pekko-stream-typed
+    extends: template-cross-all
+    folder: ../sbt-build/persistence-typed
+    java:
+      options: -parameters
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-persistence-typed-test:
+    dependencies:
+    - configuration: optional
+      module: org.fusesource.leveldbjni:leveldbjni-all:1.8
+    - configuration: optional
+      module: org.iq80.leveldb:leveldb:0.12
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn:
+    - pekko-cluster-typed-test
+    - pekko-persistence-test
+    - pekko-persistence-typed
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/persistence-typed
+    java:
+      options: -parameters
+  pekko-persistence-typed-tests:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependsOn: pekko-persistence-typed
+    extends: template-cross-all
+    folder: ../sbt-build/persistence-typed-tests
+    java:
+      options: -parameters
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-persistence-typed-tests-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies: ch.qos.logback:logback-classic:1.6.3
+    dependsOn:
+    - pekko-persistence-test
+    - pekko-persistence-testkit
+    - pekko-persistence-typed-tests
+    - pekko-serialization-jackson-test
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/persistence-typed-tests
+    java:
+      options: -parameters
+  pekko-pki:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+    - exclusions:
+        org.slf4j: slf4j-api
+      module: com.hierynomus:asn-one:0.6.0
+    - org.slf4j:slf4j-api:2.0.20
+    dependsOn: pekko-actor
+    extends: template-cross-all
+    folder: ../sbt-build/pki
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-pki-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+    - com.github.sbt.junit:jupiter-interface:0.19.0
+    - org.scalatest::scalatest:3.2.20
+    dependsOn: pekko-pki
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/pki
+  pekko-protobuf-v3:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+      configuration: optional
+      module: com.google.protobuf:protobuf-java:4.36.2
+    extends: template-cross-all
+    folder: ../sbt-build/protobuf-v3
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-remote:
+    dependencies:
+    - configuration: optional
+      module: io.aeron:aeron-client:1.53.2
+    - configuration: optional
+      module: io.aeron:aeron-driver:1.53.2
+    - configuration: optional
+      module: io.netty:netty-handler:4.2.18.Final
+    - configuration: optional
+      module: io.netty:netty-transport:4.2.18.Final
+    - org.agrona:agrona:2.6.1
+    dependsOn:
+    - pekko-pki
+    - pekko-stream
+    extends: template-cross-all
+    folder: ../sbt-build/remote
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-remote-test:
+    dependencies:
+    - com.google.protobuf:protobuf-java:4.36.2
+    - configuration: optional
+      module: io.aeron:aeron-client:1.53.2
+    - configuration: optional
+      module: io.aeron:aeron-driver:1.53.2
+    - configuration: optional
+      module: io.netty:netty-handler:4.2.18.Final
+    - configuration: optional
+      module: io.netty:netty-transport:4.2.18.Final
+    dependsOn:
+    - pekko-remote
+    - pekko-serialization-jackson-test
+    - pekko-stream-testkit
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/remote
+  pekko-remote-tests:
+    dependencies:
+    - io.aeron:aeron-client:1.53.2
+    - io.aeron:aeron-driver:1.53.2
+    dependsOn: pekko-multi-node-testkit
+    extends: template-cross-all
+    folder: ../sbt-build/remote-tests
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-remote-tests-test:
+    dependsOn:
+    - pekko-remote-test
+    - pekko-remote-tests
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/remote-tests
+  pekko-serialization-jackson:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+    - at.yawk.lz4:lz4-java:1.11.3
+    - com.fasterxml.jackson.core:jackson-annotations:2.22
+    - com.fasterxml.jackson.core:jackson-core:2.22.3
+    - com.fasterxml.jackson.core:jackson-databind:2.22.3
+    - com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.22.3
+    - com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.22.3
+    - com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.3
+    - exclusions:
+        org.scala-lang: '*'
+      module: com.fasterxml.jackson.module::jackson-module-scala:2.22.3
+    - com.fasterxml.jackson.module:jackson-module-parameter-names:2.22.3
+    dependsOn:
+    - pekko-actor-typed
+    - pekko-stream
+    extends: template-cross-all
+    folder: ../sbt-build/serialization-jackson
+    java:
+      options: -parameters
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-serialization-jackson-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependsOn:
+    - pekko-actor-tests-test
+    - pekko-serialization-jackson
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/serialization-jackson
+    java:
+      options: -parameters
+  pekko-serialization-jackson3:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+    - at.yawk.lz4:lz4-java:1.11.3
+    - com.fasterxml.jackson.core:jackson-annotations:2.22
+    - tools.jackson.core:jackson-core:3.2.3
+    - tools.jackson.core:jackson-databind:3.2.3
+    - tools.jackson.dataformat:jackson-dataformat-cbor:3.2.3
+    - exclusions:
+        org.scala-lang: '*'
+      module: tools.jackson.module::jackson-module-scala:3.2.3
+    dependsOn:
+    - pekko-actor-typed
+    - pekko-stream
+    extends: template-cross-all
+    folder: ../sbt-build/serialization-jackson3
+    java:
+      options: -parameters
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-serialization-jackson3-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependsOn:
+    - pekko-actor-tests-test
+    - pekko-serialization-jackson3
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/serialization-jackson3
+    java:
+      options: -parameters
+  pekko-slf4j:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies: org.slf4j:slf4j-api:2.0.20
+    dependsOn: pekko-actor
+    extends: template-cross-all
+    folder: ../sbt-build/slf4j
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-slf4j-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies: ch.qos.logback:logback-classic:1.6.3
+    dependsOn:
+    - pekko-slf4j
+    - pekko-testkit-test
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/slf4j
+  pekko-stream:
+    dependencies:
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    - org.reactivestreams:reactive-streams:1.0.4
+    dependsOn:
+    - pekko-actor
+    - pekko-protobuf-v3
+    extends: template-cross-all
+    folder: ../sbt-build/stream
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-stream-test:
+    dependencies:
+    - com.github.sbt.junit:jupiter-interface:0.19.0
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    - org.scalatest::scalatest:3.2.20
+    dependsOn: pekko-stream
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/stream
+  pekko-stream-testkit:
+    dependencies:
+      configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn:
+    - pekko-stream
+    - pekko-testkit
+    extends: template-cross-all
+    folder: ../sbt-build/stream-testkit
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-stream-testkit-test:
+    dependencies:
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    - org.scalatestplus::scalacheck-1-19:3.2.20.0
+    dependsOn:
+    - pekko-stream-testkit
+    - pekko-testkit-test
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/stream-testkit
+  pekko-stream-tests:
+    dependsOn: pekko-stream
+    extends: template-cross-all
+    folder: ../sbt-build/stream-tests
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-stream-tests-tck:
+    dependsOn: pekko-stream
+    extends: template-cross-all
+    folder: ../sbt-build/stream-tests-tck
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-stream-tests-tck-test:
+    dependencies:
+    - exclusions:
+        org.testng: testng
+      module: org.reactivestreams:reactive-streams-tck:1.0.4
+    - org.scalatestplus::testng-7-12:3.2.20.0
+    dependsOn:
+    - pekko-stream-testkit-test
+    - pekko-stream-tests-tck
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/stream-tests-tck
+  pekko-stream-tests-test:
+    dependencies: commons-io:commons-io:2.22.0
+    dependsOn:
+    - pekko-remote-test
+    - pekko-stream-testkit-test
+    - pekko-stream-tests
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/stream-tests
+  pekko-stream-typed:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+      configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn:
+    - pekko-actor-typed
+    - pekko-stream
+    extends: template-cross-all
+    folder: ../sbt-build/stream-typed
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-stream-typed-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+      configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn:
+    - pekko-actor-typed-tests-test
+    - pekko-stream-testkit-test
+    - pekko-stream-typed
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/stream-typed
+  pekko-stream-typed-tests:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependsOn: pekko-stream-typed
+    extends: template-cross-all
+    folder: ../sbt-build/stream-typed-tests
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-stream-typed-tests-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Ywarn-numeric-widen
+    dependencies:
+    - com.google.jimfs:jimfs:1.3.2
+    - commons-io:commons-io:2.22.0
+    dependsOn:
+    - pekko-stream-testkit-test
+    - pekko-stream-typed-tests
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/stream-typed-tests
+  pekko-testkit:
+    dependencies:
+      configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    dependsOn: pekko-actor
+    extends: template-cross-all
+    folder: ../sbt-build/testkit
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  pekko-testkit-test:
+    dependencies:
+    - com.github.sbt.junit:jupiter-interface:0.19.0
+    - io.dropwizard.metrics:metrics-core:4.2.40
+    - io.dropwizard.metrics:metrics-jvm:4.2.40
+    - junit:junit:4.13.2
+    - org.hdrhistogram:HdrHistogram:2.2.2
+    - configuration: optional
+      module: org.jspecify:jspecify:1.0.1
+    - org.junit.jupiter:junit-jupiter-engine:6.1.3
+    - org.junit.platform:junit-platform-launcher:6.1.3
+    - org.latencyutils:LatencyUtils:2.0.3
+    - org.scalatest::scalatest:3.2.20
+    dependsOn: pekko-testkit
+    extends:
+    - template-common-test
+    - template-cross-all-common-unchecked
+    folder: ../sbt-build/testkit
+  scripts:
+    dependencies: build.bleep:bleepscript:1.0.0-M14
+    platform:
+      name: jvm
+    resources: ./resources
+templates:
+  template-common:
+    ignoreEvictionErrors: no
+    java:
+      options: --release 17
+    platform:
+      name: jvm
+    scala:
+      options: -encoding UTF-8 -feature -language:higherKinds -release 17
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false
+        order: mixed
+    sources: ./src/${SCOPE}/scala-2.13+
+  template-common-main:
+    extends: template-common-unchecked
+    publish:
+      groupId: org.apache.pekko
+    sbt-scope: main
+  template-common-test:
+    extends: template-common
+    isTestProject: true
+    java:
+      options: -Xlint:unchecked -encoding UTF-8
+    platform:
+      jvmOptions: --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED
+        --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED
+        -Djava.security.egd=file:/dev/urandom -Duser.dir=${PROJECT_DIR} -XX:+PerfDisableSharedMem
+        -XX:+UseG1GC -XX:MaxDirectMemorySize=256m -XX:MaxGCPauseMillis=300 -Xms3g
+        -Xmx3g -Xss2m
+    sbt-scope: test
+    testFrameworks:
+    - com.github.sbt.junit.jupiter.api.JupiterFramework
+    - hedgehog.sbt.Framework
+    - weaver.framework.CatsEffect
+    - zio.test.sbt.ZTestFramework
+  template-common-unchecked:
+    extends: template-common
+    scala:
+      options: -unchecked
+  template-cross-all:
+    cross:
+      jvm213:
+        extends:
+        - template-scala-2.13-main
+        - template-scala-2.13-wconf
+  template-cross-all-common-unchecked:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-wconf
+  template-scala-2.13:
+    extends: template-common
+    scala:
+      options: -Xfatal-warnings -Xlint:-infer-any -Ywarn-extra-implicit -Ywarn-unused:_
+        -opt-inline-from:<sources> -opt-inline-from:org.apache.pekko.** -opt:l:inline
+      version: 2.13.18
+  template-scala-2.13-main:
+    extends:
+    - template-common-main
+    - template-scala-2.13-xlint
+    scala:
+      options: -Xlog-reflective-calls -Ywarn-dead-code
+  template-scala-2.13-wconf:
+    extends: template-scala-2.13-xlint
+    scala:
+      options: -Wconf:any:e,cat=unused-nowarn:s,cat=other-shadowing:s
+  template-scala-2.13-xlint:
+    extends:
+    - template-common-unchecked
+    - template-scala-2.13
+    scala:
+      options: -Xlint -deprecation
+  template-scala-3:
+    extends: template-common
+    scala:
+      options: -Wconf:cat=deprecation:s -Xtarget:17 -Yfuture-lazy-vals
+      version: 3.3.8

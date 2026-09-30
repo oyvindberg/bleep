@@ -1,0 +1,693 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "benchmarks@jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/benchmarks@jvm3/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/benchmarks/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/benchmarks/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/benchmarks/src/main/scala-3"
+    ],
+    "dependencies": [
+      "zio+test@jvm3",
+      "zio-internal-macros@jvm3",
+      "zio-stacktracer@jvm3",
+      "zio-streams@jvm3",
+      "zio@jvm3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.14.0/fs2-core_3-3.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/japgolly/microlibs/multimap_3/4.2.1/multimap_3-4.2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/japgolly/microlibs/recursion_3/4.2.1/recursion_3-4.2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/japgolly/nyaya/nyaya-gen_3/1.1.0/nyaya-gen_3-1.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/japgolly/nyaya/nyaya-util_3/1.1.0/nyaya-util_3-1.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-core_3/24.2.0/util-core_3-24.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-function_2.13/24.2.0/util-function_2.13-24.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_3/2.8.8/akka-actor_3-2.8.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_3/2.8.8/akka-protobuf-v3_3-2.8.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_3/2.8.8/akka-stream_3-2.8.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_3/0.6.1/ssl-config-core_3-0.6.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.5/commons-logging-1.3.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/optics/monocle-core_3/3.1.0/monocle-core_3-3.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_3/3.0.10/izumi-reflect-thirdparty-boopickle-shaded_3-3.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_3/3.0.10/izumi-reflect_3-3.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/timwspence/cats-stm_3/0.13.4/cats-stm_3-0.13.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/projectreactor/reactor-core/3.8.7/reactor-core-3.8.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/reactivex/rxjava2/rxjava/2.2.21/rxjava-2.2.21.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jctools/jctools-core/4.0.7/jctools-core-4.0.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-core/1.37/jmh-core-1.37.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-asm/1.37/jmh-generator-asm-1.37.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-bytecode/1.37/jmh-generator-bytecode-1.37.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-reflection/1.37/jmh-generator-reflection-1.37.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.0/asm-9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.4.4/scala-collection-compat_2.13-2.4.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.14.0/scala-collection-compat_3-2.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_3/1.0.0/scala-java8-compat_3-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_3/2.0.0/scala-parser-combinators_3-2.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.20.0/scalacheck_3-1.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.2.5/scodec-bits_3-1.2.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-core/7.0.9/spring-core-7.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.13.0/cats-core_3-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.7.1/cats-effect-kernel_3-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.7.1/cats-effect-std_3-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.7.1/cats-effect_3-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_3/2.8.0/cats-free_3-2.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.13.0/cats-kernel_3-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.7.0/cats-mtl_3-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-core_3/0.14.0/hedgehog-core_3-0.14.0.jar",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio+test@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-internal-macros@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-streams@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-streams@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/internal-macros/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/internal-macros/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/shared/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/benchmarks@jvm3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/benchmarks@jvm3/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/benchmarks/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.3.8",
+      "options": [
+        "-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent",
+        "-Xignore-scala2-macros",
+        "-Xmax-inlines:64",
+        "-deprecation",
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-language:implicitConversions",
+        "-language:noAutoTupling",
+        "-noindent",
+        "-release",
+        "11",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.8/scala3-compiler_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.8/scala3-interfaces-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.8/tasty-core_3-3.3.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.9.0-scala-1/scala-asm-9.9.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.29.0/jline-reader-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/benchmarks@jvm3/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/zio/sbt-build/benchmarks"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "co.fs2",
+          "name": "fs2-core_3",
+          "version": "3.14.0",
+          "artifacts": [
+            {
+              "name": "fs2-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.14.0/fs2-core_3-3.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.japgolly.nyaya",
+          "name": "nyaya-util_3",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "nyaya-util_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/japgolly/nyaya/nyaya-util_3/1.1.0/nyaya-util_3-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.akka",
+          "name": "akka-stream_3",
+          "version": "2.8.8",
+          "artifacts": [
+            {
+              "name": "akka-stream_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_3/2.8.8/akka-stream_3-2.8.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "ssl-config-core_3",
+          "version": "0.6.1",
+          "artifacts": [
+            {
+              "name": "ssl-config-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_3/0.6.1/ssl-config-core_3-0.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.8",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-core_3",
+          "version": "24.2.0",
+          "artifacts": [
+            {
+              "name": "util-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-core_3/24.2.0/util-core_3-24.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.japgolly.nyaya",
+          "name": "nyaya-gen_3",
+          "version": "1.1.0",
+          "artifacts": [
+            {
+              "name": "nyaya-gen_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/japgolly/nyaya/nyaya-gen_3/1.1.0/nyaya-gen_3-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_3",
+          "version": "3.0.10",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_3/3.0.10/izumi-reflect_3-3.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "qa.hedgehog",
+          "name": "hedgehog-core_3",
+          "version": "0.14.0",
+          "artifacts": [
+            {
+              "name": "hedgehog-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-core_3/0.14.0/hedgehog-core_3-0.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-java8-compat_3",
+          "version": "1.0.0",
+          "artifacts": [
+            {
+              "name": "scala-java8-compat_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_3/1.0.0/scala-java8-compat_3-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.openjdk.jmh",
+          "name": "jmh-generator-reflection",
+          "version": "1.37",
+          "artifacts": [
+            {
+              "name": "jmh-generator-reflection",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-reflection/1.37/jmh-generator-reflection-1.37.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-function_2.13",
+          "version": "24.2.0",
+          "artifacts": [
+            {
+              "name": "util-function_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-function_2.13/24.2.0/util-function_2.13-24.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-math3",
+          "version": "3.6.1",
+          "artifacts": [
+            {
+              "name": "commons-math3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_2.13",
+          "version": "1.1.3",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jctools",
+          "name": "jctools-core",
+          "version": "4.0.7",
+          "artifacts": [
+            {
+              "name": "jctools-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jctools/jctools-core/4.0.7/jctools-core-4.0.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.reactivex.rxjava2",
+          "name": "rxjava",
+          "version": "2.2.21",
+          "artifacts": [
+            {
+              "name": "rxjava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/reactivex/rxjava2/rxjava/2.2.21/rxjava-2.2.21.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.japgolly.microlibs",
+          "name": "multimap_3",
+          "version": "4.2.1",
+          "artifacts": [
+            {
+              "name": "multimap_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/japgolly/microlibs/multimap_3/4.2.1/multimap_3-4.2.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.timwspence",
+          "name": "cats-stm_3",
+          "version": "0.13.4",
+          "artifacts": [
+            {
+              "name": "cats-stm_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/timwspence/cats-stm_3/0.13.4/cats-stm_3-0.13.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_3",
+          "version": "3.0.10",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_3/3.0.10/izumi-reflect-thirdparty-boopickle-shaded_3-3.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.japgolly.microlibs",
+          "name": "recursion_3",
+          "version": "4.2.1",
+          "artifacts": [
+            {
+              "name": "recursion_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/japgolly/microlibs/recursion_3/4.2.1/recursion_3-4.2.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.akka",
+          "name": "akka-actor_3",
+          "version": "2.8.8",
+          "artifacts": [
+            {
+              "name": "akka-actor_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_3/2.8.8/akka-actor_3-2.8.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.openjdk.jmh",
+          "name": "jmh-generator-bytecode",
+          "version": "1.37",
+          "artifacts": [
+            {
+              "name": "jmh-generator-bytecode",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-bytecode/1.37/jmh-generator-bytecode-1.37.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.openjdk.jmh",
+          "name": "jmh-generator-asm",
+          "version": "1.37",
+          "artifacts": [
+            {
+              "name": "jmh-generator-asm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-asm/1.37/jmh-generator-asm-1.37.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.3.5",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.5/commons-logging-1.3.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.sf.jopt-simple",
+          "name": "jopt-simple",
+          "version": "5.0.4",
+          "artifacts": [
+            {
+              "name": "jopt-simple",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.openjdk.jmh",
+          "name": "jmh-core",
+          "version": "1.37",
+          "artifacts": [
+            {
+              "name": "jmh-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-core/1.37/jmh-core-1.37.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-core",
+          "version": "7.0.9",
+          "artifacts": [
+            {
+              "name": "spring-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-core/7.0.9/spring-core-7.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_3",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-kernel_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.7.1/cats-effect-kernel_3-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.4",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.projectreactor",
+          "name": "reactor-core",
+          "version": "3.8.7",
+          "artifacts": [
+            {
+              "name": "reactor-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/projectreactor/reactor-core/3.8.7/reactor-core-3.8.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm",
+          "version": "9.0",
+          "artifacts": [
+            {
+              "name": "asm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.0/asm-9.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalacheck",
+          "name": "scalacheck_3",
+          "version": "1.20.0",
+          "artifacts": [
+            {
+              "name": "scalacheck_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.20.0/scalacheck_3-1.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_3",
+          "version": "2.14.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.14.0/scala-collection-compat_3-2.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-mtl_3",
+          "version": "1.7.0",
+          "artifacts": [
+            {
+              "name": "cats-mtl_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.7.0/cats-mtl_3-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.optics",
+          "name": "monocle-core_3",
+          "version": "3.1.0",
+          "artifacts": [
+            {
+              "name": "monocle-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/optics/monocle-core_3/3.1.0/monocle-core_3-3.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_3",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "cats-effect_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.7.1/cats-effect_3-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.akka",
+          "name": "akka-protobuf-v3_3",
+          "version": "2.8.8",
+          "artifacts": [
+            {
+              "name": "akka-protobuf-v3_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_3/2.8.8/akka-protobuf-v3_3-2.8.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-free_3",
+          "version": "2.8.0",
+          "artifacts": [
+            {
+              "name": "cats-free_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_3/2.8.0/cats-free_3-2.8.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_3",
+          "version": "3.7.1",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.7.1/cats-effect-std_3-3.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scodec",
+          "name": "scodec-bits_3",
+          "version": "1.2.5",
+          "artifacts": [
+            {
+              "name": "scodec-bits_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.2.5/scodec-bits_3-1.2.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_3",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.13.0/cats-core_3-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.2",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_3",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.13.0/cats-kernel_3-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.4.4",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.4.4/scala-collection-compat_2.13-2.4.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-parser-combinators_3",
+          "version": "2.0.0",
+          "artifacts": [
+            {
+              "name": "scala-parser-combinators_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_3/2.0.0/scala-parser-combinators_3-2.0.0.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

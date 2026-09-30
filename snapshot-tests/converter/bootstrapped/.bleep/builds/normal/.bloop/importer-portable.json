@@ -5,7 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/builds/normal",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/generated-sources/scripts.GenerateForImporterPortable",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/generated-sources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/importer-portable/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/importer-portable/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/importer-portable/src/main/scala-2",
@@ -54,7 +54,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/builds/normal",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/builds/normal/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/generated-resources/scripts.GenerateForImporterPortable",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/projects/importer-portable/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/importer-portable/src/main/resources"
     ],
     "scala": {

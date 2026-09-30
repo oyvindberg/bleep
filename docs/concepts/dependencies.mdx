@@ -81,7 +81,7 @@ dependencies:
 | `transitive` | both | Default `true`. Set `false` to pin only the named artifact and ignore its dependencies. |
 | `attributes` | both | Extra Maven module attributes (rarely needed). |
 | `publication` | both | Override the resolved artifact's `name` / `type` / `ext` / `classifier`. |
-| `isSbtPlugin` | Java | Adds `sbtVersion=1.0` and `scalaVersion=2.12` attributes, needed when consuming an sbt plugin as a normal dependency. |
+| `isSbtPlugin` | both | An sbt plugin. On `org:name` it is an sbt 1 plugin: adds the `sbtVersion=1.0` and `scalaVersion=2.12` attributes sbt 1 looks plugins up by. On `org::name` the project's scala version says which sbt: sbt 1 for 2.12, and for 3 the sbt 2 plugin `name_sbt2_3`, so one line serves a project built for both. |
 | `forceJvm` | Scala | Pin the JVM artifact even on a JS or Native project. |
 | `for3Use213` | Scala | When the project is on Scala 3, resolve the Scala 2.13 build. The standard escape hatch for libraries not yet published for 3. |
 | `for213Use3` | Scala | The opposite. Rarely useful; binary compatibility usually doesn't carry that direction. |
@@ -97,7 +97,11 @@ compile-and-runtime classpath. The cases that matter:
 - `optional`, treated exactly like `provided` inside a bleep
   build. The two differ only in the POM bleep publishes, which
   carries whichever you wrote.
-- `runtime`, present at runtime, not at compile time.
+- `runtime`, present at runtime, not at compile time: a JDBC driver,
+  a logging backend. Unlike `provided`, it **is** inherited, as
+  `runtime` again: a project depending on this one runs with it and
+  doesn't compile against it. Test projects compile against it too,
+  as in Maven, whose test classpath includes the runtime scope.
 - `test`, only resolves when the project is a test project.
 
 Worth calling out: when project A `dependsOn:` project B, deps that

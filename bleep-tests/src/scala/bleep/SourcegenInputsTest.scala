@@ -192,7 +192,7 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
         sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))),
         sourcegen = model.JsonSet(SortedSet(scriptDef("scripts", "../schema")))
       )
-      val projectPaths = buildPaths.project(cpn("myapp"), myapp)
+      val projectPaths = buildPaths.project(cpn("myapp"), myapp, Set.empty)
 
       ProjectInputs.all(myapp, projectPaths) should contain(workspace.resolve("schema"))
       ProjectInputs.all(myapp, projectPaths) should contain(workspace.resolve("myapp").resolve("src").resolve("scala"))
@@ -205,7 +205,7 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
         sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))),
         resources = model.JsonSet(SortedSet(RelPath.force("src/resources")))
       )
-      val projectPaths = buildPaths.project(cpn("myapp"), myapp)
+      val projectPaths = buildPaths.project(cpn("myapp"), myapp, Set.empty)
 
       ProjectInputs
         .all(myapp, projectPaths) shouldBe (projectPaths.sourcesDirs.all(Usage.Input) ++ projectPaths.resourcesDirs.all(Usage.Input))

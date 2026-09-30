@@ -978,11 +978,13 @@ object ZincBridge {
         debug(s"[ZincBridge] Using ECJ version $version for Java compilation")
         createEcjTools(scalaInstance, classpathOptions, version, cancellationToken, progressListener)
       case None =>
-        sbt.internal.inc.javac.JavaTools.directOrFork(
-          scalaInstance,
-          classpathOptions,
-          None // Use system Java
-        )
+        // the system javac, with processors and plugins loaded apart from the server's classes
+        val javac = javax.tools.ToolProvider.getSystemJavaCompiler match {
+          case null     => throw new IllegalStateException("The compile server runs on a JRE without javac")
+          case compiler => new sbt.internal.inc.javac.LocalJavaCompiler(new IsolatedProcessorsJavaCompiler(compiler))
+        }
+        val javadoc = sbt.internal.inc.javac.JavaTools.directOrFork(scalaInstance, classpathOptions, None).javadoc()
+        sbt.internal.inc.javac.JavaTools(javac, javadoc)
     }
 
     ZincUtil.compilers(javaTools, scalaCompiler)

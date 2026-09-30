@@ -1,0 +1,56 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:17
+projects:
+  dynver:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-and-3
+        scala:
+          version: 2.13.18
+    folder: ../sbt-build/dynver
+    platform:
+      jvmRuntimeOptions: -Duser.dir=${BUILD_DIR}
+    publish:
+      groupId: com.github.sbt
+    sbt-scope: main
+  dynver-test:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-and-3
+        scala:
+          version: 2.13.18
+    dependencies:
+    - org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r
+    - org.scalacheck::scalacheck:1.20.0
+    dependsOn: dynver
+    folder: ../sbt-build/dynver
+    isTestProject: true
+    sbt-scope: test
+    testFrameworks:
+    - hedgehog.sbt.Framework
+    - weaver.framework.CatsEffect
+    - zio.test.sbt.ZTestFramework
+templates:
+  template-common:
+    ignoreEvictionErrors: no
+    platform:
+      name: jvm
+    scala:
+      options: -deprecation -encoding utf8 -feature -unchecked
+      setup:
+        order: mixed
+  template-scala-2.12:
+    extends: template-common
+    scala:
+      options: -Xfuture -Xlint -Yno-adapted-args -Ywarn-dead-code -Ywarn-numeric-widen
+        -Ywarn-value-discard -release:8
+      version: 2.12.21
+  template-scala-2.13-and-3:
+    extends: template-common
+    scala:
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false

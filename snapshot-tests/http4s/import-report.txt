@@ -1,0 +1,38 @@
+# template inference
+templates: 16
+projects: 33
+settings: 420 (340 in projects, 80 in templates)
+
+# roundtrip
+sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
+imported from sbt but not in the bleep build: none
+sbt bloop projects dropped by the import: bench-test, coreJS-test, coreNative-test, examples-docker-test, examples-ember-test, examples-test, laws-test, lawsJS-test, lawsNative-test, rootJS, rootJS-test, rootJVM, rootJVM-test, rootNative, rootNative-test, sbt-http4s-org-scalafix-internal, sbt-http4s-org-scalafix-internal-test, scalafixInternalInput-test, scalafixInternalOutput-test, scalafixInternalRules-test, site, site-test, unidocs, unidocs-test
+compared: 152, identical: 147
+
+most common differences (projects, aspect, difference):
+    3  classpath ~ scalap: 2.13.18 -> 2.13.15
+
+http4s-examples-ember@jvm213
+  classpath
+    - jar circe-generic_2.13:0.14.16
+    - jar logback-classic:1.2.6
+    - jar logback-core:1.2.6
+    - jar shapeless_2.13:2.3.13
+
+http4s-examples-ember@jvm3
+  classpath
+    - jar circe-generic_3:0.14.16
+    - jar logback-classic:1.2.6
+    - jar logback-core:1.2.6
+
+http4s-scalafix-internal@jvm213
+  classpath
+    ~ scalap: 2.13.18 -> 2.13.15
+
+scalafixinternaltests@jvm213
+  classpath
+    ~ scalap: 2.13.18 -> 2.13.15
+
+scalafixinternaltests-test@jvm213
+  classpath
+    ~ scalap: 2.13.18 -> 2.13.15

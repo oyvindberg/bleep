@@ -5,26 +5,44 @@
     "a" : {
       "extends" : "template-common"
     },
-    "aTest" : {
+    "a-test" : {
+      "dependsOn" : "a",
       "extends" : "template-common-test"
     },
-    "bTest" : {
+    "b" : {
+      "extends" : "template-common"
+    },
+    "b-test" : {
+      "dependsOn" : "b",
+      "extends" : "template-common-test"
+    },
+    "c" : {
+      "extends" : "template-common"
+    },
+    "c-test" : {
+      "dependsOn" : "c",
       "extends" : "template-common-test"
     }
   },
   "templates" : {
     "template-common" : {
       "scala" : {
+        "options" : "-Xlint -deprecation -feature -unchecked",
         "version" : "2.13.18"
       }
     },
     "template-common-test" : {
-      "dependsOn" : "a",
+      "dependencies" : [
+        "org.scalacheck::scalacheck:1.17.0",
+        "org.scalameta::munit:1.0.0",
+        "org.scalatest::scalatest:3.2.18"
+      ],
       "extends" : "template-common",
       "isTestProject" : true,
-      "scala" : {
-        "options" : "foo"
-      }
+      "testFrameworks" : [
+        "munit.Framework",
+        "org.scalatest.tools.Framework"
+      ]
     }
   }
 }

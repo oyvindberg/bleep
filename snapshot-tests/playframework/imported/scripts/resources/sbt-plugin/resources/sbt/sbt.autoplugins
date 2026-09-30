@@ -1,0 +1,13 @@
+play.sbt.Play
+play.sbt.PlayFilters
+play.sbt.PlayJava
+play.sbt.PlayLayoutPlugin
+play.sbt.PlayLogback
+play.sbt.PlayMinimalJava
+play.sbt.PlayNettyServer
+play.sbt.PlayPekkoHttp2Support
+play.sbt.PlayPekkoHttpServer
+play.sbt.PlayScala
+play.sbt.PlayService
+play.sbt.PlayWeb
+play.sbt.routes.RoutesCompiler

@@ -9,6 +9,9 @@ Bleep runs Java annotation processors (Lombok, MapStruct, Immutables, Dagger, â€
 > for the user surface, scan vs. explicit mode, version pairing, and
 > current limitations. KAPT is not supported; migrate to KSP first.
 
+>
+> The `java:` fields below also work in a Kotlin project: they run on its `.java` sources, which javac compiles after kotlinc. Kotlin code can use what they generate from the second compile on, since kotlinc runs first.
+
 Resolution and processor-jar discovery happen lazily during compile as a first-class DAG task (`bleep:resolve-annotation-processors:<project>`), not at bootstrap. Failures are isolated per project and surface as a build failure with the project name in the message.
 
 ## Quick start: Lombok
@@ -24,13 +27,13 @@ projects:
       scanForAnnotationProcessors: true
 ```
 
-Bleep finds Lombok's `META-INF/services/javax.annotation.processing.Processor` entry inside the jar at compile time and puts it on javac's `-processorpath`. ServiceLoader picks the processor class. `@Data`'s `getName()`, `setName()`, `toString()`, etc. are generated as expected.
+Bleep finds Lombok's `META-INF/services/javax.annotation.processing.Processor` entry inside the jar at compile time and puts the classpath on javac's `-processorpath`, as javac does itself without one: a processor usually needs other jars to run, JMH's needs `jmh-generator-core`. ServiceLoader picks the processor class. `@Data`'s `getName()`, `setName()`, `toString()`, etc. are generated as expected.
 
 ## Three knobs
 
 | Field | Default | Purpose |
 | --- | --- | --- |
-| `scanForAnnotationProcessors: Boolean` | `false` | Opt-in to scan resolved-`dependencies` jars for processors. Matches found jars get added to `-processorpath`. |
+| `scanForAnnotationProcessors: true \| false \| if-present` | `false` | Opt-in to scan resolved-`dependencies` jars for processors. When it finds any, the classpath goes on `-processorpath`. `true` fails when it finds none, `if-present` doesn't. |
 | `annotationProcessors: [Dep]` | `[]` | Explicit processor-only deps. Always added to `-processorpath`; never on the runtime/compile classpath of the project. |
 | `annotationProcessorOptions: {key: value}` | `{}` | `-A<key>=<value>` flags. Visible to every configured processor (JSR 269 has no per-processor `-A`). |
 
@@ -103,6 +106,7 @@ Dependency upgrades cannot silently introduce new processors here, only what's i
 ## Errors and escape hatches
 
 * **No-op opt-in fails loud.** `scanForAnnotationProcessors: true` with empty `annotationProcessors` and zero processor-bearing jars in `dependencies` makes the AP DAG task fail at compile time, propagating up as `commands.compile`/`commands.run` throwing a `BleepException` with `"Annotation processor resolution failed for N project(s)"`. The user typed `true` for a reason; we don't silently disable.
+* **`if-present` is javac's own default.** Without a processor path, javac runs whatever processors it finds on the classpath, and finding none is fine. `scanForAnnotationProcessors: if-present` does exactly that, and it's what `bleep import-maven` writes for modules which don't list `<annotationProcessorPaths>`: a Maven build relying on Lombok being on the classpath keeps working. Write `true` in your own build, so a processor which goes missing is an error.
 * **Manual `-proc:none` is honored.** Putting `-proc:none` in `java.options` skips all auto-wiring. Use this when you want to disable processing for a project that has processor-bearing dependencies.
 * **Conflicting flags rejected.** Manual `-processorpath`, `-A`, `-proc:*`, or `-s` in `java.options` raise an error when bleep is also wiring annotation processing, choose one or the other.
 * **`-processor` (the comma-separated class-name list) is allowed in `java.options`.** Bleep never emits `-processor` itself; use it to pin a subset (e.g. one processor from a multi-processor jar) or to work around the rare jar that ships its processor classes without a `META-INF/services/javax.annotation.processing.Processor` registration.

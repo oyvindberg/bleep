@@ -24,56 +24,60 @@
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.6/logback-classic-1.2.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.6/logback-core-1.2.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.11.0/fs2-core_3-3.11.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_3/3.11.0/fs2-io_3-3.11.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_3/3.6.0/ip4s-core_3-3.6.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-test-kit_3/3.6.0/ip4s-test-kit_3-3.6.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.8/circe-core_3-0.14.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.8/circe-jawn_3-0.14.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers-testing_3/0.14.8/circe-numbers-testing_3-0.14.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.8/circe-numbers_3-0.14.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-testing_3/0.14.8/circe-testing_3-0.14.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.14.0/fs2-core_3-3.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_3/3.14.0/fs2-io_3-3.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_3/3.8.0/ip4s-core_3-3.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-test-kit_3/3.8.0/ip4s-test-kit_3-3.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.16/circe-core_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.16/circe-jawn_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers-testing_3/0.14.16/circe-numbers-testing_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.16/circe-numbers_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-testing_3/0.14.16/circe-testing_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/sbt-doctest/doctest-runtime_3/0.12.5/doctest-runtime_3-0.12.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.17.1/scalacheck_3-1.17.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.0.0/junit-interface-1.0.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_3/1.0.0/munit-diff_3-1.0.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-scalacheck_3/1.0.0-M6/munit-scalacheck_3-1.0.0-M6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_3/1.0.0/munit_3-1.0.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.38/scodec-bits_3-1.1.38.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.20.0/scalacheck_3-1.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.2.4/junit-interface-1.2.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_3/1.2.4/munit-diff_3-1.2.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-scalacheck_3/1.2.0/munit-scalacheck_3-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_3/1.2.4/munit_3-1.2.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.2.5/scodec-bits_3-1.2.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive-testing_3/1.4.2/case-insensitive-testing_3-1.4.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_3/1.4.2/case-insensitive_3-1.4.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.11.0/cats-core_3-2.11.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel-testkit_3/3.5.7/cats-effect-kernel-testkit_3-3.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.5.7/cats-effect-kernel_3-3.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.5.7/cats-effect-std_3-3.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-testkit_3/3.5.7/cats-effect-testkit_3-3.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.5.7/cats-effect_3-3.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_3/2.9.0/cats-free_3-2.9.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel-laws_3/2.11.0/cats-kernel-laws_3-2.11.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.11.0/cats-kernel_3-2.11.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-laws_3/2.11.0/cats-laws_3-2.11.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.3.0/cats-mtl_3-1.3.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_3/1.0.0/cats-parse_3-1.0.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/coop_3/1.2.0/coop_3-1.2.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-core_3/1.6.0/discipline-core_3-1.6.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-munit_3/2.0.0-M3/discipline-munit_3-2.0.0-M3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_3/2.4.0/jawn-fs2_3-2.4.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.5.1/jawn-parser_3-1.5.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.1.0/literally_3-1.1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_3/2.7.0/log4cats-core_3-2.7.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect_3/2.0.0/munit-cats-effect_3-2.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/algebra_3/2.13.0/algebra_3-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive-testing_3/1.5.0/case-insensitive-testing_3-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_3/1.5.0/case-insensitive_3-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-collections-core_3/0.9.10/cats-collections-core_3-0.9.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.13.0/cats-core_3-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel-testkit_3/3.7.1/cats-effect-kernel-testkit_3-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.7.1/cats-effect-kernel_3-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.7.1/cats-effect-std_3-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-testkit_3/3.7.1/cats-effect-testkit_3-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.7.1/cats-effect_3-3.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_3/2.13.0/cats-free_3-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel-laws_3/2.13.0/cats-kernel-laws_3-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.13.0/cats-kernel_3-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-laws_3/2.13.0/cats-laws_3-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.7.0/cats-mtl_3-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_3/1.1.0/cats-parse_3-1.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/coop_3/1.3.0/coop_3-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-core_3/1.7.0/discipline-core_3-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-munit_3/2.0.0/discipline-munit_3-2.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/idna4s-core_3/0.1.0/idna4s-core_3-0.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_3/2.6.0/jawn-fs2_3-2.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.7.0/jawn-parser_3-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.2.0/literally_3-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_3/2.8.0/log4cats-core_3-2.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect_3/2.2.0/munit-cats-effect_3-2.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_3/0.1.4/scalac-compat-annotation_3-0.1.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_3/2.0.0-M2/scalacheck-effect-munit_3-2.0.0-M2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_3/2.0.0-M2/scalacheck-effect_3-2.0.0-M2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_3/3.6.0/vault_3-3.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_3/2.1.0/scalacheck-effect-munit_3-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_3/2.1.0/scalacheck-effect_3-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_3/3.7.0/vault_3-3.7.0.jar",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-circe@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm3/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm3/generated-resources/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-core@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-jawn-test@jvm3/builds/normal/test-classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-jawn@jvm3/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-laws@jvm3/builds/normal/classes",
@@ -104,7 +108,7 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala3-compiler_3",
-      "version": "3.3.4",
+      "version": "3.3.6",
       "options": [
         "-Wunused:explicits",
         "-Wunused:implicits",
@@ -126,19 +130,18 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.4/scala3-compiler_3-3.3.4.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.4/scala3-interfaces-3.3.4.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.4/tasty-core_3-3.3.4.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.6.0-scala-1/scala-asm-9.6.0-scala-1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.9.6/compiler-interface-1.9.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.25.1/jline-reader-3.25.1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.25.1/jline-terminal-3.25.1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.25.1/jline-terminal-jna-3.25.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.6/scala3-compiler_3-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.6/scala3-interfaces-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.6/tasty-core_3-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.4/compiler-interface-1.10.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.1/jline-reader-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.1/jline-terminal-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.27.1/jline-terminal-jni-3.27.1.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.9.8/util-interface-1.9.8.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.25.1/jline-native-3.25.1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.4/util-interface-1.10.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/projects/http4s-circe-test@jvm3/builds/normal/inc_compile.zip",
       "setup": {
@@ -203,123 +206,101 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.hamcrest",
-          "name": "hamcrest-core",
-          "version": "1.3",
-          "artifacts": [
-            {
-              "name": "hamcrest-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
           "name": "cats-laws_3",
-          "version": "2.11.0",
+          "version": "2.13.0",
           "artifacts": [
             {
               "name": "cats-laws_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-laws_3/2.11.0/cats-laws_3-2.11.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-laws_3/2.13.0/cats-laws_3-2.13.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "jawn-fs2_3",
-          "version": "2.4.0",
+          "version": "2.6.0",
           "artifacts": [
             {
               "name": "jawn-fs2_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_3/2.4.0/jawn-fs2_3-2.4.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_3/2.6.0/jawn-fs2_3-2.6.0.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
           "name": "circe-numbers-testing_3",
-          "version": "0.14.8",
+          "version": "0.14.16",
           "artifacts": [
             {
               "name": "circe-numbers-testing_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers-testing_3/0.14.8/circe-numbers-testing_3-0.14.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers-testing_3/0.14.16/circe-numbers-testing_3-0.14.16.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "discipline-core_3",
-          "version": "1.6.0",
+          "version": "1.7.0",
           "artifacts": [
             {
               "name": "discipline-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-core_3/1.6.0/discipline-core_3-1.6.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-core_3/1.7.0/discipline-core_3-1.7.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "literally_3",
-          "version": "1.1.0",
+          "version": "1.2.0",
           "artifacts": [
             {
               "name": "literally_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.1.0/literally_3-1.1.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.2.0/literally_3-1.2.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "cats-kernel-laws_3",
-          "version": "2.11.0",
+          "version": "2.13.0",
           "artifacts": [
             {
               "name": "cats-kernel-laws_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel-laws_3/2.11.0/cats-kernel-laws_3-2.11.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel-laws_3/2.13.0/cats-kernel-laws_3-2.13.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "scalacheck-effect_3",
-          "version": "2.0.0-M2",
+          "version": "2.1.0",
           "artifacts": [
             {
               "name": "scalacheck-effect_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_3/2.0.0-M2/scalacheck-effect_3-2.0.0-M2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_3/2.1.0/scalacheck-effect_3-2.1.0.jar"
             }
           ]
         },
         {
           "organization": "org.scalacheck",
           "name": "scalacheck_3",
-          "version": "1.17.1",
+          "version": "1.20.0",
           "artifacts": [
             {
               "name": "scalacheck_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.17.1/scalacheck_3-1.17.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.20.0/scalacheck_3-1.20.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
-          "version": "3.3.4",
+          "version": "3.3.8",
           "artifacts": [
             {
               "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "discipline-munit_3",
-          "version": "2.0.0-M3",
-          "artifacts": [
-            {
-              "name": "discipline-munit_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-munit_3/2.0.0-M3/discipline-munit_3-2.0.0-M3.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.8/scala3-library_3-3.3.8.jar"
             }
           ]
         },
@@ -337,66 +318,99 @@
         {
           "organization": "org.scalameta",
           "name": "munit_3",
-          "version": "1.0.0",
+          "version": "1.2.4",
           "artifacts": [
             {
               "name": "munit_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_3/1.0.0/munit_3-1.0.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_3/1.2.4/munit_3-1.2.4.jar"
             }
           ]
         },
         {
           "organization": "co.fs2",
           "name": "fs2-core_3",
-          "version": "3.11.0",
+          "version": "3.14.0",
           "artifacts": [
             {
               "name": "fs2-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.11.0/fs2-core_3-3.11.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.14.0/fs2-core_3-3.14.0.jar"
             }
           ]
         },
         {
           "organization": "com.comcast",
           "name": "ip4s-core_3",
-          "version": "3.6.0",
+          "version": "3.8.0",
           "artifacts": [
             {
               "name": "ip4s-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_3/3.6.0/ip4s-core_3-3.6.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_3/3.8.0/ip4s-core_3-3.8.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-collections-core_3",
+          "version": "0.9.10",
+          "artifacts": [
+            {
+              "name": "cats-collections-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-collections-core_3/0.9.10/cats-collections-core_3-0.9.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hamcrest",
+          "name": "hamcrest-core",
+          "version": "1.3",
+          "artifacts": [
+            {
+              "name": "hamcrest-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.sbt-doctest",
+          "name": "doctest-runtime_3",
+          "version": "0.12.5",
+          "artifacts": [
+            {
+              "name": "doctest-runtime_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/sbt-doctest/doctest-runtime_3/0.12.5/doctest-runtime_3-0.12.5.jar"
             }
           ]
         },
         {
           "organization": "org.scalameta",
           "name": "junit-interface",
-          "version": "1.0.0",
+          "version": "1.2.4",
           "artifacts": [
             {
               "name": "junit-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.0.0/junit-interface-1.0.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/1.2.4/junit-interface-1.2.4.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "cats-effect-testkit_3",
-          "version": "3.5.7",
+          "version": "3.7.1",
           "artifacts": [
             {
               "name": "cats-effect-testkit_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-testkit_3/3.5.7/cats-effect-testkit_3-3.5.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-testkit_3/3.7.1/cats-effect-testkit_3-3.7.1.jar"
             }
           ]
         },
         {
           "organization": "org.scalameta",
           "name": "munit-diff_3",
-          "version": "1.0.0",
+          "version": "1.2.4",
           "artifacts": [
             {
               "name": "munit-diff_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_3/1.0.0/munit-diff_3-1.0.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_3/1.2.4/munit-diff_3-1.2.4.jar"
             }
           ]
         },
@@ -414,44 +428,44 @@
         {
           "organization": "org.typelevel",
           "name": "jawn-parser_3",
-          "version": "1.5.1",
+          "version": "1.7.0",
           "artifacts": [
             {
               "name": "jawn-parser_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.5.1/jawn-parser_3-1.5.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.7.0/jawn-parser_3-1.7.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "munit-cats-effect_3",
-          "version": "2.0.0",
+          "version": "2.2.0",
           "artifacts": [
             {
               "name": "munit-cats-effect_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect_3/2.0.0/munit-cats-effect_3-2.0.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect_3/2.2.0/munit-cats-effect_3-2.2.0.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
           "name": "circe-core_3",
-          "version": "0.14.8",
+          "version": "0.14.16",
           "artifacts": [
             {
               "name": "circe-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.8/circe-core_3-0.14.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.16/circe-core_3-0.14.16.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
           "name": "circe-numbers_3",
-          "version": "0.14.8",
+          "version": "0.14.16",
           "artifacts": [
             {
               "name": "circe-numbers_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.8/circe-numbers_3-0.14.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.16/circe-numbers_3-0.14.16.jar"
             }
           ]
         },
@@ -469,33 +483,33 @@
         {
           "organization": "org.typelevel",
           "name": "vault_3",
-          "version": "3.6.0",
+          "version": "3.7.0",
           "artifacts": [
             {
               "name": "vault_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_3/3.6.0/vault_3-3.6.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_3/3.7.0/vault_3-3.7.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_3",
-          "version": "3.5.7",
+          "version": "3.7.1",
           "artifacts": [
             {
               "name": "cats-effect-kernel_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.5.7/cats-effect-kernel_3-3.5.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.7.1/cats-effect-kernel_3-3.7.1.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "scalacheck-effect-munit_3",
-          "version": "2.0.0-M2",
+          "version": "2.1.0",
           "artifacts": [
             {
               "name": "scalacheck-effect-munit_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_3/2.0.0-M2/scalacheck-effect-munit_3-2.0.0-M2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_3/2.1.0/scalacheck-effect-munit_3-2.1.0.jar"
             }
           ]
         },
@@ -524,22 +538,22 @@
         {
           "organization": "org.scalameta",
           "name": "munit-scalacheck_3",
-          "version": "1.0.0-M6",
+          "version": "1.2.0",
           "artifacts": [
             {
               "name": "munit-scalacheck_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-scalacheck_3/1.0.0-M6/munit-scalacheck_3-1.0.0-M6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-scalacheck_3/1.2.0/munit-scalacheck_3-1.2.0.jar"
             }
           ]
         },
         {
           "organization": "com.comcast",
           "name": "ip4s-test-kit_3",
-          "version": "3.6.0",
+          "version": "3.8.0",
           "artifacts": [
             {
               "name": "ip4s-test-kit_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-test-kit_3/3.6.0/ip4s-test-kit_3-3.6.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-test-kit_3/3.8.0/ip4s-test-kit_3-3.8.0.jar"
             }
           ]
         },
@@ -557,143 +571,176 @@
         {
           "organization": "org.typelevel",
           "name": "log4cats-core_3",
-          "version": "2.7.0",
+          "version": "2.8.0",
           "artifacts": [
             {
               "name": "log4cats-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_3/2.7.0/log4cats-core_3-2.7.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_3/2.8.0/log4cats-core_3-2.8.0.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
           "name": "circe-testing_3",
-          "version": "0.14.8",
+          "version": "0.14.16",
           "artifacts": [
             {
               "name": "circe-testing_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-testing_3/0.14.8/circe-testing_3-0.14.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-testing_3/0.14.16/circe-testing_3-0.14.16.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "cats-mtl_3",
-          "version": "1.3.0",
+          "version": "1.7.0",
           "artifacts": [
             {
               "name": "cats-mtl_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.3.0/cats-mtl_3-1.3.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_3/1.7.0/cats-mtl_3-1.7.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "cats-effect_3",
-          "version": "3.5.7",
+          "version": "3.7.1",
           "artifacts": [
             {
               "name": "cats-effect_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.5.7/cats-effect_3-3.5.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.7.1/cats-effect_3-3.7.1.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "cats-parse_3",
-          "version": "1.0.0",
+          "version": "1.1.0",
           "artifacts": [
             {
               "name": "cats-parse_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_3/1.0.0/cats-parse_3-1.0.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_3/1.1.0/cats-parse_3-1.1.0.jar"
             }
           ]
         },
         {
           "organization": "co.fs2",
           "name": "fs2-io_3",
-          "version": "3.11.0",
+          "version": "3.14.0",
           "artifacts": [
             {
               "name": "fs2-io_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_3/3.11.0/fs2-io_3-3.11.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_3/3.14.0/fs2-io_3-3.14.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
-          "name": "case-insensitive-testing_3",
-          "version": "1.4.2",
+          "name": "discipline-munit_3",
+          "version": "2.0.0",
           "artifacts": [
             {
-              "name": "case-insensitive-testing_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive-testing_3/1.4.2/case-insensitive-testing_3-1.4.2.jar"
+              "name": "discipline-munit_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-munit_3/2.0.0/discipline-munit_3-2.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "algebra_3",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "algebra_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/algebra_3/2.13.0/algebra_3-2.13.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "cats-free_3",
-          "version": "2.9.0",
+          "version": "2.13.0",
           "artifacts": [
             {
               "name": "cats-free_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_3/2.9.0/cats-free_3-2.9.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_3/2.13.0/cats-free_3-2.13.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "cats-effect-std_3",
-          "version": "3.5.7",
+          "version": "3.7.1",
           "artifacts": [
             {
               "name": "cats-effect-std_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.5.7/cats-effect-std_3-3.5.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.7.1/cats-effect-std_3-3.7.1.jar"
             }
           ]
         },
         {
           "organization": "org.scodec",
           "name": "scodec-bits_3",
-          "version": "1.1.38",
+          "version": "1.2.5",
           "artifacts": [
             {
               "name": "scodec-bits_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.38/scodec-bits_3-1.1.38.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.2.5/scodec-bits_3-1.2.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "idna4s-core_3",
+          "version": "0.1.0",
+          "artifacts": [
+            {
+              "name": "idna4s-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/idna4s-core_3/0.1.0/idna4s-core_3-0.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "case-insensitive-testing_3",
+          "version": "1.5.0",
+          "artifacts": [
+            {
+              "name": "case-insensitive-testing_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive-testing_3/1.5.0/case-insensitive-testing_3-1.5.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "cats-core_3",
-          "version": "2.11.0",
+          "version": "2.13.0",
           "artifacts": [
             {
               "name": "cats-core_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.11.0/cats-core_3-2.11.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.13.0/cats-core_3-2.13.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "coop_3",
-          "version": "1.2.0",
+          "version": "1.3.0",
           "artifacts": [
             {
               "name": "coop_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/coop_3/1.2.0/coop_3-1.2.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/coop_3/1.3.0/coop_3-1.3.0.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "cats-kernel_3",
-          "version": "2.11.0",
+          "version": "2.13.0",
           "artifacts": [
             {
               "name": "cats-kernel_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.11.0/cats-kernel_3-2.11.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.13.0/cats-kernel_3-2.13.0.jar"
             }
           ]
         },
@@ -711,33 +758,33 @@
         {
           "organization": "org.typelevel",
           "name": "cats-effect-kernel-testkit_3",
-          "version": "3.5.7",
+          "version": "3.7.1",
           "artifacts": [
             {
               "name": "cats-effect-kernel-testkit_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel-testkit_3/3.5.7/cats-effect-kernel-testkit_3-3.5.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel-testkit_3/3.7.1/cats-effect-kernel-testkit_3-3.7.1.jar"
             }
           ]
         },
         {
           "organization": "org.typelevel",
           "name": "case-insensitive_3",
-          "version": "1.4.2",
+          "version": "1.5.0",
           "artifacts": [
             {
               "name": "case-insensitive_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_3/1.4.2/case-insensitive_3-1.4.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_3/1.5.0/case-insensitive_3-1.5.0.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
           "name": "circe-jawn_3",
-          "version": "0.14.8",
+          "version": "0.14.16",
           "artifacts": [
             {
               "name": "circe-jawn_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.8/circe-jawn_3-0.14.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.16/circe-jawn_3-0.14.16.jar"
             }
           ]
         }

@@ -52,6 +52,7 @@
         "java",
         "kotlin",
         "normal",
+        "sbt-plugin",
         "cross-pure",
         "cross-full",
         "sbt-matrix"
@@ -157,7 +158,8 @@
           "type": "boolean"
         },
         "isSbtPlugin": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "an sbt plugin. `org:name` is an sbt 1 plugin. `org::name` is an sbt 1 plugin for a scala 2.12 project and an sbt 2 plugin (`name_sbt2_3`) for a scala 3 one, so one line serves a plugin built for both."
         }
       },
       "required": [
@@ -171,8 +173,15 @@
           "$ref": "#/$defs/Options"
         },
         "scanForAnnotationProcessors": {
-          "type": "boolean",
-          "description": "When true, scan resolved-`dependencies` JARs for `META-INF/services/javax.annotation.processing.Processor` and add matches to javac's `-processorpath`. Default off (explicit opt-in)."
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "const": "if-present"
+            }
+          ],
+          "description": "Scan resolved-`dependencies` JARs for `META-INF/services/javax.annotation.processing.Processor` and add matches to javac's `-processorpath`. `true` fails when none are found, `if-present` runs whatever is there, as javac does without a processor path. Default off (explicit opt-in)."
         },
         "annotationProcessors": {
           "oneOf": [
@@ -336,6 +345,10 @@
         "compilerProject": {
           "type": "string",
           "description": "compile with the Scala compiler built by this project (`name` or `name@crossId`) instead of fetching `version`. Its runtime classpath is the compiler and its own classes the zinc compiler bridge, so name the bridge project. Built first; never on this project's classpath."
+        },
+        "sbtPlugin": {
+          "type": "boolean",
+          "description": "an sbt plugin: for sbt 1 when `version` is 2.12, for sbt 2 when it is 3. Published as `name_2.12_1.0` or `name_sbt2_3`, the names sbt looks plugins up by."
         }
       }
     },

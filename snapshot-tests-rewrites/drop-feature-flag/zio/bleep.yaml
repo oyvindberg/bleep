@@ -1,0 +1,1451 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:17
+projects:
+  benchmarks:
+    cross:
+      jvm212:
+        dependencies: com.github.japgolly.nyaya::nyaya-gen:0.10.0
+      jvm213:
+        dependencies: com.github.japgolly.nyaya::nyaya-gen:1.1.0
+      jvm3:
+        dependencies: com.github.japgolly.nyaya::nyaya-gen:1.1.0
+    dependencies:
+    - co.fs2::fs2-core:3.14.0
+    - com.twitter::util-core:24.2.0
+    - com.typesafe.akka::akka-stream:2.8.8
+    - io.github.timwspence::cats-stm:0.13.4
+    - io.projectreactor:reactor-core:3.8.7
+    - io.reactivex.rxjava2:rxjava:2.2.21
+    - org.jctools:jctools-core:4.0.7
+    - org.openjdk.jmh:jmh-core:1.37
+    - org.openjdk.jmh:jmh-generator-bytecode:1.37
+    - org.openjdk.jmh:jmh-generator-reflection:1.37
+    - org.scalacheck::scalacheck:1.20.0
+    - org.springframework:spring-core:7.0.9
+    - org.typelevel::cats-effect:3.7.1
+    - qa.hedgehog::hedgehog-core:0.14.0
+    dependsOn: zio+test
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
+    - template-jvm
+    folder: ../sbt-build/benchmarks
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    scala:
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"'
+  core-tests:
+    cross:
+      js212:
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      js213:
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+    dependsOn:
+    - zio-concurrent
+    - zio-test-sbt
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/core-tests
+    source-layout: cross-full
+  core-tests-test:
+    cross:
+      js212:
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      js213:
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+    dependsOn: core-tests
+    extends:
+    - template-common-test-jcstress-core
+    - template-cross-all
+    folder: ../sbt-build/core-tests
+    source-layout: cross-full
+  differ-compositional-updates:
+    dependencies: dev.zio::zio:2.1.25
+    extends:
+    - template-common-main
+    - template-jvm
+    - template-scala-2.13
+    folder: ../sbt-build/zio-examples/differ-compositional-updates
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    publish:
+      groupId: default
+  examples:
+    cross:
+      js212:
+        dependencies:
+          for3Use213: true
+          module: org.scala-js::scalajs-java-securerandom:1.0.0
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        dependencies:
+          for3Use213: true
+          module: org.scala-js::scalajs-java-securerandom:1.0.0
+        scala:
+          options: -Ymacro-annotations
+      js3:
+        dependencies:
+          for3Use213: true
+          module: org.scala-js::scalajs-java-securerandom:1.0.0
+      jvm212:
+        dependsOn: zio-test-junit
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        dependsOn: zio-test-junit
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        scala:
+          options: -Ymacro-annotations
+      jvm3:
+        dependsOn: zio-test-junit
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      native212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      native213:
+        scala:
+          options: -Ymacro-annotations
+    dependencies:
+    - forceJvm: true
+      module: dev.zio::zio-http:3.4.0
+    - forceJvm: true
+      module: dev.zio::zio-metrics-connectors-prometheus:2.5.8
+    - forceJvm: true
+      module: dev.zio::zio-metrics-connectors:2.5.8
+    dependsOn:
+    - zio-macros
+    - zio-test-sbt
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/examples
+    source-layout: cross-full
+  examples-test:
+    cross:
+      js212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        scala:
+          options: -Ymacro-annotations
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        scala:
+          options: -Ymacro-annotations
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      native212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      native213:
+        scala:
+          options: -Ymacro-annotations
+    dependsOn: examples
+    extends:
+    - template-common-test-jcstress-core
+    - template-cross-all
+    folder: ../sbt-build/examples
+    source-layout: cross-full
+  macros-tests:
+    cross:
+      js212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        scala:
+          options: -Ymacro-annotations
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+        scala:
+          options: -Ymacro-annotations
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      native212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      native213:
+        scala:
+          options: -Ymacro-annotations
+    dependsOn:
+    - zio-macros
+    - zio-test-sbt
+    extends:
+    - template-common-main
+    - template-cross-all
+    - template-cross-js-212-213-jvm-212-213-native-212-213
+    folder: ../sbt-build/macros-tests
+    scala:
+      options: -language:experimental.macros
+    source-layout: cross-pure
+  macros-tests-test:
+    cross:
+      js212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        scala:
+          options: -Ymacro-annotations
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+        scala:
+          options: -Ymacro-annotations
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      native212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      native213:
+        scala:
+          options: -Ymacro-annotations
+    dependsOn: macros-tests
+    extends:
+    - template-common-test-jcstress-core
+    - template-cross-all
+    - template-cross-js-212-213-jvm-212-213-native-212-213
+    folder: ../sbt-build/macros-tests
+    scala:
+      options: -language:experimental.macros
+    source-layout: cross-pure
+  managed-tests:
+    cross:
+      js212:
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      js213:
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+    dependsOn:
+    - zio-managed
+    - zio-test-sbt
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/managed-tests
+    source-layout: cross-full
+  managed-tests-test:
+    cross:
+      js212:
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      js213:
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+    dependsOn: managed-tests
+    extends:
+    - template-common-test-jcstress-core
+    - template-cross-all
+    folder: ../sbt-build/managed-tests
+    source-layout: cross-full
+  migrate-cats-effect:
+    dependencies:
+    - dev.zio::zio-concurrent:2.1.26
+    - dev.zio::zio:2.1.26
+    - org.typelevel::cats-effect:3.7.0
+    extends:
+    - template-common-main
+    - template-jvm
+    - template-scala-2.13
+    folder: ../sbt-build/zio-examples/migrate-cats-effect
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    publish:
+      groupId: default
+  migrate-from-monix:
+    dependencies:
+    - dev.zio::zio-streams:2.1.26
+    - dev.zio::zio-test:2.1.26
+    - dev.zio::zio:2.1.26
+    - io.monix::monix:3.4.1
+    extends:
+    - template-common-main
+    - template-jvm
+    - template-scala-2.13
+    folder: ../sbt-build/zio-examples/migrate-from-monix
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    publish:
+      groupId: default
+  reloadable-services:
+    dependencies: dev.zio::zio:2.1.25
+    extends:
+    - template-common-main
+    - template-jvm
+    - template-scala-2.13
+    folder: ../sbt-build/zio-examples/reloadable-services
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    publish:
+      groupId: default
+  scala-js:
+    dependencies:
+    - dev.zio::zio-json:0.7.38
+    - dev.zio::zio:2.1.25
+    - org.scala-js::scalajs-dom:2.8.1
+    extends:
+    - template-common-main
+    - template-js
+    - template-scala-3
+    folder: ../sbt-build/zio-examples/scala-js
+    publish:
+      groupId: default
+  scala-js-test:
+    dependencies:
+    - dev.zio::zio-test-sbt:2.1.25
+    - dev.zio::zio-test:2.1.25
+    dependsOn: scala-js
+    extends:
+    - template-common-test
+    - template-js
+    - template-scala-3
+    folder: ../sbt-build/zio-examples/scala-js
+  scala-native:
+    dependencies:
+    - dev.zio::zio-streams:2.1.25
+    - dev.zio::zio:2.1.25
+    extends:
+    - template-common-main
+    - template-jvm
+    - template-scala-2.13
+    folder: ../sbt-build/zio-examples/scala-native
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    publish:
+      groupId: default
+  scala-native-test:
+    dependencies:
+    - dev.zio::zio-test-sbt:2.1.25
+    - dev.zio::zio-test:2.1.25
+    dependsOn: scala-native
+    extends:
+    - template-common-test
+    - template-jvm
+    - template-scala-2.13
+    folder: ../sbt-build/zio-examples/scala-native
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+  scalafixinput:
+    dependencies:
+    - dev.zio::zio-streams:1.0.18
+    - dev.zio::zio-test:1.0.18
+    - dev.zio::zio:1.0.18
+    extends:
+    - template-common-main
+    - template-jvm
+    - template-scala-2
+    - template-scala-2.13
+    folder: ../sbt-build/scalafix/input
+  scalafixoutput:
+    dependsOn:
+    - zio+test
+    - zio-managed
+    extends:
+    - template-common-main
+    - template-jvm
+    - template-scala-2
+    - template-scala-2.13
+    folder: ../sbt-build/scalafix/output
+  scalafixrules:
+    dependencies: ch.epfl.scala::scalafix-core:0.14.9
+    extends:
+    - template-common-main
+    - template-jvm
+    - template-scala-2-xfatal-warnings
+    - template-scala-2.13
+    folder: ../sbt-build/scalafix/rules
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    scala:
+      options: -Ybackend-parallelism:4
+  scalafixtests:
+    dependsOn: scalafixrules
+    extends:
+    - template-common-main
+    - template-jvm
+    - template-scala-2
+    - template-scala-2.13
+    folder: ../sbt-build/scalafix/tests
+  scalafixtests-test:
+    dependencies: ch.epfl.scala:::scalafix-testkit:0.14.9
+    dependsOn: scalafixtests
+    extends:
+    - template-common-test-jcstress-core
+    - template-jvm
+    - template-scala-2
+    - template-scala-2.13
+    folder: ../sbt-build/scalafix/tests
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  schedule:
+    dependencies: dev.zio::zio:2.1.25
+    extends:
+    - template-common-main
+    - template-jvm
+    - template-scala-2.13
+    folder: ../sbt-build/zio-examples/schedule
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    publish:
+      groupId: default
+  scripts:
+    dependencies: build.bleep:bleepscript:1.0.0-M14
+    platform:
+      name: jvm
+    resources: ./resources
+  streams-tests:
+    cross:
+      js212:
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      js213:
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+    dependsOn:
+    - zio-concurrent
+    - zio-test-sbt
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/streams-tests
+    source-layout: cross-full
+  streams-tests-test:
+    cross:
+      js212:
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      js213:
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+    dependsOn: streams-tests
+    extends:
+    - template-common-test-jcstress-core
+    - template-cross-all
+    folder: ../sbt-build/streams-tests
+    source-layout: cross-full
+  test-junit-engine-tests:
+    dependsOn: zio-test-sbt
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
+    - template-jvm
+    folder: ../sbt-build/test-junit-engine-tests
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+  test-junit-engine-tests-test:
+    cross:
+      jvm212:
+        extends: template-scala-2.12-jvm-test-scala.compat.version
+      jvm213:
+        extends: template-scala-2.13-jvm-test-scala.compat.version
+        scala:
+          options: -Ybackend-parallelism:4
+      jvm3:
+        extends:
+        - template-jvm-test-dependencies
+        - template-jvm-test-project.dir
+        - template-scala-3-xignore-scala2-macros
+        platform:
+          jvmOptions: -Dscala.compat.version=3 -Dscala.version=3.3.8
+    dependsOn: test-junit-engine-tests
+    folder: ../sbt-build/test-junit-engine-tests
+  test-junit-tests:
+    dependsOn: zio-test-sbt
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
+    - template-jvm
+    folder: ../sbt-build/test-junit-tests
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+  test-junit-tests-test:
+    cross:
+      jvm212:
+        extends: template-scala-2.12-jvm-test-scala.compat.version
+      jvm213:
+        extends: template-scala-2.13-jvm-test-scala.compat.version
+        scala:
+          options: -Ybackend-parallelism:4
+      jvm3:
+        extends:
+        - template-jvm-test-dependencies
+        - template-jvm-test-project.dir
+        - template-scala-3-xignore-scala2-macros
+        platform:
+          jvmOptions: -Dscala.compat.version=3 -Dscala.version=3.3.8
+    dependsOn: test-junit-tests
+    folder: ../sbt-build/test-junit-tests
+  test-magnolia-tests:
+    dependsOn:
+    - test-tests
+    - zio-test-magnolia
+    extends:
+    - template-common-main
+    - template-cross-js-all-jvm-all
+    folder: ../sbt-build/test-magnolia-tests
+    source-layout: cross-pure
+  test-magnolia-tests-test:
+    dependsOn:
+    - test-magnolia-tests
+    - test-tests-test
+    extends:
+    - template-common-test
+    - template-cross-js-all-jvm-all
+    folder: ../sbt-build/test-magnolia-tests
+    source-layout: cross-pure
+  test-tests:
+    cross:
+      js212:
+        dependencies:
+          for3Use213: true
+          module: org.scala-js::scalajs-java-securerandom:1.0.0
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        dependencies:
+          for3Use213: true
+          module: org.scala-js::scalajs-java-securerandom:1.0.0
+        scala:
+          options: -Ymacro-annotations
+      js3:
+        dependencies:
+          for3Use213: true
+          module: org.scala-js::scalajs-java-securerandom:1.0.0
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        scala:
+          options: -Ymacro-annotations
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      native212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      native213:
+        scala:
+          options: -Ymacro-annotations
+    dependsOn: zio-test-sbt
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/test-tests
+    source-layout: cross-full
+  test-tests-test:
+    cross:
+      js212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        scala:
+          options: -Ymacro-annotations
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        scala:
+          options: -Ymacro-annotations
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      native212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      native213:
+        scala:
+          options: -Ymacro-annotations
+    dependsOn: test-tests
+    extends:
+    - template-common-test-jcstress-core
+    - template-cross-all
+    folder: ../sbt-build/test-tests
+    source-layout: cross-full
+  threadlocal-bridge:
+    dependencies: dev.zio::zio:2.1.25
+    extends:
+    - template-common-main
+    - template-jvm
+    - template-scala-2.13
+    folder: ../sbt-build/zio-examples/threadlocal-bridge
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    publish:
+      groupId: default
+  zio:
+    cross:
+      js212:
+        dependencies:
+        - org.scala-js::scala-js-macrotask-executor:1.1.1
+        - org.scala-js::scalajs-dom:2.8.1
+        - for3Use213: true
+          module: org.scala-js::scalajs-weakreferences:1.0.0
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+      js213:
+        dependencies:
+        - org.scala-js::scala-js-macrotask-executor:1.1.1
+        - org.scala-js::scalajs-dom:2.8.1
+        - for3Use213: true
+          module: org.scala-js::scalajs-weakreferences:1.0.0
+        scala:
+          options: -P:scalajs:nowarnGlobalExecutionContext
+        sources: ./shared/src/${SCOPE}/scala-2.13+
+      js3:
+        dependencies:
+        - org.scala-js::scala-js-macrotask-executor:1.1.1
+        - org.scala-js::scalajs-dom:2.8.1
+        - for3Use213: true
+          module: org.scala-js::scalajs-weakreferences:1.0.0
+        sources: ./shared/src/${SCOPE}/scala-2.13+
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        sources: ./shared/src/${SCOPE}/scala-2.13+
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        sources: ./shared/src/${SCOPE}/scala-2.13+
+      native213:
+        sources: ./shared/src/${SCOPE}/scala-2.13+
+      native3:
+        sources: ./shared/src/${SCOPE}/scala-2.13+
+    dependencies:
+    - dev.zio::izumi-reflect:3.0.10
+    - org.scala-lang.modules::scala-collection-compat:2.14.0
+    dependsOn:
+    - zio-internal-macros
+    - zio-stacktracer
+    extends:
+    - template-common-main
+    - template-cross-all
+    - template-cross-js-212-213-jvm-212-213-native-212-213
+    folder: ../sbt-build/core
+    scala:
+      options: -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent
+        -language:experimental.macros
+    source-layout: cross-full
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  zio+test:
+    cross:
+      js212:
+        dependencies:
+        - io.github.cquiroz::scala-java-time-tzdb:2.7.0
+        - io.github.cquiroz::scala-java-time:2.7.0
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        dependencies:
+        - io.github.cquiroz::scala-java-time-tzdb:2.7.0
+        - io.github.cquiroz::scala-java-time:2.7.0
+        scala:
+          options: -Ymacro-annotations
+        sources: ./shared/src/${SCOPE}/scala-2.13+
+      js3:
+        dependencies:
+        - io.github.cquiroz::scala-java-time-tzdb:2.7.0
+        - io.github.cquiroz::scala-java-time:2.7.0
+        sources: ./shared/src/${SCOPE}/scala-2.13+
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        scala:
+          options: -Ymacro-annotations
+        sources: ./shared/src/${SCOPE}/scala-2.13+
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+        sources: ./shared/src/${SCOPE}/scala-2.13+
+      native212:
+        dependencies:
+        - com.github.lolgab::scala-native-crypto:0.3.0
+        - io.github.cquiroz::scala-java-time-tzdb:2.7.0
+        - io.github.cquiroz::scala-java-time:2.7.0
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      native213:
+        dependencies:
+        - com.github.lolgab::scala-native-crypto:0.3.0
+        - io.github.cquiroz::scala-java-time-tzdb:2.7.0
+        - io.github.cquiroz::scala-java-time:2.7.0
+        scala:
+          options: -Ymacro-annotations
+        sources: ./shared/src/${SCOPE}/scala-2.13+
+      native3:
+        dependencies:
+        - com.github.lolgab::scala-native-crypto:0.3.0
+        - io.github.cquiroz::scala-java-time-tzdb:2.7.0
+        - io.github.cquiroz::scala-java-time:2.7.0
+        sources: ./shared/src/${SCOPE}/scala-2.13+
+    dependencies:
+      for3Use213: true
+      module: org.portable-scala::portable-scala-reflect:1.1.3
+    dependsOn: zio-streams
+    extends:
+    - template-common-main
+    - template-cross-all
+    - template-cross-js-212-213-jvm-212-213-native-212-213
+    folder: ../sbt-build/test
+    scala:
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"
+        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent -language:experimental.macros'
+    source-layout: cross-full
+  zio-concurrent:
+    cross:
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+    dependsOn: zio
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/concurrent
+    scala:
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"'
+    source-layout: cross-pure
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  zio-concurrent-test:
+    cross:
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+    dependsOn:
+    - zio-concurrent
+    - zio-test-sbt
+    extends:
+    - template-common-test-jcstress-core
+    - template-cross-all
+    folder: ../sbt-build/concurrent
+    scala:
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"'
+    source-layout: cross-pure
+  zio-internal-macros:
+    cross:
+      js212:
+        dependencies:
+          forceJvm: true
+          module: org.scala-js::scalajs-scalalib:${SCALA_VERSION}+${PLATFORM_VERSION}
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        dependencies:
+          forceJvm: true
+          module: org.scala-js::scalajs-scalalib:${SCALA_VERSION}+${PLATFORM_VERSION}
+        scala:
+          options: -Ymacro-annotations
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+        scala:
+          options: -Ymacro-annotations
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      native212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      native213:
+        scala:
+          options: -Ymacro-annotations
+      native3:
+        dependencies:
+          forceJvm: true
+          module: org.scala-lang::scala3-library:${SCALA_VERSION}
+    extends:
+    - template-common-main
+    - template-cross-all
+    - template-cross-js-212-213-jvm-212-213-native-212-213
+    folder: ../sbt-build/internal-macros
+    scala:
+      options: -language:experimental.macros
+    source-layout: cross-pure
+  zio-macros:
+    cross:
+      js212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        scala:
+          options: -Ymacro-annotations
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+        scala:
+          options: -Ymacro-annotations
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      native212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      native213:
+        scala:
+          options: -Ymacro-annotations
+    dependsOn: zio-managed
+    extends:
+    - template-common-main
+    - template-cross-all
+    - template-cross-js-212-213-jvm-212-213-native-212-213
+    folder: ../sbt-build/macros
+    scala:
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"
+        -language:experimental.macros'
+    source-layout: cross-pure
+  zio-managed:
+    cross:
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+    dependsOn: zio-streams
+    extends:
+    - template-common-main
+    - template-cross-all
+    - template-cross-js-212-213-jvm-212-213-native-212-213
+    folder: ../sbt-build/managed
+    scala:
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"
+        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent -language:experimental.macros'
+    source-layout: cross-full
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  zio-stacktracer:
+    cross:
+      js212:
+        dependencies:
+          forceJvm: true
+          module: org.scala-js::scalajs-scalalib:${SCALA_VERSION}+${PLATFORM_VERSION}
+      js213:
+        dependencies:
+          forceJvm: true
+          module: org.scala-js::scalajs-scalalib:${SCALA_VERSION}+${PLATFORM_VERSION}
+      native212:
+        extends:
+        - template-native
+        - template-scala-2.12
+      native213:
+        extends: template-scala-2.13-native
+      native3:
+        dependencies:
+          forceJvm: true
+          module: org.scala-lang::scala3-library:${SCALA_VERSION}
+        extends:
+        - template-native
+        - template-scala-3-xignore-scala2-macros
+    extends:
+    - template-common-main
+    - template-cross-js-212-213-jvm-212-213-native-212-213
+    - template-cross-js-all-jvm-all
+    folder: ../sbt-build/stacktracer
+    scala:
+      options: -language:experimental.macros
+    source-layout: cross-pure
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  zio-streams:
+    cross:
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+    dependsOn: zio
+    extends:
+    - template-common-main
+    - template-cross-all
+    - template-cross-js-212-213-jvm-212-213-native-212-213
+    folder: ../sbt-build/streams
+    scala:
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"
+        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent -language:experimental.macros'
+    source-layout: cross-full
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  zio-test-junit:
+    dependencies: junit:junit:4.13.2
+    dependsOn: zio+test
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
+    - template-jvm
+    folder: ../sbt-build/test-junit
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+  zio-test-junit-engine:
+    dependencies: org.junit.platform:junit-platform-engine:6.1.3
+    dependsOn: zio+test
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
+    - template-jvm
+    folder: ../sbt-build/test-junit-engine
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+  zio-test-magnolia:
+    cross:
+      js212:
+        dependencies:
+          exclusions:
+            org.scala-lang: scala-compiler
+          module: com.softwaremill.magnolia1_2::magnolia:1.1.14
+        extends: template-scala-2-scala-compiler
+      js213:
+        dependencies:
+          exclusions:
+            org.scala-lang: scala-compiler
+          module: com.softwaremill.magnolia1_2::magnolia:1.1.14
+        extends: template-scala-2-scala-compiler
+      js3:
+        dependencies:
+          exclusions:
+            org.scala-lang: scala-compiler
+          module: com.softwaremill.magnolia1_3::magnolia:1.3.23
+      jvm212:
+        dependencies:
+          exclusions:
+            org.scala-lang: scala-compiler
+          module: com.softwaremill.magnolia1_2::magnolia:1.1.14
+        extends: template-scala-2-scala-compiler
+      jvm213:
+        dependencies:
+          exclusions:
+            org.scala-lang: scala-compiler
+          module: com.softwaremill.magnolia1_2::magnolia:1.1.14
+        extends: template-scala-2-scala-compiler
+      jvm3:
+        dependencies:
+          exclusions:
+            org.scala-lang: scala-compiler
+          module: com.softwaremill.magnolia1_3::magnolia:1.3.23
+    dependsOn: zio+test
+    extends:
+    - template-common-main
+    - template-cross-js-all-jvm-all
+    folder: ../sbt-build/test-magnolia
+    scala:
+      options: -language:experimental.macros
+    source-layout: cross-pure
+  zio-test-refined:
+    cross:
+      js212:
+        extends: template-scala-2-scala-compiler
+      js213:
+        extends: template-scala-2-scala-compiler
+      jvm212:
+        extends: template-scala-2-scala-compiler
+      jvm213:
+        extends: template-scala-2-scala-compiler
+    dependencies:
+      for3Use213: true
+      forceJvm: true
+      module: eu.timepit::refined:0.11.4
+    dependsOn: zio-test-magnolia
+    extends:
+    - template-common-main
+    - template-cross-js-all-jvm-all
+    folder: ../sbt-build/test-refined
+    scala:
+      options: -language:experimental.macros
+    source-layout: cross-pure
+  zio-test-sbt:
+    cross:
+      js212:
+        dependencies:
+          for3Use213: true
+          forceJvm: true
+          module: org.scala-js::scalajs-test-interface:${PLATFORM_VERSION}
+      js213:
+        dependencies:
+          for3Use213: true
+          forceJvm: true
+          module: org.scala-js::scalajs-test-interface:${PLATFORM_VERSION}
+      js3:
+        dependencies:
+          for3Use213: true
+          forceJvm: true
+          module: org.scala-js::scalajs-test-interface:${PLATFORM_VERSION}
+      jvm212:
+        dependencies: org.scala-sbt:test-interface:1.0
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm213:
+        dependencies: org.scala-sbt:test-interface:1.0
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm3:
+        dependencies: org.scala-sbt:test-interface:1.0
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      native212:
+        dependencies: org.scala-native::test-interface-sbt-defs:${PLATFORM_VERSION}
+      native213:
+        dependencies: org.scala-native::test-interface-sbt-defs:${PLATFORM_VERSION}
+      native3:
+        dependencies: org.scala-native::test-interface-sbt-defs:${PLATFORM_VERSION}
+    dependsOn: zio+test
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/test-sbt
+    scala:
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"
+        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent'
+    source-layout: cross-full
+  zio-test-sbt-test:
+    cross:
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/jvm
+    dependsOn: zio-test-sbt
+    extends:
+    - template-common-test-jcstress-core
+    - template-cross-all
+    folder: ../sbt-build/test-sbt
+    scala:
+      options: '"-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent"
+        -Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent'
+    source-layout: cross-full
+  zio-test-scalacheck:
+    cross:
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+    dependencies: org.scalacheck::scalacheck:1.20.0
+    dependsOn: zio+test
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/test-scalacheck
+    source-layout: cross-pure
+  zio-test-scalacheck-test:
+    cross:
+      jvm212:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      jvm213:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      jvm3:
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+    dependsOn: zio-test-scalacheck
+    extends:
+    - template-common-test-jcstress-core
+    - template-cross-all
+    folder: ../sbt-build/test-scalacheck
+    source-layout: cross-pure
+templates:
+  template-common:
+    ignoreEvictionErrors: no
+    scala:
+      setup:
+        order: mixed
+  template-common-deprecation:
+    extends: template-common
+    scala:
+      options: -deprecation -encoding UTF-8 -release 11 -unchecked
+  template-common-main:
+    extends: template-common
+    publish:
+      groupId: dev.zio
+    sbt-scope: main
+  template-common-test:
+    extends: template-common
+    isTestProject: true
+    sbt-scope: test
+    testFrameworks:
+    - hedgehog.sbt.Framework
+    - weaver.framework.CatsEffect
+    - zio.test.sbt.ZTestFramework
+  template-common-test-jcstress-core:
+    dependencies:
+    - net.sf.jopt-simple:jopt-simple:4.6
+    - org.openjdk.jcstress:jcstress-core:0.3
+    extends: template-common-test
+  template-cross-all:
+    cross:
+      js212:
+        extends:
+        - template-js
+        - template-scala-2-xfatal-warnings
+        - template-scala-2.12
+      js213:
+        extends: template-scala-2.13-js
+      js3:
+        extends:
+        - template-js
+        - template-scala-3-xignore-scala2-macros
+      jvm212:
+        extends:
+        - template-jvm
+        - template-scala-2-xfatal-warnings
+        - template-scala-2.12
+      jvm213:
+        extends:
+        - template-jvm
+        - template-scala-2-xfatal-warnings
+        - template-scala-2.13
+        scala:
+          options: -Ybackend-parallelism:4
+      jvm3:
+        extends:
+        - template-jvm
+        - template-scala-3-xignore-scala2-macros
+      native212:
+        extends:
+        - template-native
+        - template-scala-2-xfatal-warnings
+        - template-scala-2.12
+      native213:
+        extends:
+        - template-scala-2-xfatal-warnings
+        - template-scala-2.13-native
+      native3:
+        extends:
+        - template-native
+        - template-scala-3-xignore-scala2-macros
+  template-cross-js-212-213-jvm-212-213-native-212-213:
+    cross:
+      js212:
+        extends: template-scala-2-scala-compiler
+      js213:
+        extends: template-scala-2-scala-compiler
+      jvm212:
+        extends: template-scala-2-scala-compiler
+      jvm213:
+        extends: template-scala-2-scala-compiler
+      native212:
+        extends: template-scala-2-scala-compiler
+      native213:
+        extends: template-scala-2-scala-compiler
+  template-cross-js-all-jvm-all:
+    cross:
+      js212:
+        extends:
+        - template-js
+        - template-scala-2-xfatal-warnings
+        - template-scala-2.12
+      js213:
+        extends: template-scala-2.13-js
+      js3:
+        extends:
+        - template-js
+        - template-scala-3-xignore-scala2-macros
+      jvm212:
+        extends:
+        - template-jvm
+        - template-scala-2-xfatal-warnings
+        - template-scala-2.12
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+      jvm213:
+        extends:
+        - template-jvm
+        - template-scala-2-xfatal-warnings
+        - template-scala-2.13
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+        scala:
+          options: -Ybackend-parallelism:4
+      jvm3:
+        extends:
+        - template-jvm
+        - template-scala-3-xignore-scala2-macros
+        platform:
+          jvmOptions: -Duser.dir=${PROJECT_DIR}/.jvm
+  template-cross-jvm-all:
+    cross:
+      jvm212:
+        extends:
+        - template-scala-2-xfatal-warnings
+        - template-scala-2.12
+      jvm213:
+        extends:
+        - template-scala-2-xfatal-warnings
+        - template-scala-2.13
+        scala:
+          options: -Ybackend-parallelism:4
+      jvm3:
+        extends: template-scala-3-xignore-scala2-macros
+  template-js:
+    extends: template-common
+    platform:
+      jsEmitSourceMaps: false
+      jsJsdom: false
+      jsKind: none
+      jsNodeVersion: 24.18.0
+      jsVersion: 1.22.0
+      name: js
+  template-jvm:
+    extends: template-common
+    platform:
+      name: jvm
+  template-jvm-test-dependencies:
+    dependencies:
+    - com.google.inject:guice:6.0.0
+    - junit:junit:4.13.2
+    - org.apache.maven.resolver:maven-resolver-connector-basic:1.9.27
+    - org.apache.maven.resolver:maven-resolver-transport-http:1.9.27
+    - org.apache.maven:maven-compat:3.9.16
+    - org.apache.maven:maven-embedder:3.9.16
+    - org.codehaus.plexus:plexus-component-annotations:2.2.0
+    - org.eclipse.sisu:org.eclipse.sisu.inject:1.1.0
+    - org.scala-lang.modules::scala-xml:2.5.0
+    - org.slf4j:slf4j-simple:2.0.20
+    extends:
+    - template-common-deprecation
+    - template-common-test-jcstress-core
+    - template-jvm
+  template-jvm-test-project.dir:
+    extends:
+    - template-common-deprecation
+    - template-common-test-jcstress-core
+    - template-jvm
+    platform:
+      jvmOptions: -Dproject.dir=${PROJECT_DIR} -Dproject.version=2.1.26+231-18e9a918-SNAPSHOT
+        -Duser.dir=${PROJECT_DIR}
+  template-native:
+    extends: template-common-deprecation
+    platform:
+      name: native
+      nativeEmbedResources: false
+      nativeGc: ''
+      nativeOptimize: true
+      nativeUseIncrementalCompilation: true
+      nativeVersion: 0.5.12
+    scala:
+      options: -P:scalanative:genStaticForwardersForNonTopLevelObjects
+  template-scala-2:
+    extends: template-common
+    scala:
+      options: -Yrangepos
+  template-scala-2-scala-compiler:
+    dependencies:
+    - configuration: provided
+      module: org.scala-lang:scala-compiler:${SCALA_VERSION}
+    - configuration: provided
+      module: org.scala-lang:scala-reflect:${SCALA_VERSION}
+    extends: template-scala-2-xlint
+  template-scala-2-xfatal-warnings:
+    extends: template-scala-2-xlint
+    scala:
+      options: -Xfatal-warnings
+  template-scala-2-xlint:
+    extends:
+    - template-common-deprecation
+    - template-scala-2
+    scala:
+      options: -Xlint:_,-missing-interpolator,-type-parameter-shadow,-infer-any -Ywarn-numeric-widen
+        -Ywarn-unused:params,-implicits -Ywarn-value-discard -explaintypes -language:existentials
+        -language:higherKinds
+  template-scala-2.12:
+    extends: template-scala-2-xlint
+    scala:
+      options: -Xfuture -Xmax-classfile-name 242 -Xsource:2.13 -Yno-adapted-args -Ypartial-unification
+        -Ywarn-extra-implicit -Ywarn-inaccessible -Ywarn-nullary-override -Ywarn-nullary-unit
+        -Ywarn-unused:_,imports -Ywarn-unused:imports -opt-warnings
+      version: 2.12.21
+  template-scala-2.12-jvm-test-scala.compat.version:
+    extends:
+    - template-jvm-test-dependencies
+    - template-jvm-test-project.dir
+    - template-scala-2-xfatal-warnings
+    - template-scala-2.12
+    platform:
+      jvmOptions: -Dscala.compat.version=2.12 -Dscala.version=2.12.21
+  template-scala-2.13:
+    extends: template-scala-2.13-and-3
+    scala:
+      version: 2.13.18
+  template-scala-2.13-and-3:
+    extends: template-common
+    scala:
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false
+  template-scala-2.13-js:
+    extends:
+    - template-js
+    - template-scala-2-xfatal-warnings
+    - template-scala-2.13
+    scala:
+      options: -Ybackend-parallelism:4
+  template-scala-2.13-jvm-test-scala.compat.version:
+    extends:
+    - template-jvm-test-dependencies
+    - template-jvm-test-project.dir
+    - template-scala-2-xfatal-warnings
+    - template-scala-2.13
+    platform:
+      jvmOptions: -Dscala.compat.version=2.13 -Dscala.version=2.13.18
+  template-scala-2.13-native:
+    extends:
+    - template-native
+    - template-scala-2-xlint
+    - template-scala-2.13
+    scala:
+      options: -Ybackend-parallelism:4
+  template-scala-3:
+    extends: template-scala-2.13-and-3
+    scala:
+      version: 3.3.8
+  template-scala-3-xignore-scala2-macros:
+    extends:
+    - template-common-deprecation
+    - template-scala-3
+    scala:
+      options: -Xignore-scala2-macros -Xmax-inlines:64 -language:implicitConversions
+        -language:noAutoTupling -noindent

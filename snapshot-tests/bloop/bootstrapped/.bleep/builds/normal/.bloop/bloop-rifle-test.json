@@ -41,7 +41,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_2.13/1.1.1/munit-diff_2.13-1.1.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.13/1.1.1/munit_2.13-1.1.1.jar",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/builds/normal/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/generated-resources/scripts.GenerateForBloopRifle",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/projects/bloop-rifle/generated-resources/scripts.CopyImportedGeneratedFiles",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloop-rifle/src/main/resources"

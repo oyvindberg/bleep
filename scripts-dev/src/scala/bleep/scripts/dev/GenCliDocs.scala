@@ -139,7 +139,7 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
       imports = "",
       body = """## Getting in and out
                |
-               |Mechanical paths in: [`bleep import`](/docs/reference/cli/import/) (sbt) and
+               |Mechanical paths in: [`bleep import-sbt`](/docs/reference/cli/import-sbt/) (sbt) and
                |[`bleep import-maven`](/docs/reference/cli/import-maven/) (Maven). Mechanical path out:
                |[`bleep export-maven`](/docs/reference/cli/export-maven/), a proof-of-concept script — see the
                |[exit strategy](/docs/guides/exit-strategy).
@@ -220,7 +220,7 @@ Coordinates: `groupId` from the project's `publish.groupId`, else `build.bleep.e
 
 Silently: unmanaged `jars`, Scala `compilerPlugins`, and publish/assembly configuration. Loudly (the export fails): Kotlin compiler plugins, KSP symbol processing, test projects on a framework other than ScalaTest, and dependencies with a classifier or a configuration that has no Maven scope. Scala.js and Scala Native projects are skipped, and the skip cascades to their dependents. Suite discovery is narrowed to the `*Test` suffix, so `*IT` integration suites compile but do not run.
 
-There is **no exporter for sbt or Gradle**, and no Gradle importer either — [`bleep import`](/docs/reference/cli/import/) covers sbt and [`bleep import-maven`](/docs/reference/cli/import-maven/) covers Maven.
+There is **no exporter for sbt or Gradle**, and no Gradle importer either — [`bleep import-sbt`](/docs/reference/cli/import-sbt/) covers sbt and [`bleep import-maven`](/docs/reference/cli/import-maven/) covers Maven.
 
 ## See also
 

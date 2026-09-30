@@ -1,0 +1,92 @@
+# template inference
+templates: 10
+projects: 50
+settings: 652 (613 in projects, 39 in templates)
+
+# roundtrip
+sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
+imported from sbt but not in the bleep build: none
+sbt bloop projects dropped by the import: bundledLauncherProj, bundledLauncherProj-test, coreMacrosProj-test, dependencyTreeProj-test, lowerUtils, lowerUtils-test, protocolProj-test, sbtClientProj-test, scriptedPluginProj-test, scriptedSbtOldProj-test, testAgentProj-test, testingProj-test, upperModules, upperModules-test, utilControl-test, utilInterface-test, utilScripted-test
+compared: 88, identical: 83
+
+protocol@jvm212
+  sources
+    - sbt-build/protocol/src/main/contraband-scala
+
+protocol@jvm213
+  sources
+    - sbt-build/protocol/src/main/contraband-scala
+
+sbt-dependency-tree
+  classpath
+    + jar sbt:1.11.0
+
+test-agent
+  scala
+    - version=2.12.20
+  scala.compilerJars
+    - jar scala-compiler:2.12.20
+    - jar scala-library:2.12.20
+    - jar scala-reflect:2.12.20
+    - jar scala-xml_2.12:2.3.0
+  scala.options
+    - -Xfatal-warnings
+    - -Xfuture
+    - -Xlint
+    - -Xplugin:jar kind-projector_2.12.20:0.13.3
+    - -Yno-adapted-args
+    - -Yrangepos
+    - -Ywarn-dead-code
+    - -Ywarn-numeric-widen
+    - -Ywarn-unused-import
+    - -Ywarn-value-discard
+    - -deprecation
+    - -encoding utf8
+    - -feature
+    - -language:higherKinds
+    - -language:implicitConversions
+    - -unchecked
+  scala.setup
+    - addCompilerToClasspath=false
+    - addExtraJarsToClasspath=false
+    - addLibraryToBootClasspath=true
+    - filterLibraryFromClasspath=true
+    - manageBootClasspath=true
+    - order=mixed
+
+util-interface
+  scala
+    - version=2.12.20
+  scala.compilerJars
+    - jar scala-compiler:2.12.20
+    - jar scala-library:2.12.20
+    - jar scala-reflect:2.12.20
+    - jar scala-xml_2.12:2.3.0
+  scala.options
+    - -Wconf:cat=unused-nowarn:s
+    - -Xelide-below 0
+    - -Xfatal-warnings
+    - -Xfuture
+    - -Xlint
+    - -Xplugin:jar kind-projector_2.12.20:0.13.3
+    - -Yno-adapted-args
+    - -Yrangepos
+    - -Ywarn-dead-code
+    - -Ywarn-numeric-widen
+    - -Ywarn-unused-import
+    - -Ywarn-value-discard
+    - -deprecation
+    - -encoding utf8
+    - -feature
+    - -language:existentials
+    - -language:higherKinds
+    - -language:implicitConversions
+    - -language:postfixOps
+    - -unchecked
+  scala.setup
+    - addCompilerToClasspath=false
+    - addExtraJarsToClasspath=false
+    - addLibraryToBootClasspath=true
+    - filterLibraryFromClasspath=true
+    - manageBootClasspath=true
+    - order=mixed

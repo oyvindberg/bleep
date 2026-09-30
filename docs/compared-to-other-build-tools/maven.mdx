@@ -202,6 +202,10 @@ about Maven plugins that don't carry over.
   bleep build.
 - **IDE support.** IntelliJ has bespoke Maven import. For bleep, IntelliJ
   uses BSP, fast and accurate, but a different code path.
+- **Dependency versions.** Maven lets the version declared nearest your
+  module win, bleep takes the highest one asked for. An imported build can
+  end up with newer versions of some libraries, see
+  [Coming from Maven](/docs/usage/conflict-resolution#coming-from-maven-nearest-wins-highest-wins).
 - **Familiarity.** If your whole team knows Maven inside out and ships
   builds without thinking about it, switching has a learning-curve cost.
   The payoff is in build speed, build readability, and what you can

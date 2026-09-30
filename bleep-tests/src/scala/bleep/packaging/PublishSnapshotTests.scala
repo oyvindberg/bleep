@@ -31,7 +31,7 @@ class PublishSnapshotTests extends SnapshotTest {
       )
     )
     val path = outFolder / "publish" / "pom.xml"
-    val string = new String(GenLayout.fromXml(GenLayout.pomFile(self, deps, info)))
+    val string = new String(GenLayout.fromXml(GenLayout.pomFile(self, deps, Nil, info)))
     writeAndCompare(
       path,
       Map(path -> string),

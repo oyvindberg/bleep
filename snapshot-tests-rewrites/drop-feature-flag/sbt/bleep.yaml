@@ -1,5 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
+jvm:
+  name: temurin:17
 projects:
   actions:
     dependencies:
@@ -16,25 +18,17 @@ projects:
     - util-relation
     - util-tracking
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/main-actions
-    resources: ./NOTICE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Xsource:3 -language:existentials
-        -language:postfixOps
+      options: -Xsource:3
     sources: ./src/${SCOPE}/contraband-scala
   actions-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: actions
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/main-actions
     scala:
@@ -46,28 +40,18 @@ projects:
     dependencies: com.eed3si9n::sjson-new-scalajson:0.10.1
     dependsOn: util-position
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-collection
-    resources:
-    - ../../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../../LICENSE
     sourcegen:
-      main: scripts.GenerateForCollections
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
   collections-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: collections
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/internal/util-collection
   command:
@@ -82,25 +66,17 @@ projects:
     - protocol
     - run
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/main-command
-    resources: ./NOTICE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Ywarn-unused:-locals,-explicits,-privates
-        -language:existentials -language:postfixOps
+      options: -Ywarn-unused:-locals,-explicits,-privates
     sources: ./src/${SCOPE}/contraband-scala
   command-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: command
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/main-command
     scala:
@@ -113,60 +89,38 @@ projects:
     - util-control
     - util-logging
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-complete
-    resources:
-    - ../../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../../LICENSE
   completion-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: completion
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/internal/util-complete
   core-macros:
     dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
     dependsOn: collections
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/core-macros
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   logic:
     dependsOn:
     - collections
     - util-relation
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-logic
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   logic-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: logic
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/internal/util-logic
   main:
@@ -186,15 +140,11 @@ projects:
     - scripted-plugin
     - zinc-lm-integration
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/main
-    resources:
-    - ../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../LICENSE
     sources: ./src/${SCOPE}/contraband-scala
   main-settings:
     dependsOn:
@@ -202,78 +152,327 @@ projects:
     - task-system
     - util-relation
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/main-settings
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   main-settings-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: main-settings
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/main-settings
   main-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: main
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/main
   protocol:
     dependencies: org.scala-sbt.ipcsocket:ipcsocket:1.6.3
     dependsOn: util-logging
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/protocol
-    resources: ./NOTICE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Ywarn-unused:-locals,-explicits,-privates
-        -language:existentials -language:postfixOps
-    sources: ./src/${SCOPE}/contraband-scala
+      options: -Ywarn-unused:-locals,-explicits,-privates
+    sources:
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/BspCompileResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/BspConnectionDetails.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/BuildClientCapabilities.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/BuildServerCapabilities.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/BuildTarget.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/BuildTargetCapabilities.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/BuildTargetIdentifier.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/CleanCacheParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/CleanCacheResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/CompileParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/CompileProvider.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/CompileReport.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/CompileTask.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/DebugSessionAddress.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/DebugSessionParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/DependencySourcesItem.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/DependencySourcesParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/DependencySourcesResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/Diagnostic.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/DiagnosticRelatedInformation.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/InitializeBuildParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/InitializeBuildResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/JavacOptionsItem.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/JavacOptionsParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/JavacOptionsResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/JvmBuildTarget.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/JvmEnvironmentItem.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/JvmRunEnvironmentParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/JvmRunEnvironmentResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/JvmTestEnvironmentParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/JvmTestEnvironmentResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/Location.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/MetalsMetadata.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/OutputPathItem.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/OutputPathsItem.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/OutputPathsParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/OutputPathsResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/Position.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/PublishDiagnosticsParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/Range.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ResourcesItem.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ResourcesParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ResourcesResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/RunParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/RunProvider.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/RunResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/SbtBuildTarget.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaAction.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaBuildTarget.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaDiagnostic.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaMainClass.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaMainClassesItem.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaMainClassesParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaMainClassesResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaTestClassesItem.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaTestClassesParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaTestClassesResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaTestParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaTextEdit.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalaWorkspaceEdit.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalacOptionsItem.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalacOptionsParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/ScalacOptionsResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/SourceItem.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/SourcesItem.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/SourcesParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/SourcesResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/TaskFinishParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/TaskId.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/TaskProgressParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/TaskStartParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/TestParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/TestProvider.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/TestResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/TextDocumentIdentifier.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/WorkspaceBuildTargetsResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/BspCompileResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/BspConnectionDetailsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/BuildClientCapabilitiesFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/BuildServerCapabilitiesFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/BuildTargetCapabilitiesFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/BuildTargetFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/BuildTargetIdentifierFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/CleanCacheParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/CleanCacheResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/CompileParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/CompileProviderFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/CompileReportFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/CompileTaskFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/DebugSessionAddressFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/DebugSessionParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/DependencySourcesItemFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/DependencySourcesParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/DependencySourcesResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/DiagnosticFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/DiagnosticRelatedInformationFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/InitializeBuildParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/InitializeBuildResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/JavacOptionsItemFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/JavacOptionsParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/JavacOptionsResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/JsonProtocol.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/JvmBuildTargetFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/JvmEnvironmentItemFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/JvmRunEnvironmentParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/JvmRunEnvironmentResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/JvmTestEnvironmentParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/JvmTestEnvironmentResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/LocationFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/MetalsMetadataFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/OutputPathItemFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/OutputPathsItemFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/OutputPathsParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/OutputPathsResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/PositionFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/PublishDiagnosticsParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/RangeFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ResourcesItemFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ResourcesParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ResourcesResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/RunParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/RunProviderFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/RunResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/SbtBuildTargetFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaActionFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaBuildTargetFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaDiagnosticFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaMainClassFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaMainClassesItemFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaMainClassesParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaMainClassesResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaTestClassesItemFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaTestClassesParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaTestClassesResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaTestParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaTextEditFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalaWorkspaceEditFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalacOptionsItemFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalacOptionsParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/ScalacOptionsResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/SourceItemFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/SourcesItemFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/SourcesParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/SourcesResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/TaskFinishParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/TaskIdFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/TaskProgressParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/TaskStartParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/TestParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/TestProviderFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/TestResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/TextDocumentIdentifierFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/bsp/codec/WorkspaceBuildTargetsResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/graph/ModuleModel.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/graph/codec/JsonProtocol.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/graph/codec/ModuleModelFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/CancelRequestParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/ClientCapabilities.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/Diagnostic.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/InitializeParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/InitializeResult.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/Location.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/LogMessageParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/Position.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/PublishDiagnosticsParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/Range.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/SaveOptions.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/SbtExecParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/ServerCapabilities.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/TextDocumentIdentifier.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/TextDocumentPositionParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/TextDocumentPositionParamsInterface.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/TextDocumentSyncOptions.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/CancelRequestParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/ClientCapabilitiesFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/DiagnosticFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/InitializeParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/InitializeResultFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/JsonProtocol.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/LocationFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/LogMessageParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/PositionFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/PublishDiagnosticsParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/RangeFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/SaveOptionsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/SbtExecParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/ServerCapabilitiesFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/TextDocumentIdentifierFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/TextDocumentPositionParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/TextDocumentPositionParamsInterfaceFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/langserver/codec/TextDocumentSyncOptionsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/protocol/InitializeOption.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/protocol/JsonRpcMessage.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/protocol/JsonRpcNotificationMessage.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/protocol/JsonRpcRequestMessage.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/protocol/JsonRpcResponseError.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/protocol/JsonRpcResponseMessage.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/protocol/PortFile.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/protocol/TokenFile.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/protocol/codec/InitializeOptionFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/protocol/codec/PortFileFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/protocol/codec/TokenFileFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/worker/ClientJobParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/worker/FilePath.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/worker/JvmRunInfo.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/worker/NativeRunInfo.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/worker/RunInfo.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/worker/codec/ClientJobParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/worker/codec/FilePathFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/worker/codec/JsonProtocol.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/worker/codec/JvmRunInfoFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/worker/codec/NativeRunInfoFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/internal/worker/codec/RunInfoFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/Attach.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/ChannelAcceptedEvent.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/CommandMessage.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/CompletionParams.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/CompletionResponse.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/EventMessage.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/ExecCommand.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/ExecStatusEvent.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/ExecutionEvent.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/InitCommand.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/LogEvent.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/SettingQuery.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/SettingQueryFailure.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/SettingQueryResponse.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/SettingQuerySuccess.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalAttributesQuery.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalAttributesResponse.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalCapabilitiesQuery.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalCapabilitiesResponse.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalGetSizeQuery.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalGetSizeResponse.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalPropertiesResponse.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalSetAttributesCommand.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalSetAttributesResponse.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalSetEchoCommand.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalSetEchoResponse.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalSetRawModeCommand.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalSetRawModeResponse.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalSetSizeCommand.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/TerminalSetSizeResponse.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/AttachFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/ChannelAcceptedEventFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/CommandMessageFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/CompletionParamsFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/CompletionResponseFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/EventMessageFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/ExecCommandFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/ExecStatusEventFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/ExecutionEventFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/InitCommandFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/JsonProtocol.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/LogEventFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/SettingQueryFailureFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/SettingQueryFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/SettingQueryResponseFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/SettingQuerySuccessFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalAttributesQueryFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalAttributesResponseFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalCapabilitiesQueryFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalCapabilitiesResponseFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalGetSizeQueryFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalGetSizeResponseFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalPropertiesResponseFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalSetAttributesCommandFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalSetAttributesResponseFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalSetEchoCommandFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalSetEchoResponseFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalSetRawModeCommandFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalSetRawModeResponseFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalSetSizeCommandFormats.scala
+    - ./src/${SCOPE}/contraband-scala/sbt/protocol/codec/TerminalSetSizeResponseFormats.scala
   run:
     dependencies: org.scala-sbt::zinc-classpath:1.10.8
     dependsOn:
     - util-control
     - util-logging
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/run
     resources:
     - ../LICENSE
     - ../licenses/LICENSE_Apache
-    - ./NOTICE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Ywarn-unused:-locals,-explicits,-privates
-        -language:existentials -language:postfixOps
+      options: -Ywarn-unused:-locals,-explicits,-privates
     sources: ./src/${SCOPE}/contraband-scala
   run-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: run
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/run
     scala:
@@ -282,15 +481,12 @@ projects:
     dependencies: org.scala-sbt::compiler-bridge:1.10.8
     dependsOn: main
     extends:
-    - template-common-main
+    - template-common-main-resources
+    - template-scala-2-kind-projector
     - template-scala-2.12
     folder: ../sbt-build/sbt-app
     platform:
       jvmOptions: -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   sbt-client:
     dependencies: org.scalameta:svm-subs:101.0.0
     dependsOn: command
@@ -304,51 +500,37 @@ projects:
       module: org.scala-sbt:sbt:1.11.0
     dependsOn: sbt
     extends:
-    - template-common-main
+    - template-common-main-resources
+    - template-scala-2-kind-projector
     - template-scala-2.12
     folder: ../sbt-build/dependency-tree
-    resources: ./NOTICE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Xsource:3 -language:existentials
-        -language:postfixOps
+      options: -Xsource:3
+      sbtPlugin: true
     sourcegen:
-      main: scripts.GenerateForSbtDependencyTree
+      main: scripts.CopyImportedGeneratedFiles
       project: scripts
-    sources: ./src/${SCOPE}/scala-sbt-1.0
   sbt-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: sbt
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-scala-2.12
     folder: ../sbt-build/sbt-app
     platform:
       jvmOptions: -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005
   scripted-plugin:
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/scripted-plugin
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   scripted-sbt:
     dependsOn: scripted-sbt-redux
     extends:
-    - template-common-main
+    - template-common-main-resources
+    - template-scala-2-kind-projector
     - template-scala-2.12
     folder: ../sbt-build/scripted-sbt-old
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   scripted-sbt-redux:
     dependencies:
       configuration: provided
@@ -357,31 +539,34 @@ projects:
     - sbt
     - util-scripted
     extends:
-    - template-common-main
+    - template-common-main-resources
+    - template-scala-2-kind-projector
     - template-scala-2.12
     folder: ../sbt-build/scripted-sbt-redux
-    resources:
-    - ../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../LICENSE
+  scripted-sbt-redux-test:
+    dependencies:
+      configuration: provided
+      module: org.scala-sbt:launcher-interface:1.4.4
+    dependsOn:
+    - sbt-test
+    - scripted-sbt-redux
+    extends:
+    - template-common-test
+    - template-scala-2.12
+    folder: ../sbt-build/scripted-sbt-redux
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.12
+    dependencies: build.bleep:bleepscript:1.0.0-M14
     platform:
       name: jvm
-    scala:
-      version: 2.13.16
+    resources: ./resources
   servertestproj:
-    dependsOn: sbt-test
+    dependsOn: scripted-sbt-redux-test
     extends:
-    - template-common-main
+    - template-common-main-resources
+    - template-scala-2-kind-projector
     - template-scala-2.12
     folder: ../sbt-build/server-test
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   servertestproj-test:
     dependsOn: servertestproj
     extends:
@@ -395,15 +580,11 @@ projects:
     - util-cache
     - util-logging
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/tasks-standard
-    resources:
-    - ../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../LICENSE
   task-system-test:
     dependsOn:
     - task-system
@@ -417,35 +598,21 @@ projects:
     - collections
     - util-control
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/tasks
-    resources:
-    - ../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../LICENSE
   tasks-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: tasks
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/tasks
   test-agent:
     dependencies: org.scala-sbt:test-interface:1.0
-    extends:
-    - template-common-main
-    - template-scala-2.12
+    extends: template-common-main
     folder: ../sbt-build/testing/agent
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
   testing:
     dependencies:
     - org.scala-lang.modules::scala-xml:2.2.0
@@ -455,16 +622,13 @@ projects:
     - test-agent
     - util-logging
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/testing
-    resources:
-    - ../LICENSE
-    - ./NOTICE
+    resources: ../LICENSE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Ywarn-unused:-locals,-explicits,-privates
-        -language:existentials -language:postfixOps
+      options: -Ywarn-unused:-locals,-explicits,-privates
     sources: ./src/${SCOPE}/contraband-scala
   util-cache:
     dependencies:
@@ -473,15 +637,11 @@ projects:
     - org.scala-lang:scala-reflect:${SCALA_VERSION}
     - org.scala-sbt::io:1.10.5
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/util-cache
-    resources:
-    - ../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../LICENSE
   util-cache-test:
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: util-cache
@@ -491,25 +651,14 @@ projects:
     folder: ../sbt-build/util-cache
   util-control:
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-control
-    resources:
-    - ../../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../../LICENSE
   util-interface:
-    extends:
-    - template-common-main
-    - template-scala-2.12
+    extends: template-common-main-resources
     folder: ../sbt-build/internal/util-interface
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
-    source-layout: java
   util-logging:
     cross:
       jvm212:
@@ -529,30 +678,20 @@ projects:
     - core-macros
     - util-interface
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-logging
-    resources:
-    - ../../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../../LICENSE
     sources: ./src/${SCOPE}/contraband-scala
   util-logging-test:
     cross:
       jvm212:
         scala:
           options: -Ywarn-unused:-locals,-explicits,-privates
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
     dependsOn: util-logging
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/internal/util-logging
     platform:
@@ -560,14 +699,12 @@ projects:
   util-position:
     dependencies: org.scala-lang:scala-reflect:${SCALA_VERSION}
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-position
-    resources: ./NOTICE
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:experimental.macros
-        -language:postfixOps
+      options: -language:experimental.macros
   util-position-test:
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: util-position
@@ -579,13 +716,10 @@ projects:
       options: -language:experimental.macros
   util-relation:
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-relation
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   util-relation-test:
     dependencies: org.scalacheck::scalacheck:1.15.4
     dependsOn: util-relation
@@ -597,25 +731,18 @@ projects:
     dependencies: org.scala-lang.modules::scala-parser-combinators:1.1.2
     dependsOn: util-logging
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/internal/util-scripted
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   util-tracking:
     dependsOn: util-cache
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/util-tracking
-    resources:
-    - ../LICENSE
-    - ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    resources: ../LICENSE
   util-tracking-test:
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: util-tracking
@@ -629,24 +756,15 @@ projects:
     - org.scala-sbt::zinc-compile-core:1.10.8
     - org.scala-sbt:launcher-interface:1.4.4
     extends:
-    - template-common-main
+    - template-common-main-resources
     - template-cross-all
+    - template-scala-2-kind-projector
     folder: ../sbt-build/zinc-lm-integration
-    resources: ./NOTICE
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   zinc-lm-integration-test:
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scala-sbt::librarymanagement-ivy:1.11.2
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependencies: org.scala-sbt::librarymanagement-ivy:1.11.2
     dependsOn: zinc-lm-integration
     extends:
-    - template-common-test
+    - template-common-test-dependencies
     - template-cross-all
     folder: ../sbt-build/zinc-lm-integration
 templates:
@@ -654,43 +772,62 @@ templates:
     ignoreEvictionErrors: no
     java:
       options: -Xlint -Xlint:-serial -source 1.8 -target 1.8
-    libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
     platform:
       name: jvm
-    scala:
-      options: -Xfuture -Xlint -Yrangepos -Ywarn-dead-code -Ywarn-numeric-widen -Ywarn-value-discard
-        -deprecation -encoding utf8 -language:higherKinds -language:implicitConversions
-        -unchecked
-      setup:
-        order: mixed
   template-common-main:
     extends: template-common
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
+    publish:
+      groupId: org.scala-sbt
     sbt-scope: main
+  template-common-main-resources:
+    extends: template-common-main
+    resources: ./NOTICE
   template-common-test:
-    extends: template-common
+    extends: template-scala-2-kind-projector
     isTestProject: true
     sbt-scope: test
-    scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.3
-      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
     testFrameworks:
     - hedgehog.sbt.Framework
     - verify.runner.Framework
     - weaver.framework.CatsEffect
     - zio.test.sbt.ZTestFramework
+  template-common-test-dependencies:
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    extends: template-common-test
   template-cross-all:
     cross:
       jvm212:
         extends: template-scala-2.12
       jvm213:
         extends: template-scala-2.13
+  template-scala-2:
+    extends: template-common
+    libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
+    scala:
+      options: -Xfuture -Xlint -Yrangepos -Ywarn-dead-code -Ywarn-numeric-widen -Ywarn-value-discard
+        -deprecation -encoding utf8 -language:higherKinds -language:implicitConversions
+        -unchecked
+      setup:
+        order: mixed
+  template-scala-2-kind-projector:
+    extends: template-scala-2
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.3
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   template-scala-2.12:
+    extends: template-scala-2
     scala:
       options: -Xfatal-warnings -Yno-adapted-args -Ywarn-unused-import
       version: 2.12.20
   template-scala-2.13:
+    extends: template-scala-2
     scala:
       setup:
         addLibraryToBootClasspath: false

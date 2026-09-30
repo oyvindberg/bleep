@@ -223,11 +223,13 @@ object JPackaging {
     }
   }
 
-  /** Convert a resolved coursier Dependency to a flat Java Dep.Java. The cross-version, if any, is already baked into the moduleName. */
+  /** Convert a resolved coursier Dependency to a flat Java Dep.Java. The cross-version, if any, is already baked into the moduleName, or for an sbt 1 plugin
+    * into the name it is published under
+    */
   private def depFromCoursier(d: coursier.core.Dependency): bleepscript.Dep =
     new bleepscript.Dep.Java(
       d.module.organization.value,
-      d.module.name.value,
+      bleep.packaging.GenLayout.artifactId(d),
       d.versionConstraint.asString,
       true
     )

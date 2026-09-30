@@ -77,7 +77,7 @@ object ProjectDigest {
       digests.getOrElseUpdate(
         crossName, {
           val project = build.explodedProjects(crossName)
-          val projectPaths = buildPaths.project(crossName, project)
+          val projectPaths = buildPaths.project(crossName, project, build.crossPlatforms(crossName.name))
 
           val md = MessageDigest.getInstance("SHA-256")
 

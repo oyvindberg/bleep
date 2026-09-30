@@ -1,0 +1,191 @@
+# template inference
+templates: 25
+projects: 25
+settings: 427 (300 in projects, 127 in templates)
+
+# roundtrip
+sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
+imported from sbt but not in the bleep build: bench@jvm211, common@jvm211, communitytest@jvm211, communitytest-test@jvm211, io@jvm211, metac@jvm2.11.12, parsers@jvm211, scalameta@jvm211, semanticdb-metacp@jvm2.11.12, semanticdb-metap@jvm2.11.12, semanticdb-scalac@jvm2.11.12, semanticdb-scalac-core@jvm2.11.12, semanticdb-shared@jvm211, semanticdbintegration@jvm211, semanticdbintegrationmacros@jvm211, testkit@jvm211, tests@jvm211, tests-test@jvm211, testssemanticdb@jvm211, testssemanticdb-test@jvm211, trees@jvm211
+sbt bloop projects dropped by the import: bench-test, commonJS-test, commonJVM-test, commonNative-test, docs-test, ioJS-test, ioJVM-test, ioNative-test, parsersJS-test, parsersJVM-test, parsersNative-test, scala3TreeLiftsCodeGen-test, scala3TreeLiftsMacro-test, scalametaJS-test, scalametaJVM-test, scalametaNative-test, semanticdbIntegration-test, semanticdbIntegrationMacros-test, semanticdbMetac-test, semanticdbMetacp-test, semanticdbMetap-test, semanticdbScalacCore-test, semanticdbScalacPlugin-test, semanticdbSharedJS-test, semanticdbSharedJVM-test, semanticdbSharedNative-test, testkitJS-test, testkitJVM-test, testkitNative-test, treesJS-test, treesJVM-test, treesNative-test
+compared: 116, identical: 91
+
+most common differences (projects, aspect, difference):
+   20  classpath ~ fastparse_2.13: 3.1.0 -> 3.1.1
+   15  classpath ~ lenses_2.13: 0.11.15 -> 0.11.17
+   15  classpath ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+   15  classpath ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+    5  classpath ~ jline: 3.24.1 -> 3.25.1
+    5  classpath ~ jna: 5.13.0 -> 5.14.0
+    5  classpath ~ scala-compiler: 2.13.13 -> 2.13.14
+    5  classpath ~ scala-library: 2.13.13 -> 2.13.14
+    5  classpath ~ scala-reflect: 2.13.13 -> 2.13.14
+
+metac@jvm2.13.13
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ jline: 3.24.1 -> 3.25.1
+    ~ jna: 5.13.0 -> 5.14.0
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scala-compiler: 2.13.13 -> 2.13.14
+    ~ scala-library: 2.13.13 -> 2.13.14
+    ~ scala-reflect: 2.13.13 -> 2.13.14
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+metac@jvm2.13.14
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+metac@jvm2.13.15
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+parsers@jvm3
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+
+scalameta@jvm3
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+
+scalameta-docs
+  classpath
+    ~ jboss-logging: 3.4.1.Final -> 3.4.3.Final
+
+semanticdb-metacp@jvm2.13.13
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ jline: 3.24.1 -> 3.25.1
+    ~ jna: 5.13.0 -> 5.14.0
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scala-compiler: 2.13.13 -> 2.13.14
+    ~ scala-library: 2.13.13 -> 2.13.14
+    ~ scala-reflect: 2.13.13 -> 2.13.14
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+semanticdb-metacp@jvm2.13.14
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+semanticdb-metacp@jvm2.13.15
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+semanticdb-metap@jvm2.13.13
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ jline: 3.24.1 -> 3.25.1
+    ~ jna: 5.13.0 -> 5.14.0
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scala-compiler: 2.13.13 -> 2.13.14
+    ~ scala-library: 2.13.13 -> 2.13.14
+    ~ scala-reflect: 2.13.13 -> 2.13.14
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+semanticdb-metap@jvm2.13.14
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+semanticdb-metap@jvm2.13.15
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+semanticdb-scalac@jvm2.13.13
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ jline: 3.24.1 -> 3.25.1
+    ~ jna: 5.13.0 -> 5.14.0
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scala-compiler: 2.13.13 -> 2.13.14
+    ~ scala-library: 2.13.13 -> 2.13.14
+    ~ scala-reflect: 2.13.13 -> 2.13.14
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+semanticdb-scalac@jvm2.13.14
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+semanticdb-scalac@jvm2.13.15
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+semanticdb-scalac-core@jvm2.13.13
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ jline: 3.24.1 -> 3.25.1
+    ~ jna: 5.13.0 -> 5.14.0
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scala-compiler: 2.13.13 -> 2.13.14
+    ~ scala-library: 2.13.13 -> 2.13.14
+    ~ scala-reflect: 2.13.13 -> 2.13.14
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+semanticdb-scalac-core@jvm2.13.14
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+semanticdb-scalac-core@jvm2.13.15
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+    ~ lenses_2.13: 0.11.15 -> 0.11.17
+    ~ scala-collection-compat_2.13: 2.11.0 -> 2.12.0
+    ~ scalapb-runtime_2.13: 0.11.15 -> 0.11.17
+
+testkit@jvm3
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+
+tests@jvm212
+  classpath
+    ~ scala-xml_2.12: 2.4.0 -> 2.3.0
+
+tests@jvm213
+  classpath
+    ~ scala-xml_2.13: 2.4.0 -> 2.3.0
+
+tests@jvm3
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1
+
+tests-test@jvm212
+  classpath
+    ~ scala-xml_2.12: 2.4.0 -> 2.3.0
+
+tests-test@jvm213
+  classpath
+    ~ scala-xml_2.13: 2.4.0 -> 2.3.0
+
+tests-test@jvm3
+  classpath
+    ~ fastparse_2.13: 3.1.0 -> 3.1.1

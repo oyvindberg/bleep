@@ -1,0 +1,848 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "examples@native213",
+    "directory": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/examples@native213/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/js-native/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/js-native/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/js-native/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/js-native/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/jvm-native/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/jvm-native/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/jvm-native/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/jvm-native/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/native/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/native/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/native/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/native/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/shared/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/shared/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/shared/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/shared/src/main/scala-2.13"
+    ],
+    "dependencies": [
+      "zio+test@native213",
+      "zio-internal-macros@native213",
+      "zio-macros@native213",
+      "zio-managed@native213",
+      "zio-stacktracer@native213",
+      "zio-streams@native213",
+      "zio-test-sbt@native213",
+      "zio@native213"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/lolgab/scala-native-crypto_native0.5_2.13/0.3.0/scala-native-crypto_native0.5_2.13-0.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.13/3.0.9/izumi-reflect-thirdparty-boopickle-shaded_2.13-3.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13/3.0.10/izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13-3.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.13/3.0.9/izumi-reflect_2.13-3.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_native0.5_2.13/3.0.10/izumi-reflect_native0.5_2.13-3.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-constraintless_2.13/0.3.3/zio-constraintless_2.13-0.3.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-http_2.13/3.4.0/zio-http_2.13-3.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.13/2.1.26/zio-internal-macros_2.13-2.1.26.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-json_2.13/0.7.44/zio-json_2.13-0.7.44.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-metrics-connectors-prometheus_2.13/2.5.8/zio-metrics-connectors-prometheus_2.13-2.5.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-metrics-connectors_2.13/2.5.8/zio-metrics-connectors_2.13-2.5.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude-macros_2.13/1.0.0-RC41/zio-prelude-macros_2.13-1.0.0-RC41.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude_2.13/1.0.0-RC41/zio-prelude_2.13-1.0.0-RC41.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-derivation_2.13/1.7.4/zio-schema-derivation_2.13-1.7.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-json_2.13/1.7.4/zio-schema-json_2.13-1.7.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-macros_2.13/1.7.4/zio-schema-macros_2.13-1.7.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-protobuf_2.13/1.7.4/zio-schema-protobuf_2.13-1.7.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema_2.13/1.7.4/zio-schema_2.13-1.7.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.13/2.1.26/zio-stacktracer_2.13-2.1.26.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.13/2.1.20/zio-streams_2.13-2.1.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.13/2.1.26/zio_2.13-2.1.26.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_native0.5_2.13/4.5.0/cldr-api_native0.5_2.13-4.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_native0.5_2.13/1.5.4/scala-java-locales_native0.5_2.13-1.5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time-tzdb_native0.5_2.13/2.7.0/scala-java-time-tzdb_native0.5_2.13-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_native0.5_2.13/2.7.0/scala-java-time_native0.5_2.13-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.3.Final/netty-buffer-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.3.Final/netty-codec-base-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.3.Final/netty-codec-compression-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.3.Final/netty-codec-http-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.2.3.Final/netty-codec-socks-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.3.Final/netty-common-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.3.Final/netty-handler-proxy-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.3.Final/netty-handler-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-pkitesting/4.2.3.Final/netty-pkitesting-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.3.Final/netty-resolver-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.3.Final/netty-transport-classes-epoll-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.2.3.Final/netty-transport-classes-kqueue-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.3.Final/netty-transport-native-epoll-4.2.3.Final-<MASKED_OS>-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.3.Final/netty-transport-native-epoll-4.2.3.Final-<MASKED_OS>-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.3.Final/netty-transport-native-epoll-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.3.Final/netty-transport-native-kqueue-4.2.3.Final-osx-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.3.Final/netty-transport-native-kqueue-4.2.3.Final-osx-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.3.Final/netty-transport-native-kqueue-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.3.Final/netty-transport-native-unix-common-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.3.Final/netty-transport-4.2.3.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_native0.5_2.13/1.1.3/portable-scala-reflect_native0.5_2.13-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.14.0/scala-collection-compat_2.13-2.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_native0.5_2.13/2.14.0/scala-collection-compat_native0.5_2.13-2.14.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_2.13/0.5.12/auxlib_native0.5_2.13-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_2.13/0.5.12/clib_native0.5_2.13-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_2.13/0.5.12/javalib_native0.5_2.13-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_2.13/0.5.12/nativelib_native0.5_2.13-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.13/0.5.12/posixlib_native0.5_2.13-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.13/2.13.18%2B0.5.12/scalalib_native0.5_2.13-2.13.18%2B0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface-sbt-defs_native0.5_2.13/0.5.12/test-interface-sbt-defs_native0.5_2.13-0.5.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_2.13/0.5.12/windowslib_native0.5_2.13-0.5.12.jar",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio+test@native213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-internal-macros@native213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-macros@native213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-managed@native213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-managed@native213/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-stacktracer@native213/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-streams@native213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-streams@native213/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio-test-sbt@native213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@native213/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/zio@native213/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/internal-macros/.native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/internal-macros/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/macros/.native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/macros/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/managed/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/managed/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/managed/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/managed/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/.native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/stacktracer/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/streams/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test-sbt/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/test/shared/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/examples@native213/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/examples@native213/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/shared/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.13.18",
+      "options": [
+        "-P:scalanative:genStaticForwardersForNonTopLevelObjects",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/js-native/src/main/java;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/js-native/src/main/scala;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/js-native/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/js-native/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/jvm-native/src/main/java;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/jvm-native/src/main/scala;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/jvm-native/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/jvm-native/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/native/src/main/java;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/native/src/main/scala;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/native/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/native/src/main/scala-2.13;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/shared/src/main/java;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/shared/src/main/scala;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/shared/src/main/scala-2;<BLEEP_GIT>/snapshot-tests/zio/sbt-build/examples/shared/src/main/scala-2.13",
+        "-Xfatal-warnings",
+        "-Xlint:_,-missing-interpolator,-type-parameter-shadow,-infer-any",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_2.13.18/0.5.12/nscplugin_2.13.18-0.5.12.jar",
+        "-Ybackend-parallelism:4",
+        "-Ymacro-annotations",
+        "-Yrangepos",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-unused:params,-implicits",
+        "-Ywarn-value-discard",
+        "-deprecation",
+        "-encoding",
+        "UTF-8",
+        "-explaintypes",
+        "-feature",
+        "-language:existentials",
+        "-language:higherKinds",
+        "-release",
+        "11",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.18/scala-compiler-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.16/java-diff-utils-4.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.29.0/jline-3.29.0-jdk8.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/zio/bootstrapped/.bleep/projects/examples@native213/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "native",
+      "config": {
+        "version": "0.5.12",
+        "mode": "debug",
+        "gc": "",
+        "clang": "clang",
+        "clangpp": "clang++",
+        "toolchain": [
+          
+        ],
+        "options": {
+          "linker": [
+            
+          ],
+          "compiler": [
+            
+          ]
+        },
+        "linkStubs": false,
+        "check": false,
+        "dump": false
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-time-tzdb_native0.5_2.13",
+          "version": "2.7.0",
+          "artifacts": [
+            {
+              "name": "scala-java-time-tzdb_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time-tzdb_native0.5_2.13/2.7.0/scala-java-time-tzdb_native0.5_2.13-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_2.13",
+          "version": "3.0.9",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.13/3.0.9/izumi-reflect-thirdparty-boopickle-shaded_2.13-3.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-metrics-connectors_2.13",
+          "version": "2.5.8",
+          "artifacts": [
+            {
+              "name": "zio-metrics-connectors_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-metrics-connectors_2.13/2.5.8/zio-metrics-connectors_2.13-2.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "javalib_native0.5_2.13",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "javalib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_2.13/0.5.12/javalib_native0.5_2.13-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "test-interface-sbt-defs_native0.5_2.13",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "test-interface-sbt-defs_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface-sbt-defs_native0.5_2.13/0.5.12/test-interface-sbt-defs_native0.5_2.13-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.3.Final/netty-handler-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.lolgab",
+          "name": "scala-native-crypto_native0.5_2.13",
+          "version": "0.3.0",
+          "artifacts": [
+            {
+              "name": "scala-native-crypto_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/lolgab/scala-native-crypto_native0.5_2.13/0.3.0/scala-native-crypto_native0.5_2.13-0.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-locales_native0.5_2.13",
+          "version": "1.5.4",
+          "artifacts": [
+            {
+              "name": "scala-java-locales_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_native0.5_2.13/1.5.4/scala-java-locales_native0.5_2.13-1.5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-prelude-macros_2.13",
+          "version": "1.0.0-RC41",
+          "artifacts": [
+            {
+              "name": "zio-prelude-macros_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude-macros_2.13/1.0.0-RC41/zio-prelude-macros_2.13-1.0.0-RC41.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-epoll",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-epoll",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.3.Final/netty-transport-native-epoll-4.2.3.Final.jar"
+            },
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.3.Final/netty-transport-native-epoll-4.2.3.Final-<MASKED_OS>-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.3.Final/netty-transport-native-epoll-4.2.3.Final-<MASKED_OS>-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-protobuf_2.13",
+          "version": "1.7.4",
+          "artifacts": [
+            {
+              "name": "zio-schema-protobuf_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-protobuf_2.13/1.7.4/zio-schema-protobuf_2.13-1.7.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-pkitesting",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-pkitesting",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-pkitesting/4.2.3.Final/netty-pkitesting-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-base",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-base",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.3.Final/netty-codec-base-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-common",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.3.Final/netty-common-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_native0.5_2.13",
+          "version": "2.14.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_native0.5_2.13/2.14.0/scala-collection-compat_native0.5_2.13-2.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "clib_native0.5_2.13",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "clib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_2.13/0.5.12/clib_native0.5_2.13-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-kqueue",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-kqueue",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.2.3.Final/netty-transport-classes-kqueue-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.3.Final/netty-transport-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-stacktracer_2.13",
+          "version": "2.1.26",
+          "artifacts": [
+            {
+              "name": "zio-stacktracer_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.13/2.1.26/zio-stacktracer_2.13-2.1.26.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-internal-macros_2.13",
+          "version": "2.1.26",
+          "artifacts": [
+            {
+              "name": "zio-internal-macros_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.13/2.1.26/zio-internal-macros_2.13-2.1.26.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-constraintless_2.13",
+          "version": "0.3.3",
+          "artifacts": [
+            {
+              "name": "zio-constraintless_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-constraintless_2.13/0.3.3/zio-constraintless_2.13-0.3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema_2.13",
+          "version": "1.7.4",
+          "artifacts": [
+            {
+              "name": "zio-schema_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema_2.13/1.7.4/zio-schema_2.13-1.7.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-buffer",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-buffer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.3.Final/netty-buffer-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_native0.5_2.13",
+          "version": "3.0.10",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_native0.5_2.13/3.0.10/izumi-reflect_native0.5_2.13-3.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-kqueue",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-kqueue",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.3.Final/netty-transport-native-kqueue-4.2.3.Final.jar"
+            },
+            {
+              "name": "netty-transport-native-kqueue",
+              "classifier": "osx-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.3.Final/netty-transport-native-kqueue-4.2.3.Final-osx-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-kqueue",
+              "classifier": "osx-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.3.Final/netty-transport-native-kqueue-4.2.3.Final-osx-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-unix-common",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-unix-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.3.Final/netty-transport-native-unix-common-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-epoll",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-epoll",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.3.Final/netty-transport-classes-epoll-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13",
+          "version": "3.0.10",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13/3.0.10/izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.13-3.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-prelude_2.13",
+          "version": "1.0.0-RC41",
+          "artifacts": [
+            {
+              "name": "zio-prelude_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-prelude_2.13/1.0.0-RC41/zio-prelude_2.13-1.0.0-RC41.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "cldr-api_native0.5_2.13",
+          "version": "4.5.0",
+          "artifacts": [
+            {
+              "name": "cldr-api_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_native0.5_2.13/4.5.0/cldr-api_native0.5_2.13-4.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-http",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.3.Final/netty-codec-http-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-time_native0.5_2.13",
+          "version": "2.7.0",
+          "artifacts": [
+            {
+              "name": "scala-java-time_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_native0.5_2.13/2.7.0/scala-java-time_native0.5_2.13-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.18",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-http_2.13",
+          "version": "3.4.0",
+          "artifacts": [
+            {
+              "name": "zio-http_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-http_2.13/3.4.0/zio-http_2.13-3.4.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "windowslib_native0.5_2.13",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "windowslib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_2.13/0.5.12/windowslib_native0.5_2.13-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-derivation_2.13",
+          "version": "1.7.4",
+          "artifacts": [
+            {
+              "name": "zio-schema-derivation_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-derivation_2.13/1.7.4/zio-schema-derivation_2.13-1.7.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler-proxy",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-handler-proxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.3.Final/netty-handler-proxy-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_native0.5_2.13",
+          "version": "1.1.3",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_native0.5_2.13/1.1.3/portable-scala-reflect_native0.5_2.13-1.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_2.13",
+          "version": "3.0.9",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.13/3.0.9/izumi-reflect_2.13-3.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "posixlib_native0.5_2.13",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "posixlib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.13/0.5.12/posixlib_native0.5_2.13-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_2.13",
+          "version": "2.1.26",
+          "artifacts": [
+            {
+              "name": "zio_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.13/2.1.26/zio_2.13-2.1.26.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-json_2.13",
+          "version": "1.7.4",
+          "artifacts": [
+            {
+              "name": "zio-schema-json_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-json_2.13/1.7.4/zio-schema-json_2.13-1.7.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "scalalib_native0.5_2.13",
+          "version": "2.13.18+0.5.12",
+          "artifacts": [
+            {
+              "name": "scalalib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.13/2.13.18%2B0.5.12/scalalib_native0.5_2.13-2.13.18%2B0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-json_2.13",
+          "version": "0.7.44",
+          "artifacts": [
+            {
+              "name": "zio-json_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-json_2.13/0.7.44/zio-json_2.13-0.7.44.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-compression",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-compression",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.3.Final/netty-codec-compression-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-schema-macros_2.13",
+          "version": "1.7.4",
+          "artifacts": [
+            {
+              "name": "zio-schema-macros_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-schema-macros_2.13/1.7.4/zio-schema-macros_2.13-1.7.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-resolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.3.Final/netty-resolver-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.14.0",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.14.0/scala-collection-compat_2.13-2.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-metrics-connectors-prometheus_2.13",
+          "version": "2.5.8",
+          "artifacts": [
+            {
+              "name": "zio-metrics-connectors-prometheus_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-metrics-connectors-prometheus_2.13/2.5.8/zio-metrics-connectors-prometheus_2.13-2.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "auxlib_native0.5_2.13",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "auxlib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_2.13/0.5.12/auxlib_native0.5_2.13-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "nativelib_native0.5_2.13",
+          "version": "0.5.12",
+          "artifacts": [
+            {
+              "name": "nativelib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_2.13/0.5.12/nativelib_native0.5_2.13-0.5.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-socks",
+          "version": "4.2.3.Final",
+          "artifacts": [
+            {
+              "name": "netty-codec-socks",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.2.3.Final/netty-codec-socks-4.2.3.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-streams_2.13",
+          "version": "2.1.20",
+          "artifacts": [
+            {
+              "name": "zio-streams_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.13/2.1.20/zio-streams_2.13-2.1.20.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

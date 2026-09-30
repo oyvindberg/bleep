@@ -151,10 +151,13 @@ object Dep {
       configuration: Configuration = defaults.configuration,
       exclusions: JsonMap[Organization, JsonSet[ModuleName]] = defaults.exclusions,
       publication: Publication = defaults.publication,
-      transitive: Boolean = defaults.transitive
+      transitive: Boolean = defaults.transitive,
+      /** an sbt plugin, for sbt 1 or sbt 2 as the scala version of the project depending on it says. See [[Scala.SbtPlugin]] */
+      isSbtPlugin: Boolean = defaults.isSbtPlugin
   ) extends Dep {
     override def isSimple: Boolean =
       forceJvm == defaults.forceJvm &&
+        isSbtPlugin == defaults.isSbtPlugin &&
         for3Use213 == defaults.for3Use213 &&
         for213Use3 == defaults.for213Use3 &&
         attributes == defaults.attributes &&
@@ -194,6 +197,17 @@ object Dep {
 
     def asJava(combo: VersionCombo): Either[String, JavaDependency] =
       combo match {
+        // sbt 1 looks plugins up by the base name and attributes, sbt 2 by a name of their own
+        case VersionCombo.Jvm(scalaVersion) if isSbtPlugin =>
+          bleep.model.Scala.SbtPlugin.forScalaVersion(scalaVersion).map {
+            case bleep.model.Scala.SbtPlugin.Sbt1 =>
+              Dep.JavaDependency(organization, baseModuleName, version, attributes, configuration, exclusions, publication, transitive, isSbtPlugin = true)
+            case sbt2 @ bleep.model.Scala.SbtPlugin.Sbt2 =>
+              val name = ModuleName(sbt2.artifactName(baseModuleName.value))
+              Dep.JavaDependency(organization, name, version, attributes, configuration, exclusions, publication, transitive, isSbtPlugin = false)
+          }
+        case _: VersionCombo.Js | _: VersionCombo.Native if isSbtPlugin =>
+          Left(s"$repr is an sbt plugin, which runs on the jvm")
         case scalaCombo: VersionCombo.Scala =>
           Right(
             Dep.JavaDependency(
@@ -268,6 +282,7 @@ object Dep {
               publicationExt <- publicationC.get[Option[Extension]]("ext")
               publicationClassifier <- publicationC.get[Option[Classifier]]("classifier")
               transitive <- c.get[Option[Boolean]]("transitive")
+              isSbtPlugin <- c.get[Option[Boolean]]("isSbtPlugin")
             } yield Dep.ScalaDependency(
               organization = dependency.organization,
               baseModuleName = dependency.baseModuleName,
@@ -285,7 +300,8 @@ object Dep {
                 ext = publicationExt.getOrElse(dependency.publication.ext),
                 classifier = publicationClassifier.getOrElse(dependency.publication.classifier)
               ),
-              transitive = transitive.getOrElse(dependency.transitive)
+              transitive = transitive.getOrElse(dependency.transitive),
+              isSbtPlugin = isSbtPlugin.getOrElse(dependency.isSbtPlugin)
             )
         }
 
@@ -330,15 +346,39 @@ object Dep {
             "configuration" := (if (x.configuration == Dep.defaults.configuration) Json.Null else x.configuration.asJson),
             "exclusions" := (if (x.exclusions == Dep.defaults.exclusions) Json.Null else x.exclusions.asJson),
             "publication" := (if (x.publication == Dep.defaults.publication) Json.Null else x.publication.asJson),
-            "transitive" := (if (x.transitive == Dep.defaults.transitive) Json.Null else x.transitive.asJson)
+            "transitive" := (if (x.transitive == Dep.defaults.transitive) Json.Null else x.transitive.asJson),
+            "isSbtPlugin" := (if (x.isSbtPlugin == Dep.defaults.isSbtPlugin) Json.Null else x.isSbtPlugin.asJson)
           )
           .foldWith(ShortenAndSortJson(Nil))
     }
 
-  implicit val ordering: Ordering[Dep] =
+  /** By `repr`, the order a build file lists dependencies in, and for the same `repr` by every field it leaves out, with maps and sets in sorted order: two
+    * dependencies compare as equal exactly when they are
+    */
+  implicit val ordering: Ordering[Dep] = {
+    import scala.math.Ordering.Implicits.seqOrdering
+
+    def sorted[T: Ordering](values: Iterable[T]): List[T] = values.toList.sorted
+
+    // everything `repr` leaves out: organization, name, version and how it is cross versioned are in it
+    def rest(dep: Dep) = {
+      val (forceJvm, for3Use213, for213Use3, isSbtPlugin) = dep match {
+        case java: JavaDependency   => (false, false, false, java.isSbtPlugin)
+        case scala: ScalaDependency => (scala.forceJvm, scala.for3Use213, scala.for213Use3, scala.isSbtPlugin)
+      }
+      (
+        (dep.configuration.value, sorted(dep.attributes), dep.transitive),
+        sorted(dep.exclusions.value.map { case (org, modules) => (org.value, sorted(modules.values.map(_.value))) }),
+        (dep.publication.name, dep.publication.`type`.value, dep.publication.ext.value, dep.publication.classifier.value),
+        (forceJvm, for3Use213, for213Use3, isSbtPlugin)
+      )
+    }
+    val restOrdering = Ordering.by(rest)
+
     (x: Dep, y: Dep) =>
       x.repr.compare(y.repr) match {
-        case 0 => x.toString.compareTo(y.toString) // this is rather slow
+        case 0 => restOrdering.compare(x, y)
         case n => n
       }
+  }
 }

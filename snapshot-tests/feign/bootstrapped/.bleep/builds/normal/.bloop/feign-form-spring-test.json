@@ -1,0 +1,1116 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-form-spring-test",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-form-spring-test/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-form-spring-test/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/form-spring/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-form-spring-test/generated-sources/annotations"
+    ],
+    "dependencies": [
+      "feign-core",
+      "feign-form",
+      "feign-form-spring",
+      "feign-jackson"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.38/logback-classic-1.5.38.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.38/logback-core-1.5.38.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.21.5/jackson-core-2.21.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.3/jackson-databind-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/jayway/jsonpath/json-path/2.10.0/json-path-2.10.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-fileupload/commons-fileupload/1.6.0/commons-fileupload-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.19.0/commons-io-2.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.6/commons-logging-1.3.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/openfeign/feign-slf4j/13.6.1/feign-slf4j-13.6.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.17.1/micrometer-commons-1.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.17.1/micrometer-observation-1.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/annotation/jakarta.annotation-api/3.0.0/jakarta.annotation-api-3.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/4.0.5/jakarta.xml.bind-api-4.0.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.18.11/byte-buddy-1.18.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/accessors-smart/2.6.0/accessors-smart-2.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/json-smart/2.6.0/json-smart-2.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.20.0/commons-lang3-3.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-text/1.15.0/commons-text-1.15.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.25.5/log4j-api-2.25.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-to-slf4j/2.25.5/log4j-to-slf4j-2.25.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-core/11.0.24/tomcat-embed-core-11.0.24.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-el/11.0.24/tomcat-embed-el-11.0.24.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-websocket/11.0.24/tomcat-embed-websocket-11.0.24.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/awaitility/awaitility/4.3.0/awaitility-4.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.85.2/bcprov-jdk18on-1.85.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.0.3/junit-jupiter-api-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.0.3/junit-jupiter-engine-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/6.0.3/junit-jupiter-params-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter/6.0.3/junit-jupiter-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.1.3/junit-platform-commons-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.1.3/junit-platform-engine-6.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-core/5.23.0/mockito-core-5.23.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-junit-jupiter/5.23.0/mockito-junit-jupiter-5.23.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/objenesis/objenesis/3.3/objenesis-3.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/projectlombok/lombok/1.18.48/lombok-1.18.48.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.18/jul-to-slf4j-2.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-autoconfigure/4.1.1/spring-boot-autoconfigure-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-http-converter/4.1.1/spring-boot-http-converter-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-jackson/4.1.1/spring-boot-jackson-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-servlet/4.1.1/spring-boot-servlet-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-jackson/4.1.1/spring-boot-starter-jackson-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-logging/4.1.1/spring-boot-starter-logging-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-test/4.1.1/spring-boot-starter-test-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-tomcat-runtime/4.1.1/spring-boot-starter-tomcat-runtime-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-tomcat/4.1.1/spring-boot-starter-tomcat-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-web/4.1.1/spring-boot-starter-web-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter/4.1.1/spring-boot-starter-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-test-autoconfigure/4.1.1/spring-boot-test-autoconfigure-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-test/4.1.1/spring-boot-test-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-tomcat/4.1.1/spring-boot-tomcat-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-web-server/4.1.1/spring-boot-web-server-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-webmvc/4.1.1/spring-boot-webmvc-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot/4.1.1/spring-boot-4.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/cloud/spring-cloud-commons/5.0.3/spring-cloud-commons-5.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/cloud/spring-cloud-context/5.0.3/spring-cloud-context-5.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/cloud/spring-cloud-openfeign-core/5.0.3/spring-cloud-openfeign-core-5.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/cloud/spring-cloud-starter-openfeign/5.0.3/spring-cloud-starter-openfeign-5.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/cloud/spring-cloud-starter/5.0.3/spring-cloud-starter-5.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/security/spring-security-crypto/7.1.1/spring-security-crypto-7.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-aop/7.0.9/spring-aop-7.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-beans/7.0.9/spring-beans-7.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-context/7.0.9/spring-context-7.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-core/7.0.9/spring-core-7.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-expression/7.0.9/spring-expression-7.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-test/7.0.9/spring-test-7.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-web/7.0.9/spring-web-7.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-webmvc/7.0.9/spring-webmvc-7.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/xmlunit/xmlunit-core/2.11.0/xmlunit-core-2.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.6/snakeyaml-2.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-core/3.1.5/jackson-core-3.1.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-databind/3.1.5/jackson-databind-3.1.5.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-form-spring/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-form/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-jackson/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/form-spring/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/form/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/jackson/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-form-spring-test/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-form-spring-test/builds/normal/test-classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/form-spring/src/test/resources"
+    ],
+    "java": {
+      "options": [
+        "-parameters",
+        "-source",
+        "25",
+        "-target",
+        "25"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.novocode.junit.JUnitFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalatest.tools.Framework",
+            "org.scalatest.tools.ScalaTestFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalacheck.ScalaCheckFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.specs.runner.SpecsFramework",
+            "org.specs2.runner.Specs2Framework",
+            "org.specs2.runner.SpecsFramework"
+          ]
+        },
+        {
+          "names": [
+            "utest.runner.Framework"
+          ]
+        },
+        {
+          "names": [
+            "munit.Framework"
+          ]
+        },
+        {
+          "names": [
+            "mill.testng.TestNGFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/form-spring",
+          "-Duser.language=en"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy",
+          "version": "1.18.11",
+          "artifacts": [
+            {
+              "name": "byte-buddy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.18.11/byte-buddy-1.18.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-io",
+          "name": "commons-io",
+          "version": "2.19.0",
+          "artifacts": [
+            {
+              "name": "commons-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.19.0/commons-io-2.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot/4.1.1/spring-boot-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.3.6",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.3.6/commons-logging-1.3.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-observation",
+          "version": "1.17.1",
+          "artifacts": [
+            {
+              "name": "micrometer-observation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.17.1/micrometer-observation-1.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.security",
+          "name": "spring-security-crypto",
+          "version": "7.1.1",
+          "artifacts": [
+            {
+              "name": "spring-security-crypto",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/security/spring-security-crypto/7.1.1/spring-security-crypto-7.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.cloud",
+          "name": "spring-cloud-openfeign-core",
+          "version": "5.0.3",
+          "artifacts": [
+            {
+              "name": "spring-cloud-openfeign-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/cloud/spring-cloud-openfeign-core/5.0.3/spring-cloud-openfeign-core-5.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "jul-to-slf4j",
+          "version": "2.0.18",
+          "artifacts": [
+            {
+              "name": "jul-to-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.18/jul-to-slf4j-2.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.objenesis",
+          "name": "objenesis",
+          "version": "3.3",
+          "artifacts": [
+            {
+              "name": "objenesis",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/objenesis/objenesis/3.3/objenesis-3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hamcrest",
+          "name": "hamcrest",
+          "version": "3.0",
+          "artifacts": [
+            {
+              "name": "hamcrest",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest/3.0/hamcrest-3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.mockito",
+          "name": "mockito-junit-jupiter",
+          "version": "5.23.0",
+          "artifacts": [
+            {
+              "name": "mockito-junit-jupiter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-junit-jupiter/5.23.0/mockito-junit-jupiter-5.23.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-test",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-test/4.1.1/spring-boot-starter-test-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.logging.log4j",
+          "name": "log4j-api",
+          "version": "2.25.5",
+          "artifacts": [
+            {
+              "name": "log4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.25.5/log4j-api-2.25.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.cloud",
+          "name": "spring-cloud-commons",
+          "version": "5.0.3",
+          "artifacts": [
+            {
+              "name": "spring-cloud-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/cloud/spring-cloud-commons/5.0.3/spring-cloud-commons-5.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.cloud",
+          "name": "spring-cloud-starter-openfeign",
+          "version": "5.0.3",
+          "artifacts": [
+            {
+              "name": "spring-cloud-starter-openfeign",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/cloud/spring-cloud-starter-openfeign/5.0.3/spring-cloud-starter-openfeign-5.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-tomcat-runtime",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-tomcat-runtime",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-tomcat-runtime/4.1.1/spring-boot-starter-tomcat-runtime-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.tomcat.embed",
+          "name": "tomcat-embed-core",
+          "version": "11.0.24",
+          "artifacts": [
+            {
+              "name": "tomcat-embed-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-core/11.0.24/tomcat-embed-core-11.0.24.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-web-server",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-web-server",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-web-server/4.1.1/spring-boot-web-server-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-web",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-web",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-web/4.1.1/spring-boot-starter-web-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.5.38",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.5.38/logback-core-1.5.38.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.mockito",
+          "name": "mockito-core",
+          "version": "5.23.0",
+          "artifacts": [
+            {
+              "name": "mockito-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/mockito/mockito-core/5.23.0/mockito-core-5.23.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.3/jackson-databind-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-api",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/6.0.3/junit-jupiter-api-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-tomcat",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-tomcat",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-tomcat/4.1.1/spring-boot-tomcat-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-tomcat",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-tomcat",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-tomcat/4.1.1/spring-boot-starter-tomcat-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.cloud",
+          "name": "spring-cloud-context",
+          "version": "5.0.3",
+          "artifacts": [
+            {
+              "name": "spring-cloud-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/cloud/spring-cloud-context/5.0.3/spring-cloud-context-5.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.yaml",
+          "name": "snakeyaml",
+          "version": "2.6",
+          "artifacts": [
+            {
+              "name": "snakeyaml",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.6/snakeyaml-2.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-lang3",
+          "version": "3.20.0",
+          "artifacts": [
+            {
+              "name": "commons-lang3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.20.0/commons-lang3-3.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.5.38",
+          "artifacts": [
+            {
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.5.38/logback-classic-1.5.38.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-aop",
+          "version": "7.0.9",
+          "artifacts": [
+            {
+              "name": "spring-aop",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-aop/7.0.9/spring-aop-7.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-logging",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-logging/4.1.1/spring-boot-starter-logging-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.xmlunit",
+          "name": "xmlunit-core",
+          "version": "2.11.0",
+          "artifacts": [
+            {
+              "name": "xmlunit-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/xmlunit/xmlunit-core/2.11.0/xmlunit-core-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-core",
+          "version": "7.0.9",
+          "artifacts": [
+            {
+              "name": "spring-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-core/7.0.9/spring-core-7.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-context",
+          "version": "7.0.9",
+          "artifacts": [
+            {
+              "name": "spring-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-context/7.0.9/spring-context-7.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "tools.jackson.core",
+          "name": "jackson-databind",
+          "version": "3.1.5",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-databind/3.1.5/jackson-databind-3.1.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.annotation",
+          "name": "jakarta.annotation-api",
+          "version": "3.0.0",
+          "artifacts": [
+            {
+              "name": "jakarta.annotation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/annotation/jakarta.annotation-api/3.0.0/jakarta.annotation-api-3.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.logging.log4j",
+          "name": "log4j-to-slf4j",
+          "version": "2.25.5",
+          "artifacts": [
+            {
+              "name": "log4j-to-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-to-slf4j/2.25.5/log4j-to-slf4j-2.25.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.bytebuddy",
+          "name": "byte-buddy-agent",
+          "version": "1.18.11",
+          "artifacts": [
+            {
+              "name": "byte-buddy-agent",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/bytebuddy/byte-buddy-agent/1.18.11/byte-buddy-agent-1.18.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.bouncycastle",
+          "name": "bcprov-jdk18on",
+          "version": "1.85.2",
+          "artifacts": [
+            {
+              "name": "bcprov-jdk18on",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.85.2/bcprov-jdk18on-1.85.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.projectlombok",
+          "name": "lombok",
+          "version": "1.18.48",
+          "artifacts": [
+            {
+              "name": "lombok",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/projectlombok/lombok/1.18.48/lombok-1.18.48.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.opentest4j",
+          "name": "opentest4j",
+          "version": "1.3.0",
+          "artifacts": [
+            {
+              "name": "opentest4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-engine",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-engine/6.0.3/junit-jupiter-engine-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-test",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-test/4.1.1/spring-boot-test-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-webmvc",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-webmvc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-webmvc/4.1.1/spring-boot-webmvc-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-text",
+          "version": "1.15.0",
+          "artifacts": [
+            {
+              "name": "commons-text",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-text/1.15.0/commons-text-1.15.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.awaitility",
+          "name": "awaitility",
+          "version": "4.3.0",
+          "artifacts": [
+            {
+              "name": "awaitility",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/awaitility/awaitility/4.3.0/awaitility-4.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-autoconfigure",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-autoconfigure",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-autoconfigure/4.1.1/spring-boot-autoconfigure-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.assertj",
+          "name": "assertj-core",
+          "version": "3.27.7",
+          "artifacts": [
+            {
+              "name": "assertj-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/assertj/assertj-core/3.27.7/assertj-core-3.27.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-beans",
+          "version": "7.0.9",
+          "artifacts": [
+            {
+              "name": "spring-beans",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-beans/7.0.9/spring-beans-7.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.ow2.asm",
+          "name": "asm",
+          "version": "9.7.1",
+          "artifacts": [
+            {
+              "name": "asm",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-expression",
+          "version": "7.0.9",
+          "artifacts": [
+            {
+              "name": "spring-expression",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-expression/7.0.9/spring-expression-7.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-webmvc",
+          "version": "7.0.9",
+          "artifacts": [
+            {
+              "name": "spring-webmvc",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-webmvc/7.0.9/spring-webmvc-7.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter/6.0.3/junit-jupiter-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.tomcat.embed",
+          "name": "tomcat-embed-el",
+          "version": "11.0.24",
+          "artifacts": [
+            {
+              "name": "tomcat-embed-el",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-el/11.0.24/tomcat-embed-el-11.0.24.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-test-autoconfigure",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-test-autoconfigure",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-test-autoconfigure/4.1.1/spring-boot-test-autoconfigure-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.cloud",
+          "name": "spring-cloud-starter",
+          "version": "5.0.3",
+          "artifacts": [
+            {
+              "name": "spring-cloud-starter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/cloud/spring-cloud-starter/5.0.3/spring-cloud-starter-5.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-test",
+          "version": "7.0.9",
+          "artifacts": [
+            {
+              "name": "spring-test",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-test/7.0.9/spring-test-7.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter-jackson",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter-jackson",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-jackson/4.1.1/spring-boot-starter-jackson-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-http-converter",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-http-converter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-http-converter/4.1.1/spring-boot-http-converter-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.skyscreamer",
+          "name": "jsonassert",
+          "version": "1.5.3",
+          "artifacts": [
+            {
+              "name": "jsonassert",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/skyscreamer/jsonassert/1.5.3/jsonassert-1.5.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.jupiter",
+          "name": "junit-jupiter-params",
+          "version": "6.0.3",
+          "artifacts": [
+            {
+              "name": "junit-jupiter-params",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-params/6.0.3/junit-jupiter-params-6.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.21.5",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.21.5/jackson-core-2.21.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-starter",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-starter",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter/4.1.1/spring-boot-starter-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.openfeign",
+          "name": "feign-slf4j",
+          "version": "13.6.1",
+          "artifacts": [
+            {
+              "name": "feign-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/openfeign/feign-slf4j/13.6.1/feign-slf4j-13.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.xml.bind",
+          "name": "jakarta.xml.bind-api",
+          "version": "4.0.5",
+          "artifacts": [
+            {
+              "name": "jakarta.xml.bind-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/4.0.5/jakarta.xml.bind-api-4.0.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-engine",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-engine/6.1.3/junit-platform-engine-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.minidev",
+          "name": "accessors-smart",
+          "version": "2.6.0",
+          "artifacts": [
+            {
+              "name": "accessors-smart",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/accessors-smart/2.6.0/accessors-smart-2.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.tomcat.embed",
+          "name": "tomcat-embed-websocket",
+          "version": "11.0.24",
+          "artifacts": [
+            {
+              "name": "tomcat-embed-websocket",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-websocket/11.0.24/tomcat-embed-websocket-11.0.24.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.jayway.jsonpath",
+          "name": "json-path",
+          "version": "2.10.0",
+          "artifacts": [
+            {
+              "name": "json-path",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/jayway/jsonpath/json-path/2.10.0/json-path-2.10.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-servlet",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-servlet",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-servlet/4.1.1/spring-boot-servlet-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.18",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apiguardian",
+          "name": "apiguardian-api",
+          "version": "1.1.2",
+          "artifacts": [
+            {
+              "name": "apiguardian-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework.boot",
+          "name": "spring-boot-jackson",
+          "version": "4.1.1",
+          "artifacts": [
+            {
+              "name": "spring-boot-jackson",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/boot/spring-boot-jackson/4.1.1/spring-boot-jackson-4.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-fileupload",
+          "name": "commons-fileupload",
+          "version": "1.6.0",
+          "artifacts": [
+            {
+              "name": "commons-fileupload",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-fileupload/commons-fileupload/1.6.0/commons-fileupload-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.minidev",
+          "name": "json-smart",
+          "version": "2.6.0",
+          "artifacts": [
+            {
+              "name": "json-smart",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/minidev/json-smart/2.6.0/json-smart-2.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.vaadin.external.google",
+          "name": "android-json",
+          "version": "0.0.20131108.vaadin1",
+          "artifacts": [
+            {
+              "name": "android-json",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.junit.platform",
+          "name": "junit-platform-commons",
+          "version": "6.1.3",
+          "artifacts": [
+            {
+              "name": "junit-platform-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/junit/platform/junit-platform-commons/6.1.3/junit-platform-commons-6.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.springframework",
+          "name": "spring-web",
+          "version": "7.0.9",
+          "artifacts": [
+            {
+              "name": "spring-web",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/springframework/spring-web/7.0.9/spring-web-7.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.22",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar"
+            }
+          ]
+        },
+        {
+          "organization": "tools.jackson.core",
+          "name": "jackson-core",
+          "version": "3.1.5",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/tools/jackson/core/jackson-core/3.1.5/jackson-core-3.1.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.activation",
+          "name": "jakarta.activation-api",
+          "version": "2.1.4",
+          "artifacts": [
+            {
+              "name": "jakarta.activation-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/2.1.4/jakarta.activation-api-2.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-commons",
+          "version": "1.17.1",
+          "artifacts": [
+            {
+              "name": "micrometer-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.17.1/micrometer-commons-1.17.1.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

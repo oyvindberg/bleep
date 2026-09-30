@@ -150,7 +150,8 @@ object BleepBuildConverter {
               kotlinVersion = kotlinVersion.kotlinVersion,
               jvmTarget = jvmTarget,
               kotlinOptions = options ++ pluginOptions,
-              javaRelease = javaRelease
+              javaRelease = javaRelease,
+              javaOptions = resolved.language.javaOptions ++ additionalJavaOptions
             )
         }
 
@@ -187,7 +188,8 @@ object BleepBuildConverter {
               kotlinVersion = kotlinLang.version,
               jvmTarget = "11",
               kotlinOptions = kotlinLang.options,
-              javaRelease = None
+              javaRelease = None,
+              javaOptions = kotlinLang.javaOptions ++ additionalJavaOptions
             )
         }
     }

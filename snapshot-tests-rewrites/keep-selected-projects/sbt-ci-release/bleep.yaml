@@ -1,0 +1,37 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:17
+projects: {}
+templates:
+  template-scala-2.12:
+    dependencies:
+      configuration: provided
+      module: org.scala-sbt:sbt:1.5.8
+    ignoreEvictionErrors: no
+    libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
+    platform:
+      name: jvm
+    scala:
+      options: -Wconf:cat=unused-nowarn:s -Xsource:3 -deprecation -release:8
+      sbtPlugin: true
+      setup:
+        order: mixed
+      version: 2.12.21
+  template-scala-3:
+    dependencies:
+      configuration: provided
+      module: org.scala-sbt:sbt:2.0.0
+    ignoreEvictionErrors: no
+    libraryVersionSchemes: org.scala-sbt:compiler-interface:always
+    platform:
+      name: jvm
+    scala:
+      options: -deprecation
+      sbtPlugin: true
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false
+        order: mixed
+      version: 3.8.4

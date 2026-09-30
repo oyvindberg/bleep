@@ -27,10 +27,13 @@ case class VersionScala(scalaVersion: String) {
     if (is3) Dep.Scala(scalaOrganization, "scala3-compiler", scalaVersion)
     else Dep.Java(scalaOrganization, "scala-compiler", scalaVersion)
 
-  val library: Dep =
-    if (is38OrLater) Dep.Java(scalaOrganization, "scala-library", scalaVersion)
-    else if (is3) VersionScala.Scala213.library
-    else Dep.Java(scalaOrganization, "scala-library", scalaVersion)
+  /** The standard library, when the build has to name it. Scala 3.0-3.7 uses the 2.13 standard library, and `scala3-library` depends on the exact version it
+    * was built against. Naming one here would override that, and put a version on the classpath the build never asked for.
+    */
+  val library: Option[Dep] =
+    if (is38OrLater) Some(Dep.Java(scalaOrganization, "scala-library", scalaVersion))
+    else if (is3) None
+    else Some(Dep.Java(scalaOrganization, "scala-library", scalaVersion))
 
   val scala3Library: Option[Dep] =
     if (is3) Some(Dep.Scala(scalaOrganization, "scala3-library", scalaVersion))
@@ -41,7 +44,7 @@ case class VersionScala(scalaVersion: String) {
     Dep.ScalaDependency(Organization(scalaOrganization), ModuleName("scala3-library_sjs1"), scalaVersion, fullCrossVersion = false, forceJvm = true)
 
   val libraries: List[Dep] =
-    List(Some(library), scala3Library).flatten
+    List(library, scala3Library).flatten
 
   val binVersion: String = scalaVersion match {
     case VersionScala.Version("3", _, _)     => s"3"

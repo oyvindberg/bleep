@@ -1,0 +1,95 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "dynver@jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/dynver@jvm212/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/dynver/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/dynver/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/dynver/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/dynver/src/main/scala-2.12"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/dynver@jvm212/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/dynver@jvm212/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/sbt-dynver/sbt-build/dynver/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.21",
+      "options": [
+        "-Xfuture",
+        "-Xlint",
+        "-Yno-adapted-args",
+        "-Ywarn-dead-code",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-value-discard",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-release:8",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.21/scala-compiler-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.21/scala-reflect-2.12.21.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped/.bleep/projects/dynver@jvm212/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/sbt-dynver/bootstrapped"
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.21",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.21/scala-library-2.12.21.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

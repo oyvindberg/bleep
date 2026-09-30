@@ -1,0 +1,320 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "sbt-openapi-codegen@jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sbt-openapi-codegen@jvm3/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sbt-openapi-codegen@jvm3/generated-sources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/javajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/scala-3-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/scala-sbt-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/scalajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/scalajvm-3",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/scalajvm-3-2.13+"
+    ],
+    "dependencies": [
+      "tapir-openapi-codegen-core@jvm3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-apache-http_3/0.9.3/gigahorse-apache-http_3-0.9.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-core_3/0.9.3/gigahorse-core_3-0.9.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-apache-httpclient5/0.9.3/shaded-apache-httpclient5-0.9.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_3/1.3.2/shaded-jawn-parser_3-1.3.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_3/1.0.0-M4/shaded-scalajson_3-1.0.0-M4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_3/0.14.0-M5/sjson-new-core_3-0.14.0-M5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-murmurhash_3/0.14.0-M5/sjson-new-murmurhash_3-0.14.0-M5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_3/0.14.0-M5/sjson-new-scalajson_3-0.14.0-M5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/2.8.5/caffeine-2.8.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/mwiede/jsch/0.2.23/jsch-0.2.23.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.4.0/error_prone_annotations-2.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.2/disruptor-3.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.12/file-tree-views-2.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_3/0.6.1/ssl-config-core_3-0.6.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.16/circe-core_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.16/circe-generic_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.16/circe-numbers_3-0.14.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml-common_3/0.15.2/circe-yaml-common_3-0.15.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_3/0.15.2/circe-yaml_3-0.15.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.12.0/jna-platform-5.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.12.0/jna-5.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/openhft/zero-allocation-hashing/0.16/zero-allocation-hashing-0.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.4.1/checker-qual-3.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.4.1/jansi-2.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-builtins/3.27.1/jline-builtins-3.27.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.29.0/jline-native-3.29.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.29.0/jline-reader-3.29.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-style/3.27.1/jline-style-3.27.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_3/1.2.0/scala-parallel-collections_3-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_3/2.1.0/scala-parser-combinators_3-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.4.0/scala-xml_3-2.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.7.4/scala3-compiler_3-3.7.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.7.4/scala3-interfaces-3.7.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.7.4/scala3-library_3-3.7.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.7.4/tasty-core_3-3.7.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/actions_3/2.0.0-RC8/actions_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/build-file_3/2.0.0-RC8/build-file_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/collections_3/2.0.0-RC8/collections_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/command_3/2.0.0-RC8/command_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/2.0.0-M11/compiler-interface-2.0.0-M11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/completion_3/2.0.0-RC8/completion_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/core-macros_3/2.0.0-RC8/core-macros_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/gson/shaded-gson/2.13.1/shaded-gson-2.13.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_3/1.10.5/io_3-1.10.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ipcsocket/ipcsocket/1.6.3/ipcsocket-1.6.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ivy/ivy/2.3.0-sbt-77cc781d727b367d3761f097d89f5a4762771d41/ivy-2.3.0-sbt-77cc781d727b367d3761f097d89f5a4762771d41.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18/jline-2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.5.2/launcher-interface-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-core_3/2.0.0-RC8/librarymanagement-core_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-coursier_3/2.0.0-RC8/librarymanagement-coursier_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-ivy_3/2.0.0-RC8/librarymanagement-ivy_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/logic_3/2.0.0-RC8/logic_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/main-settings_3/2.0.0-RC8/main-settings_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/main_3/2.0.0-RC8/main_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/protocol_3/2.0.0-RC8/protocol_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/run_3/2.0.0-RC8/run_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbinary_3/0.5.1/sbinary_3-0.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/2.0.0-RC8/sbt-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/task-system_3/2.0.0-RC8/task-system_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/tasks_3/2.0.0-RC8/tasks_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/template-resolver/0.1/template-resolver-0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/testing_3/2.0.0-RC8/testing_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-cache_3/2.0.0-RC8/util-cache_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-control_3/2.0.0-RC8/util-control_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-core_3/2.0.0-RC8/util-core_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/2.0.0-RC8/util-interface-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-logging_3/2.0.0-RC8/util-logging_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-position_3/2.0.0-RC8/util-position_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-relation_3/2.0.0-RC8/util-relation_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-tracking_3/2.0.0-RC8/util-tracking_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/worker/2.0.0-RC8/worker-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-apiinfo_3/2.0.0-M11/zinc-apiinfo_3-2.0.0-M11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classfile_3/2.0.0-M11/zinc-classfile_3-2.0.0-M11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classpath_3/2.0.0-M11/zinc-classpath_3-2.0.0-M11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-compile-core_3/2.0.0-M11/zinc-compile-core_3-2.0.0-M11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-core_3/2.0.0-M11/zinc-core_3-2.0.0-M11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-lm-integration_3/2.0.0-RC8/zinc-lm-integration_3-2.0.0-RC8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-persist_3/2.0.0-M11/zinc-persist_3-2.0.0-M11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc_3/2.0.0-M11/zinc_3-2.0.0-M11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.28/slf4j-api-1.7.28.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.13.0/cats-core_3-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.13.0/cats-kernel_3-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-openapi-codegen-core@jvm3/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sbt-openapi-codegen@jvm3/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sbt-openapi-codegen@jvm3/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sbt-openapi-codegen@jvm3/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/sbt-plugin/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.7.4",
+      "options": [
+        "-Wconf:msg=unused value of type org.scalatest.Assertion:s",
+        "-Wconf:msg=unused value of type org.scalatest.compatible.Assertion:s",
+        "-Wnonunit-statement",
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wunused:imports",
+        "-Wunused:locals",
+        "-Wunused:params",
+        "-Wunused:privates",
+        "-Wvalue-discard",
+        "-Xkind-projector",
+        "-Xmax-inlines",
+        "64",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-sourceroot",
+        "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.7.4/scala3-compiler_3-3.7.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.7.4/scala3-interfaces-3.7.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.7.4/scala3-library_3-3.7.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.7.4/tasty-core_3-3.7.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.29.0/jline-reader-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/sbt-openapi-codegen@jvm3/builds/normal/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "-proc:none"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_3",
+          "version": "0.14.16",
+          "artifacts": [
+            {
+              "name": "circe-generic_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.16/circe-generic_3-0.14.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-core_3",
+          "version": "0.14.16",
+          "artifacts": [
+            {
+              "name": "circe-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.16/circe-core_3-0.14.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "sbt",
+          "version": "2.0.0-RC8",
+          "artifacts": [
+            {
+              "name": "sbt",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/2.0.0-RC8/sbt-2.0.0-RC8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.7.4",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.7.4/scala3-library_3-3.7.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_3",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.13.0/cats-core_3-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_3",
+          "version": "2.13.0",
+          "artifacts": [
+            {
+              "name": "cats-kernel_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.13.0/cats-kernel_3-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-yaml_3",
+          "version": "0.15.2",
+          "artifacts": [
+            {
+              "name": "circe-yaml_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_3/0.15.2/circe-yaml_3-0.15.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-yaml-common_3",
+          "version": "0.15.2",
+          "artifacts": [
+            {
+              "name": "circe-yaml-common_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml-common_3/0.15.2/circe-yaml-common_3-0.15.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-numbers_3",
+          "version": "0.14.16",
+          "artifacts": [
+            {
+              "name": "circe-numbers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.16/circe-numbers_3-0.14.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.yaml",
+          "name": "snakeyaml",
+          "version": "2.2",
+          "artifacts": [
+            {
+              "name": "snakeyaml",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

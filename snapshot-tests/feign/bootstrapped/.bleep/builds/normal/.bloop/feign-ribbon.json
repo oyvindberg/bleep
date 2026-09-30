@@ -1,0 +1,332 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "feign-ribbon",
+    "directory": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-ribbon/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-ribbon/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/ribbon/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-ribbon/generated-sources/annotations"
+    ],
+    "dependencies": [
+      "feign-core"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.3/jackson-core-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.3/jackson-databind-2.22.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/annotations/2.0.0/annotations-2.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.7.1-jre/guava-33.7.1-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/archaius/archaius-core/0.7.6/archaius-core-0.7.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/netflix-commons/netflix-commons-util/0.1.1/netflix-commons-util-0.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/netflix-commons/netflix-statistics/0.1.1/netflix-statistics-0.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/ribbon/ribbon-archaius/2.7.18/ribbon-archaius-2.7.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/ribbon/ribbon-core/2.7.18/ribbon-core-2.7.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/ribbon/ribbon-loadbalancer/2.7.18/ribbon-loadbalancer-2.7.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/servo/servo-core/0.10.1/servo-core-0.10.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/servo/servo-internal/0.10.1/servo-internal-0.10.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-configuration/commons-configuration/1.8/commons-configuration-1.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-lang/commons-lang/2.6/commons-lang-2.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/reactivex/rxjava/1.0.9/rxjava-1.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.12/slf4j-api-1.7.12.jar",
+      "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-core/builds/normal/classes",
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-ribbon/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/feign/bootstrapped/.bleep/projects/feign-ribbon/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/feign/maven-build/ribbon/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/feign/maven-build/ribbon"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.netflix.ribbon",
+          "name": "ribbon-archaius",
+          "version": "2.7.18",
+          "artifacts": [
+            {
+              "name": "ribbon-archaius",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/ribbon/ribbon-archaius/2.7.18/ribbon-archaius-2.7.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.netflix.netflix-commons",
+          "name": "netflix-statistics",
+          "version": "0.1.1",
+          "artifacts": [
+            {
+              "name": "netflix-statistics",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/netflix-commons/netflix-statistics/0.1.1/netflix-statistics-0.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.netflix.ribbon",
+          "name": "ribbon-core",
+          "version": "2.7.18",
+          "artifacts": [
+            {
+              "name": "ribbon-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/ribbon/ribbon-core/2.7.18/ribbon-core-2.7.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.netflix.servo",
+          "name": "servo-internal",
+          "version": "0.10.1",
+          "artifacts": [
+            {
+              "name": "servo-internal",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/servo/servo-internal/0.10.1/servo-internal-0.10.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.netflix.netflix-commons",
+          "name": "netflix-commons-util",
+          "version": "0.1.1",
+          "artifacts": [
+            {
+              "name": "netflix-commons-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/netflix-commons/netflix-commons-util/0.1.1/netflix-commons-util-0.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.22",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "3.1",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.1/j2objc-annotations-3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.50.0",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.50.0/error_prone_annotations-2.50.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.3/jackson-databind-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.1.1",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.findbugs",
+          "name": "jsr305",
+          "version": "3.0.1",
+          "artifacts": [
+            {
+              "name": "jsr305",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.netflix.archaius",
+          "name": "archaius-core",
+          "version": "0.7.6",
+          "artifacts": [
+            {
+              "name": "archaius-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/archaius/archaius-core/0.7.6/archaius-core-0.7.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-configuration",
+          "name": "commons-configuration",
+          "version": "1.8",
+          "artifacts": [
+            {
+              "name": "commons-configuration",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-configuration/commons-configuration/1.8/commons-configuration-1.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "33.7.1-jre",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.7.1-jre/guava-33.7.1-jre.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.netflix.ribbon",
+          "name": "ribbon-loadbalancer",
+          "version": "2.7.18",
+          "artifacts": [
+            {
+              "name": "ribbon-loadbalancer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/ribbon/ribbon-loadbalancer/2.7.18/ribbon-loadbalancer-2.7.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.22.3",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.3/jackson-core-2.22.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.netflix.servo",
+          "name": "servo-core",
+          "version": "0.10.1",
+          "artifacts": [
+            {
+              "name": "servo-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/netflix/servo/servo-core/0.10.1/servo-core-0.10.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.reactivex",
+          "name": "rxjava",
+          "version": "1.0.9",
+          "artifacts": [
+            {
+              "name": "rxjava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/reactivex/rxjava/1.0.9/rxjava-1.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-lang",
+          "name": "commons-lang",
+          "version": "2.6",
+          "artifacts": [
+            {
+              "name": "commons-lang",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-lang/commons-lang/2.6/commons-lang-2.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jspecify",
+          "name": "jspecify",
+          "version": "1.0.1",
+          "artifacts": [
+            {
+              "name": "jspecify",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jspecify/jspecify/1.0.1/jspecify-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.3",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.findbugs",
+          "name": "annotations",
+          "version": "2.0.0",
+          "artifacts": [
+            {
+              "name": "annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/annotations/2.0.0/annotations-2.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.12",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.12/slf4j-api-1.7.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

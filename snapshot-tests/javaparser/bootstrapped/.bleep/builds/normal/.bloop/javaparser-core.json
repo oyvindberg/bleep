@@ -1,0 +1,51 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "javaparser-core",
+    "directory": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-sources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core/src/main/javacc-support",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-sources/annotations"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped/.bleep/projects/javaparser-core/generated-resources/scripts.CopyImportedGeneratedFiles",
+      "<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "--release",
+        "8",
+        "-parameters"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/javaparser/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/javaparser/maven-build/javaparser-core"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        
+      ]
+    }
+  }
+}

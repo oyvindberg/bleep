@@ -1,0 +1,365 @@
+# template inference
+templates: 27
+projects: 52
+settings: 779 (633 in projects, 146 in templates)
+
+# roundtrip
+sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
+imported from sbt but not in the bleep build: docs_make_zio_app_configurable, zio-docs
+sbt bloop projects dropped by the import: benchmarks-test, coreJS-test, coreJVM-test, coreNative-test, differ-compositional-updates-test, docs-test, docs_make_zio_app_configurable-test, internalMacrosJS-test, internalMacrosJVM-test, internalMacrosNative-test, jsdocs, jsdocs-test, macrosJS-test, macrosJVM-test, macrosNative-test, managedJS-test, managedJVM-test, managedNative-test, migrate-cats-effect-test, migrate-from-monix-test, reloadable-services-test, root212, root212-test, root213, root213-test, root3, root3-test, rootJS, rootJS-test, rootJVM, rootJVM-test, rootJVM212, rootJVM212-test, rootJVM213, rootJVM213-test, rootJVM3, rootJVM3-test, rootNative, rootNative-test, scalafixInput-test, scalafixOutput-test, scalafixRules-test, schedule-test, stacktracerJS-test, stacktracerJVM-test, stacktracerNative-test, streamsJS-test, streamsJVM-test, streamsNative-test, testJunitEngine-test, testJunitRunner-test, testMagnoliaJS-test, testMagnoliaJVM-test, testRefinedJS-test, testRefinedJVM-test, testsJS-test, testsJVM-test, testsNative-test, threadlocal-bridge-test
+compared: 285, identical: 241
+
+most common differences (projects, aspect, difference):
+   18  classpath + jar auxlib_native0.5_2.13:0.5.12
+   18  classpath + jar clib_native0.5_2.13:0.5.12
+   18  classpath + jar javalib_native0.5_2.13:0.5.2
+   18  classpath + jar nativelib_native0.5_2.13:0.5.12
+   18  classpath + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+   18  classpath + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+   18  classpath + jar posixlib_native0.5_2.13:0.5.2
+   18  classpath + jar scala-reflect:2.13.18
+   18  classpath + jar windowslib_native0.5_2.13:0.5.2
+   18  classpath - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+   18  classpath - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    6  classpath ~ error_prone_annotations: 2.47.0 -> 2.41.0
+    3  classpath ~ scalap: 2.13.18 -> 2.13.15
+
+benchmarks@jvm3
+  classpath
+    + jar scala-collection-compat_2.13:2.4.4
+
+core-tests@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+core-tests-test@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+examples@js212
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples@js213
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples@js3
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples@jvm212
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples@jvm213
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples@jvm3
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples@native212
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples@native213
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples@native3
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+examples-test@js212
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples-test@js213
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples-test@js3
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples-test@jvm212
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples-test@jvm213
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples-test@jvm3
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples-test@native212
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples-test@native213
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+
+examples-test@native3
+  classpath
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    - jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-aarch_64
+    + jar netty-transport-native-epoll:4.2.3.Final-<MASKED_OS>-x86_64
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+macros-tests@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+macros-tests-test@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+managed-tests@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+managed-tests-test@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+scalafixrules
+  classpath
+    ~ scalap: 2.13.18 -> 2.13.15
+
+scalafixtests
+  classpath
+    ~ scalap: 2.13.18 -> 2.13.15
+
+scalafixtests-test
+  classpath
+    ~ scalap: 2.13.18 -> 2.13.15
+
+streams-tests@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+streams-tests-test@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+test-junit-engine-tests-test@jvm212
+  classpath
+    ~ error_prone_annotations: 2.47.0 -> 2.41.0
+
+test-junit-engine-tests-test@jvm213
+  classpath
+    ~ error_prone_annotations: 2.47.0 -> 2.41.0
+
+test-junit-engine-tests-test@jvm3
+  classpath
+    ~ error_prone_annotations: 2.47.0 -> 2.41.0
+
+test-junit-tests-test@jvm212
+  classpath
+    ~ error_prone_annotations: 2.47.0 -> 2.41.0
+
+test-junit-tests-test@jvm213
+  classpath
+    ~ error_prone_annotations: 2.47.0 -> 2.41.0
+
+test-junit-tests-test@jvm3
+  classpath
+    ~ error_prone_annotations: 2.47.0 -> 2.41.0
+
+test-tests@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+test-tests-test@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+zio+test@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+zio-concurrent-test@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+zio-test-sbt@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+zio-test-sbt-test@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+zio-test-scalacheck@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2
+
+zio-test-scalacheck-test@native3
+  classpath
+    + jar auxlib_native0.5_2.13:0.5.12
+    + jar clib_native0.5_2.13:0.5.12
+    + jar javalib_native0.5_2.13:0.5.2
+    + jar nativelib_native0.5_2.13:0.5.12
+    + jar posixlib_native0.5_2.13:0.5.2
+    + jar scala-reflect:2.13.18
+    + jar windowslib_native0.5_2.13:0.5.2

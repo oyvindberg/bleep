@@ -25,7 +25,9 @@ case class ImportInputData(
     bloopFileStrings: Vector[(Path, String)],
     sbtExportFilePaths: Vector[(Path, String)],
     hasSources: SortedSet[Path],
-    generatedFilesBySourceDir: SortedMap[Path, Vector[GeneratedFile]]
+    generatedFilesBySourceDir: SortedMap[Path, Vector[GeneratedFile]],
+    /** source files sbt does not compile, in a directory it generates sources into: left there by an older generator, say. By directory */
+    notCompiledBySbt: SortedMap[Path, SortedSet[Path]]
 ) {
 
   def replace(r: model.Replacements.Replacer, rewriteGeneratedFiles: Boolean): ImportInputData =
@@ -45,14 +47,39 @@ case class ImportInputData(
               )
             )
           )
-        }
+        },
+      notCompiledBySbt.map { case (dir, files) => (r.path(dir), files.map(r.path)) }
     )
 
   lazy val bloopFiles: Vector[Config.File] =
     bloopFileStrings.map { case (_, contents) => parseBloopFile(contents) }
 
-  lazy val sbtExportFiles: Vector[ReadSbtExportFile.ExportedProject] =
+  lazy val sbtExportFiles: Vector[bleep.sbtexport.ExportedProject] =
     sbtExportFilePaths.map { case (path, contents) => ReadSbtExportFile.parse(path, contents) }
+
+  /** `provided` dependencies a project gets from the projects it depends on with `provided->provided`, and which they get the same way, as sbt puts them on its
+    * classpath. bloop's export shows them on the classpath, but only the mapping says they are `provided` and where they come from
+    */
+  def inheritedProvided(exportFile: bleep.sbtexport.ExportedProject): List[bleep.nosbt.librarymanagement.ModuleID] = {
+    def isProvided(dep: bleep.nosbt.librarymanagement.ModuleID): Boolean =
+      dep.configurations.exists(_.split(";").map(_.trim).contains("provided"))
+    val own = exportFile.dependencies.map(d => (d.organization, d.name)).toSet
+    val seen = scala.collection.mutable.Set.empty[String]
+    def go(from: bleep.sbtexport.ExportedProject): List[bleep.nosbt.librarymanagement.ModuleID] =
+      from.projectDependencies.toList.filter(_.passesOnProvided).flatMap { dep =>
+        if (!seen.add(dep.project)) Nil
+        else {
+          // the other project's main code, at the same scala version
+          val upstream = sbtExportFiles.find(f => f.bloopName == dep.project && f.scalaVersion.full == exportFile.scalaVersion.full).getOrElse {
+            throw new BleepException.Text(
+              s"${exportFile.bloopName} depends on ${dep.project}, which sbt did not export for scala ${exportFile.scalaVersion.full}"
+            )
+          }
+          upstream.dependencies.toList.filter(isProvided) ++ go(upstream)
+        }
+      }
+    go(exportFile).filterNot(d => own((d.organization, d.name))).distinctBy(d => (d.organization, d.name))
+  }
 
   lazy val projects: Map[model.CrossProjectName, ImportInputData.InputProject] = {
     val all = bloopFiles
@@ -176,7 +203,27 @@ object ImportInputData {
         .groupMap { case (path, _) => path } { case (_, gen) => gen }
         .to(SortedMap.sortedMapFactory)
 
-    new ImportInputData(bloopFileStrings, sbtExportFileStrings, hasSources, generatedFilesBySourceFolder)
+    // a directory sbt generates sources into, outside its target directory, may hold source files sbt does not compile. The import sees directories
+    val notCompiledBySbt: SortedMap[Path, SortedSet[Path]] = {
+      def isSource(path: Path): Boolean = path.toString.endsWith(".scala") || path.toString.endsWith(".java")
+      val generated: Set[Path] =
+        sbtExportFileStrings.flatMap { case (path, contents) => ReadSbtExportFile.parse(path, contents).managedSources.map(Path.of(_)) }.toSet
+      bloopFiles.iterator
+        .flatMap { file =>
+          val target = findOriginalTargetDir(file.project)
+          file.project.sources.filterNot(dir => target.exists(dir.startsWith))
+        }
+        .distinct
+        .filter(dir => Files.isDirectory(dir) && generated.exists(_.startsWith(dir)))
+        .flatMap { dir =>
+          val notCompiled =
+            scala.util.Using.resource(Files.walk(dir))(_.iterator().asScala.filter(p => Files.isRegularFile(p) && isSource(p)).toList).filterNot(generated)
+          if (notCompiled.isEmpty) None else Some((dir, SortedSet.from(notCompiled)))
+        }
+        .to(SortedMap.sortedMapFactory)
+    }
+
+    new ImportInputData(bloopFileStrings, sbtExportFileStrings, hasSources, generatedFilesBySourceFolder, notCompiledBySbt)
   }
 
   def findGeneratedJsonFiles(under: Path): Vector[Path] =
@@ -186,7 +233,7 @@ object ImportInputData {
       .flatMap(dir => Files.list(dir).filter(x => Files.isRegularFile(x) && x.getFileName.toString.endsWith(".json")))
       .toScala(Vector)
 
-  case class InputProject(bloopFile: Config.File, sbtExportFile: ReadSbtExportFile.ExportedProject) {
+  case class InputProject(bloopFile: Config.File, sbtExportFile: bleep.sbtexport.ExportedProject) {
     val projectType = ProjectType.of(bloopFile.project.name)
     val sbtName: String = sbtExportFile.sbtName
     val bloopName: String = bloopFile.project.name
@@ -222,9 +269,10 @@ object ImportInputData {
       projects: Map[model.CrossProjectName, ImportInputData.InputProject],
       hasSources: Path => Boolean
   ): Map[model.CrossProjectName, InputProject] = {
-    // not transitive
+    // not transitive. from a list: pairs from a `Map` make a `Map`, which kept one dependent of each project and dropped projects others depend on (pekko's
+    // protobuf-v3)
     val reverseBloopDeps: Map[String, Iterable[String]] =
-      projects
+      projects.toList
         .flatMap { case (_, f) => f.bloopFile.project.dependencies.map(from => (from, f.bloopFile.project.name)) }
         .groupBy { case (from, _) => from }
         .map { case (name, tuples) => (name, tuples.map { case (_, to) => to }.toSet) }

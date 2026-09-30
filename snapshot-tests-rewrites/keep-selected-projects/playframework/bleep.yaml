@@ -1,0 +1,735 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:17
+projects:
+  play:
+    cross:
+      jvm213:
+        dependencies:
+          configuration: provided
+          module: org.scala-lang:scala-reflect:${SCALA_VERSION}
+    dependencies:
+    - com.fasterxml.jackson.core:jackson-annotations:2.14.3
+    - com.fasterxml.jackson.core:jackson-core:2.14.3
+    - com.fasterxml.jackson.core:jackson-databind:2.14.3
+    - com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.14.3
+    - com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.14.3
+    - com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.3
+    - com.fasterxml.jackson.module::jackson-module-scala:2.14.3
+    - com.fasterxml.jackson.module:jackson-module-parameter-names:2.14.3
+    - com.google.guava:guava:33.4.8-jre
+    - com.typesafe::ssl-config-core:0.6.1
+    - io.jsonwebtoken:jjwt-api:0.13.0
+    - io.jsonwebtoken:jjwt-impl:0.13.0
+    - exclusions:
+        com.fasterxml.jackson.core: '*'
+      module: io.jsonwebtoken:jjwt-jackson:0.13.0
+    - jakarta.inject:jakarta.inject-api:2.0.1
+    - org.apache.pekko::pekko-actor-typed:1.0.3
+    - org.apache.pekko::pekko-actor:1.0.3
+    - org.apache.pekko::pekko-serialization-jackson:1.0.3
+    - org.apache.pekko::pekko-slf4j:1.0.3
+    - org.playframework.twirl::twirl-api:2.1.0-M4
+    - org.playframework::play-json:3.1.0-M1
+    - org.scala-lang.modules::scala-parser-combinators:2.4.0
+    - org.slf4j:jcl-over-slf4j:2.0.17
+    - org.slf4j:jul-to-slf4j:2.0.17
+    dependsOn:
+    - play-build-link
+    - play-configuration
+    - play-streams
+    extends: template-cross-all
+    folder: ../sbt-build/core/play
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  play+test:
+    dependencies:
+    - commons-beanutils:commons-beanutils:1.11.0
+    - commons-io:commons-io:2.20.0
+    - exclusions:
+        commons-beanutils: commons-beanutils
+        commons-io: commons-io
+        org.jboss.netty: netty
+      module: io.fluentlenium:fluentlenium-core:6.0.0
+    - exclusions:
+        commons-io: commons-io
+        org.seleniumhq.selenium:
+        - selenium-api
+        - selenium-support
+      module: org.seleniumhq.selenium:htmlunit-driver:4.13.0
+    - org.seleniumhq.selenium:selenium-api:4.14.1
+    - org.seleniumhq.selenium:selenium-firefox-driver:4.14.1
+    - org.seleniumhq.selenium:selenium-support:4.14.1
+    dependsOn:
+    - play-guice
+    - play-server
+    extends:
+    - template-common-dependencies
+    - template-cross-all
+    folder: ../sbt-build/testkit/play-test
+  play+test-test:
+    dependencies:
+    - com.h2database:h2:2.3.232
+    - org.assertj:assertj-core:3.27.4
+    - org.mockito:mockito-core:5.19.0
+    dependsOn:
+    - play+test
+    - play-pekko-http-server
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    - template-scala-2-and-3-specs2-core
+    folder: ../sbt-build/testkit/play-test
+  play-ahc-ws:
+    dependencies:
+    - javax.cache:cache-api:1.1.1
+    - org.playframework::play-ahc-ws-standalone:3.1.0-M6
+    - org.playframework:shaded-asynchttpclient:3.1.0-M6
+    - org.playframework:shaded-oauth:3.1.0-M6
+    dependsOn: play-ws
+    extends: template-cross-all
+    folder: ../sbt-build/transport/client/play-ahc-ws
+  play-ahc-ws-test:
+    dependencies:
+    - net.sf.ehcache:ehcache:2.10.9.2
+    - org.ehcache:jcache:1.0.1
+    dependsOn:
+    - play+test-test
+    - play-ahc-ws
+    - play-caffeine-cache
+    - play-specs2
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    folder: ../sbt-build/transport/client/play-ahc-ws
+  play-build-link:
+    dependsOn: play-exceptions
+    extends: template-common-main
+    folder: ../sbt-build/dev-mode/play-build-link
+    java:
+      options: --release 11
+  play-cache:
+    dependsOn: play
+    extends: template-cross-all
+    folder: ../sbt-build/cache/play-cache
+  play-caffeine-cache:
+    dependencies:
+    - com.github.ben-manes.caffeine:caffeine:3.2.2
+    - com.github.ben-manes.caffeine:jcache:3.2.2
+    - javax.cache:cache-api:1.1.1
+    dependsOn: play-cache
+    extends: template-cross-all
+    folder: ../sbt-build/cache/play-caffeine-cache
+  play-caffeine-cache-test:
+    dependencies: org.assertj:assertj-core:3.27.4
+    dependsOn:
+    - play-caffeine-cache
+    - play-specs2
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/cache/play-caffeine-cache
+  play-cluster-sharding:
+    dependencies: org.apache.pekko::pekko-cluster-sharding-typed:1.0.3
+    dependsOn: play
+    extends: template-cross-all
+    folder: ../sbt-build/cluster/play-cluster-sharding
+  play-configuration:
+    dependencies:
+    - com.typesafe:config:1.4.4
+    - org.slf4j:slf4j-api:2.0.17
+    dependsOn: play-exceptions
+    extends: template-cross-all
+    folder: ../sbt-build/core/play-configuration
+  play-configuration-test:
+    dependsOn: play-configuration
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-specs2-core
+    folder: ../sbt-build/core/play-configuration
+  play-docs:
+    dependencies: org.playframework::play-doc:3.0.1
+    dependsOn: play-netty-server
+    extends: template-cross-all
+    folder: ../sbt-build/dev-mode/play-docs
+  play-ehcache:
+    dependencies:
+    - javax.cache:cache-api:1.1.1
+    - net.sf.ehcache:ehcache:2.10.9.2
+    - org.ehcache:jcache:1.0.1
+    dependsOn: play-cache
+    extends: template-cross-all
+    folder: ../sbt-build/cache/play-ehcache
+  play-ehcache-test:
+    dependsOn:
+    - play-ehcache
+    - play-specs2
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/cache/play-ehcache
+  play-exceptions:
+    extends: template-common-main
+    folder: ../sbt-build/core/play-exceptions
+    java:
+      options: --release 11
+  play-filters-helpers:
+    dependsOn: play
+    extends: template-cross-all
+    folder: ../sbt-build/web/play-filters-helpers
+  play-filters-helpers-test:
+    dependencies: com.shapesecurity:salvation:2.7.2
+    dependsOn:
+    - play-ahc-ws
+    - play-filters-helpers
+    - play-java
+    - play-pekko-http-server
+    - play-specs2
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/web/play-filters-helpers
+  play-guice:
+    dependencies:
+    - com.google.inject.extensions:guice-assistedinject:7.0.0
+    - com.google.inject:guice:7.0.0
+    dependsOn: play
+    extends: template-cross-all
+    folder: ../sbt-build/core/play-guice
+  play-guice-test:
+    dependsOn:
+    - play-guice
+    - play-test
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/core/play-guice
+  play-integration+test:
+    dependsOn:
+    - play-filters-helpers
+    - play-java-forms
+    - play-netty-server
+    - play-pekko-http2-support
+    - play-specs2
+    extends: template-cross-all
+    folder: ../sbt-build/core/play-integration-test
+  play-integration+test-test:
+    dependencies: com.squareup.okhttp3:okhttp-jvm:5.1.0
+    dependsOn:
+    - play-ahc-ws-test
+    - play-integration+test
+    - play-logback-test
+    - play-server-test
+    - play-test
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/core/play-integration-test
+    platform:
+      jvmOptions: -Dfile.encoding=UTF8
+  play-java:
+    dependencies: net.jodah:typetools:0.6.3
+    dependsOn: play
+    extends: template-cross-all
+    folder: ../sbt-build/core/play-java
+  play-java-cluster-sharding:
+    dependencies: org.apache.pekko::pekko-cluster-sharding-typed:1.0.3
+    dependsOn: play
+    extends: template-cross-all
+    folder: ../sbt-build/cluster/play-java-cluster-sharding
+  play-java-forms:
+    dependencies:
+    - org.hibernate.validator:hibernate-validator:9.0.1.Final
+    - exclusions:
+        org.springframework: spring-core
+      module: org.springframework:spring-beans:6.2.10
+    - exclusions:
+        io.micrometer: micrometer-observation
+        org.springframework:
+        - spring-aop
+        - spring-beans
+        - spring-core
+        - spring-expression
+      module: org.springframework:spring-context:6.2.10
+    - exclusions:
+        org.springframework: spring-jcl
+      module: org.springframework:spring-core:6.2.10
+    dependsOn: play-java
+    extends: template-cross-all
+    folder: ../sbt-build/web/play-java-forms
+  play-java-forms-test:
+    dependsOn:
+    - play-java-forms
+    - play-java-test
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/web/play-java-forms
+  play-java-jdbc:
+    dependsOn:
+    - play-java
+    - play-jdbc
+    extends: template-cross-all
+    folder: ../sbt-build/persistence/play-java-jdbc
+  play-java-jdbc-test:
+    dependencies: org.assertj:assertj-core:3.27.4
+    dependsOn:
+    - play-java-jdbc
+    - play-jdbc-test
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/persistence/play-java-jdbc
+  play-java-jpa:
+    dependencies: jakarta.persistence:jakarta.persistence-api:3.2.0
+    dependsOn: play-java-jdbc
+    extends: template-cross-all
+    folder: ../sbt-build/persistence/play-java-jpa
+  play-java-jpa-test:
+    dependencies:
+    - org.hibernate.orm:hibernate-core:7.1.0.Final
+    - org.hibernate.orm:hibernate-scan-jandex:7.1.0.Final
+    dependsOn:
+    - play-java-jdbc-test
+    - play-java-jpa
+    - play-jdbc-evolutions
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/persistence/play-java-jpa
+  play-java-test:
+    dependsOn:
+    - play-java
+    - play-specs2
+    - play-test
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/core/play-java
+  play-jcache:
+    dependencies: javax.cache:cache-api:1.1.1
+    dependsOn: play
+    extends: template-cross-all
+    folder: ../sbt-build/cache/play-jcache
+  play-jcache-test:
+    dependsOn:
+    - play-caffeine-cache
+    - play-jcache
+    - play-specs2
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/cache/play-jcache
+  play-jdbc:
+    dependencies:
+    - com.googlecode.usc:jdbcdslog:1.0.6.2
+    - com.zaxxer:HikariCP:7.0.2
+    - tyrex:tyrex:1.0.1
+    dependsOn:
+    - play
+    - play-jdbc-api
+    extends: template-cross-all
+    folder: ../sbt-build/persistence/play-jdbc
+  play-jdbc-api:
+    dependencies: jakarta.inject:jakarta.inject-api:2.0.1
+    extends: template-cross-all
+    folder: ../sbt-build/persistence/play-jdbc-api
+  play-jdbc-evolutions:
+    dependsOn:
+    - play
+    - play-jdbc-api
+    extends: template-cross-all
+    folder: ../sbt-build/persistence/play-jdbc-evolutions
+  play-jdbc-evolutions-test:
+    dependencies:
+    - org.apache.derby:derby:10.16.1.1
+    - org.apache.derby:derbytools:10.16.1.1
+    dependsOn:
+    - play-java-jdbc
+    - play-jdbc-evolutions
+    - play-jdbc-test
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/persistence/play-jdbc-evolutions
+  play-jdbc-test:
+    dependencies:
+    - com.h2database:h2:2.3.232
+    - org.eu.acolyte:jdbc-driver:1.2.10
+    dependsOn:
+    - play-jdbc
+    - play-specs2
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/persistence/play-jdbc
+  play-joda-forms:
+    dependencies:
+    - joda-time:joda-time:2.14.0
+    - org.joda:joda-convert:3.0.1
+    dependsOn: play
+    extends: template-cross-all
+    folder: ../sbt-build/web/play-joda-forms
+  play-logback:
+    dependencies: ch.qos.logback:logback-classic:1.5.18
+    dependsOn: play
+    extends: template-cross-all
+    folder: ../sbt-build/core/play-logback
+  play-logback-test:
+    dependsOn:
+    - play-logback
+    - play-specs2
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    folder: ../sbt-build/core/play-logback
+  play-microbenchmark:
+    dependencies:
+    - org.openjdk.jmh:jmh-core:1.37
+    - org.openjdk.jmh:jmh-generator-bytecode:1.37
+    - org.openjdk.jmh:jmh-generator-reflection:1.37
+    dependsOn:
+    - play-ahc-ws
+    - play-filters-helpers
+    - play-java
+    - play-netty-server
+    - play-pekko-http2-support
+    - play-specs2
+    extends: template-cross-all
+    folder: ../sbt-build/core/play-microbenchmark
+  play-microbenchmark-test:
+    dependsOn:
+    - play-integration+test-test
+    - play-microbenchmark
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/core/play-microbenchmark
+  play-netty-server:
+    dependencies:
+    - io.netty:netty-codec-http:4.2.4.Final
+    - io.netty:netty-handler:4.2.4.Final
+    - module: io.netty:netty-transport-native-epoll:4.2.4.Final
+      publication:
+        classifier: linux-aarch_64
+        ext: jar
+        name: netty-transport-native-epoll
+        type: jar
+    - module: io.netty:netty-transport-native-epoll:4.2.4.Final
+      publication:
+        classifier: linux-riscv64
+        ext: jar
+        name: netty-transport-native-epoll
+        type: jar
+    - module: io.netty:netty-transport-native-epoll:4.2.4.Final
+      publication:
+        classifier: linux-x86_64
+        ext: jar
+        name: netty-transport-native-epoll
+        type: jar
+    - module: io.netty:netty-transport-native-io_uring:4.2.4.Final
+      publication:
+        classifier: linux-aarch_64
+        ext: jar
+        name: netty-transport-native-io_uring
+        type: jar
+    - module: io.netty:netty-transport-native-io_uring:4.2.4.Final
+      publication:
+        classifier: linux-riscv64
+        ext: jar
+        name: netty-transport-native-io_uring
+        type: jar
+    - module: io.netty:netty-transport-native-io_uring:4.2.4.Final
+      publication:
+        classifier: linux-x86_64
+        ext: jar
+        name: netty-transport-native-io_uring
+        type: jar
+    - module: io.netty:netty-transport-native-kqueue:4.2.4.Final
+      publication:
+        classifier: osx-aarch_64
+        ext: jar
+        name: netty-transport-native-kqueue
+        type: jar
+    - module: io.netty:netty-transport-native-kqueue:4.2.4.Final
+      publication:
+        classifier: osx-x86_64
+        ext: jar
+        name: netty-transport-native-kqueue
+        type: jar
+    - org.playframework.netty:netty-reactive-streams-http:3.0.4
+    dependsOn: play-server
+    extends: template-cross-all
+    folder: ../sbt-build/transport/server/play-netty-server
+  play-netty-server-test:
+    dependsOn: play-netty-server
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    - template-scala-2-and-3-specs2-core
+    folder: ../sbt-build/transport/server/play-netty-server
+  play-openid:
+    dependsOn: play-ahc-ws
+    extends: template-cross-all
+    folder: ../sbt-build/web/play-openid
+  play-openid-test:
+    dependsOn:
+    - play-openid
+    - play-specs2
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    folder: ../sbt-build/web/play-openid
+  play-pekko-http-server:
+    dependencies: org.apache.pekko::pekko-http-core:1.0.1
+    dependsOn: play-server
+    extends: template-cross-all
+    folder: ../sbt-build/transport/server/play-pekko-http-server
+  play-pekko-http-server-test:
+    dependsOn:
+    - play-guice
+    - play-pekko-http-server
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    - template-scala-2-and-3-specs2-core
+    folder: ../sbt-build/transport/server/play-pekko-http-server
+  play-pekko-http2-support:
+    dependsOn: play-pekko-http-server
+    extends: template-cross-all
+    folder: ../sbt-build/transport/server/play-pekko-http2-support
+  play-routes-compiler:
+    dependencies:
+    - org.playframework.twirl::twirl-api:2.1.0-M4
+    - org.scala-lang.modules::scala-parser-combinators:2.4.0
+    extends:
+    - template-common-main
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/dev-mode/play-routes-compiler
+    scala:
+      options: -release 11
+    sourcegen:
+      main: scripts.CopyImportedGeneratedFiles
+      project: scripts
+  play-routes-compiler-test:
+    dependencies:
+    - ch.qos.logback:logback-classic:1.5.18
+    - org.specs2::specs2-matcher-extra:4.21.0
+    dependsOn: play-routes-compiler
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    - template-scala-2-and-3-specs2-core
+    folder: ../sbt-build/dev-mode/play-routes-compiler
+    scala:
+      options: -release 11
+  play-server:
+    dependsOn: play
+    extends: template-cross-all
+    folder: ../sbt-build/transport/server/play-server
+  play-server-test:
+    dependencies:
+    - ch.qos.logback:logback-classic:1.5.18
+    - org.mockito:mockito-core:5.19.0
+    dependsOn:
+    - play-guice
+    - play-server
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    - template-scala-2-and-3-specs2-core
+    folder: ../sbt-build/transport/server/play-server
+  play-specs2:
+    cross:
+      jvm213:
+        dependencies: org.specs2::specs2-mock:4.21.0
+    dependsOn: play+test
+    extends:
+    - template-cross-all
+    - template-scala-2-and-3-specs2-core
+    folder: ../sbt-build/testkit/play-specs2
+  play-specs2-test:
+    dependsOn: play-specs2
+    extends:
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    folder: ../sbt-build/testkit/play-specs2
+  play-streams:
+    dependencies:
+    - org.apache.pekko::pekko-stream:1.0.3
+    - org.reactivestreams:reactive-streams:1.0.4
+    extends: template-cross-all
+    folder: ../sbt-build/core/play-streams
+  play-streams-test:
+    dependencies:
+    - org.assertj:assertj-core:3.27.4
+    - org.mockito:mockito-core:5.19.0
+    dependsOn: play-streams
+    extends:
+    - template-common-dependencies
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    - template-scala-2-and-3-specs2-core
+    folder: ../sbt-build/core/play-streams
+  play-test:
+    cross:
+      jvm213:
+        dependencies:
+          configuration: provided
+          module: org.scala-lang:scala-reflect:${SCALA_VERSION}
+    dependencies:
+    - com.google.jimfs:jimfs:1.3.1
+    - org.apache.pekko::pekko-actor-testkit-typed:1.0.3
+    - org.apache.pekko::pekko-testkit:1.0.3
+    - org.assertj:assertj-core:3.27.4
+    - org.mockito:mockito-core:5.19.0
+    - org.scalacheck::scalacheck:1.18.1
+    - org.specs2::specs2-scalacheck:4.21.0
+    dependsOn: play
+    extends:
+    - template-common-dependencies
+    - template-common-test-user.dir
+    - template-cross-all-scala-2.13
+    - template-scala-2-and-3-deprecation
+    - template-scala-2-and-3-specs2-core
+    folder: ../sbt-build/core/play
+  play-ws:
+    dependencies:
+    - org.playframework::play-ws-standalone-json:3.1.0-M6
+    - org.playframework::play-ws-standalone-xml:3.1.0-M6
+    - org.playframework::play-ws-standalone:3.1.0-M6
+    dependsOn: play
+    extends: template-cross-all
+    folder: ../sbt-build/transport/client/play-ws
+  scripts:
+    dependencies: build.bleep:bleepscript:1.0.0-M14
+    platform:
+      name: jvm
+    resources: ./resources
+templates:
+  template-common:
+    ignoreEvictionErrors: no
+    java:
+      options: --release 17 -Xlint:-options -Xlint:deprecation -Xlint:unchecked -encoding
+        UTF-8
+    platform:
+      name: jvm
+  template-common-dependencies:
+    dependencies:
+    - ch.qos.logback:logback-classic:1.5.18
+    - com.github.sbt:junit-interface:0.13.3
+    - junit:junit:4.13.2
+    extends: template-common
+  template-common-main:
+    extends: template-common
+    publish:
+      groupId: org.playframework
+    sbt-scope: main
+  template-common-test:
+    extends: template-common
+    isTestProject: true
+    platform:
+      jvmOptions: -XX:MaxMetaspaceSize=384m -Xms128m -Xmx512m
+    sbt-scope: test
+    testFrameworks:
+    - hedgehog.sbt.Framework
+    - weaver.framework.CatsEffect
+    - zio.test.sbt.ZTestFramework
+  template-common-test-user.dir:
+    extends: template-common-test
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+  template-cross-all:
+    cross:
+      jvm213:
+        extends:
+        - template-common-main
+        - template-scala-2-and-3-deprecation
+        - template-scala-2.13
+  template-cross-all-scala-2.13:
+    cross:
+      jvm213:
+        extends: template-scala-2.13
+  template-scala-2:
+    extends: template-scala-2-and-3
+    scala:
+      options: -Xsource:3
+  template-scala-2-and-3:
+    extends: template-common
+    scala:
+      options: -encoding utf8 -feature -release:17 -unchecked
+      setup:
+        order: mixed
+  template-scala-2-and-3-deprecation:
+    extends: template-scala-2-and-3
+    scala:
+      options: -deprecation
+  template-scala-2-and-3-specs2-core:
+    dependencies:
+    - org.specs2::specs2-core:4.21.0
+    - org.specs2::specs2-junit:4.21.0
+    extends: template-scala-2-and-3
+  template-scala-2.12:
+    extends:
+    - template-scala-2
+    - template-scala-2-and-3-deprecation
+    scala:
+      version: 2.12.20
+  template-scala-2.12-sbt:
+    dependencies:
+      configuration: provided
+      module: org.scala-sbt:sbt:1.11.4
+    extends: template-scala-2.12
+    libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
+  template-scala-2.12-wconf:
+    extends: template-scala-2.12
+    scala:
+      options: -Wconf:cat=unused-nowarn:s
+      sbtPlugin: true
+  template-scala-2.13:
+    extends:
+    - template-scala-2
+    - template-scala-2.13-and-3
+    scala:
+      version: 2.13.16
+  template-scala-2.13-and-3:
+    extends: template-scala-2-and-3
+    scala:
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false
+  template-scala-3:
+    extends: template-scala-2.13-and-3
+    scala:
+      version: 3.3.6
+  template-scala-3-main:
+    extends:
+    - template-common-main
+    - template-scala-2-and-3-deprecation
+    - template-scala-3
+    sources: ./src/${SCOPE}/scala-${SCALA_BIN_VERSION}.${SCALA_BIN_VERSION}

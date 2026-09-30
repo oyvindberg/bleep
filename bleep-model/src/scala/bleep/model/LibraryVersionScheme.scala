@@ -29,7 +29,9 @@ object LibraryVersionScheme {
       byName.get(str).toRight(s"'$str' not among ${byName.keys.mkString(" ")}")
   }
 
-  implicit val ordering: Ordering[LibraryVersionScheme] = Ordering.by(_.dep.repr)
+  // the whole dep, not its `repr`: two schemes differing only in a flag `repr` leaves out (`forceJvm`, say) are different schemes, and a sorted set would
+  // keep just one of them
+  implicit val ordering: Ordering[LibraryVersionScheme] = Ordering.by[LibraryVersionScheme, Dep](_.dep)
   implicit val decoder: Decoder[LibraryVersionScheme] = Decoder[Dep].emap(from)
   implicit val encoder: Encoder[LibraryVersionScheme] = Encoder[Dep].contramap(_.dep)
 }

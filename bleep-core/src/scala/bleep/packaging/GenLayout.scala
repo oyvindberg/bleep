@@ -6,7 +6,7 @@ import coursier.core.{Configuration, Dependency, Info}
 
 import java.nio.charset.StandardCharsets
 import scala.annotation.nowarn
-import scala.xml.{Elem, NodeSeq}
+import scala.xml.{Elem, NodeSeq, Null, PrefixedAttribute}
 
 @nowarn("msg=unused value of type scala.xml.NodeBuffer")
 object GenLayout {
@@ -18,9 +18,10 @@ object GenLayout {
       self: Dependency,
       projectPaths: ProjectPaths,
       deps: List[Dependency],
+      bomImports: List[Dependency],
       mainClass: Option[String]
   ): IvyLayout[RelPath, Array[Byte]] = {
-    val m = maven(manifestCreator, projectName, self, projectPaths, deps, Info.empty, mainClass)
+    val m = maven(manifestCreator, projectName, self, projectPaths, deps, bomImports, Info.empty, mainClass)
     IvyLayout(
       self = self,
       jarFile = m.jarFile._2,
@@ -37,6 +38,7 @@ object GenLayout {
       self: Dependency,
       projectPaths: ProjectPaths,
       deps: List[Dependency],
+      bomImports: List[Dependency],
       info: Info,
       mainClass: Option[String]
   ): MavenLayout[RelPath, Array[Byte]] =
@@ -50,7 +52,7 @@ object GenLayout {
         mainClass = mainClass
       ),
       sourceFile = createJar(JarType.SourcesJar, manifestCreator, projectPaths.sourcesDirs.all(Usage.Compile), projectName = Some(projectName)),
-      pomFile = fromXml(pomFile(self, deps, info)),
+      pomFile = fromXml(pomFile(self, deps, bomImports, info)),
       // javadoc should never have existed.
       docFile = createJar(JarType.DocsJar, manifestCreator, Nil, projectName = Some(projectName))
     )
@@ -60,16 +62,25 @@ object GenLayout {
     (prelude + p.format(xml)).getBytes(StandardCharsets.UTF_8)
   }
 
+  /** A module's attributes, as ivy has them: `e:sbtVersion="1.0" e:scalaVersion="2.12"` on an sbt 1 plugin */
+  private def withAttributes(elem: Elem, dep: Dependency): Elem =
+    dep.module.attributes.toList.sorted.foldLeft(elem) { case (elem, (key, value)) => elem % new PrefixedAttribute("e", key, value, Null) }
+
   def ivyFile(self: Dependency, deps: List[Dependency]): Elem = {
     <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
-      <info organisation={self.module.organization.value}
+      {
+      withAttributes(
+        <info organisation={self.module.organization.value}
             module={self.module.name.value}
             revision={self.versionConstraint.asString}
             status="release">
         <description>
           {self.module.name.value}
         </description>
-      </info>
+      </info>,
+        self
+      )
+    }
       <configurations>
         <conf name="compile" visibility="public" description=""/>
         <conf name="runtime" visibility="public" description="" extends="compile"/>
@@ -90,12 +101,15 @@ object GenLayout {
       </publications>
       <dependencies>{
       deps.map { dep =>
-        <dependency
+        withAttributes(
+          <dependency
           org={dep.module.organization.value}
           name={dep.module.name.value}
           rev={dep.versionConstraint.asString}
           conf={dep.configurationOrThrow.value}
-          />
+          />,
+          dep
+        )
       }
     }
       </dependencies>
@@ -115,11 +129,53 @@ object GenLayout {
       if (ts.isEmpty) NodeSeq.Empty else asXml(ts)
   }
 
-  def pomFile(self: Dependency, dependencies: List[Dependency], info: Info): Elem = {
+  /** The artifact a pom names, and a maven repository has it under. An sbt 1 plugin is resolved by its base name and attributes, which a pom cannot say, and is
+    * published under the name [[model.Scala.SbtPlugin.Sbt1]] gives it: `sbt-dynver_2.12_1.0`
+    */
+  def artifactId(dep: Dependency): String =
+    dep.module.attributes match {
+      case attributes if attributes.isEmpty => dep.module.name.value
+      case model.Dep.SbtPluginAttrs         => model.Scala.SbtPlugin.Sbt1.artifactName(dep.module.name.value)
+      case other                            =>
+        throw new BleepException.Text(
+          s"${dep.module.repr} has attributes a pom cannot say: ${other.toList.sorted.map { case (k, v) => s"$k=$v" }.mkString(", ")}"
+        )
+    }
+
+  private def dependencyXml(dep: Dependency, bomImport: Boolean): Elem =
+    <dependency>
+      <groupId>{dep.module.organization.value}</groupId>
+      <artifactId>{artifactId(dep)}</artifactId>
+      <version>{dep.versionConstraint.asString}</version>{
+      if (bomImport) List(<type>pom</type>, <scope>import</scope>)
+      else
+        dep.configurationOrThrow match {
+          case Configuration.empty => Nil
+          case other               =>
+            <scope>{other.value}</scope>
+        }
+    }
+      {
+      dep.minimizedExclusions.toSeq().render { exc =>
+        <exclusions>{
+          exc.map { case (org, thing) =>
+            <exclusion>
+              <groupId>{org.value}</groupId>
+              <artifactId>{thing.value}</artifactId>
+            </exclusion>
+          }
+        }</exclusions>
+      }
+    }</dependency>
+
+  /** @param bomImports
+    *   the BOMs the project imports. A consumer of the published pom needs them for any dependency declared without a version
+    */
+  def pomFile(self: Dependency, dependencies: List[Dependency], bomImports: List[Dependency], info: Info): Elem = {
     <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
       <modelVersion>4.0.0</modelVersion>
       <groupId>{self.module.organization.value}</groupId>
-      <artifactId>{self.module.name.value}</artifactId>
+      <artifactId>{artifactId(self)}</artifactId>
       <packaging>jar</packaging>
       <description>{info.description}</description>
       <url>{info.homePage}</url>
@@ -138,7 +194,7 @@ object GenLayout {
       </licenses>
       }
     }
-      <name>{self.module.name.value}</name>
+      <name>{artifactId(self)}</name>
       <organization>
         <name>{self.module.organization.value}</name>
         <url>{info.homePage}</url>
@@ -166,32 +222,14 @@ object GenLayout {
       </developers>
       }
     }
-      <dependencies>{
-      dependencies.map { dep =>
-        <dependency>
-          <groupId>{dep.module.organization.value}</groupId>
-          <artifactId>{dep.module.name.value}</artifactId>
-          <version>{dep.versionConstraint.asString}</version>{
-          dep.configurationOrThrow match {
-            case Configuration.empty => Nil
-            case other               => <scope>{other.value}</scope>
-          }
-        }
-          {
-          dep.minimizedExclusions.toSeq().render { exc =>
-            <exclusions>{
-              exc.map { case (org, thing) =>
-                <exclusion>
-                  <groupId>{org.value}</groupId>
-                  <artifactId>{thing.value}</artifactId>
-                </exclusion>
-              }
-            }</exclusions>
-          }
-        }</dependency>
+      {
+      bomImports.map(dependencyXml(_, bomImport = true)).render { entries =>
+        <dependencyManagement>
+          <dependencies>{entries}</dependencies>
+        </dependencyManagement>
       }
     }
-      </dependencies>
+      <dependencies>{dependencies.map(dependencyXml(_, bomImport = false))}</dependencies>
     </project>
   }
 }

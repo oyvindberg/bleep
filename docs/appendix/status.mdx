@@ -97,7 +97,7 @@ on Linux) is the first thing to attach to a bug report.
   KSP runs from scratch on every compile today; per-file change
   tracking for incremental mode is a planned follow-up.
 - **No Gradle import, and no Gradle export**: Maven and sbt are imported
-  via [`bleep import`](/docs/reference/cli/import/) /
+  via [`bleep import-sbt`](/docs/reference/cli/import-sbt/) /
   [`bleep import-maven`](/docs/reference/cli/import-maven/), and
   `bleep export-maven` writes a Maven build back out. Gradle has neither
   direction, so a Gradle shop hand-ports in and would hand-port out.
@@ -113,6 +113,6 @@ on Linux) is the first thing to attach to a bug report.
 ## Recommendation
 
 Use bleep on greenfield projects without reservation. For migrating
-an existing build, run [`bleep import`](/docs/demos/importing-sbt-build)
+an existing build, run [`bleep import-sbt`](/docs/demos/importing-sbt-build)
 or [`bleep import-maven`](/docs/demos/importing-maven-build) first , 
 if the imported result compiles and tests, you're in a usable state.

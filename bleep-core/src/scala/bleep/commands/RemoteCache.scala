@@ -61,7 +61,8 @@ object RemoteCache {
               case Some(digest) =>
                 futures.add(executor.submit((() => {
                   val key = cacheKey(prefix, crossName, digest)
-                  val projectPaths = started.buildPaths.project(crossName, started.build.explodedProjects(crossName))
+                  val projectPaths =
+                    started.buildPaths.project(crossName, started.build.explodedProjects(crossName), started.build.crossPlatforms(crossName.name))
 
                   // `Files.list` holds an open directory stream until it is closed; one leaked descriptor per project adds up on a large build.
                   def alreadyCompiled: Boolean =
@@ -131,7 +132,8 @@ object RemoteCache {
               case Some(digest) =>
                 futures.add(executor.submit((() => {
                   val key = cacheKey(prefix, crossName, digest)
-                  val projectPaths = started.buildPaths.project(crossName, started.build.explodedProjects(crossName))
+                  val projectPaths =
+                    started.buildPaths.project(crossName, started.build.explodedProjects(crossName), started.build.crossPlatforms(crossName.name))
 
                   // Closed, for the same reason as in [[Pull]].
                   def notCompiledYet: Boolean =

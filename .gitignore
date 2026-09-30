@@ -13,6 +13,12 @@ target
 docs-snippets-from-tests/*/.bleep/
 docs-snippets-from-tests/*/build/
 sbt-build
+# the maven snapshot tests clone the build and keep a maven repository of their own
+maven-build
+maven-repo
+maven-toolchains.xml
+maven-effective-pom.xml
+maven-dependency-list.txt
 .vscode
 bleep-cli.sh
 test-project

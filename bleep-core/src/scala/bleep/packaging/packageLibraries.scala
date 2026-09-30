@@ -27,10 +27,14 @@ object packageLibraries {
       val self: Dependency = coordinatesFor(projectName, project).asDependency(versionCombo).orThrowTextWithContext(projectName)
       val mainClass = project.platform.flatMap(_.mainClass)
 
+      // the BOMs the project imports go in the pom's `<dependencyManagement>`, so a consumer resolves a dependency declared without a version the same way
+      val bomImports = project.boms.values.iterator.map(_.asDependency(versionCombo).orThrowTextWithContext(projectName)).toList
+
       val files =
         publishLayout match {
-          case PublishLayout.Maven(info) => GenLayout.maven(manifestCreator, projectName, self, started.projectPaths(projectName), deps, info, mainClass)
-          case PublishLayout.Ivy         => GenLayout.ivy(manifestCreator, projectName, self, started.projectPaths(projectName), deps, mainClass)
+          case PublishLayout.Maven(info) =>
+            GenLayout.maven(manifestCreator, projectName, self, started.projectPaths(projectName), deps, bomImports, info, mainClass)
+          case PublishLayout.Ivy => GenLayout.ivy(manifestCreator, projectName, self, started.projectPaths(projectName), deps, bomImports, mainClass)
         }
 
       PackagedLibrary(self, files)

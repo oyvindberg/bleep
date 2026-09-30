@@ -1,0 +1,49 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "mapstruct-build-config",
+    "directory": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-build-config/builds/normal",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-build-config/generated-sources/annotations",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/build-config/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-build-config/generated-sources/annotations"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-build-config/builds/normal",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped/.bleep/projects/mapstruct-build-config/builds/normal/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/build-config/src/main/resources"
+    ],
+    "java": {
+      "options": [
+        "-source",
+        "1.8",
+        "-target",
+        "1.8"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/mapstruct/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/mapstruct/maven-build/build-config"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        
+      ]
+    }
+  }
+}

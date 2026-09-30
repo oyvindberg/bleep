@@ -1,0 +1,10 @@
+# template inference
+templates: 3
+projects: 4
+settings: 53 (42 in projects, 11 in templates)
+
+# roundtrip
+sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
+imported from sbt but not in the bleep build: none
+sbt bloop projects dropped by the import: sbtdynver-test
+compared: 8, identical: 8

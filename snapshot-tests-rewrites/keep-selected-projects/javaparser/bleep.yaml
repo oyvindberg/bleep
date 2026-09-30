@@ -1,0 +1,23 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+jvm:
+  name: temurin:17
+projects: {}
+templates:
+  template-common:
+    java:
+      options: --release 8
+      scanForAnnotationProcessors: if-present
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+      name: jvm
+  template-common-main:
+    boms: org.junit:junit-bom:5.14.4
+    extends: template-common
+    publish:
+      groupId: com.github.javaparser
+    sbt-scope: main
+  template-common-test:
+    extends: template-common
+    isTestProject: true
+    sbt-scope: test

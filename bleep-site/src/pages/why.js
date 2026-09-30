@@ -830,7 +830,7 @@ function ScaleSection() {
                 Migration is <em>one command</em>
               </h3>
               <p className={styles.mcpCardBody}>
-                <code>bleep import</code> reads an sbt build,{" "}
+                <code>bleep import-sbt</code> reads an sbt build,{" "}
                 <code>bleep import-maven</code> a Maven one, and writes
                 the equivalent <code>bleep.yaml</code> — project graph
                 derived, templates inferred. Compiling and testing on

@@ -76,6 +76,7 @@ object SetupBleepBsp {
         jvmKey = jvmKey,
         javaPath = resolvedJvm.javaBin,
         javaOpts = javaOpts,
+        jdkCompilerOpens = JdkCompilerOpens(resolvedJvm.javaBin, userPaths.cacheDir, logger),
         serverMainClass = BspRifleConfig.ServerMainClass,
         serverClasspath = serverClasspath ++ semanticdbJavacClasspath,
         workingDir = socketDir,

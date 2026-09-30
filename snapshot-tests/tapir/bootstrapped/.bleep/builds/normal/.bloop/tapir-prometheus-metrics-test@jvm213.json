@@ -26,29 +26,27 @@
       "tapir-server@jvm213"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.31.0/protobuf-java-4.31.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-config/1.3.8/prometheus-metrics-config-1.3.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-core/1.3.8/prometheus-metrics-core-1.3.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-formats-no-protobuf/1.3.8/prometheus-metrics-exposition-formats-no-protobuf-1.3.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-formats/1.3.8/prometheus-metrics-exposition-formats-1.3.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-textformats/1.3.8/prometheus-metrics-exposition-textformats-1.3.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-model/1.3.8/prometheus-metrics-model-1.3.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-common/1.3.8/prometheus-metrics-tracer-common-1.3.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-initializer/1.3.8/prometheus-metrics-tracer-initializer-1.3.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel-agent/1.3.8/prometheus-metrics-tracer-otel-agent-1.3.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel/1.3.8/prometheus-metrics-tracer-otel-1.3.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.14/magnolia_2.13-1.1.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.8.1/core_2.13-1.8.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.2/core_2.13-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.2/ws_2.13-1.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-config/1.9.0/prometheus-metrics-config-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-core/1.9.0/prometheus-metrics-core-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-formats/1.9.0/prometheus-metrics-exposition-formats-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-textformats/1.9.0/prometheus-metrics-exposition-textformats-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-model/1.9.0/prometheus-metrics-model-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-common/1.9.0/prometheus-metrics-tracer-common-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-initializer/1.9.0/prometheus-metrics-tracer-initializer-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel-agent/1.9.0/prometheus-metrics-tracer-otel-agent-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel/1.9.0/prometheus-metrics-tracer-otel-1.9.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.13/1.18.1/scalacheck_2.13-1.18.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.19/scalactic_2.13-3.2.19.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.19/scalatest-compatible-3.2.19.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.19/scalatest-core_2.13-3.2.19.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.13/1.19.0/scalacheck_2.13-1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.20/scalactic_2.13-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.20/scalatest-compatible-3.2.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.20/scalatest-core_2.13-3.2.20.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.18/scalatest-diagrams_2.13-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.18/scalatest-featurespec_2.13-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.18/scalatest-flatspec_2.13-3.2.18.jar",
@@ -62,7 +60,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.13/3.2.18/scalatest-shouldmatchers_2.13-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.18/scalatest-wordspec_2.13-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.18/scalatest_2.13-3.2.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_2.13/3.2.19.0/scalacheck-1-18_2.13-3.2.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-19_2.13/3.2.20.0/scalacheck-1-19_2.13-3.2.20.0.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core-test@jvm213/builds/normal/test-classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-core@jvm213/builds/normal/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-prometheus-metrics@jvm213/builds/normal/classes",
@@ -88,19 +86,11 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.13.16",
+      "version": "2.13.18",
       "options": [
         "-Wconf:cat=other-match-analysis:error",
-        "-Wconf:msg=unused",
-        "value",
-        "of",
-        "type",
-        "org.scalatest.Assertion:s",
-        "-Wconf:msg=unused",
-        "value",
-        "of",
-        "type",
-        "org.scalatest.compatible.Assertion:s",
+        "-Wconf:msg=unused value of type org.scalatest.Assertion:s",
+        "-Wconf:msg=unused value of type org.scalatest.compatible.Assertion:s",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnonunit-statement",
@@ -133,7 +123,7 @@
         "-Xlint:stars-align",
         "-Xlint:strict-unsealed-patmat",
         "-Xlint:type-parameter-shadow",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.16/0.13.3/kind-projector_2.13.16-0.13.3.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.18/0.13.4/kind-projector_2.13.18-0.13.4.jar",
         "-Ywarn-macros:after",
         "-encoding",
         "utf8",
@@ -146,11 +136,11 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.18/scala-compiler-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.16/java-diff-utils-4.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.29.0/jline-3.29.0-jdk8.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/projects/tapir-prometheus-metrics-test@jvm213/builds/normal/inc_compile.zip",
       "setup": {
@@ -212,22 +202,33 @@
         {
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
-          "version": "3.2.19",
+          "version": "3.2.20",
           "artifacts": [
             {
               "name": "scalatest-compatible",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.19/scalatest-compatible-3.2.19.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.20/scalatest-compatible-3.2.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_2.13",
+          "version": "3.2.18",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.18/scalatest-refspec_2.13-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "org.scalacheck",
           "name": "scalacheck_2.13",
-          "version": "1.18.1",
+          "version": "1.19.0",
           "artifacts": [
             {
               "name": "scalacheck_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.13/1.18.1/scalacheck_2.13-1.18.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.13/1.19.0/scalacheck_2.13-1.19.0.jar"
             }
           ]
         },
@@ -239,6 +240,17 @@
             {
               "name": "scalatest-featurespec_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.18/scalatest-featurespec_2.13-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatestplus",
+          "name": "scalacheck-1-19_2.13",
+          "version": "3.2.20.0",
+          "artifacts": [
+            {
+              "name": "scalacheck-1-19_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-19_2.13/3.2.20.0/scalacheck-1-19_2.13-3.2.20.0.jar"
             }
           ]
         },
@@ -289,66 +301,44 @@
         {
           "organization": "io.prometheus",
           "name": "prometheus-metrics-config",
-          "version": "1.3.8",
+          "version": "1.9.0",
           "artifacts": [
             {
               "name": "prometheus-metrics-config",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-config/1.3.8/prometheus-metrics-config-1.3.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-config/1.9.0/prometheus-metrics-config-1.9.0.jar"
             }
           ]
         },
         {
           "organization": "io.prometheus",
           "name": "prometheus-metrics-core",
-          "version": "1.3.8",
+          "version": "1.9.0",
           "artifacts": [
             {
               "name": "prometheus-metrics-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-core/1.3.8/prometheus-metrics-core-1.3.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-core/1.9.0/prometheus-metrics-core-1.9.0.jar"
             }
           ]
         },
         {
           "organization": "io.prometheus",
           "name": "prometheus-metrics-tracer-otel",
-          "version": "1.3.8",
+          "version": "1.9.0",
           "artifacts": [
             {
               "name": "prometheus-metrics-tracer-otel",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel/1.3.8/prometheus-metrics-tracer-otel-1.3.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.protobuf",
-          "name": "protobuf-java",
-          "version": "4.31.0",
-          "artifacts": [
-            {
-              "name": "protobuf-java",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/4.31.0/protobuf-java-4.31.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-refspec_2.13",
-          "version": "3.2.18",
-          "artifacts": [
-            {
-              "name": "scalatest-refspec_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.18/scalatest-refspec_2.13-3.2.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel/1.9.0/prometheus-metrics-tracer-otel-1.9.0.jar"
             }
           ]
         },
         {
           "organization": "org.scalactic",
           "name": "scalactic_2.13",
-          "version": "3.2.19",
+          "version": "3.2.20",
           "artifacts": [
             {
               "name": "scalactic_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.19/scalactic_2.13-3.2.19.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.20/scalactic_2.13-3.2.20.jar"
             }
           ]
         },
@@ -366,11 +356,11 @@
         {
           "organization": "io.prometheus",
           "name": "prometheus-metrics-tracer-common",
-          "version": "1.3.8",
+          "version": "1.9.0",
           "artifacts": [
             {
               "name": "prometheus-metrics-tracer-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-common/1.3.8/prometheus-metrics-tracer-common-1.3.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-common/1.9.0/prometheus-metrics-tracer-common-1.9.0.jar"
             }
           ]
         },
@@ -386,46 +376,24 @@
           ]
         },
         {
-          "organization": "io.prometheus",
-          "name": "prometheus-metrics-exposition-formats-no-protobuf",
-          "version": "1.3.8",
-          "artifacts": [
-            {
-              "name": "prometheus-metrics-exposition-formats-no-protobuf",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-formats-no-protobuf/1.3.8/prometheus-metrics-exposition-formats-no-protobuf-1.3.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatestplus",
-          "name": "scalacheck-1-18_2.13",
-          "version": "3.2.19.0",
-          "artifacts": [
-            {
-              "name": "scalacheck-1-18_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-18_2.13/3.2.19.0/scalacheck-1-18_2.13-3.2.19.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalatest",
           "name": "scalatest-core_2.13",
-          "version": "3.2.19",
+          "version": "3.2.20",
           "artifacts": [
             {
               "name": "scalatest-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.19/scalatest-core_2.13-3.2.19.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.20/scalatest-core_2.13-3.2.20.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
-          "version": "1.7.14",
+          "version": "1.8.1",
           "artifacts": [
             {
               "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.8.1/core_2.13-1.8.1.jar"
             }
           ]
         },
@@ -487,55 +455,55 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-reflect",
-          "version": "2.13.16",
+          "version": "2.13.18",
           "artifacts": [
             {
               "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.18/scala-reflect-2.13.18.jar"
             }
           ]
         },
         {
           "organization": "io.prometheus",
           "name": "prometheus-metrics-exposition-textformats",
-          "version": "1.3.8",
+          "version": "1.9.0",
           "artifacts": [
             {
               "name": "prometheus-metrics-exposition-textformats",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-textformats/1.3.8/prometheus-metrics-exposition-textformats-1.3.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-textformats/1.9.0/prometheus-metrics-exposition-textformats-1.9.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.16",
+          "version": "2.13.18",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
             }
           ]
         },
         {
           "organization": "io.prometheus",
           "name": "prometheus-metrics-tracer-initializer",
-          "version": "1.3.8",
+          "version": "1.9.0",
           "artifacts": [
             {
               "name": "prometheus-metrics-tracer-initializer",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-initializer/1.3.8/prometheus-metrics-tracer-initializer-1.3.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-initializer/1.9.0/prometheus-metrics-tracer-initializer-1.9.0.jar"
             }
           ]
         },
         {
           "organization": "io.prometheus",
           "name": "prometheus-metrics-model",
-          "version": "1.3.8",
+          "version": "1.9.0",
           "artifacts": [
             {
               "name": "prometheus-metrics-model",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-model/1.3.8/prometheus-metrics-model-1.3.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-model/1.9.0/prometheus-metrics-model-1.9.0.jar"
             }
           ]
         },
@@ -553,22 +521,22 @@
         {
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
-          "version": "1.1.10",
+          "version": "1.1.14",
           "artifacts": [
             {
               "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.14/magnolia_2.13-1.1.14.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.2/core_2.13-1.5.2.jar"
             }
           ]
         },
@@ -586,33 +554,33 @@
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
-          "version": "1.5.0",
+          "version": "1.5.2",
           "artifacts": [
             {
               "name": "ws_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.2/ws_2.13-1.5.2.jar"
             }
           ]
         },
         {
           "organization": "io.prometheus",
           "name": "prometheus-metrics-tracer-otel-agent",
-          "version": "1.3.8",
+          "version": "1.9.0",
           "artifacts": [
             {
               "name": "prometheus-metrics-tracer-otel-agent",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel-agent/1.3.8/prometheus-metrics-tracer-otel-agent-1.3.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-tracer-otel-agent/1.9.0/prometheus-metrics-tracer-otel-agent-1.9.0.jar"
             }
           ]
         },
         {
           "organization": "io.prometheus",
           "name": "prometheus-metrics-exposition-formats",
-          "version": "1.3.8",
+          "version": "1.9.0",
           "artifacts": [
             {
               "name": "prometheus-metrics-exposition-formats",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-formats/1.3.8/prometheus-metrics-exposition-formats-1.3.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/prometheus-metrics-exposition-formats/1.9.0/prometheus-metrics-exposition-formats-1.9.0.jar"
             }
           ]
         }
