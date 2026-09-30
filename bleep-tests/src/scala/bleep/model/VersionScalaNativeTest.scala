@@ -10,7 +10,9 @@ class VersionScalaNativeTest extends AnyFunSuite {
 
   test("the plugin is told the source directories, sorted and each once, like sbt-scala-native does") {
     val opt = VersionScalaNative("0.5.12").positionRelativizationPaths(dirs)
-    assert(opt === Some(Options.Opt.Flag("-P:scalanative:positionRelativizationPaths:/build/core/native/src/scala;/build/core/shared/src/scala")))
+    // as this platform writes the paths: `\build\core\...` on windows
+    val expected = List(dirs(0), dirs(1)).map(_.toString).mkString(";")
+    assert(opt === Some(Options.Opt.Flag(s"-P:scalanative:positionRelativizationPaths:$expected")))
     assert(opt.forall(VersionScalaNative.isPositionRelativizationPaths))
   }
 
