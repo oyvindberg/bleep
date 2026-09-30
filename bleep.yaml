@@ -553,8 +553,11 @@ templates:
     scala:
       options: -Wconf:id=E175:s -Wconf:id=E176:s -Wconf:msg=Alphanumeric.method.*is.not.declared.infix:s
   template-scala-3:
+    # JDK 17 is the floor bleep runs on (the compile server runs on the build's own JVM), whichever newer JDK builds it: both compilers target the JDK 17
+    # API, so a newer API is a compile error rather than a NoSuchMethodError in someone's JDK 17 build, and no class file is newer than 17 can load. The
+    # Java sources need their own flag: `-java-output-version` is scalac's alone, and javac otherwise emits class files for the JDK running it.
+    java:
+      options: --release 17
     scala:
-      # JDK 17 is the floor bleep runs on (the compile server runs on the build's own JVM), whichever newer JDK builds it: this compiles against the
-      # JDK 17 API, so a newer API is a compile error rather than a NoSuchMethodError in someone's JDK 17 build.
       options: -source 3.8 -no-indent -Wconf:name=PatternMatchExhaustivity:error -java-output-version:17
       version: 3.9.0
