@@ -362,7 +362,15 @@ projects:
         - bleep.analysis.ScalaJsAdvancedLinkIntegrationTest
         - bleep.analysis.KotlinJsAdvancedIntegrationTest
   bleep-tests:
-    dependencies: org.scalatest::scalatest:3.2.19
+    dependencies:
+    - org.scalatest::scalatest:3.2.19
+    # coursier-jvm (pulled in via bleep-cli/bleep-model) ships GraalvmErrnoExtras, annotated with
+    # `org.graalvm.nativeimage.c.*`. coursier declares org.graalvm.nativeimage:svm as `provided`, so those
+    # annotation classes are not on our classpath — and Scala 3.9's classfile parser crashes reading the
+    # class when it cannot resolve them, instead of relying on the compile JVM happening to be GraalVM.
+    # Provide them compile-only.
+    - configuration: provided
+      module: org.graalvm.nativeimage:svm:25.0.4.1
     dependsOn:
     - bleep-cli
     - bleep-bsp
