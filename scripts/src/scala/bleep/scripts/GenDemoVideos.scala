@@ -62,7 +62,7 @@ object GenDemoVideos extends BleepScript("GenVideos") {
     // (scala 2.12 compiler) crash on very new JDKs, so fetch an LTS one instead of lending it the build's
     val javaHome = started.pre.fetchJvm(model.Jvm("temurin:17", None)).javaBin.getParent.getParent
 
-    ensureSbtExportDependenciesInIvyLocal(logger)
+    ensureSbtExportDependenciesInIvyLocal(bleepVersion, logger)
 
     val env = sys.env
       .updated("BAT_PAGER", "")
@@ -113,13 +113,13 @@ object GenDemoVideos extends BleepScript("GenVideos") {
       .log(started.logger, "wrote videos")
   }
 
-  /** `bleep import-sbt` makes the imported sbt build resolve `sbt-export-dependencies`, which was published to Maven Central with maven-style artifact
-    * filenames (`sbt-export-dependencies_2.12_1.0-0.4.0.jar`). sbt older than 1.9 only knows the legacy sbt-plugin filename convention and cannot resolve that
-    * — and the import demo clones a build pinned to sbt 1.7. Seed the local ivy repository (which old sbt checks with its own layout) with the artifact, so the
-    * demo records the same import experience users with modern sbt get. Idempotent: does nothing when the artifact is already there.
+  /** `bleep import-sbt` makes the imported sbt build resolve `sbt-export-dependencies` at the version of the bleep running it, which publishes it to Maven
+    * Central with maven-style artifact filenames (`sbt-export-dependencies_2.12_1.0-1.0.0.jar`). sbt older than 1.9 only knows the legacy sbt-plugin filename
+    * convention and cannot resolve that — and the import demo clones a build pinned to sbt 1.7. Seed the local ivy repository (which old sbt checks with its
+    * own layout) with the artifact, so the demo records the same import experience users with modern sbt get. Idempotent: does nothing when the artifact is
+    * already there, as it is for a bleep published there with `bleep publish local-ivy`.
     */
-  def ensureSbtExportDependenciesInIvyLocal(logger: Logger): Unit = {
-    val version = "0.4.0"
+  def ensureSbtExportDependenciesInIvyLocal(version: String, logger: Logger): Unit = {
     val base = Path.of(sys.props("user.home")) / ".ivy2" / "local" / "build.bleep" / "sbt-export-dependencies" / "scala_2.12" / "sbt_1.0" / version
     val jarFile = base / "jars" / "sbt-export-dependencies.jar"
     val ivyFile = base / "ivys" / "ivy.xml"

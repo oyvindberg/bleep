@@ -10,7 +10,7 @@ import sjsonnew.{Builder, JsonFormat, Unbuilder}
 import java.nio.file.Path
 import scala.util.{Failure, Success}
 
-/** copy/pasted from https://github.com/bleep-build/sbt-export-dependencies to avoid sbt dependency and to cross build
+/** copy/pasted from the sbt plugin `sbt-export-dependencies` in this repository, to avoid an sbt dependency and to cross build
   */
 object ReadSbtExportFile {
   def parse(path: Path, jsonStr: String): ExportedProject =

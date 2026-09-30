@@ -392,6 +392,31 @@ projects:
       - "**ScalaJsTestModuleKindIT"
       - "**ScalaNativeSharedBinaryIT"
       - "**TestLinkOutputDirIT"
+  sbt-export-dependencies:
+    # The sbt plugin `bleep import-sbt` adds to the build it imports: it writes out what sbt knows about each project and bloop's export leaves out. Built
+    # for sbt 1 (scala 2.12) and sbt 2 (scala 3), and published with bleep, so an import asks for it at bleep's own version.
+    # `sbt/sbt.autoplugins` is checked in: bleep does not generate the descriptor sbt enables a plugin's AutoPlugins by.
+    cross:
+      jvm212:
+        dependencies:
+          configuration: provided
+          module: org.scala-sbt:sbt:1.5.8
+        libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
+        scala:
+          # `?` wildcards and `given` imports in the code shared with sbt 2. sbt 1's macros put `@nowarn` on code they generate, where it suppresses nothing
+          options: -Xsource:3 -Wconf:cat=unused-nowarn:s
+          version: 2.12.20
+      jvm3:
+        dependencies:
+          configuration: provided
+          module: org.scala-sbt:sbt:2.0.9
+        scala:
+          # the source shared with sbt 1 imports the codecs with `{given, *}`, which scala 3 reports as partly unused
+          options: -Wconf:msg=unused.import:s
+          version: 3.8.4
+    extends: template-common
+    scala:
+      sbtPlugin: true
   scripts:
     dependencies:
     - build.bleep::bleep-plugin-native-image:${BLEEP_VERSION}

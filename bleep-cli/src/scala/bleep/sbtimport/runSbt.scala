@@ -24,7 +24,9 @@ object runSbt {
       jvm: ResolvedJvm,
       providedSbtPath: Option[String],
       xmx: Option[String],
-      filtering: ImportFiltering
+      filtering: ImportFiltering,
+      /** the version of sbt-export-dependencies to add to the build: it is published with bleep, at bleep's version */
+      exportPluginVersion: model.BleepVersion
   ): Unit = {
     val version = readSbtVersionFromFile(sbtBuildDir).getOrElse("1.8.0")
     val sbtPath = providedSbtPath.getOrElse {
@@ -146,7 +148,7 @@ object runSbt {
 
       val tempAddBloopPlugin = sbtBuildDir / "project" / "bleep-temp-add-bloop-plugin.sbt"
 
-      // sbt 2 runs plugins built for it: sbt-bloop 2.x, and the sbt 2 build of sbt-export-dependencies, which the same version has
+      // sbt 2 runs plugins built for it: sbt-bloop 2.x, and the sbt 2 build of sbt-export-dependencies, which is published with the sbt 1 one
       val sbt2 = version.startsWith("2.")
       val bloopVersion = if (sbt2) "2.1.2" else "1.5.6"
 
@@ -156,7 +158,7 @@ object runSbt {
         tempAddBloopPlugin,
         s"""
   addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "$bloopVersion")
-  addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.5.0")
+  addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "${exportPluginVersion.value}")
   """
       )
 

@@ -207,7 +207,17 @@ class IntegrationSnapshotTests extends SnapshotTest {
         bleep.internal.Slf4jBridge.install(logger)
         val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ExecutionContext.global)
         val fetchedJvm = fetchJvm(jvm)
-        sbtimport.runSbt(logger, sbtBuildDir, sbtDestinationPaths, fetchedJvm, None, Some(xmx), importerOptions.filtering)
+        // sbt-export-dependencies at this bleep's version, which sbt finds in ~/.ivy2/local after `bleep publish local-ivy`
+        sbtimport.runSbt(
+          logger,
+          sbtBuildDir,
+          sbtDestinationPaths,
+          fetchedJvm,
+          None,
+          Some(xmx),
+          importerOptions.filtering,
+          exportPluginVersion = model.BleepVersion.current
+        )
 
         val inputData = sbtimport.ImportInputData.collectFromFileSystem(sbtDestinationPaths, logger)
         FileUtils.writeGzippedBytes(
