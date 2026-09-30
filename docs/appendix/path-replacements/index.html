@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Path replacements | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/appendix/path-replacements/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Path replacements | Bleep"><meta data-rh="true" name="description" content="Bleep substitutes a small set of named placeholders in bleep.yaml"><meta data-rh="true" property="og:description" content="Bleep substitutes a small set of named placeholders in bleep.yaml"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/appendix/path-replacements/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/path-replacements/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/path-replacements/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Path Replacements","item":"https://bleep.build/docs/appendix/path-replacements"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.48571104.js" defer="defer"></script>
-<script src="/assets/js/main.a6ab5bba.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.734494de.js" defer="defer"></script>
+<script src="/assets/js/main.96ece7ec.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -23,7 +23,7 @@ is short:</p>
 are an import-time portability mechanism. The handful of cases where
 they&#x27;re genuinely useful are listed at the bottom of this page.</p></div></div>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="why-the-mechanism-exists">Why the mechanism exists<a href="#why-the-mechanism-exists" class="hash-link" aria-label="Direct link to Why the mechanism exists" title="Direct link to Why the mechanism exists" translate="no">​</a></h2>
-<p><a class="" href="/docs/reference/cli/import/"><code>bleep import</code></a> (from sbt) and <a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a> work by reading what
+<p><a class="" href="/docs/reference/cli/import-sbt/"><code>bleep import-sbt</code></a> (from sbt) and <a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a> work by reading what
 those tools produce, then converting it into bleep&#x27;s model. Both formats
 embed absolute paths everywhere, bloop&#x27;s JSON contains
 <code>/Users/somebody/projects/myrepo/foo/src/main/scala</code>, full stop. If bleep
@@ -61,7 +61,7 @@ and <code>../shared/resources</code> reads naturally.</p>
 form, but plain paths read better in code review, work the same
 under <a class="" href="/docs/reference/cli/build/normalize/"><code>bleep build normalize</code></a>, and don&#x27;t depend on anyone remembering the
 placeholder vocabulary.</p>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="when-the-placeholders-earn-their-keep">When the placeholders earn their keep<a href="#when-the-placeholders-earn-their-keep" class="hash-link" aria-label="Direct link to When the placeholders earn their keep" title="Direct link to When the placeholders earn their keep" translate="no">  ​</a></h2>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="when-the-placeholders-earn-their-keep">When the placeholders earn their keep<a href="#when-the-placeholders-earn-their-keep" class="hash-link" aria-label="Direct link to When the placeholders earn their keep" title="Direct link to When the placeholders earn their keep" translate="no">​</a></h2>
 <p>Four real cases.</p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="versioned-source-layouts-in-cross-builds">Versioned source layouts in cross-builds<a href="#versioned-source-layouts-in-cross-builds" class="hash-link" aria-label="Direct link to Versioned source layouts in cross-builds" title="Direct link to Versioned source layouts in cross-builds" translate="no">​</a></h3>
 <p><code>src/main/scala-2.13/</code> versus <code>src/main/scala-3/</code> only makes sense when

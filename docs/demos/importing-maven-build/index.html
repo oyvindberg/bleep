@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Import Maven build | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/demos/importing-maven-build/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Import Maven build | Bleep"><meta data-rh="true" name="description" content="bleep import-maven reads your pom.xml (and any sibling modules in a"><meta data-rh="true" property="og:description" content="bleep import-maven reads your pom.xml (and any sibling modules in a"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/demos/importing-maven-build/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/demos/importing-maven-build/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/demos/importing-maven-build/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Import from Maven","item":"https://bleep.build/docs/demos/importing-maven-build"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.48571104.js" defer="defer"></script>
-<script src="/assets/js/main.a6ab5bba.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.734494de.js" defer="defer"></script>
+<script src="/assets/js/main.96ece7ec.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -75,9 +75,15 @@ for scopes that need adjustment.</li>
 <p>Both should work without further changes for the common case. If you
 hit gaps:</p>
 <ul>
-<li class=""><strong>Annotation processors</strong>: Lombok, MapStruct, Dagger. Add
-<code>java.annotationProcessing.enabled: true</code> per project. See
-<a class="" href="/docs/usage/annotation-processing/">Annotation Processing</a>.</li>
+<li class=""><strong>Annotation processors</strong>: the import carries them over. Processors
+listed in <code>&lt;annotationProcessorPaths&gt;</code> become <code>java.annotationProcessors</code>,
+and a module without that list scans its dependencies for processors, as
+javac does (<code>scanForAnnotationProcessors: if-present</code>), which picks up
+Lombok. See <a class="" href="/docs/usage/annotation-processing/">Annotation Processing</a>.</li>
+<li class=""><strong>Dependency versions</strong>: Maven lets the nearest declaration win, bleep the
+highest version asked for, so some libraries can resolve newer than under
+Maven. See
+<a class="" href="/docs/usage/conflict-resolution/#coming-from-maven-nearest-wins-highest-wins">Coming from Maven</a>.</li>
 <li class=""><strong>Custom packaging</strong>: fat JAR, shade, executable JAR. Convert the
 Maven plugin invocation into a <a class="" href="/docs/tutorials/your-first-script/">bleep script</a>.</li>
 <li class=""><strong>Generated sources</strong> (e.g. JAXB, OpenAPI codegen via plugin), same
@@ -92,7 +98,8 @@ for bleep&#x27;s <a class="" href="/docs/reference/cli/publish/sonatype/"><code>
 <li class=""><strong>Gradle import is not yet implemented, and there is no Gradle
 exporter either.</strong> Multi-tool repos that mix Maven and Gradle
 modules can import the Maven half today; the Gradle half is a hand
-port, in both directions. The only mechanical paths are <code>bleep import</code> (sbt), <a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a>,
+port, in both directions. The only mechanical paths are
+<a class="" href="/docs/reference/cli/import-sbt/"><code>bleep import-sbt</code></a>, <a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a>,
 and out again via
 <a class="" href="/docs/reference/cli/export-maven/"><code>bleep export-maven</code></a> — see the
 <a class="" href="/docs/guides/exit-strategy/">exit strategy</a>.</li>

@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">vs scala-cli | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/compared-to-other-build-tools/scala-cli/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="vs scala-cli | Bleep"><meta data-rh="true" name="description" content="scala-cli and bleep share a lot of plumbing. Coursier for dependency"><meta data-rh="true" property="og:description" content="scala-cli and bleep share a lot of plumbing. Coursier for dependency"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/compared-to-other-build-tools/scala-cli/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/scala-cli/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/scala-cli/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"scala-cli","item":"https://bleep.build/docs/compared-to-other-build-tools/scala-cli"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.48571104.js" defer="defer"></script>
-<script src="/assets/js/main.a6ab5bba.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.734494de.js" defer="defer"></script>
+<script src="/assets/js/main.96ece7ec.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -61,7 +61,7 @@ IDE imports.</li>
 <li class="">The build is going to live longer than the README that describes it.</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="migrating-between-them">Migrating between them<a href="#migrating-between-them" class="hash-link" aria-label="Direct link to Migrating between them" title="Direct link to Migrating between them" translate="no">​</a></h2>
-<p>There&#x27;s no automated <a class="" href="/docs/reference/cli/import/"><code>bleep import</code></a> from scala-cli, the source
+<p>There&#x27;s no automated import from scala-cli, the source
 directives map cleanly to YAML fields, but the conversion is small
 enough to do by hand. The directives map roughly:</p>
 <table><thead><tr><th>scala-cli directive</th><th>bleep.yaml field</th></tr></thead><tbody><tr><td><code>//&gt; using scala &quot;3.8.3&quot;</code></td><td><code>scala.version: 3.8.3</code></td></tr><tr><td><code>//&gt; using dep &quot;com.lihaoyi::fansi:0.5.0&quot;</code></td><td><code>dependencies: [com.lihaoyi::fansi:0.5.0]</code></td></tr><tr><td><code>//&gt; using javaVersion &quot;21&quot;</code></td><td><code>java.version: 21</code></td></tr><tr><td><code>//&gt; using mainClass &quot;hello&quot;</code></td><td><code>platform.mainClass: hello</code></td></tr><tr><td><code>//&gt; using resourceDir &quot;resources&quot;</code></td><td><code>resources: [resources]</code></td></tr></tbody></table>

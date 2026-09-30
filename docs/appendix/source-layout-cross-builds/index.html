@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Source layout in cross-builds and sbt imports | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/appendix/source-layout-cross-builds/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Source layout in cross-builds and sbt imports | Bleep"><meta data-rh="true" name="description" content="The everyday source layouts (kotlin, normal, java) are documented in"><meta data-rh="true" property="og:description" content="The everyday source layouts (kotlin, normal, java) are documented in"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/appendix/source-layout-cross-builds/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/source-layout-cross-builds/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/appendix/source-layout-cross-builds/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Source layout: cross-builds & sbt","item":"https://bleep.build/docs/appendix/source-layout-cross-builds"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.48571104.js" defer="defer"></script>
-<script src="/assets/js/main.a6ab5bba.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.734494de.js" defer="defer"></script>
+<script src="/assets/js/main.96ece7ec.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -50,13 +50,31 @@ side-by-side with platform-specific overrides under the same <code>src/</code> t
 <p>The full set of <code>normal</code> paths, prefixed with both <code>shared/</code> and
 <code>&lt;platform&gt;/</code>:</p>
 <div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">&lt;folder&gt;/shared/src/scala  + &lt;folder&gt;/jvm/src/scala</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">&lt;folder&gt;/shared/src/java   + &lt;folder&gt;/jvm/src/java</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">&lt;folder&gt;/shared/src/scala-3 + &lt;folder&gt;/jvm/src/scala-3</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">…</span><br></div></code></pre></div></div>
-<p>Closer to how some Scala.js / Scala Native projects are laid out, with a
-clean separation between shared and platform-specific source trees.</p>
+<p>This is the layout of sbt-crossproject&#x27;s <code>CrossType.Full</code>, with a clean
+separation between shared and platform-specific source trees.</p>
+<p>A project built for three platforms also has code that only two of them
+share. For every group of some, but not all, of the platforms the project
+is built for, <code>cross-full</code> adds a directory named after them, joined with
+<code>-</code> in alphabetical order. Each platform reads the directories of the
+groups it belongs to:</p>
+<table><thead><tr><th>the project is built for</th><th><code>jvm</code> reads</th><th><code>js</code> reads</th><th><code>native</code> reads</th></tr></thead><tbody><tr><td><code>jvm</code>, <code>js</code>, <code>native</code></td><td><code>js-jvm/</code>, <code>jvm-native/</code></td><td><code>js-jvm/</code>, <code>js-native/</code></td><td><code>js-native/</code>, <code>jvm-native/</code></td></tr><tr><td><code>jvm</code>, <code>js</code></td><td>nothing extra</td><td>nothing extra</td><td></td></tr></tbody></table>
+<p>These directories hold the same <code>normal</code> paths as <code>shared/</code> does
+(<code>js-jvm/src/scala</code>, <code>js-jvm/src/scala-3</code>, <code>js-jvm/src/resources</code>, …).
+A project built for two platforms has none, since whatever both
+platforms share is in <code>shared/</code>.</p>
+<p>&quot;The platforms the project is built for&quot; are the platforms across all of
+its cross-ids, so a project whose <code>cross:</code> has <code>jvm3</code>, <code>js3</code> and
+<code>native3</code> reads <code>js-jvm/</code> in its jvm and js variants. This is the same
+rule sbt-crossproject uses (<code>makePartiallySharedSettings</code> in its
+<code>CrossProject.scala</code>), so a build imported from sbt reads the same
+directories it did there.</p>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="sbt-matrix"><code>sbt-matrix</code><a href="#sbt-matrix" class="hash-link" aria-label="Direct link to sbt-matrix" title="Direct link to sbt-matrix" translate="no">​</a></h3>
 <p>The full set of <code>normal</code> paths, plus folders whose names mash the platform
-and the Scala version together, the layout sbt uses for the
-<code>projectMatrix</code> style cross builds:</p>
-<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">&lt;folder&gt;/src/scala</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">&lt;folder&gt;/src/scalajvm</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">&lt;folder&gt;/src/scalajvm-2.13</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">&lt;folder&gt;/src/scalajvm-3</span><br></div></code></pre></div></div>
+and the Scala version together, the layout sbt-projectmatrix uses for its
+cross builds:</p>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#393A34"><span class="token plain">&lt;folder&gt;/src/scala</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">&lt;folder&gt;/src/scalajvm</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">&lt;folder&gt;/src/scalajvm-2.13</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">&lt;folder&gt;/src/scalajvm-2</span><br></div><div class="token-line" style="color:#393A34"><span class="token plain">&lt;folder&gt;/src/javajvm</span><br></div></code></pre></div></div>
+<p>For the <code>js</code> cross axis, replace <code>jvm</code> with <code>js</code>: <code>scalajs</code>,
+<code>scalajs-2.13</code>, <code>javajs</code>.</p>
 <p>Generally only seen on builds imported from sbt. New bleep builds should
 prefer <code>cross-pure</code> or <code>cross-full</code>.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="sbt-scope-the-legacy-field"><code>sbt-scope</code>: the legacy field<a href="#sbt-scope-the-legacy-field" class="hash-link" aria-label="Direct link to sbt-scope-the-legacy-field" title="Direct link to sbt-scope-the-legacy-field" translate="no">​</a></h2>
@@ -69,7 +87,7 @@ test code is its own project, with <code>isTestProject: true</code>. There is no
 <code>myapp-test/src/kotlin/</code>, not in <code>myapp/src/test/kotlin/</code>. So in a
 bleep-native build the <code>&lt;scope&gt;</code> segment is empty, and the layout
 produces short folder names (<code>src/scala</code>, not <code>src/main/scala</code>).</p>
-<p>When you run <a class="" href="/docs/reference/cli/import/"><code>bleep import</code></a> on an sbt build, however, bleep preserves the
+<p>When you run <a class="" href="/docs/reference/cli/import-sbt/"><code>bleep import-sbt</code></a> on an sbt build, however, bleep preserves the
 original <code>src/main/...</code> / <code>src/test/...</code> shape. Each imported project
 gets an <code>sbt-scope</code> of <code>main</code>, <code>test</code>, or <code>it</code>, and the layout fills the
 segment in:</p>

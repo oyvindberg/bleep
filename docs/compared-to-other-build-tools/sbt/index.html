@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">vs sbt | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/compared-to-other-build-tools/sbt/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="vs sbt | Bleep"><meta data-rh="true" name="description" content="sbt was a real achievement. It made arbitrary Scala code in builds"><meta data-rh="true" property="og:description" content="sbt was a real achievement. It made arbitrary Scala code in builds"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/compared-to-other-build-tools/sbt/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/sbt/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/sbt/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"sbt","item":"https://bleep.build/docs/compared-to-other-build-tools/sbt"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.48571104.js" defer="defer"></script>
-<script src="/assets/js/main.a6ab5bba.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.734494de.js" defer="defer"></script>
+<script src="/assets/js/main.96ece7ec.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -75,7 +75,7 @@ re-evaluate.</li>
 IDE refactors all work without compiling project code.</li>
 <li class=""><strong>Scripts as plain Java/Scala</strong>, debuggable in your IDE, not
 macro-evaluated DSL.</li>
-<li class=""><strong>Built-in <a class="" href="/docs/reference/cli/import/"><code>bleep import</code></a> from sbt and Maven.</strong> Convert an existing
+<li class=""><strong>Built-in <a class="" href="/docs/reference/cli/import-sbt/"><code>bleep import-sbt</code></a> and <a class="" href="/docs/reference/cli/import-maven/"><code>bleep import-maven</code></a>.</strong> Convert an existing
 build to bleep in one command.</li>
 <li class=""><strong>First-class cross-building axes</strong> for Java release, Kotlin version,
 and Scala version (plus platform). sbt&#x27;s cross-building axes are Scala
@@ -84,7 +84,7 @@ or <code>projectMatrix</code>.</li>
 <li class=""><strong>CI project invalidation</strong> built in (<code>bleep build invalidated --base HEAD~1</code>).</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="migrating-from-sbt">Migrating from sbt<a href="#migrating-from-sbt" class="hash-link" aria-label="Direct link to Migrating from sbt" title="Direct link to Migrating from sbt" translate="no">​</a></h2>
-<p><a class="" href="/docs/reference/cli/import/"><code>bleep import</code></a> reads your sbt build (via <code>sbt bloopInstall</code>) and
+<p><a class="" href="/docs/reference/cli/import-sbt/"><code>bleep import-sbt</code></a> runs sbt to read your build and
 generates a <code>bleep.yaml</code>. See <a class="" href="/docs/demos/importing-sbt-build/">Import from sbt</a>.</p>
 <p>Once imported, the parts that won&#x27;t carry over are sbt-specific build
 logic, custom tasks, scope-axis overrides, plugins not yet ported.

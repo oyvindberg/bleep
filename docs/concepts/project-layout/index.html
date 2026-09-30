@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Project layout | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/concepts/project-layout/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Project layout | Bleep"><meta data-rh="true" name="description" content="A project&#x27;s folder says where it lives on disk. source-layout says"><meta data-rh="true" property="og:description" content="A project&#x27;s folder says where it lives on disk. source-layout says"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/concepts/project-layout/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/concepts/project-layout/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/concepts/project-layout/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Project Layout","item":"https://bleep.build/docs/concepts/project-layout"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.48571104.js" defer="defer"></script>
-<script src="/assets/js/main.a6ab5bba.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.734494de.js" defer="defer"></script>
+<script src="/assets/js/main.96ece7ec.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -29,18 +29,19 @@ lives), and it defaults to <code>./${PROJECT_NAME}</code>.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="source-layout-how-files-inside-the-folder-are-organised">Source layout: how files inside the folder are organised<a href="#source-layout-how-files-inside-the-folder-are-organised" class="hash-link" aria-label="Direct link to Source layout: how files inside the folder are organised" title="Direct link to Source layout: how files inside the folder are organised" translate="no">​</a></h2>
 <p><code>source-layout</code> is the rule bleep uses to derive default <code>sources</code> and
 <code>resources</code> paths <em>inside</em> the project folder. For everyday projects there
-are four values:</p>
-<table><thead><tr><th><code>source-layout</code></th><th>When you&#x27;d use it</th></tr></thead><tbody><tr><td><code>kotlin</code></td><td>Default for Kotlin projects.</td></tr><tr><td><code>normal</code></td><td>Default for Scala projects.</td></tr><tr><td><code>java</code></td><td>Default for plain Java projects.</td></tr><tr><td><code>none</code></td><td>No defaults at all. Use only <code>sources:</code> / <code>resources:</code>.</td></tr></tbody></table>
+are five values:</p>
+<table><thead><tr><th><code>source-layout</code></th><th>When you&#x27;d use it</th></tr></thead><tbody><tr><td><code>kotlin</code></td><td>Default for Kotlin projects.</td></tr><tr><td><code>normal</code></td><td>Default for Scala projects.</td></tr><tr><td><code>sbt-plugin</code></td><td>Default for sbt plugins (<code>scala.sbtPlugin: true</code>).</td></tr><tr><td><code>java</code></td><td>Default for plain Java projects.</td></tr><tr><td><code>none</code></td><td>No defaults at all. Use only <code>sources:</code> / <code>resources:</code>.</td></tr></tbody></table>
 <p>Bleep auto-fills <code>source-layout</code> based on what your project compiles. The
-priority is <strong>Kotlin → Scala → Java</strong>, so:</p>
+priority is <strong>Kotlin → sbt plugin → Scala → Java</strong>, so:</p>
 <ul>
 <li class="">A project with a <code>kotlin:</code> block gets <code>kotlin</code> layout.</li>
+<li class="">A project with <code>scala.sbtPlugin: true</code> gets <code>sbt-plugin</code> layout.</li>
 <li class="">A project with a <code>scala:</code> block gets <code>normal</code> layout.</li>
 <li class="">A project with neither (Java only) gets <code>java</code> layout.</li>
 </ul>
 <p>You can override by setting the field explicitly.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-each-layout-produces">What each layout produces<a href="#what-each-layout-produces" class="hash-link" aria-label="Direct link to What each layout produces" title="Direct link to What each layout produces" translate="no">​</a></h2>
-<table><thead><tr><th>Layout</th><th>sources</th><th>resources</th></tr></thead><tbody><tr><td><code>kotlin</code></td><td><code>&lt;folder&gt;/src/kotlin</code>, <code>&lt;folder&gt;/src/java</code></td><td><code>&lt;folder&gt;/src/resources</code></td></tr><tr><td><code>normal</code></td><td><code>&lt;folder&gt;/src/scala</code>, <code>&lt;folder&gt;/src/java</code>, <em>plus version-specific paths</em></td><td><code>&lt;folder&gt;/src/resources</code></td></tr><tr><td><code>java</code></td><td><code>&lt;folder&gt;/src/java</code></td><td><code>&lt;folder&gt;/src/resources</code></td></tr><tr><td><code>none</code></td><td>(none)</td><td>(none)</td></tr></tbody></table>
+<table><thead><tr><th>Layout</th><th>sources</th><th>resources</th></tr></thead><tbody><tr><td><code>kotlin</code></td><td><code>&lt;folder&gt;/src/kotlin</code>, <code>&lt;folder&gt;/src/java</code></td><td><code>&lt;folder&gt;/src/resources</code></td></tr><tr><td><code>normal</code></td><td><code>&lt;folder&gt;/src/scala</code>, <code>&lt;folder&gt;/src/java</code>, <em>plus version-specific paths</em></td><td><code>&lt;folder&gt;/src/resources</code></td></tr><tr><td><code>sbt-plugin</code></td><td>as <code>normal</code>, plus <code>&lt;folder&gt;/src/scala-sbt-1.0</code> for sbt 1 (Scala 2.12) or <code>&lt;folder&gt;/src/scala-sbt-2</code> for sbt 2 (Scala 3), as sbt has them</td><td><code>&lt;folder&gt;/src/resources</code></td></tr><tr><td><code>java</code></td><td><code>&lt;folder&gt;/src/java</code></td><td><code>&lt;folder&gt;/src/resources</code></td></tr><tr><td><code>none</code></td><td>(none)</td><td>(none)</td></tr></tbody></table>
 <p>The &quot;version-specific&quot; extras under <code>normal</code> only matter for cross-builds
 ,  see the <a class="" href="/docs/appendix/source-layout-cross-builds/">appendix</a>.</p>
 <p>Notice that none of these have a <code>main/</code> or <code>test/</code> segment in them. In

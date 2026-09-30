@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">vs Bazel | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/compared-to-other-build-tools/bazel/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="vs Bazel | Bleep"><meta data-rh="true" name="description" content="Bazel is the serious one. Every other tool on this comparison list is a"><meta data-rh="true" property="og:description" content="Bazel is the serious one. Every other tool on this comparison list is a"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/compared-to-other-build-tools/bazel/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/bazel/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/bazel/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Bazel","item":"https://bleep.build/docs/compared-to-other-build-tools/bazel"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.48571104.js" defer="defer"></script>
-<script src="/assets/js/main.a6ab5bba.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.734494de.js" defer="defer"></script>
+<script src="/assets/js/main.96ece7ec.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -67,7 +67,7 @@ Starlark ruleset your team now maintains, an external-dependency story
 (<code>rules_jvm_external</code> plus a lockfile) that has to stay in sync with
 Maven Central, a toolchain configuration, and usually a remote cache
 and executor cluster to operate. Most of it is not one-time.</p>
-<p>Bleep&#x27;s equivalent is <a class="" href="/docs/demos/importing-sbt-build/"><code>bleep import</code></a>
+<p>Bleep&#x27;s equivalent is <a class="" href="/docs/demos/importing-sbt-build/"><code>bleep import-sbt</code></a>
 or <a class="" href="/docs/demos/importing-maven-build/"><code>bleep import-maven</code></a>, and if
 the result compiles and tests you are done. There is no Gradle importer
 yet.</p>
@@ -144,7 +144,7 @@ one that&#x27;s fast after a migration project.</li>
 </ul>
 <p><strong>The honest middle.</strong> If you&#x27;re a JVM shop currently evaluating Bazel
 <em>because your build is slow</em>, that&#x27;s the case where this page has an
-opinion: try <a class="" href="/docs/demos/importing-maven-build/"><code>bleep import</code></a> first.
+opinion: try <a class="" href="/docs/demos/importing-maven-build/"><code>bleep import-maven</code></a> first.
 It&#x27;s an afternoon, and if the imported build compiles and tests you&#x27;ve
 learned something cheap. If you&#x27;re evaluating Bazel because you have
 four languages and a correctness problem, bleep is the wrong tool and
