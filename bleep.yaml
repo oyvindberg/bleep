@@ -35,7 +35,10 @@ projects:
     - template-scala-3
     platform:
       mainClass: bleep.Main
-    sources: ./bleep-cli/src/scala-3
+    sources:
+    - ./bleep-cli/src/scala-3
+    # what sbt-export-dependencies writes, from the plugin's own source
+    - ../sbt-export-dependencies/src/schema
   bleep-core:
     dependencies:
     # coursier-cache refers to GraalVM's native-image API, which the GraalVM JDK building bleep carries, but compiling against the JDK 17 API does not.
@@ -411,12 +414,12 @@ projects:
           configuration: provided
           module: org.scala-sbt:sbt:2.0.9
         scala:
-          # the source shared with sbt 1 imports the codecs with `{given, *}`, which scala 3 reports as partly unused
-          options: -Wconf:msg=unused.import:s
           version: 3.8.4
     extends: template-common
     scala:
       sbtPlugin: true
+    # what the plugin writes and bleep reads, compiled into bleep-cli too
+    sources: ./src/schema
   scripts:
     dependencies:
     - build.bleep::bleep-plugin-native-image:${BLEEP_VERSION}

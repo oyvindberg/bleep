@@ -54,18 +54,18 @@ case class ImportInputData(
   lazy val bloopFiles: Vector[Config.File] =
     bloopFileStrings.map { case (_, contents) => parseBloopFile(contents) }
 
-  lazy val sbtExportFiles: Vector[ReadSbtExportFile.ExportedProject] =
+  lazy val sbtExportFiles: Vector[bleep.sbtexport.ExportedProject] =
     sbtExportFilePaths.map { case (path, contents) => ReadSbtExportFile.parse(path, contents) }
 
   /** `provided` dependencies a project gets from the projects it depends on with `provided->provided`, and which they get the same way, as sbt puts them on its
     * classpath. bloop's export shows them on the classpath, but only the mapping says they are `provided` and where they come from
     */
-  def inheritedProvided(exportFile: ReadSbtExportFile.ExportedProject): List[bleep.nosbt.librarymanagement.ModuleID] = {
+  def inheritedProvided(exportFile: bleep.sbtexport.ExportedProject): List[bleep.nosbt.librarymanagement.ModuleID] = {
     def isProvided(dep: bleep.nosbt.librarymanagement.ModuleID): Boolean =
       dep.configurations.exists(_.split(";").map(_.trim).contains("provided"))
     val own = exportFile.dependencies.map(d => (d.organization, d.name)).toSet
     val seen = scala.collection.mutable.Set.empty[String]
-    def go(from: ReadSbtExportFile.ExportedProject): List[bleep.nosbt.librarymanagement.ModuleID] =
+    def go(from: bleep.sbtexport.ExportedProject): List[bleep.nosbt.librarymanagement.ModuleID] =
       from.projectDependencies.toList.filter(_.passesOnProvided).flatMap { dep =>
         if (!seen.add(dep.project)) Nil
         else {
@@ -233,7 +233,7 @@ object ImportInputData {
       .flatMap(dir => Files.list(dir).filter(x => Files.isRegularFile(x) && x.getFileName.toString.endsWith(".json")))
       .toScala(Vector)
 
-  case class InputProject(bloopFile: Config.File, sbtExportFile: ReadSbtExportFile.ExportedProject) {
+  case class InputProject(bloopFile: Config.File, sbtExportFile: bleep.sbtexport.ExportedProject) {
     val projectType = ProjectType.of(bloopFile.project.name)
     val sbtName: String = sbtExportFile.sbtName
     val bloopName: String = bloopFile.project.name
