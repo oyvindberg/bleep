@@ -12,6 +12,7 @@ templates:
       options: --release 17
     kotlin:
       jvmTarget: '17'
+      options: -Xjvm-default=all
       version: 2.2.20
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
