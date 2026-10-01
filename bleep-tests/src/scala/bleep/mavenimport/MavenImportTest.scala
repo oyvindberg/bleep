@@ -233,6 +233,83 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
     }
   }
 
+  test("kotlin compiler-plugin config under a compile <execution> (as maven merges inherited pluginManagement)") {
+    // A module that declares kotlin-maven-plugin with <executions> gets configuration inherited from a parent's pluginManagement merged into the compile
+    // execution's <configuration>, not the plugin level. The importer must read execution-level config, or all-open/-Xjvm-default/pluginOptions vanish and CDI
+    // beans compile final (breaking Quarkus proxying and subclass-mocking). This is the common multi-module Quarkus+Kotlin shape.
+    val xml = """<?xml version="1.0" encoding="UTF-8"?>
+      |<project>
+      |  <groupId>com.example</groupId>
+      |  <artifactId>kotlin-quarkus-app</artifactId>
+      |  <version>1.0.0</version>
+      |  <packaging>jar</packaging>
+      |  <build>
+      |    <directory>/tmp/test-maven/target</directory>
+      |    <sourceDirectory>/tmp/test-maven/src/main/kotlin</sourceDirectory>
+      |    <testSourceDirectory>/tmp/test-maven/src/test/kotlin</testSourceDirectory>
+      |    <plugins>
+      |      <plugin>
+      |        <groupId>org.jetbrains.kotlin</groupId>
+      |        <artifactId>kotlin-maven-plugin</artifactId>
+      |        <version>2.4.0</version>
+      |        <executions>
+      |          <execution>
+      |            <id>compile</id>
+      |            <goals><goal>compile</goal></goals>
+      |            <configuration>
+      |              <javaParameters>true</javaParameters>
+      |              <jvmTarget>21</jvmTarget>
+      |              <args><arg>-Xjvm-default=all</arg></args>
+      |              <compilerPlugins><plugin>all-open</plugin></compilerPlugins>
+      |              <pluginOptions>
+      |                <option>all-open:annotation=jakarta.enterprise.context.ApplicationScoped</option>
+      |              </pluginOptions>
+      |            </configuration>
+      |          </execution>
+      |        </executions>
+      |      </plugin>
+      |    </plugins>
+      |  </build>
+      |  <dependencies>
+      |    <dependency>
+      |      <groupId>org.jetbrains.kotlin</groupId>
+      |      <artifactId>kotlin-stdlib-jdk8</artifactId>
+      |      <version>2.4.0</version>
+      |      <scope>compile</scope>
+      |      <optional>false</optional>
+      |    </dependency>
+      |  </dependencies>
+      |  <repositories></repositories>
+      |  <modules></modules>
+      |</project>""".stripMargin
+
+    val tempFile = Files.createTempFile("effective-pom", ".xml")
+    val tempDir = Files.createTempDirectory("test-maven")
+    try {
+      Files.writeString(tempFile, pomIn(xml, tempDir))
+      val mavenProjects = parsePom(MavenFs.Real, tempFile)
+      val build = buildFromMavenPom(
+        ryddig.Loggers.storing(),
+        MavenFs.Real,
+        bleep.BuildPaths(tempDir, tempDir.resolve("bleep.yaml"), model.BuildVariant.Normal, None),
+        mavenProjects,
+        tempDir.resolve("dependency-list.txt"),
+        model.BleepVersion("1.0.0-M1"),
+        buildJvm = None
+      )
+      val kotlin = build.explodedProjects.values.find(!_.isTestProject.contains(true)).flatMap(_.kotlin).getOrElse(sys.error("no kotlin"))
+      assert(kotlin.jvmTarget === Some("21"))
+      assert(kotlin.compilerPlugins.values.contains("all-open"), kotlin.compilerPlugins.values.mkString(","))
+      val opts = kotlin.options.render
+      assert(opts.contains("-P plugin:org.jetbrains.kotlin.allopen:annotation=jakarta.enterprise.context.ApplicationScoped"), opts)
+      assert(opts.contains("-Xjvm-default=all"), opts)
+      assert(opts.contains("-java-parameters"), opts)
+    } finally {
+      Files.deleteIfExists(tempFile)
+      bleep.internal.FileUtils.deleteDirectory(tempDir)
+    }
+  }
+
   test("detect Scala version from dependency") {
     val xml = """<?xml version="1.0" encoding="UTF-8"?>
       |<project>

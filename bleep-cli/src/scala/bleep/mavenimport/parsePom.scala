@@ -53,6 +53,7 @@ private class Parser(fs: MavenFs) {
     val dependencies = parseDependencies(node \ "dependencies" \ "dependency")
     val dependencyManagement = parseDependencies(node \ "dependencyManagement" \ "dependencies" \ "dependency")
     val plugins = parsePlugins(allPlugins)
+    val pluginManagement = parsePlugins(build \ "pluginManagement" \ "plugins" \ "plugin")
     val repositories = parseRepositories(node \ "repositories" \ "repository")
     val modules = (node \ "modules" \ "module").iterator.map(_.text.trim).toList
     val properties = (node \ "properties").flatMap(_.child).collect { case e: scala.xml.Elem => e.label -> e.text.trim }.toMap
@@ -74,7 +75,8 @@ private class Parser(fs: MavenFs) {
       plugins = plugins,
       repositories = repositories,
       modules = modules,
-      properties = properties
+      properties = properties,
+      pluginManagement = pluginManagement
     )
   }
 
