@@ -354,7 +354,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (t, _) => IO(order.add(s"compile:${t.project.value}"): Unit).as(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
@@ -405,7 +405,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (t, _) =>
           if (t.project == scriptsProject) IO.pure(TaskResult.Failure("compile error", Nil))
           else if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
@@ -460,7 +460,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (t, _) =>
           if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
           else IO.pure(TaskResult.Success),
@@ -513,7 +513,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (t, _) =>
           if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
           else IO.pure(TaskResult.Success),
@@ -566,7 +566,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
@@ -623,7 +623,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
@@ -676,7 +676,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (t, _) =>
           if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
           else IO.pure(TaskResult.Success),
@@ -730,7 +730,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (t, _) => record(s"compile:${t.project.value}").as(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
@@ -781,7 +781,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (_, _) => IO.raiseError(new RuntimeException("bleep-test-runner resolution returned no jars")),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
@@ -838,7 +838,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),

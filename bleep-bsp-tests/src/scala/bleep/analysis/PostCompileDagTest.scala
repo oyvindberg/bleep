@@ -88,7 +88,7 @@ class PostCompileDagTest extends AnyFunSuite with Matchers with org.scalatest.Lo
           sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
           annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
           symbolProcessor = (_, _) => sys.error("RunSymbolProcessorsTask should not appear here"),
-          mayAdmitCompile = _ => IO.pure(true)
+          mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit)
         )
       )
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]

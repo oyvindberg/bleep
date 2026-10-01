@@ -2207,14 +2207,18 @@ class MultiWorkspaceBspServer(
     *
     * This replaced an `IO.sleep` loop that ran inside the compile task. The task had already been admitted by then, so it sat on a machine-wide CPU permit
     * while waiting — withholding capacity from tests and links that could have run. Refusing admission instead leaves the permit available, and the compile is
-    * reconsidered on the next wakeup, which fires whenever a task completes: exactly when heap is most likely to have been freed.
+    * reconsidered when its stagger is up, or sooner if a task completes: exactly when heap is most likely to have been freed.
     *
     * The refusal-time map is per DAG run and is what makes [[HeapPressureGate.MaxWaitMs]] enforceable at all now that there is no sleep to measure against: it
     * remembers when each project was first deferred, across separate admission attempts.
     *
     * `othersCompiling` is `> 0`, not `> 1` as the old in-task gate used: this runs BEFORE the reservation, so this compile is not in the count yet.
     */
-  private def makeCompileAdmission(originId: Option[String], threshold: Double, recorder: TranscriptRecorder): TaskDag.CompileTask => IO[Boolean] = {
+  private def makeCompileAdmission(
+      originId: Option[String],
+      threshold: Double,
+      recorder: TranscriptRecorder
+  ): TaskDag.CompileTask => IO[TaskDag.CompileAdmission] = {
     val listener = makeHeapPressureListener(originId, recorder)
     val firstRefusedAt = Ref.unsafe[IO, Map[String, EpochMs]](Map.empty)
 
@@ -2235,10 +2239,10 @@ class MultiWorkspaceBspServer(
         ) match {
           case HeapPressureGate.Decision.Admit =>
             refusedAt match {
-              case None        => IO.pure(true)
+              case None        => IO.pure(TaskDag.CompileAdmission.Admit)
               case Some(start) =>
                 firstRefusedAt.update(_ - projectName) >>
-                  IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, DurationMs(nowMs.value - start.value), nowMs)).as(true)
+                  IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, DurationMs(nowMs.value - start.value), nowMs)).as(TaskDag.CompileAdmission.Admit)
             }
           case HeapPressureGate.Decision.Defer(delayMs) =>
             firstRefusedAt.update(m => m.updated(projectName, m.getOrElse(projectName, nowMs))) >>
@@ -2254,7 +2258,7 @@ class MultiWorkspaceBspServer(
                   delayMs = delayMs,
                   othersCompiling = compiling
                 )
-              ).as(false)
+              ).as(TaskDag.CompileAdmission.Defer(scala.concurrent.duration.FiniteDuration(delayMs, java.util.concurrent.TimeUnit.MILLISECONDS)))
         }
       } yield admit
     }

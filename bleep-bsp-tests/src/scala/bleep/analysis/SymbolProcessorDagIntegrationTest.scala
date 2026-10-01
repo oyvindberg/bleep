@@ -109,7 +109,7 @@ class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
       killSignal <- Deferred[IO, KillReason]
       handlers = Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (ct, _) => IO { timeline.add(s"compile:${ct.project.value}"); TaskResult.Success },
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
@@ -144,7 +144,7 @@ class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
       killSignal <- Deferred[IO, KillReason]
       handlers = Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (ct, _) => IO { compileInvoked.set(true); finishedTasks.add(ct.project.value -> TaskResult.Success); TaskResult.Success },
         link = (_, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),

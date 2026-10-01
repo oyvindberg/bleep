@@ -1029,10 +1029,21 @@ object TaskDag {
         * a property of the daemon's own heap right now, and the thing that relieves it is another task finishing. It belongs here rather than inside the
         * compile handler because a gate below admission holds a machine-wide CPU permit while it waits — starving tests and links that could have run.
         *
-        * Callers with no opinion pass `_ => IO.pure(true)`. Explicitly, not by default: a no-op default is a default parameter in disguise.
+        * Callers with no opinion pass `_ => IO.pure(CompileAdmission.Admit)`. Explicitly, not by default: a no-op default is a default parameter in disguise.
         */
-      mayAdmitCompile: CompileTask => IO[Boolean]
+      mayAdmitCompile: CompileTask => IO[CompileAdmission]
   )
+
+  /** Whether a compile may start now. */
+  sealed trait CompileAdmission
+  object CompileAdmission {
+    case object Admit extends CompileAdmission
+
+    /** Not now; ask again after `retryAfter`. The executor schedules that second look itself: a compile deferred while nothing else finishes would otherwise
+      * wait for whatever finishes next, however long that takes.
+      */
+    case class Defer(retryAfter: scala.concurrent.duration.FiniteDuration) extends CompileAdmission
+  }
 
   /** Create a DAG executor with the given handlers. */
   def executor(handlers: Handlers): DagExecutor = new DagExecutor {
@@ -1065,10 +1076,10 @@ object TaskDag {
         * `idle` bypasses the gate for the same reason it bypasses `tryReserve` below — with nothing running, nothing will complete to reconsider this, so
         * deferring would stall the build rather than delay a start.
         */
-      def mayAdmit(task: Task, idle: Boolean): IO[Boolean] =
+      def mayAdmit(task: Task, idle: Boolean): IO[CompileAdmission] =
         task match {
           case c: CompileTask if !idle => handlers.mayAdmitCompile(c)
-          case _                       => IO.pure(true)
+          case _                       => IO.pure(CompileAdmission.Admit)
         }
 
       def reserveFor(task: Task): IO[Option[(Task, IO[Unit])]] = {
@@ -1076,34 +1087,37 @@ object TaskDag {
         machine.tryReserve(c.kind, task.id.toString, c.cpu, c.memoryMb).map(_.map(release => (task, release)))
       }
 
-      def admit(candidates: List[Task], idle: Boolean): IO[List[(Task, IO[Unit])]] =
+      /** What one admission pass decided: the tasks to start, and when to look again at any compile the heap gate deferred. */
+      case class Admitted(started: List[(Task, IO[Unit])], retryAfter: Option[scala.concurrent.duration.FiniteDuration])
+
+      def admit(candidates: List[Task], idle: Boolean): IO[Admitted] = {
+        // One candidate: started, deferred until a given time, or not started for want of resources (reconsidered when a task completes and frees them).
+        def tryOne(task: Task, idle: Boolean): IO[Either[scala.concurrent.duration.FiniteDuration, Option[(Task, IO[Unit])]]] =
+          mayAdmit(task, idle).flatMap {
+            case CompileAdmission.Admit             => reserveFor(task).map(Right(_))
+            case CompileAdmission.Defer(retryAfter) => IO.pure(Left(retryAfter))
+          }
+
         candidates match {
-          case Nil           => IO.pure(Nil)
+          case Nil           => IO.pure(Admitted(Nil, None))
           case first :: rest =>
             val firstCost = costOf(first, forkHeaps)
-            val firstAdmission: IO[Option[(Task, IO[Unit])]] =
+            val firstAdmission: IO[Either[scala.concurrent.duration.FiniteDuration, Option[(Task, IO[Unit])]]] =
               if (idle)
                 machine
                   .reserveUntilReleased(firstCost.kind, first.id.toString, firstCost.cpu, firstCost.memoryMb)
-                  .map(release => Some((first, release)))
-              else
-                mayAdmit(first, idle).flatMap {
-                  case true  => reserveFor(first)
-                  case false => IO.pure(None)
-                }
+                  .map(release => Right(Some((first, release))))
+              else tryOne(first, idle)
 
             firstAdmission.flatMap { headResult =>
-              rest
-                .traverse { task =>
-                  // Never `idle` here: if the head was admitted, something is running by definition.
-                  mayAdmit(task, idle = false).flatMap {
-                    case true  => reserveFor(task)
-                    case false => IO.pure(None)
-                  }
-                }
-                .map(tail => (headResult :: tail).flatten)
+              // Never `idle` for the rest: if the head was admitted, something is running by definition.
+              rest.traverse(tryOne(_, idle = false)).map { tail =>
+                val all = headResult :: tail
+                Admitted(all.collect { case Right(Some(started)) => started }, all.collect { case Left(retryAfter) => retryAfter }.minOption)
+              }
             }
         }
+      }
 
       def emit(event: DagEvent): IO[Unit] = eventQueue.offer(Some(event))
 
@@ -1418,7 +1432,11 @@ object TaskDag {
                 // reserving inside meant everything queued FIFO in the governor and this sort was
                 // decoration.
                 prioritized = readyTasks.toList.sortBy(t => -depCounts.getOrElse(t.id, 0))
-                admitted <- admit(prioritized, idle = running.isEmpty)
+                admission <- admit(prioritized, idle = running.isEmpty)
+                admitted = admission.started
+                // A deferred compile is looked at again when its stagger is up, not only when some task happens to complete — a long compile in flight
+                // would otherwise hold back one that was only asked to wait a moment.
+                _ <- admission.retryAfter.traverse_(delay => supervisor.supervise(IO.sleep(delay) >> wakeup.tryOffer(()).void).void)
                 // Start tasks. The guarantee releases the reservation, cleans up runningRef and wakes
                 // the loop — and the wakeup is what re-runs admission, so a completion is exactly when
                 // the next task gets its chance.

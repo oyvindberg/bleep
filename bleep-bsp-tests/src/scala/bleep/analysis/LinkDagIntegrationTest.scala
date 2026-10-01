@@ -265,7 +265,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (lt, _) => {
           linkCalled = true
@@ -318,7 +318,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) =>
           IO.pure(
@@ -374,7 +374,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val executor = TaskDag.executor(
       Handlers(
         postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(true),
+        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => IO.pure((TaskResult.Failure("Link error", List.empty), LinkResult.Failure("Link error", List.empty))),
         discover = (_, _, _) => IO.pure((TaskResult.Success, TaskDag.DiscoveryResult(Nil, 0, suiteParallelism = None, batches = Nil))),
