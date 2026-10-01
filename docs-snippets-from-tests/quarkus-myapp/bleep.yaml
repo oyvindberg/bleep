@@ -1,0 +1,41 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: BLEEP_LATEST_VERSION
+jvm:
+  name: graalvm-community:25.0.1
+projects:
+  myapp:
+    dependencies:
+      - io.quarkus:quarkus-rest:3.39.1
+    extends: template-common
+  myapp-test:
+    dependencies:
+      - io.quarkus:quarkus-junit5:3.39.1
+    dependsOn: myapp
+    extends:
+      - template-common
+      - template-quarkus-test
+  scripts:
+    dependencies:
+      - build.bleep:bleep-plugin-quarkus:${BLEEP_VERSION}
+    java:
+      options: -proc:none --release 17
+    platform:
+      name: jvm
+scripts:
+  run-myapp-dev:
+    main: scripts.RunMyappDev
+    project: scripts
+  package-myapp:
+    main: scripts.PackageMyapp
+    project: scripts
+templates:
+  template-common:
+    java:
+      options: -proc:none --release 17 -parameters
+    platform:
+      name: jvm
+  template-quarkus-test:
+    isTestProject: true
+    sourcegen:
+      main: bleep.plugin.quarkus.QuarkusTestModelGen
+      project: scripts

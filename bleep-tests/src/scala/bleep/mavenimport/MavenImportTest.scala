@@ -500,4 +500,102 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
       bleep.internal.FileUtils.deleteDirectory(tempDir)
     }
   }
+
+  test("wire quarkus test projects: template, sourcegen, scripts project") {
+    val xml = """<?xml version="1.0" encoding="UTF-8"?>
+      |<project>
+      |  <groupId>com.example</groupId>
+      |  <artifactId>quarkus-app</artifactId>
+      |  <version>1.0.0</version>
+      |  <packaging>jar</packaging>
+      |  <build>
+      |    <directory>/tmp/test-maven/target</directory>
+      |    <sourceDirectory>/tmp/test-maven/src/main/java</sourceDirectory>
+      |    <testSourceDirectory>/tmp/test-maven/src/test/java</testSourceDirectory>
+      |    <plugins></plugins>
+      |  </build>
+      |  <dependencies>
+      |    <dependency>
+      |      <groupId>io.quarkus</groupId>
+      |      <artifactId>quarkus-rest</artifactId>
+      |      <version>3.15.1</version>
+      |      <scope>compile</scope>
+      |      <optional>false</optional>
+      |    </dependency>
+      |    <dependency>
+      |      <groupId>io.quarkus</groupId>
+      |      <artifactId>quarkus-junit5</artifactId>
+      |      <version>3.15.1</version>
+      |      <scope>test</scope>
+      |      <optional>false</optional>
+      |    </dependency>
+      |  </dependencies>
+      |  <repositories></repositories>
+      |  <modules></modules>
+      |</project>""".stripMargin
+
+    val tempFile = Files.createTempFile("effective-pom", ".xml")
+    val tempDir = Files.createTempDirectory("test-maven")
+    try {
+      // the -test project is only created when test sources exist
+      val testSrc = tempDir.resolve("src/test/java/com/example")
+      Files.createDirectories(testSrc)
+      Files.writeString(testSrc.resolve("GreetingResourceTest.java"), "package com.example;\nclass GreetingResourceTest {}\n")
+
+      Files.writeString(tempFile, pomIn(xml, tempDir))
+      val mavenProjects = parsePom(MavenFs.Real, tempFile)
+
+      val files = generateBuildFromMaven(
+        bleep.BuildPaths(tempDir, tempDir.resolve("bleep.yaml"), model.BuildVariant.Normal, None),
+        ryddig.Loggers.storing(),
+        MavenImportOptions(
+          ignoreWhenInferringTemplates = Set.empty,
+          skipMvn = true,
+          skipGeneratedResourcesScript = false,
+          mvnPath = None,
+          filtering = bleep.sbtimport.ImportFiltering.empty,
+          buildJvm = None
+        ),
+        model.BleepVersion("1.0.0-M1"),
+        model.BleepVersion("1.0.0-M1"),
+        MavenFs.Real,
+        mavenProjects,
+        // these poms manage no versions, so the import never asks what maven resolved
+        tempDir.resolve("dependency-list.txt")
+      )
+
+      val yamlString = files(tempDir.resolve("bleep.yaml"))
+      val buildFile = bleep.yaml.decode[model.BuildFile](yamlString).fold(e => throw e, identity)
+
+      val templateId = model.TemplateId("template-quarkus-test")
+      val template = buildFile.templates.value.getOrElse(templateId, sys.error(s"expected $templateId in generated build"))
+      assert(template.maxConcurrentSuites === Some(1))
+      assert(template.testFork === Some(model.TestForkMode.PerProject))
+      assert(template.sourcegen.values.exists { case model.ScriptDef.Main(project, main, _, _) =>
+        project.name.value === "scripts" && main === "bleep.plugin.quarkus.QuarkusTestModelGen"
+      })
+      // No platform block: the sourcegen declares the fork's JVM options at build time by writing them to the project's forkJvmOptions file.
+      assert(template.platform.isEmpty)
+
+      val testProject = buildFile.projects.value(model.ProjectName("quarkus-app-test"))
+      assert(testProject.`extends`.values.contains(templateId))
+
+      val scriptsProject = buildFile.projects.value(model.ProjectName("scripts"))
+      assert(scriptsProject.dependencies.values.exists(dep => dep.organization.value == "build.bleep" && dep.baseModuleName.value == "bleep-plugin-quarkus"))
+
+      // dev-mode and packaging entry points are registered as scripts, each pointing at bleep-plugin-quarkus' main in the scripts project
+      def scriptMain(name: String): String =
+        buildFile.scripts.value
+          .getOrElse(model.ScriptName(name), sys.error(s"expected $name script in generated build"))
+          .values match {
+          case (m: model.ScriptDef.Main) :: Nil if m.project.name.value == "scripts" => m.main
+          case other                                                                 => sys.error(s"unexpected $name script: $other")
+        }
+      assert(scriptMain("quarkus-dev") === "bleep.plugin.quarkus.QuarkusRun")
+      assert(scriptMain("quarkus-package") === "bleep.plugin.quarkus.QuarkusPackage")
+    } finally {
+      Files.deleteIfExists(tempFile)
+      bleep.internal.FileUtils.deleteDirectory(tempDir)
+    }
+  }
 }

@@ -1,0 +1,151 @@
+---
+title: Quarkus with bleep
+---
+
+import Snippet from '@site/src/components/Snippet';
+
+# Quarkus with bleep
+
+This tutorial walks through a working Quarkus 3.x service that
+compiles, runs `@QuarkusTest` suites, runs in dev mode, and packages to
+the production fast-jar layout — all through bleep. If you are here to
+convert an existing Maven build, skip to
+[importing a Maven Quarkus build](#importing-a-maven-quarkus-build):
+`bleep import-maven` recognizes Quarkus projects and emits all of the
+wiring below on its own.
+
+Like [Spring Boot](/docs/spring-boot-proves-the-model), the whole
+integration lands in bleep's four primitives — projects, dependencies,
+scripts, sourcegen. There is no Quarkus code inside bleep itself; the
+machinery lives in `bleep-plugin-quarkus`, a regular library your
+`scripts` project depends on.
+
+## How it works
+
+Quarkus bootstraps by building an "application model" of your app —
+its classpath, which dependencies are extensions, where classes and
+resources live. Its stock resolvers parse `pom.xml` or drive the Gradle
+tooling API. Neither exists in a bleep workspace, but Quarkus has an
+official escape hatch (its Gradle plugin uses it for IDE runs): a
+pre-serialized model handed over via system property, checked before
+any build-tool detection.
+
+`bleep-plugin-quarkus` produces that file as **sourcegen**: before the
+test project compiles, `QuarkusTestModelGen` writes the model to
+`<target dir>/quarkus/test-app-model.dat` and declares the JVM option
+that points Quarkus at it (plus the jboss LogManager) by writing them
+to the project's fork-options file, which bleep appends when it starts
+the test fork — so the template needs no `platform` block. The writer
+forks a JVM whose
+classpath carries *the app's own Quarkus version*, so the serialization
+format always matches what the test JVM reads back — bleep does not pin
+you to any particular Quarkus release. A content hash next to the model
+means it regenerates on classpath or layout changes, not on every run.
+
+## The build file
+
+<Snippet path="docs-snippets-from-tests/quarkus-myapp/bleep.yaml" lang="yaml" />
+
+Three projects (`myapp`, `myapp-test`, `scripts`), two named scripts,
+and one `template-quarkus-test` template holding all Quarkus test
+wiring. Worth pointing out:
+
+- **`myapp-test`** is just a project that depends on `myapp` — there is
+  no `Test` scope. The template it extends carries the Quarkus
+  specifics, so twenty Quarkus apps in one build share these five lines.
+- **`sourcegen`** references `bleep.plugin.quarkus.QuarkusTestModelGen`
+  directly — the plugin ships a `BleepCodegenScript` usable as-is.
+- **No `platform` block.** The sourcegen declares the two JVM options
+  the fork needs — the serialized-model path and the jboss LogManager
+  (which must be set before any JUL initialization; Quarkus requires
+  the same under surefire) — by writing them to the project's
+  fork-options file, which bleep appends when it starts the fork.
+  Everything else, including registering the workspace's projects as
+  application archives (the role `jandex-maven-plugin` plays under
+  Maven), travels inside the model itself.
+- **Suites share one warm fork — by default.** bleep's defaults,
+  `testFork: per-project` and `maxConcurrentSuites: 1`, already give
+  Maven's one-JVM-per-module semantics: a project's suites run
+  sequentially through one reused fork. Quarkus DevServices containers
+  are labeled per test JVM, so suites that share a booted application —
+  and a database schema an earlier suite created — need exactly this,
+  and get it with no extra configuration. (`bleep import-maven` writes
+  both fields onto the template explicitly, so the intent is visible in
+  the generated build.) For projects whose suites are independent, set
+  `testFork: per-suite` and you get bleep's usual suite-per-fork
+  parallelism.
+
+## The application code
+
+Plain JAX-RS beans; nothing bleep-specific.
+
+<details>
+<summary>The resource — <code>GreetingResource.java</code></summary>
+
+<Snippet path="docs-snippets-from-tests/quarkus-myapp/myapp/src/java/com/example/myapp/GreetingResource.java" lang="java" />
+
+</details>
+
+<details>
+<summary>The service — <code>GreetingService.java</code></summary>
+
+<Snippet path="docs-snippets-from-tests/quarkus-myapp/myapp/src/java/com/example/myapp/GreetingService.java" lang="java" />
+
+</details>
+
+<details>
+<summary>The test — <code>GreetingResourceTest.java</code></summary>
+
+<Snippet path="docs-snippets-from-tests/quarkus-myapp/myapp-test/src/java/com/example/myapp/GreetingResourceTest.java" lang="java" />
+
+</details>
+
+A real `@QuarkusTest`: the application boots, `@Inject` and
+`@TestHTTPResource` work, RestAssured hits the live HTTP server.
+
+```
+bleep test myapp-test
+```
+
+## Dev mode and packaging
+
+Two six-line scripts wrap the plugin's runtime entry points:
+
+<Snippet path="docs-snippets-from-tests/quarkus-myapp/scripts/src/java/scripts/RunMyappDev.java" lang="java" />
+
+<Snippet path="docs-snippets-from-tests/quarkus-myapp/scripts/src/java/scripts/PackageMyapp.java" lang="java" />
+
+`bleep run-myapp-dev` starts Quarkus dev mode with live reload wired to
+bleep's source dirs. `bleep package-myapp` produces the standard
+`quarkus-app/` fast-jar layout plus `quarkus-artifact.properties`,
+identical to Maven's output — downstream tooling (Dockerfiles,
+`quarkus-run.jar` launchers) works unchanged.
+
+## Importing a Maven Quarkus build
+
+`bleep import-maven` detects Quarkus test projects (anything depending
+on `quarkus-junit5`, or its 3.3x name `quarkus-junit`) and emits the
+full wiring automatically:
+
+- the `template-quarkus-test` template shown above,
+- `extends` on every detected Quarkus test project,
+- a `scripts` project depending on `bleep-plugin-quarkus`,
+- kotlin's `<javaParameters>` and surefire JVM flags carried over,
+- `dependencyManagement` BOM imports as `boms:` entries, inherited by
+  downstream projects via `dependsOn`.
+
+The result is a build where `bleep test` runs `@QuarkusTest` suites —
+DevServices containers, `@InjectMock`, Testcontainers and all — with no
+hand-editing. This flow is exercised against a production monorepo of
+22 Quarkus services (Kotlin, Maven, reactive Hibernate, Kafka, CXF);
+the imported build runs its ~900-test suite green.
+
+## Notes
+
+- Quarkus reads `application.properties`/`application.yaml` from the
+  project's resource dirs like any other classpath resource — bleep
+  serves resources from the source tree, no copy step involved.
+- No directory-layout mapping is needed: bleep compiles a test
+  project into a dir named `test-classes`, which Quarkus's
+  `PathTestHelper` already recognizes, and the application's real
+  paths travel in the serialized model.

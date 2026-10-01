@@ -223,6 +223,21 @@ projects:
     - template-common
     - template-scala-3
     sources: ../liberated/mill-scalafix/mill-scalafix/src
+  bleep-plugin-quarkus:
+    dependsOn:
+    - bleepscript
+    # The runtime component the plugin forks (QuarkusModelWriter / QuarkusDevRun / QuarkusPackager).
+    # The plugin never links against it — the fork's classpath is assembled separately with the
+    # app's own quarkus-bootstrap-core — but shipping it as a dependency is what lets both worlds
+    # find it: released builds through the pom, dev builds through the class dirs this puts on the
+    # script JVM's classpath (BleepDevDeps scans java.class.path for `dev:` versions).
+    - bleep-quarkus
+    extends:
+    - template-common
+    - template-java-17
+    publish:
+      description: Quarkus integration for bleep
+    sources: ./src/main/java
   bleep-plugin-spring-boot:
     dependencies:
     - org.springframework.boot:spring-boot-loader-tools:3.4.0
@@ -233,6 +248,32 @@ projects:
     - template-java-17
     publish:
       description: Spring Boot integration for bleep
+    sources: ./src/main/java
+  bleep-quarkus:
+    # The runtime side of bleep's Quarkus integration. Three mains, all forked with the *app's own*
+    # Quarkus version on the classpath (bleep resolves io.quarkus:quarkus-bootstrap-core at the
+    # version found in the project's dependency graph):
+    #
+    #   - bleep.quarkus.QuarkusModelWriter: builds and serializes the Quarkus ApplicationModel from
+    #     a bleep-produced spec file. Producer and consumer are the same Quarkus version by
+    #     construction, so the serialization format (JOS on old versions, JSON on new) always agrees.
+    #   - bleep.quarkus.QuarkusDevRun: dev-mode launcher (what IDELauncherImpl does, minus the
+    #     pom.xml/build.gradle sniffing that makes the stock path unusable outside Maven/Gradle).
+    #   - bleep.quarkus.QuarkusPackager: production build via AugmentAction.createProductionApplication.
+    #
+    # 3.15.1 is a COMPATIBILITY FLOOR, not a preference: this code compiles against the oldest
+    # bootstrap API bleep supports and runs against whatever the app resolved. The two drift points
+    # across 3.15 -> current (handleExtensionProperties' second parameter, and the serializer class)
+    # are dispatched reflectively in QuarkusCompat; everything else used here is identical in both.
+    dependencies:
+      - io.get-coursier:interface:1.0.28
+      - configuration: provided
+        module: io.quarkus:quarkus-bootstrap-core:3.15.1
+    extends:
+    - template-common
+    - template-java-17
+    publish:
+      description: Quarkus runtime integration for bleep
     sources: ./src/main/java
   bleep-test-runner:
     # The junit runtime is chosen per project by the rule table in MultiWorkspaceBspServer
@@ -378,6 +419,13 @@ projects:
     # the KSP integration tests run. Tests reference it via `build.bleep:bleep-test-ksp-processor:${BLEEP_VERSION}`
     # which the dev-deps shim resolves to its classes + resources dirs.
     - bleep-test-ksp-processor
+    # Same arrangement for the Quarkus integration: QuarkusMyappIT's inner build resolves
+    # `build.bleep:bleep-quarkus:${BLEEP_VERSION}` (dev-deps shim, served from the class dirs this
+    # dependency puts on the test JVM's classpath) and `build.bleep:bleep-plugin-quarkus` (served
+    # from the in-memory bleep build via ReplaceBleepDependencies — listed here so the IT always
+    # runs freshly compiled plugin classes, not whatever a previous compile left behind).
+    - bleep-quarkus
+    - bleep-plugin-quarkus
     extends:
     - template-common
     - template-scala-3

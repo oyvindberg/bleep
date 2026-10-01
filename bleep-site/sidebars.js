@@ -196,6 +196,11 @@ const sidebars = {
           label: "Spring Boot",
           id: "tutorials/spring-boot",
         },
+        {
+          type: "doc",
+          label: "Quarkus",
+          id: "tutorials/quarkus",
+        },
       ],
     },
 
