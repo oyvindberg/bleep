@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Maven plugin coverage | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/compared-to-other-build-tools/maven-plugin-coverage/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Maven plugin coverage | Bleep"><meta data-rh="true" name="description" content="Bleep refuses the plugin system Maven, Gradle, and sbt all settled on."><meta data-rh="true" property="og:description" content="Bleep refuses the plugin system Maven, Gradle, and sbt all settled on."><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/compared-to-other-build-tools/maven-plugin-coverage/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/maven-plugin-coverage/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/compared-to-other-build-tools/maven-plugin-coverage/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Maven plugin coverage","item":"https://bleep.build/docs/compared-to-other-build-tools/maven-plugin-coverage"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.9cda37de.js" defer="defer"></script>
-<script src="/assets/js/main.96ece7ec.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.85138fde.js" defer="defer"></script>
+<script src="/assets/js/main.4263c6b8.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -27,12 +27,16 @@ worth arguing about, so <a href="#the-19-you-write-yourself" class="">the argume
 here</a> rather than buried at the bottom.
 It&#x27;s a good deal, but it is a trade, not a freebie, and a page that
 hid the number would deserve the eye-roll it got.</p>
-<p>The other honest caveat is Spring Boot, which an earlier version of
-this page flagged as the one genuinely hard case. That one is now
-solved: see
+<p>The other honest caveat is the framework plugins. Spring Boot, which an
+earlier version of this page flagged as the one genuinely hard case, is
+now solved: see
 <a class="" href="/docs/spring-boot-proves-the-model/">Spring Boot proves the model</a> for
 the design argument and
-<a class="" href="/docs/tutorials/spring-boot/">the tutorial</a> for the working setup.</p>
+<a class="" href="/docs/tutorials/spring-boot/">the tutorial</a> for the working setup.
+Quarkus — whose plugin looks even less like build-as-data, because the
+framework refuses to start without a pre-built application model — is
+solved too: see <a href="#the-case-that-looked-impossible-quarkus" class="">the case below</a>
+and <a class="" href="/docs/tutorials/quarkus/">Quarkus with bleep</a>.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="methodology">Methodology<a href="#methodology" class="hash-link" aria-label="Direct link to Methodology" title="Direct link to Methodology" translate="no">​</a></h2>
 <p>Rankings come from
 <a href="https://mvnrepository.com/open-source/maven-plugins" target="_blank" rel="noopener noreferrer" class="">mvnrepository.com</a>
@@ -174,6 +178,42 @@ Boot shop evaluating bleep, start there.</p>
 more <code>SpringBoot*</code> class wrapping <code>spring-boot-buildpack-platform</code> and
 <code>spring-aot</code>. Open an issue or send a PR if either matters for your
 project.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="the-case-that-looked-impossible-quarkus">The case that looked impossible: Quarkus<a href="#the-case-that-looked-impossible-quarkus" class="hash-link" aria-label="Direct link to The case that looked impossible: Quarkus" title="Direct link to The case that looked impossible: Quarkus" translate="no">​</a></h2>
+<p><code>quarkus-maven-plugin</code> is not in this top-50 list — it is
+framework-specific, not a general-purpose plugin — but it is the other
+framework whose Maven plugin looks, at first, like it simply cannot
+live as build-as-data. Spring Boot was hard because it bundled several
+jobs; each was still a script wrapping a clean upstream API. Quarkus is
+hard in a deeper way.</p>
+<p>Quarkus bootstraps <em>every</em> mode — dev, test, package — by first
+building an <strong>application model</strong> of the app: its classpath, which
+dependencies are extensions, where classes and resources live. The
+stock way to produce that model is to parse <code>pom.xml</code> or drive the
+Gradle tooling API, and a bleep workspace has neither. So unlike Spring
+Boot, the job is not &quot;wrap a packaging API&quot; — it is &quot;produce the one
+artifact the framework refuses to start without.&quot;</p>
+<p>Quarkus ships the escape hatch: a pre-serialized model handed to the
+runtime through a system property, checked before any build-tool
+detection (its own Gradle plugin uses it for IDE runs). bleep produces
+that file with the same primitives:</p>
+<ul>
+<li class=""><strong><code>bleep-plugin-quarkus</code></strong> builds and caches the model as a
+<strong>sourcegen</strong>, before the test project compiles — early enough
+because the model records classpaths and directories, not class-file
+contents.</li>
+<li class=""><strong><code>bleep-quarkus</code></strong> carries the three runtime entry points — model
+writer, dev-mode launcher, production packager — each forked with the
+app&#x27;s <em>own</em> Quarkus version, so the serialized format always matches
+what the runtime reads back.</li>
+</ul>
+<p>The payoff is the full framework: <code>bleep test</code> runs real
+<code>@QuarkusTest</code> suites, <code>bleep run-&lt;app&gt;-dev</code> is dev mode with live
+reload, <code>bleep package-&lt;app&gt;</code> is the standard <code>quarkus-app/</code> fast-jar
+layout. No Quarkus code lives in <code>bleep-core</code> or <code>bleep-bsp</code>.
+<a class="" href="/docs/tutorials/quarkus/">Quarkus with bleep</a> is the worked example,
+and <code>bleep import-maven</code> generates the entire wiring from an existing
+Maven build — exercised against a 22-service production monorepo whose
+~900-test suite runs green after import.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-about-bom-and-dependencymanagement">What about BOM and <code>dependencyManagement</code>?<a href="#what-about-bom-and-dependencymanagement" class="hash-link" aria-label="Direct link to what-about-bom-and-dependencymanagement" title="Direct link to what-about-bom-and-dependencymanagement" translate="no">​</a></h2>
 <p>Not a plugin, but worth mentioning. Bleep supports BOM imports: a
 project lists <code>boms:</code> and Maven&#x27;s <code>dependencyManagement</code>-import
@@ -219,9 +259,10 @@ other than code you own.</p>
 <li class=""><a class="" href="/docs/compared-to-other-build-tools/maven/">Comparison with Maven</a></li>
 <li class=""><a class="" href="/docs/spring-boot-proves-the-model/">Spring Boot proves the model</a> — the design argument for the four-primitives claim, with Spring Boot as the worked example</li>
 <li class=""><a class="" href="/docs/tutorials/spring-boot/">Spring Boot tutorial</a> — the practical walkthrough of the worked example</li>
+<li class=""><a class="" href="/docs/tutorials/quarkus/">Quarkus with bleep</a> — the other framework case: building the application model as sourcegen, augmentation and dev mode as scripts</li>
 <li class=""><a class="" href="/docs/concepts/sourcegen/">Sourcegen concept</a></li>
 <li class=""><a class="" href="/docs/concepts/scripts/">Scripts concept</a></li>
 <li class=""><a class="" href="/docs/appendix/status/">Project status</a></li>
-</ul></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/docs/concepts/sourcegen/"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Source generation scripts</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/docs/spring-boot-proves-the-model/"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Spring Boot proves the model</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#methodology" class="table-of-contents__link toc-highlight">Methodology</a></li><li><a href="#categories" class="table-of-contents__link toc-highlight">Categories</a></li><li><a href="#the-list" class="table-of-contents__link toc-highlight">The list</a></li><li><a href="#the-count" class="table-of-contents__link toc-highlight">The count</a></li><li><a href="#the-19-you-write-yourself" class="table-of-contents__link toc-highlight">The 19 you write yourself</a></li><li><a href="#the-case-that-used-to-be-hard" class="table-of-contents__link toc-highlight">The case that used to be hard</a></li><li><a href="#what-about-bom-and-dependencymanagement" class="table-of-contents__link toc-highlight">What about BOM and <code>dependencyManagement</code>?</a></li><li><a href="#plugins-dropped-from-this-list" class="table-of-contents__link toc-highlight">Plugins dropped from this list</a></li><li><a href="#the-broader-point" class="table-of-contents__link toc-highlight">The broader point</a></li><li><a href="#see-also" class="table-of-contents__link toc-highlight">See also</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Learn</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/docs/installing/">Installation</a></li><li class="footer__item"><a class="footer__link-item" href="/docs/tutorials/your-first-project/">Tutorials</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/oyvindberg/bleep" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/discussions" target="_blank" rel="noopener noreferrer" class="footer__link-item">Discussions<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/releases" target="_blank" rel="noopener noreferrer" class="footer__link-item">Releases<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright 2026 Bleep Contributors. Built with Docusaurus.</div></div></div></footer></div>
+</ul></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/docs/concepts/sourcegen/"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Source generation scripts</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/docs/spring-boot-proves-the-model/"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Spring Boot proves the model</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#methodology" class="table-of-contents__link toc-highlight">Methodology</a></li><li><a href="#categories" class="table-of-contents__link toc-highlight">Categories</a></li><li><a href="#the-list" class="table-of-contents__link toc-highlight">The list</a></li><li><a href="#the-count" class="table-of-contents__link toc-highlight">The count</a></li><li><a href="#the-19-you-write-yourself" class="table-of-contents__link toc-highlight">The 19 you write yourself</a></li><li><a href="#the-case-that-used-to-be-hard" class="table-of-contents__link toc-highlight">The case that used to be hard</a></li><li><a href="#the-case-that-looked-impossible-quarkus" class="table-of-contents__link toc-highlight">The case that looked impossible: Quarkus</a></li><li><a href="#what-about-bom-and-dependencymanagement" class="table-of-contents__link toc-highlight">What about BOM and <code>dependencyManagement</code>?</a></li><li><a href="#plugins-dropped-from-this-list" class="table-of-contents__link toc-highlight">Plugins dropped from this list</a></li><li><a href="#the-broader-point" class="table-of-contents__link toc-highlight">The broader point</a></li><li><a href="#see-also" class="table-of-contents__link toc-highlight">See also</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Learn</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/docs/installing/">Installation</a></li><li class="footer__item"><a class="footer__link-item" href="/docs/tutorials/your-first-project/">Tutorials</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/oyvindberg/bleep" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/discussions" target="_blank" rel="noopener noreferrer" class="footer__link-item">Discussions<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://github.com/oyvindberg/bleep/releases" target="_blank" rel="noopener noreferrer" class="footer__link-item">Releases<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright 2026 Bleep Contributors. Built with Docusaurus.</div></div></div></footer></div>
 </body>
 </html>
