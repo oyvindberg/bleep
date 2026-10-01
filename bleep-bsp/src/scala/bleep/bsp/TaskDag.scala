@@ -36,8 +36,17 @@ object TaskDag {
     override def toString: String = value
   }
   object TaskId {
+
+    /** The project is built: its classes are what consumers read. For a project with a `postCompile` step that is the step's output, so this names the
+      * [[PostCompileTask]], and the compile before it is [[CompilerOutput]].
+      */
     case class Compile(project: CrossProjectName) extends TaskId {
       val value: String = s"compile:${project.value}"
+    }
+
+    /** The compile of a project with a `postCompile` step: what the compiler wrote, before the step rewrites it into the project's classes. */
+    case class CompilerOutput(project: CrossProjectName) extends TaskId {
+      val value: String = s"compiler-output:${project.value}"
     }
     case class Link(project: CrossProjectName) extends TaskId {
       val value: String = s"link:${project.value}"
@@ -107,9 +116,9 @@ object TaskDag {
   def costOf(task: Task, forkHeaps: ForkHeaps): Cost =
     task match {
       // In-server work: a core, and no fork memory. Compile heap is watched separately by HeapPressureGate.
-      case ct: CompileTask =>
-        // A post-compile script is a fork like a sourcegen script, run inside the compile task, so the task declares its memory up front.
-        Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = if (ct.postCompile) forkHeaps.sourcegenMb else 0L)
+      case _: CompileTask => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
+      // A post-compile script is a fork like a sourcegen script.
+      case _: PostCompileTask                 => Cost(MachineResources.ResourceKind.SourcegenFork, cpu = 1, memoryMb = forkHeaps.sourcegenMb)
       case _: DiscoverTask                    => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
       case _: ResolveAnnotationProcessorsTask => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
       // Forks: charged the heap they are started with plus the non-heap a JVM also commits.
@@ -137,10 +146,23 @@ object TaskDag {
       project: CrossProjectName,
       projectDependencies: Set[CrossProjectName],
       dependencies: Set[TaskId],
-      /** The project declares a `postCompile`, so a successful compile also forks its script — see [[bleep.bsp.PostCompileRunner]]. */
+      /** The project declares a `postCompile`, so this compile is followed by a [[PostCompileTask]], which consumers wait for instead. */
       postCompile: Boolean
   ) extends Task {
+    val id: TaskId = if (postCompile) TaskId.CompilerOutput(project) else TaskId.Compile(project)
+  }
+
+  /** Run a project's `postCompile` script on what its compile wrote — see [[bleep.bsp.PostCompileRunner]].
+    *
+    * A task of its own so that what the script reads (`reads`: its script project and inputs) holds back only the script, not the compile before it. Takes the
+    * project's [[TaskId.Compile]], so everything downstream waits for the script's output rather than the compiler's.
+    */
+  case class PostCompileTask(
+      project: CrossProjectName,
+      reads: Set[CrossProjectName]
+  ) extends Task {
     val id: TaskId = TaskId.Compile(project)
+    val dependencies: Set[TaskId] = reads.map(p => TaskId.Compile(p): TaskId) + TaskId.CompilerOutput(project)
   }
 
   /** Run a sourcegen script for a set of target projects.
@@ -724,9 +746,16 @@ object TaskDag {
         * main class", and Kotlin/Native failed with "could not find '/main' function".
         */
       testProjects: Set[CrossProjectName],
-      /** Which of these projects declare a `postCompile` script. */
-      postCompileProjects: Set[CrossProjectName]
-  )
+      /** The projects that declare a `postCompile` script, each with what that script reads (its script project and inputs). `allProjectDeps` leaves these out:
+        * they are built before the script runs, not before the compile.
+        */
+      postCompile: Map[CrossProjectName, Set[CrossProjectName]]
+  ) {
+
+    /** Everything that must be built for a project, its post-compile step included: what decides which projects a build covers. */
+    lazy val buildOrderDeps: Map[CrossProjectName, Set[CrossProjectName]] =
+      allProjectDeps.map { case (p, deps) => (p, deps ++ postCompile.getOrElse(p, Set.empty)) }
+  }
 
   /** What each kind of forked JVM is charged: its heap plus the non-heap a JVM also commits (metaspace, code cache, stacks, GC structures). Resolved from
     * config once when the DAG is built, so the number a task declares is the number the fork is actually started with.
@@ -747,7 +776,7 @@ object TaskDag {
       sourcegen = SourcegenPlan.empty,
       apPlan = AnnotationProcessorPlan.empty,
       kspPlan = SymbolProcessorPlan.empty,
-      postCompileProjects = Set.empty
+      postCompile = Map.empty
     )
   }
 
@@ -837,23 +866,30 @@ object TaskDag {
       (tasks, extraScriptProjects)
     }
 
+  /** What builds each of `allProjects`: its compile, and for a project with a `postCompile` step, the step after it. */
+  private def buildProjectTasks(allProjects: Set[CrossProjectName], ctx: BuildContext): Set[Task] =
+    allProjects.flatMap { project =>
+      val (projectDeps, deps) = compileDeps(project, ctx, allProjects)
+      ctx.postCompile.get(project) match {
+        case Some(reads) => Set[Task](CompileTask(project, projectDeps, deps, postCompile = true), PostCompileTask(project, reads))
+        case None        => Set[Task](CompileTask(project, projectDeps, deps, postCompile = false))
+      }
+    }
+
   /** Build DAG for compile-only (no linking, no tests). */
   def buildCompileDag(projects: Set[CrossProjectName], ctx: BuildContext): Dag = {
-    val targetTransitive = transitiveDependencies(projects, ctx.allProjectDeps)
+    val targetTransitive = transitiveDependencies(projects, ctx.buildOrderDeps)
     val (sourcegenTasks, extraScriptProjects) = sourcegenTasksAndScriptCompiles(targetTransitive, ctx.sourcegen)
     // Script projects' transitive compile tasks — we already have the dep closure from the plan, but they may themselves depend on others we haven't walked.
-    val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.allProjectDeps)
+    val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.buildOrderDeps)
     val allProjects = targetTransitive ++ scriptTransitive
 
-    val compileTasks = allProjects.map { project =>
-      val (projectDeps, deps) = compileDeps(project, ctx, allProjects)
-      CompileTask(project, projectDeps, deps, postCompile = ctx.postCompileProjects.contains(project))
-    }
+    val projectTasks = buildProjectTasks(allProjects, ctx)
 
     val apTasks = annotationProcessorTasks(allProjects, ctx.apPlan)
     val kspTasks = symbolProcessorTasks(allProjects, ctx.kspPlan, ctx.allProjectDeps)
 
-    Dag.fromTasks(compileTasks.toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
+    Dag.fromTasks(projectTasks.toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
   }
 
   /** Build initial DAG for test execution.
@@ -867,15 +903,12 @@ object TaskDag {
     * command is asking.
     */
   def buildTestDag(targets: Set[CrossProjectName], ctx: BuildContext): Dag = {
-    val targetTransitive = transitiveDependencies(targets, ctx.allProjectDeps)
+    val targetTransitive = transitiveDependencies(targets, ctx.buildOrderDeps)
     val (sourcegenTasks, extraScriptProjects) = sourcegenTasksAndScriptCompiles(targetTransitive, ctx.sourcegen)
-    val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.allProjectDeps)
+    val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.buildOrderDeps)
     val allProjects = targetTransitive ++ scriptTransitive
 
-    val compileTasks = allProjects.map { project =>
-      val (projectDeps, deps) = compileDeps(project, ctx, allProjects)
-      CompileTask(project, projectDeps, deps, postCompile = ctx.postCompileProjects.contains(project))
-    }
+    val projectTasks = buildProjectTasks(allProjects, ctx)
 
     val suiteBearing = targets.filter(ctx.testProjects)
 
@@ -894,20 +927,17 @@ object TaskDag {
     val apTasks = annotationProcessorTasks(allProjects, ctx.apPlan)
     val kspTasks = symbolProcessorTasks(allProjects, ctx.kspPlan, ctx.allProjectDeps)
 
-    Dag.fromTasks((compileTasks ++ linkTasks ++ discoverTasks).toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
+    Dag.fromTasks((projectTasks ++ linkTasks ++ discoverTasks).toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
   }
 
   /** Build DAG for linking (compile + link without tests). */
   def buildLinkDag(projects: Set[CrossProjectName], ctx: BuildContext, releaseMode: Boolean): Dag = {
-    val targetTransitive = transitiveDependencies(projects, ctx.allProjectDeps)
+    val targetTransitive = transitiveDependencies(projects, ctx.buildOrderDeps)
     val (sourcegenTasks, extraScriptProjects) = sourcegenTasksAndScriptCompiles(targetTransitive, ctx.sourcegen)
-    val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.allProjectDeps)
+    val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.buildOrderDeps)
     val allProjects = targetTransitive ++ scriptTransitive
 
-    val compileTasks = allProjects.map { project =>
-      val (projectDeps, deps) = compileDeps(project, ctx, allProjects)
-      CompileTask(project, projectDeps, deps, postCompile = ctx.postCompileProjects.contains(project))
-    }
+    val projectTasks = buildProjectTasks(allProjects, ctx)
 
     val linkTasks = projects.flatMap { project =>
       ctx.platforms.get(project) match {
@@ -920,7 +950,7 @@ object TaskDag {
     val apTasks = annotationProcessorTasks(allProjects, ctx.apPlan)
     val kspTasks = symbolProcessorTasks(allProjects, ctx.kspPlan, ctx.allProjectDeps)
 
-    Dag.fromTasks((compileTasks ++ linkTasks).toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
+    Dag.fromTasks((projectTasks ++ linkTasks).toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
   }
 
   /** Get transitive dependencies for a set of projects */
@@ -976,6 +1006,7 @@ object TaskDag {
     */
   case class Handlers(
       compile: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
+      postCompile: (PostCompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
       link: (LinkTask, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
       /** Discovery reads the linked artifact on JS and Native — it asks the binary to enumerate its own suites — so it needs the same link output the run does.
         */
@@ -1172,6 +1203,9 @@ object TaskDag {
                 task match {
                   case ct: CompileTask =>
                     withRecovery(s"Compile ${ct.project.value}", taskKill)(handlers.compile(ct, taskKill))
+
+                  case pct: PostCompileTask =>
+                    withRecovery(s"Post-compile ${pct.project.value}", taskKill)(handlers.postCompile(pct, taskKill))
 
                   case lt: LinkTask =>
                     withRecovery(s"Link ${lt.project.value}", taskKill) {

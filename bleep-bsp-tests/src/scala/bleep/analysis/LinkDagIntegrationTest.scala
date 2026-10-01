@@ -43,7 +43,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
         testProjects = Set(project),
-        postCompileProjects = Set.empty
+        postCompile = Map.empty
       )
     )
 
@@ -70,7 +70,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
         testProjects = Set(project),
-        postCompileProjects = Set.empty
+        postCompile = Map.empty
       )
     )
 
@@ -100,7 +100,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
         testProjects = Set(project),
-        postCompileProjects = Set.empty
+        postCompile = Map.empty
       )
     )
 
@@ -123,7 +123,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
         testProjects = Set(app),
-        postCompileProjects = Set.empty
+        postCompile = Map.empty
       )
     )
 
@@ -154,7 +154,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
         testProjects = Set(jvmProject, jsProject, nativeProject),
-        postCompileProjects = Set.empty
+        postCompile = Map.empty
       )
     )
 
@@ -180,7 +180,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
         testProjects = Set.empty,
-        postCompileProjects = Set.empty
+        postCompile = Map.empty
       ),
       releaseMode = false
     )
@@ -206,7 +206,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
         testProjects = Set.empty,
-        postCompileProjects = Set.empty
+        postCompile = Map.empty
       ),
       releaseMode = true
     )
@@ -227,7 +227,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
         testProjects = Set.empty,
-        postCompileProjects = Set.empty
+        postCompile = Map.empty
       ),
       releaseMode = false
     )
@@ -254,7 +254,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
         testProjects = Set.empty,
-        postCompileProjects = Set.empty
+        postCompile = Map.empty
       ),
       releaseMode = false
     )
@@ -264,6 +264,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
+        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (lt, _) => {
@@ -309,13 +310,14 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
         testProjects = Set.empty,
-        postCompileProjects = Set.empty
+        postCompile = Map.empty
       ),
       releaseMode = false
     )
 
     val executor = TaskDag.executor(
       Handlers(
+        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) =>
@@ -365,12 +367,13 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
         testProjects = Set(project),
-        postCompileProjects = Set.empty
+        postCompile = Map.empty
       )
     )
 
     val executor = TaskDag.executor(
       Handlers(
+        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         mayAdmitCompile = _ => IO.pure(true),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _) => IO.pure((TaskResult.Failure("Link error", List.empty), LinkResult.Failure("Link error", List.empty))),

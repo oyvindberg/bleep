@@ -45,7 +45,7 @@ class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
       apPlan = AnnotationProcessorPlan.empty,
       kspPlan = SymbolProcessorPlan.empty,
       testProjects = Set.empty,
-      postCompileProjects = Set.empty
+      postCompile = Map.empty
     )
 
   test("buildCompileDag without KSP plan: no RunSymbolProcessorsTasks") {
@@ -108,6 +108,7 @@ class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
       eventQueue <- Queue.bounded[IO, Option[TaskDag.DagEvent]](1024)
       killSignal <- Deferred[IO, KillReason]
       handlers = Handlers(
+        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         mayAdmitCompile = _ => IO.pure(true),
         compile = (ct, _) => IO { timeline.add(s"compile:${ct.project.value}"); TaskResult.Success },
         link = (_, _) => sys.error("LinkTask should not appear here"),
@@ -142,6 +143,7 @@ class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
       eventQueue <- Queue.bounded[IO, Option[TaskDag.DagEvent]](1024)
       killSignal <- Deferred[IO, KillReason]
       handlers = Handlers(
+        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         mayAdmitCompile = _ => IO.pure(true),
         compile = (ct, _) => IO { compileInvoked.set(true); finishedTasks.add(ct.project.value -> TaskResult.Success); TaskResult.Success },
         link = (_, _) => sys.error("LinkTask should not appear here"),

@@ -44,7 +44,7 @@ class MaxConcurrentSuitesDagTest extends AnyFunSuite with Matchers {
         apPlan = AnnotationProcessorPlan.empty,
         kspPlan = SymbolProcessorPlan.empty,
         testProjects = Set(project),
-        postCompileProjects = Set.empty
+        postCompile = Map.empty
       )
     )
 
@@ -52,6 +52,7 @@ class MaxConcurrentSuitesDagTest extends AnyFunSuite with Matchers {
       log <- Ref.of[IO, List[String]](Nil)
       executor = TaskDag.executor(
         Handlers(
+          postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
           mayAdmitCompile = _ => IO.pure(true),
           compile = (_, _) => IO.pure(TaskResult.Success),
           link = (_, _) => sys.error("no link on JVM"),
