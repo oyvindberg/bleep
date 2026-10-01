@@ -417,10 +417,15 @@ object buildFromMavenPom {
     *
     * Maven POM format: {{ <configuration> <pluginOptions> <option>all-open:annotation=jakarta.ws.rs.Path</option> </pluginOptions> </configuration> }}
     *
-    * These map to `-P plugin:<pluginId>:<key>=<value>` kotlinc flags. The plugin ID mappings:
+    * These map to kotlinc's `-P plugin:<pluginId>:<key>=<value>` flags. The plugin ID mappings:
     *   - `all-open:` -> `plugin:org.jetbrains.kotlin.allopen:`
     *   - `no-arg:` -> `plugin:org.jetbrains.kotlin.noarg:`
     *   - `sam-with-receiver:` -> `plugin:org.jetbrains.kotlin.samWithReceiver:`
+    *
+    * kotlinc takes each as TWO arguments — the `-P` flag and its `plugin:<id>:<key>=<value>` value — never one `"-P plugin:..."` string. bleep's model
+    * ([[model.Options.fromArgs]]) pairs a value onto the preceding flag, and the compile server's kotlin plugin-option handling pairs them back the same way
+    * (`sliding(2) collect { case List("-P", v) ... }`). Emit one `"-P plugin:..."` token and the value is lost and `all-open` silently does nothing, so CDI
+    * beans compile final. Emit the two tokens separately instead.
     */
   private def extractKotlinPluginOptions(mavenProject: MavenProject): List[String] = {
     val pluginIdToFqn = Map(
@@ -429,18 +434,20 @@ object buildFromMavenPom {
       "sam-with-receiver" -> "org.jetbrains.kotlin.samWithReceiver"
     )
 
-    kotlinConfigs(mavenProject).flatMap { c =>
+    val specs = kotlinConfigs(mavenProject).flatMap { c =>
       (c \ "pluginOptions" \ "option").flatMap { opt =>
         val text = opt.text.trim
-        // Format: "pluginShortName:key=value" → "-P plugin:fqn:key=value"
+        // Format: "pluginShortName:key=value" → "plugin:fqn:key=value"
         val colonIdx = text.indexOf(':')
         if (colonIdx > 0) {
           val shortName = text.substring(0, colonIdx)
           val rest = text.substring(colonIdx + 1)
-          pluginIdToFqn.get(shortName).map(fqn => s"-P plugin:$fqn:$rest")
+          pluginIdToFqn.get(shortName).map(fqn => s"plugin:$fqn:$rest")
         } else None
       }
     }.distinct
+
+    specs.flatMap(spec => List("-P", spec))
   }
 
   /** Extract surefire/failsafe configuration for test execution.

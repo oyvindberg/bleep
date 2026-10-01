@@ -301,7 +301,12 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
       assert(kotlin.jvmTarget === Some("21"))
       assert(kotlin.compilerPlugins.values.contains("all-open"), kotlin.compilerPlugins.values.mkString(","))
       val opts = kotlin.options.render
-      assert(opts.contains("-P plugin:org.jetbrains.kotlin.allopen:annotation=jakarta.enterprise.context.ApplicationScoped"), opts)
+      // `-P` and its `plugin:...` value must render as two adjacent tokens — kotlinc and the compile server pair them positionally; a single
+      // "-P plugin:..." string would make all-open silently do nothing (CDI beans compile final).
+      assert(
+        opts.containsSlice(List("-P", "plugin:org.jetbrains.kotlin.allopen:annotation=jakarta.enterprise.context.ApplicationScoped")),
+        opts
+      )
       assert(opts.contains("-Xjvm-default=all"), opts)
       assert(opts.contains("-java-parameters"), opts)
     } finally {
