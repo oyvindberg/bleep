@@ -653,6 +653,67 @@ class RunAndTestIntegrationTest extends AnyFunSuite with Matchers with RunAndTes
       } finally launched.close()
     } finally deleteRecursively(outputDir)
   }
+
+  /** A suite that leaves a non-daemon thread running, as a test harness's worker pool does. */
+  val javaLingeringThreadTestSource = SourceFile(
+    Path.of("example/LingeringThreadTest.java"),
+    """package example;
+      |
+      |import org.junit.Test;
+      |
+      |public class LingeringThreadTest {
+      |    @Test
+      |    public void leavesAThreadBehind() {
+      |        Thread t = new Thread(() -> {
+      |            try { Thread.sleep(Long.MAX_VALUE); } catch (InterruptedException e) { }
+      |        });
+      |        t.setDaemon(false);
+      |        t.start();
+      |    }
+      |}
+      |""".stripMargin
+  )
+
+  // Returning from main left such a fork alive until the pool's shutdown deadline killed it, 10 s later — a wait added to every run whose tests did this.
+  test("after Shutdown the fork exits, even with a test's non-daemon thread still running") {
+    val outputDir = createTempDir("java-lingering-thread-")
+    try {
+      val input = CompilationInput(
+        sources = Seq(javaLingeringThreadTestSource),
+        classpath = CompilerTestLibraries.junitLibrary,
+        outputDir = outputDir,
+        config = JavaConfig()
+      )
+      Compiler.forConfig(input.config).compile(input) shouldBe a[CompilationSuccess]
+
+      val testRunnerPath = Path.of(classOf[bleep.testing.runner.ForkedTestRunner].getProtectionDomain.getCodeSource.getLocation.toURI)
+      val classpath = (List(outputDir, testRunnerPath) ++ CompilerTestLibraries.jupiterInterfaceLibrary.toList ++ CompilerTestLibraries.junitLibrary.toList)
+        .map(_.toString)
+        .mkString(java.io.File.pathSeparator)
+      val javaBin = Path.of(System.getProperty("java.home"), "bin", "java").toString
+
+      val launched = ForkedRunnerLaunch.launch(javaBin, classpath)
+      try {
+        launched.reader.readLine() should include("\"type\":\"Ready\"")
+        launched.writer.println(
+          bleep.testing.runner.TestProtocol.encodeRunSuite(
+            "example.LingeringThreadTest",
+            "JUnit",
+            bleep.testing.runner.TestProtocol.RunnerKind.JUNIT_PLATFORM,
+            null,
+            java.util.List.of()
+          )
+        )
+        collectUntilSuiteDone(launched.reader).last should include("\"passed\":1")
+        launched.writer.println(bleep.testing.runner.TestProtocol.encodeShutdown())
+
+        withClue(s"the fork is still alive after Shutdown; its stderr:\n${launched.stderr}") {
+          launched.process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS) shouldBe true
+        }
+        launched.process.exitValue() shouldBe 0
+      } finally launched.close()
+    } finally deleteRecursively(outputDir)
+  }
 }
 
 trait RunAndTestHelpers {

@@ -63,6 +63,10 @@ public class ForkedTestRunner {
   // can only guess at ("likely System.exit()").
   private static volatile boolean loopExitedNormally = false;
 
+  // Set just before the runner ends the JVM itself, so the SecurityManager that turns a test's
+  // System.exit into an error lets the runner's own exit through.
+  private static volatile boolean runnerExiting = false;
+
   /**
    * Set (or clear, with null) the suite whose output a batch is currently producing. Passed to
    * {@link SuiteRunner#runSuites} and used by the JUnit batch loop so output — on the running
@@ -362,6 +366,12 @@ public class ForkedTestRunner {
         }
       }
     }
+    // End the JVM here rather than by returning. Returning only ends it once the last non-daemon
+    // thread is gone, and tests leave those behind (a compiler test harness's worker pool, say):
+    // the fork then lingers until the parent's shutdown deadline runs out and kills it, which every
+    // run waited for. Shutdown hooks still run.
+    runnerExiting = true;
+    System.exit(0);
   }
 
   /**
@@ -464,6 +474,7 @@ public class ForkedTestRunner {
 
             @Override
             public void checkExit(int status) {
+              if (runnerExiting) return;
               send(
                   TestProtocol.encodeLog(
                       "warn", "Test attempted System.exit(" + status + ") - blocked"));
