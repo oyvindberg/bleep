@@ -88,9 +88,6 @@ object BspRifleConfig {
   val defaultJavaOpts: Seq[String] = Seq(
     "-Xss4m",
     "-XX:ReservedCodeCacheSize=512m",
-    "-XX:+UseZGC",
-    "-XX:ZUncommitDelay=30",
-    "-XX:ZCollectionInterval=5",
     "-XX:+UseStringDeduplication",
     // No OS core file on a hard VM crash: multi-GB, one per crash, and nothing ever reads them.
     "-XX:-CreateCoredumpOnCrash",
@@ -113,9 +110,15 @@ object BspRifleConfig {
   /** JVM options that require a minimum JDK version */
   def jdkVersionOpts(jvmMajorVersion: Int): Seq[String] = {
     val opts = Seq.newBuilder[String]
+    // ZGC only where it is generational. Before JDK 21 it is not, and a compiler allocates far too fast for it: compiling scala3's standard library on JDK 17
+    // allocated over 1 GB/s and kept ZGC cycling back to back. There, and on a JDK whose version we
+    // cannot read (`jvmMajorVersion` 0), the JVM's own default (G1) is what runs.
+    if (jvmMajorVersion >= 21) {
+      opts ++= Seq("-XX:+UseZGC", "-XX:ZUncommitDelay=30", "-XX:ZCollectionInterval=5")
+    }
     // Generational ZGC was opt-in through JDK 23 and is the only mode from 24 on, where the flag was removed. Passing it anyway costs a warning line at the top
     // of every server log ("Ignoring option ZGenerational; support was removed in 24.0") — noise directly above the stack traces people come to that file to
-    // read. `jvmMajorVersion` is 0 when the JVM name has no parsable version, which reads as "not a JDK we can vouch for": say nothing rather than guess.
+    // read.
     if (jvmMajorVersion >= 21 && jvmMajorVersion < 24) {
       opts += "-XX:+ZGenerational"
     }
