@@ -30,12 +30,17 @@ object runMaven {
     logger.info(s"Effective POM written to $outputPath")
 
     // what maven resolves for every module, so the import can tell which versions the build manages are used where. maven resolves a module another module
-    // depends on from the reactor only once it has been built in the same session, hence `package`
+    // depends on from the reactor only once it has been built in the same session, hence `package`.
+    //
+    // `-T1` forces a single-threaded reactor, overriding any `-T1C`/`-T…` a project pins in `.mvn/maven.config`. A parallel reactor interleaves the
+    // `dependency:list` output — the per-module `--- dependency:list @ <module> ---` headers print in a batch, then the "following files have been resolved"
+    // blocks arrive out of order — and `parseDependencyList` associates each block with the header before it, so a parallel build makes it read an empty list
+    // for some modules ("mvn dependency:list printed nothing for X"). Sequential output keeps each module's resolved files right under its header.
     logger.info("Running Maven to list what every module resolves...")
     val listed = cli(
       action = "mvn dependency:list",
       cwd = mavenBuildDir,
-      cmd = List(mvn, "-B", "-am", "-DskipTests", "package", "dependency:list"),
+      cmd = List(mvn, "-T1", "-B", "-am", "-DskipTests", "package", "dependency:list"),
       logger = logger,
       out = cli.Out.ViaLogger(logger)
     )

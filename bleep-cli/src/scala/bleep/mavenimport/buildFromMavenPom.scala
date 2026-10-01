@@ -371,47 +371,61 @@ object buildFromMavenPom {
         }
       }
 
-  private def extractKotlinCompilerArgs(mavenProject: MavenProject): List[String] =
-    mavenProject.plugins.flatMap {
-      case plugin if plugin.artifactId == "kotlin-maven-plugin" =>
-        val args = plugin.configuration \ "args" \ "arg"
-        // `<javaParameters>true</javaParameters>` maps to kotlinc's `-java-parameters`. Dropping it
-        // breaks runtime reflection over constructor parameter names — notably Jackson, which then
-        // cannot deserialize into Kotlin data classes ("no Creators, like default constructor, exist").
-        val javaParameters = (plugin.configuration \ "javaParameters").headOption.filter(_.text.trim == "true").map(_ => "-java-parameters")
-        args.map(_.text.trim).toList ++ javaParameters
-      case _ => Nil
+  private def kotlinMavenPlugins(mavenProject: MavenProject): List[MavenPlugin] =
+    (mavenProject.plugins ++ mavenProject.pluginManagement).filter(_.artifactId == "kotlin-maven-plugin")
+
+  /** The effective kotlin-maven-plugin configuration blocks for a module: every enabled compile/test-compile execution's `<configuration>`, plus the
+    * plugin-level `<configuration>`, across both `<build><plugins>` and the inherited `<build><pluginManagement>`.
+    *
+    * Maven merges configuration inherited from a parent's pluginManagement into whichever of these the module actually declares — and a module that declares
+    * kotlin-maven-plugin with `<executions>` (the common shape) gets it merged into the compile execution's `<configuration>`, not the plugin level. Reading
+    * the plugin level alone therefore misses `all-open`, `-Xjvm-default=all` and the annotation `pluginOptions` for exactly those modules, which then compile
+    * their CDI beans final — breaking Quarkus proxying and any test that mocks a bean by subclassing it.
+    */
+  private def kotlinConfigs(mavenProject: MavenProject): List[scala.xml.NodeSeq] =
+    kotlinMavenPlugins(mavenProject).flatMap { plugin =>
+      plugin.executions
+        .filter(e => e.isEnabled && (e.goals.contains("compile") || e.goals.contains("test-compile")))
+        .map(_.configuration) :+ plugin.configuration
     }
 
+  private def extractKotlinCompilerArgs(mavenProject: MavenProject): List[String] =
+    kotlinConfigs(mavenProject).flatMap { c =>
+      val args = (c \ "args" \ "arg").map(_.text.trim).toList
+      // `<javaParameters>true</javaParameters>` maps to kotlinc's `-java-parameters`. Dropping it breaks runtime reflection over constructor parameter names —
+      // notably Jackson, which then cannot deserialize into Kotlin data classes ("no Creators, like default constructor, exist").
+      val javaParameters = (c \ "javaParameters").headOption.filter(_.text.trim == "true").map(_ => "-java-parameters")
+      args ++ javaParameters
+    }.distinct
+
   /** From the plugin's `compile` execution, its configuration, or the `kotlin.compiler.jvmTarget` property it reads as its default: javalin sets only that */
-  private def extractKotlinJvmTarget(mavenProject: MavenProject): Option[String] = {
-    val fromPlugin = mavenProject.plugins.find(_.artifactId == "kotlin-maven-plugin").flatMap { plugin =>
-      val configurations = plugin.executions.filter(e => e.isEnabled && e.goals.contains("compile")).map(_.configuration) :+ plugin.configuration
-      configurations.iterator.flatMap(c => (c \ "jvmTarget").headOption).map(_.text.trim).find(_.nonEmpty)
-    }
-    fromPlugin.orElse(mavenProject.properties.get("kotlin.compiler.jvmTarget"))
-  }
+  private def extractKotlinJvmTarget(mavenProject: MavenProject): Option[String] =
+    kotlinConfigs(mavenProject).iterator
+      .flatMap(c => (c \ "jvmTarget").headOption)
+      .map(_.text.trim)
+      .find(_.nonEmpty)
+      .orElse(mavenProject.properties.get("kotlin.compiler.jvmTarget"))
 
   /** Extract Kotlin compiler plugin IDs from kotlin-maven-plugin configuration.
     *
     * Maven POM format: {{ <configuration> <compilerPlugins> <plugin>spring</plugin> <plugin>jpa</plugin> </compilerPlugins> </configuration> }}
     */
   private def extractKotlinCompilerPlugins(mavenProject: MavenProject): List[String] =
-    mavenProject.plugins.flatMap {
-      case plugin if plugin.artifactId == "kotlin-maven-plugin" =>
-        val plugins = plugin.configuration \ "compilerPlugins" \ "plugin"
-        plugins.map(_.text.trim).toList
-      case _ => Nil
-    }
+    kotlinConfigs(mavenProject).flatMap(c => (c \ "compilerPlugins" \ "plugin").map(_.text.trim)).distinct
 
   /** Extract Kotlin plugin options from kotlin-maven-plugin configuration.
     *
     * Maven POM format: {{ <configuration> <pluginOptions> <option>all-open:annotation=jakarta.ws.rs.Path</option> </pluginOptions> </configuration> }}
     *
-    * These map to `-P plugin:<pluginId>:<key>=<value>` kotlinc flags. The plugin ID mappings:
+    * These map to kotlinc's `-P plugin:<pluginId>:<key>=<value>` flags. The plugin ID mappings:
     *   - `all-open:` -> `plugin:org.jetbrains.kotlin.allopen:`
     *   - `no-arg:` -> `plugin:org.jetbrains.kotlin.noarg:`
     *   - `sam-with-receiver:` -> `plugin:org.jetbrains.kotlin.samWithReceiver:`
+    *
+    * kotlinc takes each as TWO arguments — the `-P` flag and its `plugin:<id>:<key>=<value>` value — never one `"-P plugin:..."` string. bleep's model
+    * ([[model.Options.fromArgs]]) pairs a value onto the preceding flag, and the compile server's kotlin plugin-option handling pairs them back the same way
+    * (`sliding(2) collect { case List("-P", v) ... }`). Emit one `"-P plugin:..."` token and the value is lost and `all-open` silently does nothing, so CDI
+    * beans compile final. Emit the two tokens separately instead.
     */
   private def extractKotlinPluginOptions(mavenProject: MavenProject): List[String] = {
     val pluginIdToFqn = Map(
@@ -420,23 +434,20 @@ object buildFromMavenPom {
       "sam-with-receiver" -> "org.jetbrains.kotlin.samWithReceiver"
     )
 
-    mavenProject.plugins.flatMap {
-      case plugin if plugin.artifactId == "kotlin-maven-plugin" =>
-        val options = plugin.configuration \ "pluginOptions" \ "option"
-        options.flatMap { opt =>
-          val text = opt.text.trim
-          // Format: "pluginShortName:key=value" → "-P plugin:fqn:key=value"
-          val colonIdx = text.indexOf(':')
-          if (colonIdx > 0) {
-            val shortName = text.substring(0, colonIdx)
-            val rest = text.substring(colonIdx + 1)
-            pluginIdToFqn.get(shortName).map { fqn =>
-              s"-P plugin:$fqn:$rest"
-            }
-          } else None
-        }.toList
-      case _ => Nil
-    }
+    val specs = kotlinConfigs(mavenProject).flatMap { c =>
+      (c \ "pluginOptions" \ "option").flatMap { opt =>
+        val text = opt.text.trim
+        // Format: "pluginShortName:key=value" → "plugin:fqn:key=value"
+        val colonIdx = text.indexOf(':')
+        if (colonIdx > 0) {
+          val shortName = text.substring(0, colonIdx)
+          val rest = text.substring(colonIdx + 1)
+          pluginIdToFqn.get(shortName).map(fqn => s"plugin:$fqn:$rest")
+        } else None
+      }
+    }.distinct
+
+    specs.flatMap(spec => List("-P", spec))
   }
 
   /** Extract surefire/failsafe configuration for test execution.

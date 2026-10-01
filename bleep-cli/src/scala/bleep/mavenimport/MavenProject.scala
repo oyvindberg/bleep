@@ -22,7 +22,12 @@ case class MavenProject(
     repositories: List[MavenRepository],
     modules: List[String],
     /** `<properties>` of the effective pom, the module's own and those it inherits. Plugins read some of them as defaults: `maven.compiler.release`, say */
-    properties: Map[String, String]
+    properties: Map[String, String],
+    /** `<build><pluginManagement><plugins>` of the effective pom. `help:effective-pom` resolves inheritance, so a module that only inherits a plugin's
+      * configuration (rather than re-declaring it under `<build><plugins>`) carries that configuration here. Extraction that needs the effective plugin config
+      * — the kotlin compiler plugins, say — must consult this as well as [[plugins]].
+      */
+    pluginManagement: List[MavenPlugin] = Nil
 )
 
 /** @param tpe

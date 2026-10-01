@@ -477,6 +477,10 @@ function MaturitySection() {
                 <Link to="/docs/spring-boot-proves-the-model/">
                   bleep-plugin-spring-boot
                 </Link>
+                , Quarkus via{" "}
+                <Link to="/docs/tutorials/quarkus/">
+                  bleep-plugin-quarkus
+                </Link>
                 , Maven import.
                 <br />
                 <strong>Supported</strong>: BOM /{" "}
@@ -670,11 +674,12 @@ function SimplicitySection() {
             <Link to="/docs/compared-to-other-build-tools/maven-plugin-coverage/">
               top 50 Maven plugins
             </Link>
-            , implemented the hardest case (
+            , implemented the hardest cases (
             <Link to="/docs/spring-boot-proves-the-model/">
               Spring Boot
-            </Link>
-            ), and ship{" "}
+            </Link>{" "}
+            and <Link to="/docs/tutorials/quarkus/">Quarkus</Link>), and
+            ship{" "}
             <Link to="/docs/appendix/status/">
               codebases of millions of lines
             </Link>{" "}
