@@ -51,3 +51,8 @@
 [submodule "liberated/mill-scalafix"]
 	path = liberated/mill-scalafix
 	url = git@github.com:bleep-build/mill-scalafix.git
+[submodule "liberated/zinc"]
+	path = liberated/zinc
+	url = git@github.com:bleep-build/zinc.git
+	branch = develop-fork
+	update = merge

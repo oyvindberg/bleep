@@ -334,12 +334,6 @@ projects:
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.32.0
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.32.0
     - org.typelevel::cats-effect:3.6.1
-    # zinc 2.x. compiler-interface 2.0.4 evicts the 1.10.7 that scala3-compiler asks for; coursier's
-    # early-semver rule flags that as suspect, but it is not: diffing the two jars shows 2.0.4 is
-    # purely additive — 150 classes, zero public or protected members removed, two classes added
-    # (HashedVirtualFileRef, BasicHashedVirtualFileRef). The Scala 3 bridge compiled against 1.10.7
-    # links fine against it.
-    - org.scala-sbt::zinc:2.0.4
     - for3Use213: true
       module: ch.epfl.scala::libdaemon:0.0.12
     dependsOn:
@@ -347,6 +341,7 @@ projects:
     - bleep-core
     - bleep-bsp-protocol
     - bleep-test-runner
+    - bleep-zinc
     extends:
     - template-common
     - template-java-17
@@ -451,6 +446,85 @@ projects:
       - "**ScalaJsTestModuleKindIT"
       - "**ScalaNativeSharedBinaryIT"
       - "**TestLinkOutputDirIT"
+  # zinc, vendored from bleep-build/zinc (a fork of sbt/zinc) so bleep can carry patches ahead of a release: see
+  # liberated/zinc. Built from source here; compiler-interface stays the published artifact, since the compilers' own
+  # bridges load it too and two copies of xsbti.* on the server's classpath would be one too many.
+  bleep-zinc:
+    dependsOn:
+    - bleep-zinc-classfile
+    - bleep-zinc-compile-core
+    - bleep-zinc-core
+    - bleep-zinc-persist
+    extends: template-zinc
+    sources:
+    - ../liberated/zinc/zinc/src/main/java
+    - ../liberated/zinc/zinc/src/main/scala
+  bleep-zinc-apiinfo:
+    dependsOn: bleep-zinc-classfile
+    extends: template-zinc
+    sources: ../liberated/zinc/internal/zinc-apiinfo/src/main/scala
+  bleep-zinc-classfile:
+    dependencies:
+    - org.scala-sbt::io:1.13.3
+    - org.scala-sbt::util-logging:2.0.9
+    - org.scala-sbt:compiler-interface:2.1.0-M5
+    extends: template-zinc
+    sources:
+    - ../liberated/zinc/internal/zinc-classfile/src/main/java
+    - ../liberated/zinc/internal/zinc-classfile/src/main/scala
+  bleep-zinc-classpath:
+    dependencies:
+    - org.scala-sbt::io:1.13.3
+    - org.scala-sbt:compiler-interface:2.1.0-M5
+    - org.scala-sbt:launcher-interface:1.7.0
+    extends: template-zinc
+    sources: ../liberated/zinc/internal/zinc-classpath/src/main/scala
+  bleep-zinc-compile-core:
+    dependencies:
+    - org.scala-lang.modules::scala-parser-combinators:2.5.0
+    - org.scala-sbt::io:1.13.3
+    - org.scala-sbt::util-control:2.0.9
+    - org.scala-sbt::util-logging:2.0.9
+    - org.scala-sbt:launcher-interface:1.7.0
+    dependsOn:
+    - bleep-zinc-apiinfo
+    - bleep-zinc-classfile
+    - bleep-zinc-classpath
+    extends: template-zinc
+    sources:
+    - ../liberated/zinc/internal/zinc-compile-core/src/main/contraband-java
+    - ../liberated/zinc/internal/zinc-compile-core/src/main/java
+    - ../liberated/zinc/internal/zinc-compile-core/src/main/scala
+  bleep-zinc-core:
+    dependencies:
+    - org.scala-lang.modules::scala-parallel-collections:1.2.0
+    - org.scala-sbt::io:1.13.3
+    - org.scala-sbt::util-logging:2.0.9
+    - org.scala-sbt::util-relation:2.0.9
+    dependsOn:
+    - bleep-zinc-apiinfo
+    - bleep-zinc-classpath
+    - bleep-zinc-compile-core
+    extends:
+    - template-parcollection-ok
+    - template-zinc
+    sources:
+    - ../liberated/zinc/internal/zinc-core/src/main/java
+    - ../liberated/zinc/internal/zinc-core/src/main/scala
+    - ../liberated/zinc/internal/zinc-core/src/main/scala-3
+  bleep-zinc-persist:
+    dependencies:
+    - org.scala-lang.modules::scala-parallel-collections:1.2.0
+    - org.scala-sbt::sbinary:0.6.0
+    dependsOn:
+    - bleep-zinc-compile-core
+    - bleep-zinc-core
+    extends:
+    - template-parcollection-ok
+    - template-zinc
+    sources:
+    - ../liberated/zinc/internal/zinc-persist/src/main/java
+    - ../liberated/zinc/internal/zinc-persist/src/main/scala
   sbt-export-dependencies:
     # The sbt plugin `bleep import-sbt` adds to the build it imports: it writes out what sbt knows about each project and bloop's export leaves out. Built
     # for sbt 1 (scala 2.12) and sbt 2 (scala 3), and published with bleep, so an import asks for it at bleep's own version.
@@ -592,6 +666,20 @@ templates:
       options: -Werror -encoding utf8 -feature -language:experimental.macros -language:higherKinds
         -language:implicitConversions -unchecked
       strict: true
+  # zinc's own settings (its build's baseSettings), not template-scala-3's: zinc is written in Scala 3's indentation syntax, which `-no-indent` rejects.
+  template-zinc:
+    extends:
+    - template-common
+    - template-java-17
+    java:
+      options: -Xlint -Xlint:-serial
+    scala:
+      options: -encoding utf8 -deprecation -feature -unchecked -language:higherKinds -language:implicitConversions -java-output-version:17
+      setup:
+        order: mixed
+      # zinc's build turns on -Werror but none of the unused/discarded-value checks bleep's strict mode adds
+      strict: false
+      version: 3.9.0
   template-java-17:
     # The java-17 bytecode floor shared by bleepscript and the published pure-Java plugin/runtime
     # artifacts. docs-snippets-java and scripts-java target 21, bleep-test-runner 8; those state
