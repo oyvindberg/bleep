@@ -69,17 +69,27 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     idleMs = Some(0L)
   )
 
+  /** A daemon with two forked test JVMs: 2 GB itself, 6 GB with everything beneath it. */
+  private val processTree: List[ProcessTree.Sample] = List(
+    ProcessTree.Sample(4242L, None, "compile server", Some(2048L), Some(10_000L), Some(NowMs - 600_000L)),
+    ProcessTree.Sample(5001L, Some(4242L), "test JVM", Some(3072L), Some(5_000L), Some(NowMs - 43_000L)),
+    ProcessTree.Sample(5002L, Some(4242L), "test JVM", Some(1024L), Some(1_000L), Some(NowMs - 42_000L))
+  )
+
+  /** A 48 GB, 18-core machine — a round number to put bleep's use in proportion to. */
+  private val TestMachine = ServerTopState.Machine(physicalMemoryMb = 49152L, cores = 18)
+
   private def info(hash: String, state: ServerState): ServerDirInfo =
     ServerDirInfo(Path.of("/tmp/sockets").resolve(hash), hash, state, Some(4242L), None, 0L)
 
   private def running(hash: String, isCurrent: Boolean, workspaces: List[WorkspaceDto] = Nil, active: List[MachineEntryDto] = Nil): ServerRow =
-    ServerRow(info(hash, ServerState.Running), Some(status(workspaces, active)), None, isCurrent)
+    ServerRow(info(hash, ServerState.Running), Some(status(workspaces, active)), None, isCurrent, Some(processTree), parent = None, isOutdated = false)
 
   private def dead(hash: String): ServerRow =
-    ServerRow(info(hash, ServerState.Dead(crashed = false)), None, None, isCurrent = false)
+    ServerRow(info(hash, ServerState.Dead(crashed = false)), None, None, isCurrent = false, processes = None, parent = None, isOutdated = false)
 
   private def stateWith(rows: List[ServerRow]): ServerTopState =
-    ServerTopState.initial(NowMs).copy(rows = rows)
+    ServerTopState.initial(NowMs, TestMachine).copy(rows = rows)
 
   /** Join classpath entries the way the daemon's own launch command does, in `BspServerOperations`.
     *
@@ -91,11 +101,22 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   /** Render at a fixed size and read the buffer back as plain text. */
   private def draw(state: ServerTopState): String = drawAt(state, width = 140)
 
-  private def drawAt(state: ServerTopState, width: Int): String = {
-    val harness = new TestHarness(width, 30)
+  private def drawAt(state: ServerTopState, width: Int): String = drawAt(state, width, height = 30)
+
+  private def drawAt(state: ServerTopState, width: Int, height: Int): String = {
+    val harness = new TestHarness(width, height)
     harness.render(ServerTopView.render(state, _ => ()))
     TestBackend.bufferView(harness.backend.buffer())
   }
+
+  /** A row of the server list — a line inside a box with a server marker on it — naming `name`. Not the summary or the process tree, which may name it too. */
+  private def listRow(screen: String, name: String): String =
+    screen.linesIterator
+      .find(line => line.contains("│") && (line.contains("●") || line.contains("!")) && line.contains(name))
+      .getOrElse(fail(s"no list row for $name"))
+
+  /** The Overview tab, on a screen tall enough to hold it under the summary and the server list. */
+  private def drawOverview(state: ServerTopState): String = drawAt(state.copy(tab = Tab.Overview), width = 140, height = 50)
 
   /** Every message the screen would dispatch, by clicking each cell of a column band. Scanning rather than hard-coding coordinates keeps these tests about
     * "this is clickable" instead of about the current line spacing — the first version broke the moment the layout gained a blank line.
@@ -155,7 +176,6 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
     val screen = draw(stateWith(List(withIdentity("aaaa1111", "1.0.0-M11", "25.0.1"), withIdentity("bbbb2222", "1.0.0-M10", "24.0.1"))))
 
-    screen should include("bleep")
     withClue("the shared 1.0.0- prefix is dropped; what is left is what differs: ") {
       screen should include("M11")
       screen should include("M10")
@@ -174,27 +194,182 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val screen = drawAt(stateWith(List(running("aaaa1111", isCurrent = true), running("bbbb2222", isCurrent = false))), width = 72)
 
     screen should include("← this build")
-    screen should include("aaaa1111")
+    screen should include("pid 4242")
   }
 
   test("a server with nothing recorded says so in the version column rather than showing a blank") {
     draw(stateWith(List(running("aaaa1111", isCurrent = true)))) should include("unknown")
   }
 
-  test("the server list shows state, heap and uptime, and marks this build's server") {
-    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true), dead("bbbb2222"))))
+  /** A hundred stopped servers used to fill the list and push the running ones off the screen. They hold disk and nothing else, so they are a count on the main
+    * screen and a list of their own behind it.
+    */
+  test("the main view shows live servers only; stopped ones are a count that opens their own screen") {
+    val state = stateWith(List(running("aaaa1111", isCurrent = true), dead("bbbb2222")))
+    val screen = draw(state)
 
-    screen should include("aaaa1111")
-    screen should include("running")
-    screen should include("512/12288 MB")
-    screen should include("10m0s")
+    screen should include("pid 4242")
     screen should include("← this build")
-    screen should include("bbbb2222")
-    screen should include("dead")
+    screen should include("10m0s")
+    screen should not include "bbbb2222"
+    screen should include("1 stopped")
+
+    val deadScreen = draw(press(state, KeyPress.ShowDead))
+    deadScreen should include("bbbb2222")
+    deadScreen should include("dead")
+    deadScreen should not include "aaaa1111"
+  }
+
+  test("the processes tab shows the selected server's work, then the daemon and the JVMs it forked as a tree") {
+    val suite = MachineEntryDto("TestFork", "test-batch:dparsegen/test", cpu = 1, memoryMb = 0, ageMs = 42_000)
+    val queued = MachineEntryDto("Compile", "bleep-core", cpu = 2, memoryMb = 0, ageMs = 3_000)
+    val row = running("aaaa1111", isCurrent = true, active = List(suite))
+    val withQueue = row.copy(status = row.status.map(s => s.copy(machine = s.machine.copy(waiting = List(queued)))))
+    val screen = drawAt(stateWith(List(withQueue)), width = 140, height = 40)
+
+    screen should include("▸ test suite  test-batch:dparsegen/test")
+    screen should include("· compile     bleep-core  queued for 2 slots")
+    screen should include("compile server  pid 4242  heap 512 MB/12.0 GB  self 2.0 GB")
+    screen should include("├─ test JVM  pid 5001")
+    screen should include("└─ test JVM  pid 5002")
+  }
+
+  test("memory is transitive: a server and its daemon are charged for everything beneath them") {
+    val screen = drawAt(stateWith(List(running("aaaa1111", isCurrent = true))), width = 140, height = 40)
+    val serverLine = listRow(screen, "pid 4242")
+    val daemonLine = screen.linesIterator.find(_.contains("compile server  pid 4242")).get
+    val forkLine = screen.linesIterator.find(_.contains("pid 5001")).get
+
+    serverLine should include("2.0 GB +4.0 GB forked")
+    daemonLine should include("6.0 GB")
+    forkLine should include("3.0 GB")
+  }
+
+  /** The point of the whole screen: how much of the machine bleep has, in proportion to what the machine has, before any detail. */
+  test("the summary puts bleep's memory and cpu in proportion to the machine") {
+    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true), running("bbbb2222", isCurrent = false))))
+    screen should include("12.0 GB of 48.0 GB — 25% of this machine")
+    screen should include("of 18 cores")
+  }
+
+  /** The servers eating a machine are the ones nobody looks at: an older bleep's, kept in use by a client started long ago and pinned to that version. When
+    * they hold a real share, saying so — and naming the client — is the one line that tells you what to do.
+    */
+  test("when other bleep versions hold the memory, the summary says so and names what keeps them alive") {
+    val keeper = ProcessTree.Parent(84842L, "bleep mcp-server", Some(NowMs - 8L * 24 * 3600 * 1000))
+    val old = running("dddd4444", isCurrent = false).copy(isOutdated = true, parent = Some(keeper))
+    val mine = {
+      val r = running("aaaa1111", isCurrent = true)
+      r.copy(processes = Some(List(ProcessTree.Sample(1L, None, "compile server", Some(512L), None, None))))
+    }
+    val screen = draw(stateWith(List(mine, old)))
+    screen should include("6.0 GB of it is 1 server from other bleep versions than this one, kept alive by bleep mcp-server (pid 84842, up 8d0h)")
+  }
+
+  test("every server in the list says how long it has been up, whatever its state") {
+    val old = running("dddd4444", isCurrent = false).copy(
+      processes = Some(List(ProcessTree.Sample(1L, None, "compile server", Some(100L), None, Some(NowMs - 3L * 24 * 3600 * 1000))))
+    )
+    val wedged = ServerRow(
+      info("cccc3333", ServerState.Wedged),
+      None,
+      None,
+      isCurrent = false,
+      processes = Some(List(ProcessTree.Sample(2L, None, "compile server", Some(100L), None, Some(NowMs - 90_000L)))),
+      parent = None,
+      isOutdated = false
+    )
+    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true), old, wedged)))
+    listRow(screen, "pid 4242") should include("up 10m0s")
+    listRow(screen, "pid 1 ") should include("up 3d0h")
+    listRow(screen, "pid 2 ") should include("up 1m30s")
+  }
+
+  /** "6 GB" does not say whether a server is fat itself or carrying a fleet of test JVMs, and the two call for different fixes. */
+  test("each server's memory is its own, plus what its forks add") {
+    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+    listRow(screen, "pid 4242") should include("2.0 GB +4.0 GB forked")
+
+    val alone = running("bbbb2222", isCurrent = true).copy(processes = Some(List(ProcessTree.Sample(1L, None, "compile server", Some(512L), None, None))))
+    val aloneRow = listRow(draw(stateWith(List(alone))), "pid 1 ")
+    aloneRow should include("512 MB")
+    aloneRow should not include "forked"
+  }
+
+  /** Deterministic, so lines do not trade places as memory moves; newest first, so the server you just caused is on top and the long-lived ones sink. */
+  test("servers are listed newest first, by pid, however they arrive and whatever they cost") {
+    def started(hash: String, pid: Long, agoMs: Long, memoryMb: Long) =
+      running(hash, isCurrent = false).copy(
+        processes = Some(List(ProcessTree.Sample(pid, None, "compile server", Some(memoryMb), None, Some(NowMs - agoMs))))
+      )
+    val old = started("aaaa1111", 22574L, agoMs = 9L * 24 * 3600 * 1000, memoryMb = 14000L)
+    val fresh = started("bbbb2222", 8368L, agoMs = 60_000L, memoryMb = 300L)
+    val middle = started("cccc3333", 83374L, agoMs = 3600_000L, memoryMb = 2000L)
+
+    val state = ServerTopUpdate.update(stateWith(Nil), Msg.Refreshed(List(old, fresh, middle), NowMs))._1
+    state.live.map(_.hash) shouldBe List("bbbb2222", "cccc3333", "aaaa1111")
+
+    val rows = draw(state).linesIterator.filter(line => line.contains("│") && line.contains("●")).toList
+    rows.map(row => List("pid 8368 ", "pid 83374", "pid 22574").find(row.contains).getOrElse(row)) shouldBe List("pid 8368 ", "pid 83374", "pid 22574")
+    withClue("the arrows walk the list in the order it is drawn: ") {
+      press(state, KeyPress.Down).selectedRow.map(_.hash) shouldBe Some("cccc3333")
+    }
+  }
+
+  test("the processes tab names who started the server") {
+    val keeper = ProcessTree.Parent(84842L, "bleep mcp-server", Some(NowMs - 3600_000L))
+    val row = running("aaaa1111", isCurrent = true).copy(parent = Some(keeper))
+    drawAt(stateWith(List(row)), width = 140, height = 40) should include("started by bleep mcp-server (pid 84842, running 1h0m)")
+  }
+
+  test("a server with no process to measure says so instead of drawing an empty tree") {
+    val gone = running("aaaa1111", isCurrent = true).copy(processes = None)
+    drawAt(stateWith(List(gone)), width = 140, height = 40) should include("no process to measure")
+  }
+
+  test("a wedged server stays on the main view — it is alive and holding memory — and can be killed but not restarted") {
+    val wedged = ServerRow(info("cccc3333", ServerState.Wedged), None, None, isCurrent = false, processes = None, parent = None, isOutdated = false)
+    val state = stateWith(List(wedged))
+
+    draw(state) should include("wedged")
+    press(state, KeyPress.Kill).pending.map(_.prompt) shouldBe Some("kill pid 4242 (cccc3333)? (y/n)")
+    press(state, KeyPress.Restart).pending shouldBe None
+  }
+
+  test("cpu is a rate between two readings, per process, summed up the tree") {
+    def at(cpuMs: Long) = {
+      val row = running("aaaa1111", isCurrent = true)
+      row.copy(processes = Some(List(ProcessTree.Sample(4242L, None, "compile server", Some(100L), Some(cpuMs), None))))
+    }
+    val first = ServerTopUpdate.update(ServerTopState.initial(NowMs, TestMachine), Msg.Refreshed(List(at(10_000L)), NowMs))._1
+    withClue("one reading cannot say how busy anything is: ") {
+      first.cpuPercent shouldBe empty
+    }
+    // 1.5s of CPU in 1s of wall time is one and a half cores.
+    val second = ServerTopUpdate.update(first, Msg.Refreshed(List(at(11_500L)), NowMs + 1000))._1
+    second.cpuPercent(4242L) shouldBe 150.0 +- 0.001
+    draw(second) should include("150%")
+  }
+
+  test("clearing stopped servers asks first, then prunes") {
+    val state = press(stateWith(List(running("aaaa1111", isCurrent = true), dead("bbbb2222"), dead("dddd4444"))), KeyPress.ShowDead)
+    val asked = press(state, KeyPress.PruneDead)
+    asked.pending.map(_.prompt) shouldBe Some("delete 2 stopped server directories, 0 MB of logs and metrics? (y/n)")
+
+    val (_, effects) = ServerTopUpdate.update(asked, Msg.Key(KeyPress.Yes))
+    effects shouldBe List(Effect.PruneDead)
+  }
+
+  test("esc leaves the stopped-servers screen rather than the program") {
+    val state = press(stateWith(List(dead("bbbb2222"))), KeyPress.ShowDead)
+    val back = press(state, KeyPress.Back)
+    back.screen shouldBe Screen.Main
+    back.quit shouldBe false
+    press(back, KeyPress.Back).quit shouldBe true
   }
 
   test("the overview keeps the live set distinct from heap used, which is the number that says retaining vs churning") {
-    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+    val screen = drawOverview(stateWith(List(running("aaaa1111", isCurrent = true))))
 
     screen should include("Retained")
     screen should include("128 MB still held")
@@ -206,7 +381,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val row = running("aaaa1111", isCurrent = true)
     val unsupported = row.copy(status = row.status.map(s => s.copy(jvm = s.jvm.copy(heapLiveMb = -1L, openFileDescriptors = None))))
 
-    val screen = draw(stateWith(List(unsupported)))
+    val screen = drawOverview(stateWith(List(unsupported)))
     screen should include("not reported by this JVM")
     screen should include("not reported on this platform")
   }
@@ -216,10 +391,13 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       info("cccc3333", ServerState.Running),
       status = None,
       error = Some(bleep.bsp.AdminError.TooOld(Path.of("/tmp/sockets/cccc3333"))),
-      isCurrent = false
+      isCurrent = false,
+      processes = None,
+      parent = None,
+      isOutdated = false
     )
 
-    draw(stateWith(List(tooOld))) should include("older bleep")
+    draw(stateWith(List(tooOld)).copy(tab = Tab.Overview)) should include("older bleep")
   }
 
   /** A suite is charged a slot and no memory; the JVM it runs in is charged memory and no slot, and stays alive between suites. Listed together those read as
@@ -232,10 +410,31 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
     val screen = draw(state)
     screen should include("RUNNING NOW — 1 operation(s)")
-    screen should include("FORKED JVMS — 1 holding 5120 MB")
+    screen should include("FORKED JVMS — 1, 5120 MB reserved, 4096 MB measured")
     withClue("the explanation belongs next to the numbers that prompt the question: ") {
       screen should include("charged above, to the work")
     }
+  }
+
+  /** The governor's reservation is the fork's heap bound plus overhead until it has measured one — 12 forks at -Xmx2g read as "32000 MB holding", on a machine
+    * where they were using a fraction of that. A reservation is not a measurement and must not be worded as one.
+    */
+  test("forked JVMs' memory is called reserved, and what they really use is shown next to it when the server can say") {
+    val jvm = MachineEntryDto("TestFork", "jvm ce91585a08d64aec", cpu = 0, memoryMb = 2560, ageMs = 99000)
+    val row = running("aaaa1111", isCurrent = true, active = List(jvm))
+    val screen = draw(stateWith(List(row)).copy(tab = Tab.Activity))
+    screen should include("2560 MB reserved")
+    screen should not include "holding"
+
+    val old = row.copy(processes = None)
+    draw(stateWith(List(old)).copy(tab = Tab.Activity)) should include("actual use not measurable here")
+  }
+
+  test("a memory total over only some of the servers says how many it left out") {
+    val measured = running("aaaa1111", isCurrent = true)
+    val gone = running("bbbb2222", isCurrent = false).copy(processes = None)
+    draw(stateWith(List(measured, gone))) should include("(1 server could not be measured)")
+    draw(stateWith(List(measured))) should not include "could not be measured"
   }
 
   test("with only forked JVMs alive the work section says nothing is running, not zero compiles") {
@@ -293,7 +492,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   }
 
   test("gauges render as bars with a percentage, not as empty boxes") {
-    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+    val screen = drawOverview(stateWith(List(running("aaaa1111", isCurrent = true))))
 
     screen should include("4%")
     withClue("a titled gauge draws a block border instead of a bar: ") {
@@ -304,7 +503,8 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   test("the tab bar shows every tab and which one is open") {
     val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
 
-    screen should include("[Overview]")
+    screen should include("[Processes]")
+    screen should include("Overview")
     screen should include("Workspaces")
     screen should include("Activity")
     screen should include("Config")
@@ -312,13 +512,13 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
   test("a running server says what it is doing, and a stopped one what it is holding") {
     val busy = running("aaaa1111", isCurrent = true, active = List(MachineEntryDto("Compile", "bleep-core", 4, 512, 3000)))
-    draw(stateWith(List(busy))) should include("1 running")
+    draw(stateWith(List(busy))) should include("compiling bleep-core")
 
-    draw(stateWith(List(dead("bbbb2222")))) should include("MB on disk")
+    draw(press(stateWith(List(dead("bbbb2222"))), KeyPress.ShowDead)) should include("MB on disk")
   }
 
   test("an empty machine renders the invitation rather than an empty box") {
-    draw(ServerTopState.initial(NowMs)) should include("no compile servers")
+    draw(ServerTopState.initial(NowMs, TestMachine)) should include("No compile servers running")
   }
 
   // ── clicking ────────────────────────────────────────────────────
@@ -354,6 +554,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     pressed should contain(KeyPress.Kill)
     pressed should contain(KeyPress.Restart)
     pressed should contain(KeyPress.NextTab)
+    pressed should contain(KeyPress.ShowDead)
   }
 
   test("a confirmation can be answered with the mouse") {
@@ -402,7 +603,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val (asked, effects) = ServerTopUpdate.update(state, Msg.Key(KeyPress.Kill))
 
     effects shouldBe empty
-    asked.pending.map(_.prompt) shouldBe Some("kill aaaa1111? (y/n)")
+    asked.pending.map(_.prompt) shouldBe Some("kill pid 4242 (aaaa1111)? (y/n)")
 
     val (confirmed, confirmedEffects) = ServerTopUpdate.update(asked, Msg.Key(KeyPress.Yes))
     confirmed.pending shouldBe None
@@ -426,12 +627,11 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     after.message shouldBe Some("aaaa1111 is gone")
   }
 
-  test("stopping something already stopped is refused with a reason rather than prompted") {
-    val state = stateWith(List(dead("bbbb2222")))
-    val after = press(state, KeyPress.Kill)
+  test("with only stopped servers there is nothing on the main view to kill") {
+    val after = press(stateWith(List(dead("bbbb2222"))), KeyPress.Kill)
 
     after.pending shouldBe None
-    after.message shouldBe Some("bbbb2222 is already dead")
+    after.message shouldBe Some("no server selected")
   }
 
   test("tab cycles and wraps") {
@@ -439,17 +639,17 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val tabs = List.iterate(state, Tab.all.length + 1)(press(_, KeyPress.NextTab)).map(_.tab)
 
     tabs.take(Tab.all.length) shouldBe Tab.all
-    tabs.last shouldBe Tab.Overview
+    tabs.last shouldBe Tab.Processes
   }
 
   test("left and right move between tabs, and left from the first wraps to the last") {
     val state = stateWith(List(running("aaaa1111", isCurrent = true)))
 
-    press(state, KeyPress.NextTab).tab shouldBe Tab.Workspaces
+    press(state, KeyPress.NextTab).tab shouldBe Tab.Overview
     withClue("wrapping backwards beats doing nothing at the left edge: ") {
       press(state, KeyPress.Left).tab shouldBe Tab.all.last
     }
-    press(press(state, KeyPress.NextTab), KeyPress.Left).tab shouldBe Tab.Overview
+    press(press(state, KeyPress.NextTab), KeyPress.Left).tab shouldBe Tab.Processes
   }
 
   test("the log tab shows the tail the loop read, and says so when there is none") {
@@ -623,7 +823,40 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       spawnedAtEpochMs = 1L
     )
     val row = running("aaaa1111", isCurrent = true)
-    stateWith(List(row.copy(info = row.info.copy(identity = Some(identity))))).copy(tab = Tab.Startup)
+    measured(stateWith(List(row.copy(info = row.info.copy(identity = Some(identity))))).copy(tab = Tab.Startup))
+  }
+
+  /** Render once and apply whatever the view reported back, the way the loop does between frames — the startup pane's horizontal bounds arrive this way. */
+  private def measured(state: ServerTopState): ServerTopState = measuredAt(state, width = 140)
+
+  private def measuredAt(state: ServerTopState, width: Int): ServerTopState = {
+    val dispatched = scala.collection.mutable.ListBuffer.empty[Msg]
+    val harness = new TestHarness(width, 30)
+    harness.render(ServerTopView.render(state, msg => dispatched.append(msg): Unit))
+    dispatched.foldLeft(state)((current, msg) => ServerTopUpdate.update(current, msg)._1)
+  }
+
+  test("← at the left edge of the startup pane goes back a tab, so arriving with → is not a one-way trip") {
+    val arrived = measured(press(startupState.copy(tab = Tab.Config), KeyPress.Right))
+    arrived.tab shouldBe Tab.Startup
+    press(arrived, KeyPress.Left).tab shouldBe Tab.Config
+
+    val scrolled = press(arrived, KeyPress.Right)
+    withClue("away from the edge ← scrolls back first: ") {
+      press(scrolled, KeyPress.Left) shouldBe scrolled.copy(startupScrollX = 0)
+    }
+  }
+
+  test("→ at the right edge of the startup pane wraps on to the next tab, and the offset never runs past the edge") {
+    val atEdge = ServerTopUpdate.update(startupState, Msg.ScrollStartup(0, 100000))._1
+    atEdge.startupScrollX shouldBe atEdge.startupMaxScrollX
+    press(atEdge, KeyPress.Right).tab shouldBe Tab.all.head
+  }
+
+  test("a pane with nothing to scroll sideways lets the arrows change tab straight away") {
+    val narrow = measured(stateWith(List(running("aaaa1111", isCurrent = true))).copy(tab = Tab.Startup))
+    narrow.startupMaxScrollX shouldBe 0
+    press(narrow, KeyPress.Left).tab shouldBe Tab.Config
   }
 
   test("the startup tab scrolls down through the classpath") {
@@ -640,7 +873,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   test("the startup tab scrolls sideways, which is the only way to read a long path") {
     // Narrow on purpose: sideways scrolling only means anything when the content is wider than the pane, and the offset is clamped to the overflow.
     val unscrolled = drawAt(startupState, width = 80)
-    val sideways = drawAt(ServerTopUpdate.update(startupState, Msg.ScrollStartup(0, 24))._1, width = 80)
+    val sideways = drawAt(ServerTopUpdate.update(measuredAt(startupState, width = 80), Msg.ScrollStartup(0, 24))._1, width = 80)
 
     sideways should not be unscrolled
     withClue("shifting right should cut off the start of each path: ") {
@@ -713,7 +946,8 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     * CAPACITY heading vanished exactly that way, between a blank line and the row below it, which reads as a rendering glitch rather than a bug.
     */
   test("every section heading survives a pane shorter than its content") {
-    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+    // Tall enough for the overview below the summary and server list; what is being tested is that the container does not drop lines from the middle.
+    val screen = drawOverview(stateWith(List(running("aaaa1111", isCurrent = true))))
 
     screen should include("MEMORY —")
     screen should include("CAPACITY —")
@@ -721,7 +955,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   }
 
   test("the heap gauge prints its percentage once") {
-    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+    val screen = drawOverview(stateWith(List(running("aaaa1111", isCurrent = true))))
     val heapLine = screen.linesIterator.find(_.contains("Heap in use")).getOrElse(fail("no heap row"))
 
     withClue(s"the widget prints its own label unless silenced: $heapLine ") {
@@ -730,11 +964,11 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   }
 
   test("the overview leads with one sentence about what the server is doing") {
-    val idle = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+    val idle = drawOverview(stateWith(List(running("aaaa1111", isCurrent = true))))
     idle should include("Idle")
 
     val compiling = MachineEntryDto("Compile", "bleep-core", 4, 512, 3000)
-    val busy = draw(stateWith(List(running("aaaa1111", isCurrent = true, active = List(compiling)))))
+    val busy = drawOverview(stateWith(List(running("aaaa1111", isCurrent = true, active = List(compiling)))))
     withClue("what makes a server busy is the slots it holds, whatever kind of work holds them: ") {
       busy should include("Busy — 4 of 18 slots")
       busy should include("1 compile")
@@ -748,7 +982,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val row = running("aaaa1111", isCurrent = true, active = compile :: suites)
     val busy = row.copy(status = row.status.map(s => s.copy(machine = s.machine.copy(usedCpu = 17))))
 
-    val screen = draw(stateWith(List(busy)))
+    val screen = drawOverview(stateWith(List(busy)))
     screen should include("17 of 18 slots")
     screen should include("16 test suites")
     screen should include("1 compile")
@@ -758,14 +992,14 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val row = running("aaaa1111", isCurrent = true)
     val queued = row.copy(status = row.status.map(s => s.copy(machine = s.machine.copy(waiting = List(MachineEntryDto("Compile", "x", 1, 1, 1))))))
 
-    draw(stateWith(List(queued))) should include("waiting for capacity")
+    drawOverview(stateWith(List(queued))) should include("waiting for capacity")
   }
 
   test("last activity says how long ago, and what the idle clock is doing about it") {
     val row = running("aaaa1111", isCurrent = true)
     val idleAWhile = row.copy(status = row.status.map(_.copy(idleMs = Some(300000L), connections = Nil)))
 
-    val screen = draw(stateWith(List(idleAWhile)))
+    val screen = drawOverview(stateWith(List(idleAWhile)))
     screen should include("5m0s ago")
     withClue("the same clock drives the idle shutdown, so say what it will do: ") {
       screen should include("shuts down after")
@@ -776,18 +1010,18 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val row = running("aaaa1111", isCurrent = true)
     val withClient = row.copy(status = row.status.map(_.copy(idleMs = Some(300000L))))
 
-    draw(stateWith(List(withClient))) should include("idle clock is not running")
+    drawOverview(stateWith(List(withClient))) should include("idle clock is not running")
   }
 
   test("a server too old to report idle time says so instead of showing zero") {
     val row = running("aaaa1111", isCurrent = true)
     val old = row.copy(status = row.status.map(_.copy(idleMs = None)))
 
-    draw(stateWith(List(old))) should include("not reported by this server")
+    drawOverview(stateWith(List(old))) should include("not reported by this server")
   }
 
   test("the overview explains what it is measuring rather than abbreviating it") {
-    val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true))))
+    val screen = drawOverview(stateWith(List(running("aaaa1111", isCurrent = true))))
 
     screen should include("Heap in use")
     screen should include("Compile slots")
@@ -807,5 +1041,14 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     withClue("the first q should cancel the prompt, not tear down the dashboard: ") {
       dismissed.quit shouldBe false
     }
+  }
+
+  test("processes are named by what bleep forked them for, and otherwise by their main class") {
+    val java = Some("/opt/jvm/bin/java")
+    ProcessTree.describe(java, List("-Xmx2g", "-cp", "a.jar:b.jar", "bleep.bsp.BspServerDaemon", "--socket", "/x")) shouldBe "compile server"
+    ProcessTree.describe(java, List("-classpath", "a.jar", "bleep.testing.runner.ForkedTestRunner")) shouldBe "test JVM"
+    ProcessTree.describe(java, List("-cp", "a.jar", "com.example.GenParsers", "arg")) shouldBe "java GenParsers"
+    ProcessTree.describe(java, List("-jar", "/x/y/tool.jar")) shouldBe "java -jar tool.jar"
+    ProcessTree.describe(Some("/usr/local/bin/node"), List("run.js")) shouldBe "node"
   }
 }

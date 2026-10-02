@@ -53,10 +53,15 @@ object ServerTopView {
       widget(Block.empty().withStyle(Palette.background)),
       column(
         length(1, text("", style(Palette.textDim))),
-        length(1, header(state)),
+        length(1, header(state, dispatch)),
         length(1, text("", style(Palette.textDim))),
-        length(serverListHeight(state), serverList(state, dispatch)),
-        fill(1, detail(state, dispatch)),
+        fill(
+          1,
+          state.screen match {
+            case Screen.Main => mainBody(state, dispatch)
+            case Screen.Dead => deadPane(state, dispatch)
+          }
+        ),
         length(1, text("", style(Palette.textDim))),
         length(1, footer(state, dispatch))
       )
@@ -71,59 +76,385 @@ object ServerTopView {
 
   // ── header ──────────────────────────────────────────────────────
 
-  /** The machine-level answer, before any server is selected: how many, how busy, and how much disk the stopped ones are still holding. */
-  private def header(state: ServerTopState): Element = {
-    val running = state.rows.count(_.info.isRunning)
-    val stopped = state.rows.length - running
-    // Slots held, not compiles counted: a server full of test suites is busy, and saying "0 compiling" about it is worse than saying nothing.
-    //
+  /** Just the title, the count, and the way to the stopped servers. The numbers that matter get the summary below, where they have room to be read. */
+  private def header(state: ServerTopState, dispatch: Msg => Unit): Element = {
+    val live = state.live
+    val running = live.count(_.info.isRunning)
+    val wedged = live.length - running
     // Held slots sum across servers because each is really holding them, but capacity does not: every server on this machine sees the same cores, so adding
     // their totals claimed 36 slots on an 18-core machine.
-    val busySlots = state.rows.flatMap(_.status).map(_.machine.usedCpu).sum
-    val totalSlots = state.rows.flatMap(_.status).map(_.machine.totalCpu).maxOption.getOrElse(0)
-    val queued = state.rows.flatMap(_.status).map(_.machine.waiting.size).sum
-    val litterMb = state.rows.filterNot(_.info.isRunning).map(_.info.sizeMb).sum
+    val busySlots = live.flatMap(_.status).map(_.machine.usedCpu).sum
+    val totalSlots = live.flatMap(_.status).map(_.machine.totalCpu).maxOption.getOrElse(0)
+    val queued = live.flatMap(_.status).map(_.machine.waiting.size).sum
 
-    val parts = List(Some(s"$running running"), Option.when(stopped > 0)(s"$stopped stopped"), Option.when(litterMb > 0)(s"${litterMb}MB on disk")).flatten
-    val activity = if (busySlots > 0) s"   ● $busySlots of $totalSlots slots busy" + (if (queued > 0) s", $queued queued" else "") else ""
+    val parts = List(
+      Some(s"$running running"),
+      Option.when(wedged > 0)(s"$wedged wedged"),
+      Option.when(busySlots > 0)(s"$busySlots of $totalSlots slots busy" + (if (queued > 0) s", $queued queued" else ""))
+    ).flatten
+
+    val dead = state.dead
+    val deadLabel = state.screen match {
+      case Screen.Main => s" [ d  ${dead.size} stopped · ${dead.map(_.info.sizeMb).sum} MB ] "
+      case Screen.Dead => " [ esc  back to running ] "
+    }
 
     row(
       length(23, text(" BLEEP COMPILE SERVERS", bold(Palette.info))),
-      fill(1, text(parts.mkString(" · ") + activity, style(if (busySlots > 0) Palette.accent else Palette.textMuted)))
+      fill(1, text(parts.mkString(" · "), style(Palette.textMuted))),
+      length(deadLabel.length, clickable(Msg.Key(KeyPress.ShowDead), dispatch, text(deadLabel, Palette.boldOnSurface(Palette.textMuted))))
     )
   }
 
-  // ── server list ─────────────────────────────────────────────────
+  // ── main view ───────────────────────────────────────────────────
 
-  private def serverListHeight(state: ServerTopState): Int =
-    math.max(4, math.min(state.rows.length, 8) + 3)
+  /** Three levels, top to bottom: how much of this machine bleep is using and the one thing most responsible; one line per server, newest first; and the
+    * selected server in detail. Each level answers its question without the one below it.
+    */
+  private def mainBody(state: ServerTopState, dispatch: Msg => Unit): Element =
+    component { ctx =>
+      val height = ctx.area().map[Int](_.height).orElse(30)
+      val summary = summaryLines(state)
+      if (state.live.isEmpty)
+        column(length(summary.length, widget(Paragraph.of(Text.fromLines(summary.asJava)))), fill(1, text("", style(Palette.textDim))))
+      else {
+        val listHeight = math.max(3, math.min(state.live.length + 2, height / 3))
+        column(
+          length(summary.length, widget(Paragraph.of(Text.fromLines(summary.asJava)))),
+          length(1, text("", style(Palette.textDim))),
+          length(listHeight, serverList(state, dispatch)),
+          fill(1, detail(state, dispatch))
+        )
+      }
+    }
 
-  private def serverList(state: ServerTopState, dispatch: Msg => Unit): Element = {
-    val rows: List[Element] =
-      if (state.rows.isEmpty) List(text("  no compile servers — one starts on the next build", style(Palette.textDim)))
-      else
-        state.rows.zipWithIndex.map { case (row, index) =>
-          clickable(Msg.SelectRow(index), dispatch, serverListRow(row, selected = index == state.selected, state.nowMs))
-        }
+  private val BarWidth = 32
 
-    packed(" servers ", heading :: rows)
-  }
-
-  /** Because the row now carries several unlabelled columns, and "which of these is the JVM" should not need working out. */
-  private val heading: Element =
-    row(
+  /** The answer to "why is my machine slow", as far as bleep is concerned: its share of memory and of CPU, and one sentence naming the main cause. */
+  private def summaryLines(state: ServerTopState): List[Line] = {
+    val live = state.live
+    if (live.isEmpty)
       List(
-        4 -> text("", style(Palette.textDim)),
-        10 -> text("server", style(Palette.textDim)),
-        13 -> text("", style(Palette.textDim)),
-        8 -> text("state", style(Palette.textDim)),
-        17 -> text("bleep", style(Palette.textDim)),
-        17 -> text("jvm", style(Palette.textDim)),
-        15 -> text("heap", style(Palette.textDim)),
-        8 -> text("up", style(Palette.textDim)),
-        16 -> text("doing", style(Palette.textDim))
-      ).map { case (width, element) => length(width, element) }*
+        lineOf("  No compile servers running — bleep is not using this machine right now.", Palette.textMuted),
+        lineOf(if (state.dead.isEmpty) "" else s"  ${state.dead.size} stopped ones left directories behind; [d] lists them.", Palette.textDim)
+      )
+    else {
+      val memoryMb = live.flatMap(_.totalFootprintMb).sum
+      val unmeasured = live.count(_.totalFootprintMb.isEmpty)
+      val cores = live.flatMap(state.treeCpuPercent).sum / 100.0
+      val physical = state.machine.physicalMemoryMb
+
+      val memoryCaption =
+        (if (physical > 0) s"${mb(memoryMb)} of ${mb(physical)} — ${(ratio(memoryMb, physical) * 100).round}% of this machine" else mb(memoryMb)) +
+          (if (unmeasured > 0) s"  ($unmeasured server${if (unmeasured == 1) "" else "s"} could not be measured)" else "")
+      val coresCaption = f"$cores%.1f of ${state.machine.cores} cores"
+
+      val (verdictText, verdictColor) = verdict(state)
+      List(
+        barLine("Memory", if (physical > 0) ratio(memoryMb, physical) else 0.0, memoryCaption),
+        barLine("CPU", ratio((cores * 100).round, state.machine.cores.toLong * 100), coresCaption),
+        boldLineOf(s"  $verdictText", verdictColor)
+      )
+    }
+  }
+
+  private def barLine(label: String, value: Double, caption: String): Line = {
+    val filled = math.max(0, math.min(BarWidth, math.round(value * BarWidth).toInt))
+    val color = colorFor(value)
+    Line.from(
+      Span.styled(s"  ${label.padTo(8, ' ')}", bold(Palette.text)),
+      Span.styled("█" * filled, style(color)),
+      Span.styled("░" * (BarWidth - filled), style(Palette.border)),
+      Span.styled(s"  $caption", bold(Palette.text))
     )
+  }
+
+  /** One sentence naming what most of the memory is. Servers from other bleep versions come first when they hold a real share: nothing new connects to them, so
+    * whatever keeps them alive is a client started long ago and still pinned to that version — that is the thing to fix, and it is named.
+    */
+  private def verdict(state: ServerTopState): (String, jatatui.core.style.Color) = {
+    val measured = state.live.flatMap(row => row.totalFootprintMb.map(row -> _))
+    val total = measured.map(_._2).sum
+    val outdated = measured.filter(_._1.isOutdated)
+    val outdatedMb = outdated.map(_._2).sum
+
+    if (measured.isEmpty) ("Nothing could be measured on this platform.", Palette.textDim)
+    else if (outdatedMb >= 1024 && outdatedMb * 4 >= total) {
+      val keeper = outdated.sortBy(-_._2).flatMap(_._1.parent).headOption
+      val keptBy =
+        keeper.map(p => s", kept alive by ${p.label} (pid ${p.pid}${p.startedAtEpochMs.map(s => s", up ${humanDuration(state.nowMs - s)}").getOrElse("")})")
+      val servers = if (outdated.size == 1) "1 server" else s"${outdated.size} servers"
+      (s"▲ ${mb(outdatedMb)} of it is $servers from other bleep versions than this one${keptBy.getOrElse("")}", Palette.warning)
+    } else {
+      val (biggest, biggestMb) = measured.maxBy(_._2)
+      (s"Largest: ${biggest.name} at ${mb(biggestMb)}, ${doing(biggest)._1}", Palette.text)
+    }
+  }
+
+  /** A few words for what a server is doing, for the one line it gets in the list. */
+  private def doing(row: ServerRow): (String, jatatui.core.style.Color) =
+    row.status match {
+      case None if row.info.state == ServerState.Wedged => ("wedged — alive but not answering", Palette.error)
+      case None                                         => (row.error.map(e => s"cannot ask: ${e.message}").getOrElse("not answering"), Palette.warning)
+      case Some(status)                                 =>
+        val machine = status.machine
+        val working = machine.active.filter(_.cpu > 0)
+        working.headOption match {
+          case Some(first) =>
+            val more = if (working.size > 1) s" +${working.size - 1} more" else ""
+            val queued = if (machine.waiting.nonEmpty) s", ${machine.waiting.size} queued" else ""
+            (s"${verb(first.kind)} ${shortLabel(first.label)}$more$queued", Palette.accent)
+          case None if machine.waiting.nonEmpty => (s"stalled — ${machine.waiting.size} queued, nothing running", Palette.warning)
+          case None                             => ("idle", Palette.textDim)
+        }
+    }
+
+  private def verb(kind: String): String = kind match {
+    case "Compile"       => "compiling"
+    case "TestFork"      => "testing"
+    case "SourcegenFork" => "generating sources for"
+    case "KspFork"       => "processing symbols for"
+    case other           => other.toLowerCase
+  }
+
+  /** Ledger labels carry their kind as a prefix — `compile:dquery-generated/dquery/ast` — which the verb already says. */
+  private def shortLabel(label: String): String = label.indexOf(':') match {
+    case -1 => label
+    case i  => label.substring(i + 1)
+  }
+
+  // ── the server list ─────────────────────────────────────────────
+
+  /** Live servers, newest first, one line each — no detail, so a dozen fit. The bars are what make the expensive one stand out; the selected one is opened
+    * below.
+    */
+  private def serverList(state: ServerTopState, dispatch: Msg => Unit): Element =
+    component { ctx =>
+      val area = ctx.area()
+      val innerHeight = area.map[Int](a => math.max(1, a.height - 2)).orElse(10)
+      val innerWidth = area.map[Int](a => math.max(1, a.width - 2)).orElse(100)
+      val ordered = state.live.zipWithIndex
+      val cursor = math.max(0, ordered.indexWhere(_._2 == state.selected))
+      val offset = math.max(0, math.min(cursor - innerHeight + 1, ordered.length - innerHeight))
+      val visible = ordered.slice(offset, offset + innerHeight)
+      val biggest = ordered.flatMap(_._1.totalFootprintMb).maxOption.getOrElse(0L)
+
+      ctx.onClick { (event: jatatui.react.MouseEvent) =>
+        area.ifPresent(a => visible.lift(event.y - a.y - 1).foreach { case (_, index) => dispatch(Msg.SelectRow(index)) })
+      }
+
+      val lines = visible.map { case (row, index) => serverListLine(state, row, index == state.selected, biggest, innerWidth) }
+      box(" servers ", Borders.ALL, widget(Paragraph.of(Text.fromLines(lines.asJava))))
+    }
+
+  private def serverListLine(state: ServerTopState, row: ServerRow, selected: Boolean, biggestMb: Long, width: Int): Line = {
+    def st(color: jatatui.core.style.Color, emphasised: Boolean): Style =
+      if (selected && emphasised) Palette.boldOnSurface(color) else if (selected) Palette.onSurface(color) else if (emphasised) bold(color) else style(color)
+
+    val (marker, markerColor) = row.info.state match {
+      case ServerState.Running => ("●", Palette.success)
+      case _                   => ("!", Palette.error)
+    }
+    val memory = row.totalFootprintMb
+    // In proportion to the biggest server, not the machine: the summary already says what share of the machine they have, and against 48 GB every server
+    // drew the same single cell. Here the bar's job is to compare servers with each other.
+    val scale = math.max(1L, biggestMb)
+    val barWidth = 12
+    def cells(mb: Long): Int = math.min(barWidth, math.round(ratio(mb, scale) * barWidth).toInt)
+    // Stacked: the daemon's own memory, then its forks', so the bar says at a glance whether a server is fat itself or is carrying a fleet of test JVMs.
+    val selfCells = row.selfFootprintMb.map(m => math.max(if (m > 0) 1 else 0, cells(m))).getOrElse(0)
+    val forkedCells = row.forkedFootprintMb.map(m => math.max(if (m > 0) 1 else 0, math.min(barWidth - selfCells, cells(m)))).getOrElse(0)
+    // The daemon's own figure, and what its forks add — "3.7 GB +3.7 GB forked". The total is the bar's length and the list's order.
+    val forkedText = row.forkedFootprintMb.filter(_ > 0).map(f => s"+${mb(f)} forked").getOrElse("")
+    val (doingText, doingColor) = doing(row)
+    // A server up for days is the one to ask about: it has outlived any build that needed it, and is being kept alive by something long-running.
+    val uptime = row.startedAtEpochMs.map(state.nowMs - _)
+    val uptimeColor = if (uptime.exists(_ >= 24L * 3600 * 1000)) Palette.warning else Palette.textDim
+
+    // Version and JVM are what make two servers two servers (both are in the socket directory's hash), so both are shown. Older versions are told apart by
+    // colour; the summary says why that matters.
+    val tag = row.info.identity.map(id => s"${shortVersion(id.bleepVersion)} · ${shortJvm(id.jvmName, id.jvmVersion)}").getOrElse("unknown version")
+    // The this-build marker sits beside the hash, on the left, because it is the one label a reader acts on and a narrow terminal cuts from the right. The
+    // column only exists when some server is this build's, so it costs nothing otherwise.
+    val markerColumn = if (state.live.exists(_.isCurrent)) 14 else 0
+    val tagWidth = math.min(48, math.max(0, width * 2 / 5))
+
+    val fixed = List(
+      Span.styled(if (selected) "▸" else " ", st(Palette.info, emphasised = true)),
+      Span.styled(s"$marker ", st(markerColor, emphasised = true)),
+      Span.styled(row.name.padTo(11, ' '), st(Palette.text, emphasised = true)),
+      Span.styled((if (row.isCurrent) "← this build" else "").padTo(markerColumn, ' '), st(Palette.accent, emphasised = true)),
+      Span.styled(row.selfFootprintMb.orElse(memory).map(mb).getOrElse("—").reverse.padTo(8, ' ').reverse + " ", st(Palette.text, emphasised = true)),
+      Span.styled(forkedText.padTo(16, ' '), st(Palette.accent, emphasised = false)),
+      Span.styled("█" * selfCells, st(Palette.info, emphasised = false)),
+      Span.styled("█" * forkedCells, st(Palette.accent, emphasised = false)),
+      Span.styled("░" * (barWidth - selfCells - forkedCells), st(Palette.border, emphasised = false)),
+      Span.styled(state.treeCpuPercent(row).map(pctOfCore).getOrElse("").reverse.padTo(6, ' ').reverse, st(Palette.textMuted, emphasised = false)),
+      Span.styled(uptime.map(u => s"up ${humanDuration(u)}").getOrElse("").reverse.padTo(10, ' ').reverse + "  ", st(uptimeColor, emphasised = false))
+    )
+    val fixedWidth = fixed.map(_.content.length).sum
+    val doingSpans = fitSpans(List(Span.styled(doingText, st(doingColor, emphasised = false))), math.max(0, width - fixedWidth - tagWidth), selected)
+    val tagColor = if (row.isCurrent) Palette.accent else if (row.isOutdated) Palette.warning else Palette.info
+    val tagText = if (tag.length > tagWidth) tag.take(math.max(0, tagWidth - 1)) + "…" else tag.padTo(tagWidth, ' ')
+    Line.from((fixed ++ doingSpans :+ Span.styled(tagText, st(tagColor, emphasised = false)))*)
+  }
+
+  /** Cut a run of spans to exactly `width` cells — truncating with an ellipsis, or padding — so the columns after it start at the same place on every line. */
+  private def fitSpans(spans: List[Span], width: Int, selected: Boolean): List[Span] = {
+    val out = List.newBuilder[Span]
+    var used = 0
+    spans.foreach { span =>
+      val content = span.content
+      val room = width - used
+      if (room > 0) {
+        if (content.length <= room) { out += span; used += content.length }
+        else {
+          out += Span.styled(content.take(math.max(0, room - 1)) + "…", span.style)
+          used = width
+        }
+      }
+    }
+    val padStyle = if (selected) Palette.onSurface(Palette.text) else style(Palette.text)
+    out += Span.styled(" " * math.max(0, width - used), padStyle)
+    out.result()
+  }
+
+  // ── the processes tab ───────────────────────────────────────────
+
+  /** Right-hand columns of every tree line. Fixed, so memory and CPU line up down the whole tree whatever the indentation. */
+  private val MemoryWidth = 10
+  private val CpuWidth = 7
+  private val AgeWidth = 9
+  private val ColumnsWidth = MemoryWidth + CpuWidth + AgeWidth
+
+  /** One line of the tree: the indented description on the left, and the three numbers on the right. */
+  private case class TreeLine(left: List[Span], memory: String, cpu: String, age: String)
+
+  /** The selected server's work, then its processes as a tree — the daemon and every JVM it forked, each charged for everything beneath it. Headed by who
+    * started it, which for an old server is usually the answer to why it is still here.
+    */
+  private def processesPane(state: ServerTopState, row: ServerRow): Element =
+    component { ctx =>
+      val width = ctx.area().map[Int](a => math.max(1, a.width - 2)).orElse(100)
+
+      val startedBy = row.parent match {
+        case Some(parent) =>
+          val age = parent.startedAtEpochMs.map(started => s", running ${humanDuration(state.nowMs - started)}").getOrElse("")
+          List(lineOf(s"  started by ${parent.label} (pid ${parent.pid}$age) — it keeps this server in use while it lives", Palette.textMuted), Line.empty())
+        case None => Nil
+      }
+
+      val tasks = row.status.map(taskLines).getOrElse(Nil)
+      val processes: List[TreeLine] = row.processes match {
+        case None      => List(TreeLine(List(Span.styled("no process to measure — it exited, or never recorded a pid", style(Palette.textDim))), "", "", ""))
+        case Some(all) =>
+          val children = all.filter(_.parentPid.isDefined).groupBy(_.parentPid.get)
+          all.filter(_.parentPid.isEmpty).flatMap(root => processLines(state, root, children, row.status))
+      }
+
+      val heading = List(
+        sectionOf(if (tasks.isEmpty) "WORK — none, idle" else s"WORK — ${tasks.size}")
+      )
+      val lines =
+        startedBy ++ heading ++ tasks.map(renderTreeLine(_, width)) ++
+          List(Line.empty(), sectionOf("PROCESSES — memory and cpu include everything beneath each one")) ++ processes.map(renderTreeLine(_, width))
+      box("", Borders.ALL, widget(Paragraph.of(Text.fromLines(lines.asJava))))
+    }
+
+  private def renderTreeLine(line: TreeLine, width: Int): Line = {
+    val leftWidth = math.max(0, width - ColumnsWidth)
+    Line.from(
+      (fitSpans(Span.styled("  ", style(Palette.text)) :: line.left, leftWidth, selected = false) ++ List(
+        Span.styled(line.memory.reverse.padTo(MemoryWidth, ' ').reverse, bold(Palette.text)),
+        Span.styled(line.cpu.reverse.padTo(CpuWidth, ' ').reverse, style(Palette.textMuted)),
+        Span.styled(line.age.reverse.padTo(AgeWidth, ' ').reverse, style(Palette.textDim))
+      ))*
+    )
+  }
+
+  /** The work the governor has admitted or queued. Forks' memory reservations are left out: they are not work, and the process tree shows them as what they are
+    * — processes.
+    */
+  private def taskLines(status: DaemonStatus): List[TreeLine] = {
+    val machine = status.machine
+    val running = machine.active.filter(_.cpu > 0).map { entry =>
+      TreeLine(
+        List(
+          Span.styled("▸ ", bold(Palette.accent)),
+          Span.styled(workName(entry.kind, 1).padTo(12, ' '), style(Palette.accent)),
+          Span.styled(entry.label, style(Palette.text)),
+          Span.styled(s"  ${entry.cpu} slot${if (entry.cpu == 1) "" else "s"}", style(Palette.textDim))
+        ),
+        "",
+        "",
+        humanDuration(entry.ageMs)
+      )
+    }
+    val waiting = machine.waiting.map { entry =>
+      TreeLine(
+        List(
+          Span.styled("· ", bold(Palette.warning)),
+          Span.styled(workName(entry.kind, 1).padTo(12, ' '), style(Palette.warning)),
+          Span.styled(entry.label, style(Palette.textMuted)),
+          Span.styled(s"  queued for ${entry.cpu} slot${if (entry.cpu == 1) "" else "s"}", style(Palette.warning))
+        ),
+        "",
+        "",
+        humanDuration(entry.ageMs)
+      )
+    }
+    running ++ waiting
+  }
+
+  /** A process and everything beneath it. The memory and CPU columns are the subtree's — what this process costs the machine including what it spawned — and a
+    * process with children also says what it costs on its own.
+    */
+  private def processLines(
+      state: ServerTopState,
+      process: ProcessTree.Sample,
+      children: Map[Long, List[ProcessTree.Sample]],
+      daemon: Option[DaemonStatus]
+  ): List[TreeLine] = {
+    val kids = children.getOrElse(process.pid, Nil).sortBy(p => (p.startedAtEpochMs.getOrElse(0L), p.pid))
+    val subtree = subtreeOf(process, children)
+    val memory = subtree.flatMap(_.footprintMb)
+    val cpu = subtree.flatMap(p => state.cpuPercent.get(p.pid))
+
+    val heap = daemon.map(status => s"  heap ${mb(status.jvm.heapUsedMb)}/${mb(status.jvm.heapMaxMb)}").getOrElse("")
+    val self = if (kids.nonEmpty) process.footprintMb.map(own => s"  self ${mb(own)}").getOrElse("") else ""
+
+    val line = TreeLine(
+      List(
+        Span.styled(process.label, bold(if (daemon.isDefined) Palette.text else Palette.textMuted)),
+        Span.styled(s"  pid ${process.pid}", style(Palette.textDim)),
+        Span.styled(heap, style(Palette.textMuted)),
+        Span.styled(self, style(Palette.textDim))
+      ),
+      memory = if (memory.isEmpty) "n/a" else mb(memory.sum),
+      cpu = if (cpu.isEmpty) "" else pctOfCore(cpu.sum),
+      age = process.startedAtEpochMs.map(started => humanDuration(state.nowMs - started)).getOrElse("")
+    )
+    line :: withBranches(kids.map(kid => processLines(state, kid, children, None)))
+  }
+
+  private def subtreeOf(process: ProcessTree.Sample, children: Map[Long, List[ProcessTree.Sample]]): List[ProcessTree.Sample] =
+    process :: children.getOrElse(process.pid, Nil).flatMap(subtreeOf(_, children))
+
+  /** Hang a list of subtrees off a parent with box-drawing branches: `├─` before every subtree but the last, `└─` before the last, and the matching rail down
+    * the left of each subtree's own descendants.
+    */
+  private def withBranches(subtrees: List[List[TreeLine]]): List[TreeLine] = {
+    val branch = style(Palette.border)
+    subtrees.zipWithIndex.flatMap { case (subtree, i) =>
+      val last = i == subtrees.length - 1
+      subtree match {
+        case Nil          => Nil
+        case head :: tail =>
+          head.copy(left = Span.styled(if (last) "└─ " else "├─ ", branch) :: head.left) ::
+            tail.map(line => line.copy(left = Span.styled(if (last) "   " else "│  ", branch) :: line.left))
+      }
+    }
+  }
 
   /** `1.0.0-M11+32-80f5bbb7-SNAPSHOT` carries about six useful characters. The shared prefix and suffix are noise in a column meant to show a difference. */
   private def shortVersion(version: String): String =
@@ -137,81 +468,68 @@ object ServerTopView {
     if (index == "default") flavour else s"$flavour ($index)"
   }
 
-  /** Sentinel width meaning "take whatever is left of the line". */
-  private val RestOfLine = -1
+  // ── stopped servers ─────────────────────────────────────────────
 
-  private def serverListRow(serverRow: ServerRow, selected: Boolean, nowMs: Long): Element = {
-    val (marker, color) = serverRow.info.state match {
-      case ServerState.Running => ("●", Palette.success)
-      case ServerState.Wedged  => ("!", Palette.error)
-      case _                   => ("◇", Palette.textDim)
-    }
+  /** Socket directories with no process behind them, biggest first — the screen you come to in order to clear them out. */
+  private def deadPane(state: ServerTopState, dispatch: Msg => Unit): Element =
+    component { ctx =>
+      ctx.onScroll { event =>
+        event.kind match {
+          case jatatui.react.MouseEvent.Kind.SCROLL_UP   => dispatch(Msg.ScrollDead(-3))
+          case jatatui.react.MouseEvent.Kind.SCROLL_DOWN => dispatch(Msg.ScrollDead(3))
+          case _                                         => ()
+        }
+      }
+      val dead = state.dead.sortBy(row => (-row.info.sizeBytes, row.hash))
+      val totalMb = dead.map(_.info.sizeMb).sum
 
-    // The selected row sits on the raised surface, the same way the build display lifts its summary panel. The cursor is then obvious from shape as well as
-    // colour, which matters on terminals where these greys sit close together.
-    def cell(content: String, cellColor: jatatui.core.style.Color, emphasised: Boolean): Element = {
-      // Callers pass the width; a value longer than its column used to run straight into the next one, which is how "MB 4 ws 3 cl2m48s" happened.
-      val cellStyle =
-        if (selected && emphasised) Palette.boldOnSurface(cellColor)
-        else if (selected) Palette.onSurface(cellColor)
-        else if (emphasised) bold(cellColor)
-        else style(cellColor)
-      text(content, cellStyle)
-    }
-
-    /** Clip to the column and always leave a space, so a long value cannot run into its neighbour. */
-    def fitted(content: String, width: Int): String =
-      if (content.length >= width) content.take(math.max(0, width - 2)) + "… " else content
-
-    val busy = serverRow.status.map(_.machine).map { machine =>
-      val working = machine.active.count(_.cpu > 0)
-      if (working > 0) s"$working running" + (if (machine.waiting.nonEmpty) s" +${machine.waiting.size}q" else "")
-      else if (machine.waiting.nonEmpty) s"${machine.waiting.size} queued"
-      else "idle"
-    }
-
-    val heap = serverRow.status.map(status => f"${status.jvm.heapUsedMb}%d/${status.jvm.heapMaxMb}%d MB").getOrElse("")
-    val uptime = serverRow.status.map(status => humanDuration(nowMs - status.startedAtEpochMs)).getOrElse("")
-
-    // What actually makes this a separate server. The socket directory is a hash of bleep version + JVM + java options, so two rows differing in any of these
-    // are two servers by design. Shortened, because the parts they share carry no information: every version starts "1.0.0-" and ends "-SNAPSHOT", and every
-    // JVM here is some flavour of graalvm — what distinguishes them is the bit in the middle.
-    val version = serverRow.info.identity.map(id => shortVersion(id.bleepVersion)).getOrElse("unknown")
-    val jvm = serverRow.info.identity.map(id => shortJvm(id.jvmName, id.jvmVersion)).getOrElse("unknown")
-
-    // A stopped server has nothing to report but is still holding disk, which is the reason to care about it at all.
-    val stoppedNote = if (serverRow.info.isRunning) "unreachable" else s"${serverRow.info.sizeMb} MB on disk"
-
-    // Six columns, not nine. Workspace and client counts moved to the tabs that are about them: what belongs here is which server, whether it is mine, what
-    // makes it distinct, how fat it is and what it is doing.
-    val cells =
-      if (serverRow.status.isEmpty)
-        List(
-          4 -> cell(if (selected) s" ▸$marker" else s"  $marker", color, emphasised = true),
-          10 -> cell(serverRow.hash.take(8), Palette.textDim, emphasised = selected),
-          13 -> cell("", Palette.accent, emphasised = false),
-          8 -> cell(serverRow.info.state.label, color, emphasised = false),
-          17 -> cell(fitted(version, 17), Palette.textDim, emphasised = false),
-          17 -> cell(fitted(jvm, 17), Palette.textDim, emphasised = false),
-          RestOfLine -> cell(stoppedNote, Palette.textDim, emphasised = false)
+      val intro = List(
+        lineOf(
+          "  What is left of compile servers that are no longer running: logs, metrics and server.json. None of it uses memory or CPU — only",
+          Palette.textDim
+        ),
+        lineOf("  disk. A crashed server's log is the evidence for why; read it with `bleep server log <id> --generation 1` before clearing.", Palette.textDim),
+        Line.empty(),
+        Line.from(
+          Span.styled("  " + "server".padTo(10, ' '), style(Palette.textDim)),
+          Span.styled("state".padTo(16, ' '), style(Palette.textDim)),
+          Span.styled("bleep".padTo(26, ' '), style(Palette.textDim)),
+          Span.styled("jvm".padTo(22, ' '), style(Palette.textDim)),
+          Span.styled("on disk".reverse.padTo(9, ' ').reverse, style(Palette.textDim))
         )
-      else
-        List(
-          4 -> cell(if (selected) s" ▸$marker" else s"  $marker", color, emphasised = true),
-          10 -> cell(serverRow.hash.take(8), Palette.text, emphasised = selected),
-          // Kept to the left on purpose: it is the one column that must survive a narrow terminal, since it is what tells you which server is yours.
-          13 -> cell(if (serverRow.isCurrent) "← this build" else "", Palette.accent, emphasised = true),
-          8 -> cell(serverRow.info.state.label, color, emphasised = false),
-          17 -> cell(fitted(version, 17), Palette.info, emphasised = false),
-          17 -> cell(fitted(jvm, 17), Palette.textMuted, emphasised = false),
-          15 -> cell(heap, Palette.textMuted, emphasised = false),
-          8 -> cell(uptime, Palette.textMuted, emphasised = false),
-          RestOfLine -> cell(busy.getOrElse(""), if (busy.contains("idle")) Palette.textDim else Palette.accent, emphasised = !busy.contains("idle"))
-        )
+      )
 
-    // `fill` for the last column so the row uses whatever width is left rather than overflowing a fixed budget.
-    row(cells.map { case (width, element) => if (width == RestOfLine) fill(1, element) else length(width, element) }*)
-  }
+      val rows =
+        if (dead.isEmpty) List(lineOf("  nothing — every server directory has a live server behind it", Palette.textDim))
+        else
+          dead.drop(state.deadScroll).map { row =>
+            val color = row.info.state match {
+              case ServerState.Dead(true) => Palette.error
+              case _                      => Palette.textMuted
+            }
+            val version = row.info.identity.map(id => shortVersion(id.bleepVersion)).getOrElse("unknown")
+            val jvm = row.info.identity.map(id => shortJvm(id.jvmName, id.jvmVersion)).getOrElse("unknown")
+            Line.from(
+              Span.styled("  " + row.hash.take(8).padTo(10, ' '), style(Palette.text)),
+              Span.styled(row.info.state.label.padTo(16, ' '), style(color)),
+              Span.styled(fit(version, 26), style(Palette.textMuted)),
+              Span.styled(fit(jvm, 22), style(Palette.textMuted)),
+              Span.styled(s"${row.info.sizeMb} MB".reverse.padTo(9, ' ').reverse, style(Palette.text))
+            )
+          }
+
+      box(s" stopped servers — ${dead.size}, $totalMb MB on disk ", Borders.ALL, widget(Paragraph.of(Text.fromLines((intro ++ rows).asJava))))
+    }
+
+  /** Pad to the column, or cut with an ellipsis and always leave a space, so a long value cannot run into its neighbour. */
+  private def fit(content: String, width: Int): String =
+    if (content.length >= width) content.take(math.max(0, width - 2)) + "… " else content.padTo(width, ' ')
+
+  private def mb(value: Long): String =
+    if (value >= 1024) f"${value / 1024.0}%.1f GB" else s"$value MB"
+
+  /** A share of one core, the way `top` counts: 250% is two and a half cores. */
+  private def pctOfCore(value: Double): String = f"$value%.0f%%"
 
   // ── detail ──────────────────────────────────────────────────────
 
@@ -219,32 +537,34 @@ object ServerTopView {
     state.selectedRow match {
       case None      => packed(" detail ", List(text("nothing to show", style(Palette.textDim))))
       case Some(row) =>
-        row.status match {
-          case None =>
-            // A row we could not ask says why, rather than rendering an empty pane that looks like "nothing is happening".
-            packed(
-              s" ${row.hash} ",
-              List(text(row.error.map(_.message).getOrElse(s"${row.info.state.label} — nothing to report"), style(Palette.warning)))
-            )
-          case Some(status) =>
-            column(
-              length(1, tabBar(state, dispatch)),
-              fill(
-                1,
-                state.tab match {
-                  case Tab.Log => logPane(state, dispatch)
-                  // Overview is a short, fixed set of rows and needs real elements for its gauges. The others are plain text of unbounded length — a workspace
-                  // list, a queue, a classpath — and one element per line means one layout constraint per line, solved every frame. 202 classpath entries
-                  // froze the dashboard outright.
-                  case Tab.Overview   => textPane(overviewLines(status))
-                  case Tab.Config     => textPane(configLines(status))
-                  case Tab.Workspaces => textPane(workspaceLines(status))
-                  case Tab.Activity   => textPane(activityLines(status))
-                  case Tab.Startup    => startupPane(state, row.info.identity, dispatch)
-                }
+        // Processes, log and startup come from outside the daemon and work whether or not it answers. The rest is the daemon's own account, and a server that
+        // cannot be asked says why rather than rendering an empty pane that looks like "nothing is happening".
+        def asked(lines: DaemonStatus => List[Line]): Element =
+          row.status match {
+            case Some(status) => textPane(lines(status))
+            case None         =>
+              textPane(
+                List(lineOf(s"  ${row.error.map(_.message).getOrElse(s"${row.info.state.label} — not answering, so it cannot report this")}", Palette.warning))
               )
-            )
-        }
+          }
+        column(
+          length(1, tabBar(state, dispatch)),
+          fill(
+            1,
+            state.tab match {
+              case Tab.Processes => processesPane(state, row)
+              case Tab.Log       => logPane(state, dispatch)
+              // Overview is a short, fixed set of rows and needs real elements for its gauges. The others are plain text of unbounded length — a workspace
+              // list, a queue, a classpath — and one element per line means one layout constraint per line, solved every frame. 202 classpath entries froze
+              // the dashboard outright.
+              case Tab.Overview   => asked(overviewLines)
+              case Tab.Config     => asked(configLines)
+              case Tab.Workspaces => asked(workspaceLines)
+              case Tab.Activity   => asked(activityLines(row, _))
+              case Tab.Startup    => startupPane(state, row.info.identity, dispatch)
+            }
+          )
+        )
     }
 
   /** Hand-rolled rather than the `tabs` intrinsic, because each title needs its own click target. */
@@ -394,7 +714,7 @@ object ServerTopView {
     * The slot is charged to the work, not the process, so a suite running in a fork appears twice — once above holding the slot, once below holding the memory.
     * A fork with no suite is between jobs and kept warm, still holding its footprint. Either way the total is right: one slot per running suite.
     */
-  private def activityLines(status: DaemonStatus): List[Line] = {
+  private def activityLines(row: ServerRow, status: DaemonStatus): List[Line] = {
     val machine = status.machine
     val (forks, work) = machine.active.partition(entry => entry.cpu == 0 && entry.memoryMb > 0)
 
@@ -408,15 +728,30 @@ object ServerTopView {
           )
         )
 
+    // What the forks actually cost, as opposed to what the governor set aside for them. Every process under the daemon, not just direct children: a fork can
+    // spawn its own. `None` from a daemon too old to report processes, or a platform that cannot measure.
+    val measuredForks = row.processes.map(_.filter(_.parentPid.isDefined)).map(_.flatMap(_.footprintMb)).filter(_.nonEmpty).map(_.sum)
+    val measured = measuredForks match {
+      case Some(total) => s", ${total} MB measured"
+      case None        => ", actual use not measurable here"
+    }
+
     val forkLines =
       if (forks.isEmpty) Nil
       else
         List(
           Line.empty(),
-          sectionOf(s"FORKED JVMS — ${forks.size} holding ${forks.map(_.memoryMb).sum} MB between them"),
-          lineOf("  A running suite's slot is charged above, to the work; these rows are the processes and the memory they hold.", Palette.textDim),
-          lineOf("  Forks with no work above are between suites, kept warm rather than restarted.", Palette.textDim)
-        ) ++ forks.map(entry => lineOf(f"  ▪ ${entry.label}%-46s ${entry.memoryMb}%5d MB, alive ${humanDuration(entry.ageMs)}%s", Palette.textMuted))
+          sectionOf(s"FORKED JVMS — ${forks.size}, ${forks.map(_.memoryMb).sum} MB reserved$measured"),
+          lineOf(
+            "  Reserved is what the governor sets aside before a fork starts: its heap bound plus overhead, until a fork of that kind has run and its",
+            Palette.textDim
+          ),
+          lineOf("  peak was measured. Measured is what they hold right now — each one is on the Processes tab, by pid.", Palette.textDim),
+          lineOf(
+            "  A running suite's slot is charged above, to the work. Forks with no work are between suites, kept warm rather than restarted.",
+            Palette.textDim
+          )
+        ) ++ forks.map(entry => lineOf(f"  ▪ ${entry.label}%-46s ${entry.memoryMb}%5d MB reserved, alive ${humanDuration(entry.ageMs)}%s", Palette.textMuted))
 
     val queue =
       if (machine.waiting.isEmpty) List(lineOf("  Nothing waiting — the server has capacity to spare.", Palette.textDim))
@@ -548,7 +883,9 @@ object ServerTopView {
       // Clamped here rather than in the state, which knows neither how many lines there are nor how big the pane is.
       val scrollY = math.min(state.startupScrollY, math.max(0, lines.length - height))
       val widest = lines.map(_.width()).maxOption.getOrElse(0)
-      val scrollX = math.min(state.startupScrollX, math.max(0, widest - width))
+      val maxScrollX = math.max(0, widest - width)
+      if (maxScrollX != state.startupMaxScrollX) dispatch(Msg.StartupBounds(maxScrollX))
+      val scrollX = math.min(state.startupScrollX, maxScrollX)
 
       val position = s" — line ${scrollY + 1} of ${lines.length}" + (if (widest > width) s", column ${scrollX + 1}" else "")
 
@@ -624,32 +961,49 @@ object ServerTopView {
       case None =>
         state.message match {
           case Some(message) => text(s" $message", style(Palette.info))
-          case None          => buttons(dispatch)
+          case None          => buttons(state, dispatch)
         }
     }
 
   /** The actions, as a row of buttons rather than a legend. They are the things you came to do, so they look pressable and are. */
-  private def buttons(dispatch: Msg => Unit): Element = {
-    val actions = List(
-      ("k", "kill", KeyPress.Kill, Palette.error),
-      ("r", "restart", KeyPress.Restart, Palette.warning),
-      ("⇥", "tab", KeyPress.NextTab, Palette.info),
-      ("q", "quit", KeyPress.Quit, Palette.textMuted)
-    )
+  private def buttons(state: ServerTopState, dispatch: Msg => Unit): Element = {
+    val (actions, hint) = state.screen match {
+      case Screen.Main =>
+        (
+          List(
+            ("k", "kill", KeyPress.Kill, Palette.error),
+            ("r", "restart", KeyPress.Restart, Palette.warning),
+            ("d", "stopped servers", KeyPress.ShowDead, Palette.textMuted),
+            ("⇥", "tab", KeyPress.NextTab, Palette.info),
+            ("q", "quit", KeyPress.Quit, Palette.textMuted)
+          ),
+          "   ←→ tabs   ↑↓ select"
+        )
+      case Screen.Dead =>
+        (
+          List(
+            ("c", "clear all", KeyPress.PruneDead, Palette.error),
+            ("esc", "back", KeyPress.Back, Palette.info),
+            ("q", "quit", KeyPress.Quit, Palette.textMuted)
+          ),
+          "   ↑↓ scroll"
+        )
+    }
 
     val cells = actions.map { case (key, label, press, color) =>
       val width = key.length + label.length + 6
       length(width, clickable(Msg.Key(press), dispatch, text(s" [ $key $label ] ", Palette.boldOnSurface(color))))
     }
 
-    row((text(" ", style(Palette.textDim)) :: cells.map(identity) ::: List(fill(1, text("   ←→ tabs   ↑↓ select", style(Palette.textDim)))))*)
+    row((text(" ", style(Palette.textDim)) :: cells.map(identity) ::: List(fill(1, text(hint, style(Palette.textDim)))))*)
   }
 
   private def pct(value: Double): String = if (value < 0) "n/a" else f"${value * 100}%.0f%%"
 
   private def humanDuration(ms: Long): String = {
     val d = Duration.ofMillis(math.max(0L, ms))
-    if (d.toHours > 0) s"${d.toHours}h${d.toMinutesPart}m"
+    if (d.toDays > 0) s"${d.toDays}d${d.toHoursPart}h"
+    else if (d.toHours > 0) s"${d.toHours}h${d.toMinutesPart}m"
     else if (d.toMinutes > 0) s"${d.toMinutes}m${d.toSecondsPart}s"
     else s"${d.toSeconds}s"
   }
