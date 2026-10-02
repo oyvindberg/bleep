@@ -161,13 +161,30 @@ object BspServerDaemon {
     loop(maxAttempts)
   }
 
+  /** Remove the pid and socket files on the way out — libdaemonjvm never does. It only clears stale ones when the next daemon acquires the lock, so every
+    * stopped server used to leave both behind, and once the OS reused the pid, its directory read as a live, wedged server.
+    *
+    * Only if the pid file still names this process: a successor that found us unreachable may already have taken the directory over and written its own, and
+    * those are not ours to delete. Runs in the shutdown hook, so it covers every way out — a chosen shutdown, the idle watchdog, a signal.
+    */
+  private def removeOwnRuntimeFiles(socketDir: Path, socketFile: Path, logger: Logger): Unit = {
+    val pidFile = socketDir.resolve("pid")
+    val ours = Files.exists(pidFile) && Files.readString(pidFile).trim == ProcessHandle.current().pid().toString
+    if (ours) {
+      Files.deleteIfExists(socketFile): Unit
+      Files.deleteIfExists(pidFile): Unit
+      logger.info(s"Removed pid and socket files from $socketDir")
+    }
+  }
+
   /** Check if a lock is stale by reading the PID file and verifying the process is alive. */
   private def isLockStale(pidFile: Path, logger: Logger): Boolean =
     try
       if (Files.exists(pidFile)) {
         val pid = Files.readString(pidFile).trim.toLong
-        val alive = ProcessHandle.of(pid).isPresent
-        if (!alive) logger.info(s"Process $pid from PID file is dead")
+        // Alive is not enough: the number may since have gone to an unrelated process, which would make this lock look held forever.
+        val alive = ServerDirs.daemonProcess(pidFile.getParent, pid).isDefined
+        if (!alive) logger.info(s"Process $pid from PID file is not a compile server for this directory")
         !alive
       } else {
         false
@@ -361,6 +378,7 @@ object BspServerDaemon {
             catch { case _: Exception => () }
           }
         catch { case _: Exception => () }
+        removeOwnRuntimeFiles(config.socketDir, socketPaths.path, logger)
       }
     })
 
@@ -377,7 +395,7 @@ object BspServerDaemon {
 
     // Idle self-shutdown. Read once at startup (changing it takes effect on the next daemon). The watchdog wakes periodically and, if the server has had no
     // connected client for the whole timeout, closes the server socket — that unblocks the accept() below, which the loop's catch clauses already treat as a
-    // shutdown. Closing the socket (rather than System.exit) lets the normal cleanup path run: the lock releases and the pid/socket files are removed, so the
+    // shutdown. Closing the socket (rather than System.exit) lets the normal cleanup path run: the lock releases and the shutdown hook removes the pid/socket files, so the
     // next client's connect gets a clean refusal and simply spawns a fresh daemon.
     val idleTimeoutMs: Long =
       try BleepConfigOps.loadOrDefault(UserPaths.fromAppDirs).orThrow.bspServerConfigOrDefault.effectiveCompileServerIdleTimeoutMillis

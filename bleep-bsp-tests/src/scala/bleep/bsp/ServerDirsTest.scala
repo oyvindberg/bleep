@@ -49,10 +49,45 @@ class ServerDirsTest extends AnyFunSuite with Matchers {
     }
   }
 
-  test("a live process whose socket refuses is wedged — the row kill exists for") {
+  test("a live compile server whose socket refuses is wedged — the row kill exists for") {
+    // Windows has no `sh`, and reports only a joined command line, which isDaemonFor's own tests cover.
+    assume(!scala.util.Properties.isWin)
+    val dir = tempDir()
+    // A stand-in daemon: a process whose command line names the daemon's main class and this directory, which is what identifies one. `; true` keeps `sh`
+    // itself alive rather than exec'ing into `sleep`, whose arguments would no longer say any of it.
+    val standIn = new ProcessBuilder("/bin/sh", "-c", "sleep 30; true", BspRifleConfig.ServerMainClass, "--socket", dir.toString).start()
+    try {
+      writePid(dir, standIn.pid())
+      ServerDirs.classify(dir).state shouldBe ServerState.Wedged
+    } finally standIn.destroyForcibly(): Unit
+  }
+
+  /** The bug this exists for: a daemon exited, its pid file stayed, and the OS gave the number to `containermanagerd`. The directory read as a wedged server,
+    * and `kill` would have signalled a system process.
+    */
+  test("a live process that is not this directory's compile server leaves the directory dead, not wedged — pids get reused") {
     val dir = tempDir()
     writePid(dir, ProcessHandle.current().pid())
-    ServerDirs.classify(dir).state shouldBe ServerState.Wedged
+    ServerDirs.classify(dir).state shouldBe ServerState.Dead(crashed = false)
+    ServerDirs.daemonProcess(dir, ProcessHandle.current().pid()) shouldBe None
+  }
+
+  test("a process is a directory's daemon only if its command line names the main class and that directory") {
+    val dir = Path.of("/tmp/sockets/aaaa1111")
+    val main = BspRifleConfig.ServerMainClass
+    ServerDirs.isDaemonFor(Some(List("-Xmx12g", "-cp", "x.jar", main, "--socket", dir.toString)), None, dir) shouldBe true
+    withClue("another server's directory: ") {
+      ServerDirs.isDaemonFor(Some(List("-cp", "x.jar", main, "--socket", "/tmp/sockets/bbbb2222")), None, dir) shouldBe false
+    }
+    withClue("the reused-pid case — something else entirely: ") {
+      ServerDirs.isDaemonFor(Some(List("--runmode=privileged")), None, dir) shouldBe false
+    }
+    withClue("nothing the OS will show us is not ours: ") {
+      ServerDirs.isDaemonFor(None, None, dir) shouldBe false
+    }
+    withClue("Windows reports only a joined command line: ") {
+      ServerDirs.isDaemonFor(None, Some(s"java -cp x.jar $main --socket ${dir.toAbsolutePath.normalize()}"), dir) shouldBe true
+    }
   }
 
   test("a pid file naming a dead process is dead") {

@@ -231,11 +231,17 @@ class ServerTopLoop(userPaths: UserPaths, currentWorkspace: Option[Path]) {
     val clientVersion = bleep.model.BleepVersion.current.value
     queried
       .map { case (info, status, error) =>
-        // The daemon's own pid when it can say, else the pid file — the two can disagree, and the daemon is the one that knows.
-        val handle = status.map(_.pid).orElse(info.pid).filter(_ => info.state == ServerState.Running || info.state == ServerState.Wedged).flatMap { pid =>
-          val found = ProcessHandle.of(pid)
-          if (found.isPresent) Some(found.get()) else None
-        }
+        // The daemon's own pid when it can say; else the pid file's, but only once confirmed to be this directory's daemon — the file outlives its daemon
+        // and the OS reuses the number, and sampling an unrelated process as "the compile server" is worse than showing nothing.
+        val handle =
+          if (info.state != ServerState.Running && info.state != ServerState.Wedged) None
+          else
+            status.map(_.pid) match {
+              case Some(pid) =>
+                val found = ProcessHandle.of(pid)
+                if (found.isPresent) Some(found.get()) else None
+              case None => info.pid.flatMap(ServerDirs.daemonProcess(info.socketDir, _))
+            }
         ServerRow(
           info,
           status,

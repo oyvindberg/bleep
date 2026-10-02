@@ -372,9 +372,8 @@ object BspServerOperations {
   /** Gracefully shutdown the server with timeout, then force kill if needed. */
   def shutdown(config: BspRifleConfig): IO[Unit] = {
     val socketDir = config.address.socketDir
-    val pidFile = socketDir.resolve("pid")
 
-    readPid(pidFile).flatMap {
+    daemonPid(socketDir).flatMap {
       case None      => cleanup(socketDir)
       case Some(pid) =>
         val graceful = sendShutdownSignal(pid) >>
@@ -423,6 +422,15 @@ object BspServerOperations {
   // ==========================================================================
   // PID & File Management
   // ==========================================================================
+
+  /** The pid of the compile server serving `socketDir`, if one is alive — the pid file's number, but only once [[ServerDirs.daemonProcess]] has confirmed that
+    * process is that server. The file outlives its daemon and the OS reuses the number, so the raw value is never safe to signal.
+    */
+  def daemonPid(socketDir: Path): IO[Option[Long]] =
+    readPid(socketDir.resolve("pid")).flatMap {
+      case None      => IO.pure(None)
+      case Some(pid) => IO.blocking(ServerDirs.daemonProcess(socketDir, pid).map(_.pid()))
+    }
 
   /** Read PID from file */
   def readPid(pidFile: Path): IO[Option[Long]] = IO.blocking {
@@ -537,7 +545,7 @@ object BspServerOperations {
 
       siblings.foreach { dir =>
         val alive =
-          try Files.exists(dir.resolve("pid")) && ProcessHandle.of(Files.readString(dir.resolve("pid")).trim.toLong).isPresent
+          try Files.exists(dir.resolve("pid")) && ServerDirs.daemonProcess(dir, Files.readString(dir.resolve("pid")).trim.toLong).isDefined
           catch { case _: Exception => false }
         if (!alive) {
           val newest =
@@ -617,9 +625,8 @@ object BspServerOperations {
 
   /** HACK: Force kill any existing server and cleanup, ensuring fresh code is used. Used during development to avoid stale server issues.
     */
-  def forceKillAndCleanup(socketDir: Path): IO[Unit] = {
-    val pidFile = socketDir.resolve("pid")
-    readPid(pidFile).flatMap {
+  def forceKillAndCleanup(socketDir: Path): IO[Unit] =
+    daemonPid(socketDir).flatMap {
       case None      => cleanup(socketDir)
       case Some(pid) =>
         forceKill(pid) >>
@@ -636,5 +643,4 @@ object BspServerOperations {
           } >>
           cleanup(socketDir)
     }
-  }
 }

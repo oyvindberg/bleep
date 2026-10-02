@@ -279,29 +279,21 @@ object BspRifle {
   /** Get information about a running server. */
   def serverInfo(config: BspRifleConfig): IO[Option[ServerInfo]] = {
     val socketDir = config.address.socketDir
-    val pidFile = socketDir.resolve("pid")
     val socketPath = config.address match {
       case BspRifleConfig.Address.DomainSocket(path) => path
       case BspRifleConfig.Address.Tcp(_, _, dir)     => dir.resolve("socket")
     }
 
-    BspServerOperations.readPid(pidFile).flatMap {
-      case None      => IO.pure(None)
-      case Some(pid) =>
-        BspServerOperations.isProcessAlive(pid).map {
-          case false => None
-          case true  => Some(ServerInfo(pid, socketPath, "unknown"))
-        }
-    }
+    BspServerOperations.daemonPid(socketDir).map(_.map(pid => ServerInfo(pid, socketPath, "unknown")))
   }
 
   /** Force stop the server without graceful shutdown. */
-  def forceStop(config: BspRifleConfig): IO[Unit] = {
-    val pidFile = config.address.socketDir.resolve("pid")
-    BspServerOperations.readPid(pidFile).flatMap {
+  def forceStop(config: BspRifleConfig): IO[Unit] =
+    // Only a process confirmed to be this directory's daemon: this runs from the client's crash handler, against a pid file the dead daemon left behind, whose
+    // number the OS may already have handed to something of yours.
+    BspServerOperations.daemonPid(config.address.socketDir).flatMap {
       case None      => IO.unit
       case Some(pid) => BspServerOperations.forceKill(pid)
     } >> BspServerOperations.cleanup(config.address.socketDir)
-  }
 
 }

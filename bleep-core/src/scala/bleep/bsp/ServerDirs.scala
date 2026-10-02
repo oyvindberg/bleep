@@ -93,8 +93,8 @@ object ServerDirs {
     if (BspServerOperations.check(address).unsafeRunSync()) Some(ServerState.Running)
     else
       pid match {
-        case Some(p) if ProcessHandle.of(p).isPresent => Some(ServerState.Wedged)
-        case _                                        => None
+        case Some(p) if daemonProcess(socketDir, p).isDefined => Some(ServerState.Wedged)
+        case _                                                => None
       }
   }
 
@@ -116,6 +116,47 @@ object ServerDirs {
       identity = ServerJson.read(socketDir),
       sizeBytes = dirSizeBytes(socketDir)
     )
+  }
+
+  /** The process behind a socket directory's pid file — but only if it really is the compile server for that directory.
+    *
+    * A pid file outlives its daemon: libdaemonjvm cleans stale pid and socket files when the *next* daemon acquires the lock, never when one exits, so every
+    * stopped server leaves both behind. Then the OS reuses the number. Observed: a directory whose daemon had exited cleanly half an hour earlier, its pid now
+    * belonging to `/usr/libexec/containermanagerd_system` — which `ls` reported as a wedged server, and which `kill` would have sent SIGTERM and then SIGKILL.
+    * "Is pid N alive" is not "is our daemon alive"; every path that classifies or signals a daemon by its pid file asks this instead.
+    *
+    * Identified by command line: the daemon's main class, and `--socket` naming this directory. A process whose command line the OS will not show us (another
+    * user's, a root daemon's) is not ours, since ours runs as us.
+    */
+  def daemonProcess(socketDir: Path, pid: Long): Option[ProcessHandle] = {
+    val found = ProcessHandle.of(pid)
+    if (!found.isPresent) None
+    else {
+      val handle = found.get()
+      val info = handle.info()
+      val arguments = if (info.arguments().isPresent) Some(info.arguments().get().toList) else None
+      val commandLine = if (info.commandLine().isPresent) Some(info.commandLine().get()) else None
+      if (isDaemonFor(arguments, commandLine, socketDir)) Some(handle) else None
+    }
+  }
+
+  /** The decision behind [[daemonProcess]], on what the OS reported, so it can be tested without a process to hand.
+    *
+    * Arguments where the platform gives them (macOS, Linux), since they survive spaces in paths; the joined command line where it does not (Windows reports
+    * only that).
+    */
+  private[bsp] def isDaemonFor(arguments: Option[List[String]], commandLine: Option[String], socketDir: Path): Boolean = {
+    val dir = socketDir.toAbsolutePath.normalize()
+    arguments match {
+      case Some(args) =>
+        args.contains(BspRifleConfig.ServerMainClass) &&
+        args.sliding(2).exists {
+          case List("--socket", value) => Paths.get(value).toAbsolutePath.normalize() == dir
+          case _                       => false
+        }
+      case None =>
+        commandLine.exists(line => line.contains(BspRifleConfig.ServerMainClass) && line.contains(s"--socket $dir"))
+    }
   }
 
   /** A compile server process with no socket directory left to find it by.
