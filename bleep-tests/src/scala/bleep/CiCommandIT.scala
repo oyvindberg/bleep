@@ -25,6 +25,7 @@ class CiCommandIT extends IntegrationTestHarness {
     flamegraph = false,
     cancel = false,
     junitReportDir = None,
+    showOutput = false,
     diffBase = None,
     diffOutput = OutputMode.Text,
     clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)

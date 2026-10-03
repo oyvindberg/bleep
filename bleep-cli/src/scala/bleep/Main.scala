@@ -428,6 +428,9 @@ object Main {
         }
 
     /** diff results render for humans by default; `--output json` prints the underlying diff document (the same structure the MCP server returns) */
+    val showOutputOpt: Opts[Boolean] =
+      Opts.flag("show-output", "also print what passing test suites wrote to stdout/stderr (failing suites' output is always shown)").orFalse
+
     val diffOutputOpt: Opts[OutputMode] =
       Opts
         .option[String]("output", "with --diff: 'text' renders the diff for humans (default), 'json' prints the diff document", "o")
@@ -614,10 +617,25 @@ object Main {
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel,
               Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone,
+              showOutputOpt,
               diffOpt("test run — a ci run is recorded as one"),
               diffOutputOpt
             ).mapN {
-              case (watch, invalidated, (noTui, quiet), jvmOpts, testArgs, onlyTag, excludeTag, flamegraph, cancel, junitReportDir, diffBase, diffOutput) =>
+              case (
+                    watch,
+                    invalidated,
+                    (noTui, quiet),
+                    jvmOpts,
+                    testArgs,
+                    onlyTag,
+                    excludeTag,
+                    flamegraph,
+                    cancel,
+                    junitReportDir,
+                    showOutput,
+                    diffBase,
+                    diffOutput
+                  ) =>
                 val displayMode = commands.DisplayMode.fromFlags(noTui, quiet)
                 // Compile and test, nothing else. `ci` does not run `fmt --check`, `sourcegen` or anything you did not ask for: sourcegen already runs inside
                 // compile as part of the task graph, and a formatting check is a separate opinion which deserves its own exit code.
@@ -630,6 +648,7 @@ object Main {
                   flamegraph = flamegraph,
                   cancel = cancel,
                   junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
+                  showOutput = showOutput,
                   diffBase = diffBase,
                   diffOutput = diffOutput,
                   clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)
@@ -725,6 +744,7 @@ object Main {
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel,
               Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone,
+              showOutputOpt,
               diffOpt("test run"),
               diffOutputOpt
             ).mapN {
@@ -743,6 +763,7 @@ object Main {
                     flamegraph,
                     cancel,
                     junitReportDir,
+                    showOutput,
                     diffBase,
                     diffOutput
                   ) =>
@@ -760,6 +781,7 @@ object Main {
                   flamegraph = flamegraph,
                   cancel = cancel,
                   junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_)),
+                  showOutput = showOutput,
                   diffBase = diffBase,
                   diffOutput = diffOutput,
                   clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)

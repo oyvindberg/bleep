@@ -139,6 +139,7 @@ object Ci {
       flamegraph: Boolean,
       cancel: Boolean,
       junitReportDir: Option[java.nio.file.Path],
+      showOutput: Boolean,
       diffBase: Option[DiffBase],
       diffOutput: OutputMode,
       clientEnv: Map[String, String]
@@ -156,6 +157,7 @@ object Ci {
       flamegraph = flamegraph,
       cancel = cancel,
       junitReportDir = junitReportDir,
+      showOutput = showOutput,
       diffBase = diffBase,
       diffOutput = diffOutput,
       clientEnv = clientEnv
@@ -180,6 +182,7 @@ object Ci {
       flamegraph: Boolean,
       cancel: Boolean,
       junitReportDir: Option[java.nio.file.Path],
+      showOutput: Boolean,
       diffBase: Option[DiffBase],
       diffOutput: OutputMode,
       clientEnv: Map[String, String]
@@ -197,6 +200,7 @@ object Ci {
       flamegraph = flamegraph,
       cancel = cancel,
       junitReportDir = junitReportDir,
+      showOutput = showOutput,
       diffBase = diffBase,
       diffOutput = diffOutput,
       clientEnv = clientEnv
@@ -215,6 +219,7 @@ object Ci {
       flamegraph: Boolean,
       cancel: Boolean,
       junitReportDir: Option[java.nio.file.Path],
+      showOutput: Boolean,
       diffBase: Option[DiffBase],
       diffOutput: OutputMode,
       clientEnv: Map[String, String]
@@ -238,6 +243,7 @@ object Ci {
           flamegraph = flamegraph,
           cancel = cancel,
           junitReportDir = junitReportDir,
+          showOutput = showOutput,
           diffBase = cycleDiffBase,
           diffOutput = diffOutput,
           clientEnv = clientEnv

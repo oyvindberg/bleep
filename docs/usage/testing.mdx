@@ -184,6 +184,8 @@ projects:
 ## Reports and history
 
 * `--junit-report <dir>` writes one JUnit XML per suite, for CI test-reporting UIs.
+* A suite's stdout/stderr is printed only when it fails. `--show-output` also prints the output
+  of passing suites, ahead of the summary. Over MCP, pass `showOutput: true` to `bleep.test`.
 * Every run is recorded as a transcript; `bleep test --diff` shows only what changed
   versus a previous run. See [Run history & diffs](/docs/usage/run-history).
 
