@@ -9,8 +9,9 @@
 # Platform mapping mirrors coursier-channel.json:
 #   Linux  x86_64        -> bleep-x86_64-pc-linux.tar.gz
 #   Linux  aarch64/arm64 -> bleep-arm64-pc-linux.tar.gz
-#   macOS  x86_64        -> bleep-x86_64-apple-darwin.tar.gz
 #   macOS  arm64/aarch64 -> bleep-arm64-apple-darwin.tar.gz
+#   macOS  x86_64        -> bleep-x86_64-apple-darwin.tar.gz, only with BLEEP_VERSION at 1.0.0-M14 or
+#                           earlier: newer releases have no Intel Mac build
 #
 # Windows isn't supported by this shell installer — grab
 # bleep-x86_64-pc-win32.zip from the GitHub releases page directly.
@@ -45,7 +46,9 @@ case "$os" in
     ;;
   Darwin)
     case "$arch" in
-      x86_64)        asset="bleep-x86_64-apple-darwin.tar.gz" ;;
+      x86_64)
+        [ -n "${BLEEP_VERSION:-}" ] || err "bleep has no macOS x86_64 (Intel) build after 1.0.0-M14. Set BLEEP_VERSION=1.0.0-M14 (or earlier) to install one of those, or see https://bleep.build/docs/installing#via-coursier"
+        asset="bleep-x86_64-apple-darwin.tar.gz" ;;
       arm64|aarch64) asset="bleep-arm64-apple-darwin.tar.gz" ;;
       *) err "unsupported macOS architecture: $arch" ;;
     esac
