@@ -42,6 +42,10 @@ class ProbesLiveTest extends AnyFunSuite with Matchers {
         load should (be >= 0 and be <= 100)
         commitTotalMb should be > 0L
         commitTotalMb should be <= commitLimitMb
+      case RawPressure.Unavailable(reason) =>
+        // Only a Linux kernel without PSI; the reason is what the user is told.
+        ProbePlatform.current() shouldBe ProbePlatform.Linux
+        reason should not be empty
     }
   }
 

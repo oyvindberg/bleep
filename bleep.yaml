@@ -16,6 +16,7 @@ projects:
     - org.scala-lang::scala3-compiler:3.9.0
     dependsOn:
     - bleep-core
+    - bleep-machine-probes
     - bleep-zinc
     extends:
     - template-common
@@ -141,21 +142,29 @@ projects:
     - ../liberated/sbt-pgp/sbt-pgp/src/main/scala
     - ../liberated/sbt-sonatype/src/main/scala
     - ../liberated/sbt-tpolecat/plugin/src/main/scala
-    # The JNI library behind the macOS and Windows memory probes (bleep.machine), built from src/c for the platform this
-    # runs on, plus any prebuilt library CI dropped into native-prebuilt/ for the platforms it cannot build. See the script.
+  # The OS memory probes behind the machine-wide scheduler (bleep.machine): /proc reads on Linux, a small JNI library on macOS and
+  # Windows. Its own module so that bleep-core, which build scripts depend on, carries no native code; bleep-core keeps the
+  # MachineProbe contract and the pure scheduler. Published, because the compile server (bleep-bsp) depends on it.
+  bleep-machine-probes:
+    dependsOn: bleep-core
+    extends:
+    - template-common
+    - template-scala-3
+    # The JNI library, built from src/c for the platform this runs on, plus any prebuilt library CI dropped into
+    # native-prebuilt/ for the platforms it cannot build. See the script.
     sourcegen:
       main: bleep.scripts.BuildMachineNative
       project: scripts-init
       sourceGlobs:
       - ./src/c
       - ../native-prebuilt
-  # The machine probes' suites (bleep.machine), in a project that needs nothing beyond bleep-core. That is the point of it: the
+  # The machine probes' suites (bleep.machine), in a project that needs nothing beyond bleep-machine-probes. That is the point of it: the
   # probes are the one part of bleep that is different code on every OS, and the `machine-probes` CI job compiles and runs
   # this project on Linux, macOS and Windows within minutes instead of after a full build and a native image.
   bleep-machine-tests:
     dependencies:
     - org.scalatest::scalatest:3.2.20
-    dependsOn: bleep-core
+    dependsOn: bleep-machine-probes
     extends:
     - template-common
     - template-scala-3

@@ -6,7 +6,7 @@
  * long[] only: no FindClass, no exceptions thrown from C, no callbacks. A failing OS call is reported as a status the
  * Scala side turns into an exception naming the call, so this file never needs to know about Java classes.
  *
- * Built by bleep.scripts.BuildMachineNative (scripts-init), the sourcegen step of bleep-core.
+ * Built by bleep.scripts.BuildMachineNative (scripts-init), the sourcegen step of bleep-machine-probes.
  */
 #include <jni.h>
 

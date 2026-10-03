@@ -4,16 +4,16 @@ package scripts
 import java.nio.file.{Files, Path, StandardCopyOption}
 import scala.jdk.CollectionConverters.*
 
-/** Builds the JNI library behind bleep's machine probes (`bleep-core/src/c/bleep_machine.c`) into bleep-core's resources, under
+/** Builds the JNI library behind bleep's machine probes (`bleep-machine-probes/src/c/bleep_machine.c`) into bleep-machine-probes's resources, under
   * `bleep/machine/native/<platform>/`, where `bleep.machine.MachineNative` finds it.
   *
   * A machine can only build its own platform's library, with the C compiler it has: `clang` on macOS (Xcode command line tools) and Windows (LLVM, which finds
   * the MSVC libraries itself). Linux needs no library, and Intel macOS is not supported, so on those this builds nothing. That is enough for every developer:
   * the bleep they build runs on the machine they built it on.
   *
-  * A bleep-core jar that is published has to carry every platform's library, so CI builds each one on its own OS and hands them to the job that publishes,
-  * which puts them under `native-prebuilt/<platform>/` before compiling. This copies whatever is there for the platforms it cannot build itself.
-  * `native-prebuilt` is declared under bleep-core's `sourceGlobs`, so dropping a library there re-runs this script.
+  * A bleep-machine-probes jar that is published has to carry every platform's library, so CI builds each one on its own OS and hands them to the job that
+  * publishes, which puts them under `native-prebuilt/<platform>/` before compiling. This copies whatever is there for the platforms it cannot build itself.
+  * `native-prebuilt` is declared under bleep-machine-probes' `sourceGlobs`, so dropping a library there re-runs this script.
   */
 object BuildMachineNative extends BleepCodegenScript("BuildMachineNative") {
   case class NativeTarget(platform: String, fileName: String)
@@ -31,14 +31,14 @@ object BuildMachineNative extends BleepCodegenScript("BuildMachineNative") {
 
   override def run(started: Started, commands: Commands, targets: List[Target], args: List[String]): Unit = {
     val buildDir = started.buildPaths.buildDir
-    val source = buildDir.resolve("bleep-core/src/c/bleep_machine.c")
+    val source = buildDir.resolve("bleep-machine-probes/src/c/bleep_machine.c")
     val prebuiltDir = buildDir.resolve("native-prebuilt")
     val host = hostTarget(System.getProperty("os.name"), System.getProperty("os.arch"))
     val logger = started.logger
 
     targets.foreach { target =>
       target.project.name.value match {
-        case "bleep-core" =>
+        case "bleep-machine-probes" =>
           val outDir = target.resources.resolve("bleep/machine/native")
           host match {
             case Some(t) =>
@@ -60,7 +60,7 @@ object BuildMachineNative extends BleepCodegenScript("BuildMachineNative") {
             }
           }
         case other =>
-          sys.error(s"BuildMachineNative builds bleep-core's native library; it has nothing for '$other'")
+          sys.error(s"BuildMachineNative builds bleep-machine-probes' native library; it has nothing for '$other'")
       }
     }
   }

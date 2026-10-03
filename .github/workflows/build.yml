@@ -11,8 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # The JNI library behind bleep's memory probes (bleep-core/src/c, built by bleep-core's sourcegen step), built on each OS
-  # that needs one. A machine can only build its own platform's library, and the bleep-core jar published from Linux has to
+  # The JNI library behind bleep's memory probes (bleep-machine-probes/src/c, built by its sourcegen step), built on each OS
+  # that needs one. A machine can only build its own platform's library, and the bleep-machine-probes jar published from Linux has to
   # carry all of them: `build` and `release` put these under native-prebuilt/, which the sourcegen step packages. Linux
   # needs no library (its probes read /proc). Short on purpose — `build` waits for it.
   native-libs:
@@ -39,7 +39,7 @@ jobs:
       - name: Build the library
         shell: bash
         run: |
-          bleep --no-color sourcegen bleep-core
+          bleep --no-color sourcegen bleep-machine-probes
           lib=$(find .bleep -path '*bleep.scripts.BuildMachineNative*' -name '${{ matrix.file }}')
           if [ -z "$lib" ] || [ "$(printf '%s\n' "$lib" | wc -l)" -ne 1 ]; then
             echo "::error::expected exactly one ${{ matrix.file }} under .bleep, found: '$lib'"
@@ -55,7 +55,7 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-  # The memory probes on every OS they have code for, as early as CI can: bleep-machine-tests needs only bleep-core, so this
+  # The memory probes on every OS they have code for, as early as CI can: bleep-machine-tests needs only bleep-core and bleep-machine-probes, so this
   # finishes long before the native-image matrix would get to the same suites.
   machine-probes:
     name: Machine probes on ${{ matrix.os }}
@@ -104,7 +104,7 @@ jobs:
         with:
           extraFiles: bleep.yaml
 
-      # The macOS and Windows machine-probe libraries, for bleep-core's sourcegen step to package: the jars published below
+      # The macOS and Windows machine-probe libraries, for bleep-machine-probes' sourcegen step to package: the jars published below
       # are the ones the dev binaries of every OS run with.
       - name: Download machine-probe libraries
         uses: actions/download-artifact@v8
@@ -161,7 +161,7 @@ jobs:
           echo "modules: $(ls dev-jars/build.bleep | wc -l), size: $(du -sh dev-jars | cut -f1)"
           # The client asks for these by name at exactly this version. A binary paired with an artifact missing any
           # of them fails at first use, which is too late to find out.
-          for m in bleep-bsp_3 bleep-test-runner bleep-core_3 bleep-model_3; do
+          for m in bleep-bsp_3 bleep-test-runner bleep-core_3 bleep-model_3 bleep-machine-probes_3; do
             [ -d "dev-jars/build.bleep/$m/$version" ] || { echo "::error::$m was not published at $version"; exit 1; }
           done
           bash .github/scripts/check-machine-probe-natives.sh dev-jars
@@ -528,7 +528,7 @@ jobs:
           extraFiles: bleep.yaml
       - id: get_version
         uses: battila7/get-version-action@v2
-      # Packaged into bleep-core by its sourcegen step, both for the local publish here and for the sonatype publish below.
+      # Packaged into bleep-machine-probes by its sourcegen step, both for the local publish here and for the sonatype publish below.
       - name: Download machine-probe libraries
         uses: actions/download-artifact@v8
         with:
@@ -541,7 +541,7 @@ jobs:
           bleep compile bleep-cli
           bleep publish-local --groupId build.bleep --version "$(bash .github/scripts/bleep-version.sh)"
           bleep config compile-server stop-all
-          bash .github/scripts/check-machine-probe-natives.sh ~/.ivy2/local/build.bleep/bleep-core_3
+          bash .github/scripts/check-machine-probe-natives.sh ~/.ivy2/local/build.bleep/bleep-machine-probes_3
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
