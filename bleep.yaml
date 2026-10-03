@@ -150,14 +150,8 @@ projects:
     extends:
     - template-common
     - template-scala-3
-    # The JNI library, built from src/c for the platform this runs on, plus any prebuilt library CI dropped into
-    # native-prebuilt/ for the platforms it cannot build. See the script.
-    sourcegen:
-      main: bleep.scripts.BuildMachineNative
-      project: scripts-init
-      sourceGlobs:
-      - ./src/c
-      - ../native-prebuilt
+    # The JNI libraries are checked in under src/resources, built by CI from src/c; rebuild them with
+    # `bleep build-machine-native` after editing the C file (see that script).
   # The machine probes' suites (bleep.machine), in a project that needs nothing beyond bleep-machine-probes. That is the point of it: the
   # probes are the one part of bleep that is different code on every OS, and the `machine-probes` CI job compiles and runs
   # this project on Linux, macOS and Windows within minutes instead of after a full build and a native image.
@@ -587,6 +581,11 @@ projects:
     sources: ./src/main/java
 resolvers: https://packages.jetbrains.team/maven/p/ij/intellij-dependencies
 scripts:
+  # Rebuilds the checked-in machine-probe JNI libraries after an edit to bleep-machine-probes/src/c, or with --check
+  # verifies they were built from the current source.
+  build-machine-native:
+    main: bleep.scripts.BuildMachineNative
+    project: scripts-init
   bsp-stress:
     main: bleep.scripts.dev.BspStress
     project: scripts-dev

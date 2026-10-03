@@ -52,8 +52,8 @@ object MachineNative {
     val in = classOf[MachineNative].getClassLoader.getResourceAsStream(resource)
     if (in == null)
       throw new IllegalStateException(
-        s"This bleep has no native memory probe for $platform: `$resource` is not on the classpath. A bleep built from source builds it in bleep-machine-probes' " +
-          "sourcegen step (bleep.scripts.BuildMachineNative), which needs a C compiler; a released bleep-machine-probes jar carries one for every supported platform."
+        s"This bleep has no native memory probe for $platform: `$resource` is not on the classpath. The libraries are checked in under " +
+          "bleep-machine-probes/src/resources and packaged into the bleep-machine-probes jar; see bleep.scripts.BuildMachineNative."
       )
     val bytes =
       try in.readAllBytes()
