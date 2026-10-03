@@ -186,7 +186,7 @@ object ZincBridge {
   private val debugLogFile = Path.of(System.getProperty("user.home"), ".bleep", "zinc-debug.log")
   private val debugEnabled = System.getProperty("bleep.zinc.debug", "false").toBoolean
 
-  private[analysis] def debug(msg: String): Unit = {
+  private[analysis] def debug(msg: => String): Unit = {
     // Only print to stderr if debug is explicitly enabled via -Dbleep.zinc.debug=true
     if (debugEnabled) {
       System.err.println(s"[ZincBridge-DEBUG] $msg")
@@ -1685,14 +1685,15 @@ private class EcjCompiler(
       successRef.get()
     }
 
+    val problems = new EcjProblemReporter(ecjClassLoader, reporter)
     val (ecjMain, hasProgress) = EcjCompiler.createMainWithProgress(
-      mainClass,
       ecjClassLoader,
       outPrint,
       errPrint,
       workedSoFar,
       totalWorkUnits,
-      cancelFlag
+      cancelFlag,
+      problems
     )
 
     /** Check if an exception is caused by the ASM-generated bridge class */
@@ -1709,121 +1710,153 @@ private class EcjCompiler(
           case e: Throwable if !cancellationToken.isCancelled && isBridgeError(e) =>
             // CompilationProgress bridge failed at runtime — retry without it
             ZincBridge.debug(s"[ECJ] CompilationProgress bridge failed (${e.getClass.getSimpleName}), retrying without progress")
-            val constructor3 = mainClass.getConstructor(
-              classOf[java.io.PrintWriter],
-              classOf[java.io.PrintWriter],
-              classOf[Boolean]
-            )
-            // Reset output streams for retry
+            // Reset output streams and problems for retry
             errStream.reset()
             outStream.reset()
-            val fallbackMain = constructor3.newInstance(outPrint, errPrint, java.lang.Boolean.FALSE)
-            runEcj(fallbackMain, false)
+            reporter.reset()
+            runEcj(EcjCompiler.createMainWithoutProgress(ecjClassLoader, outPrint, errPrint, problems), false)
         }
       }
 
     errPrint.flush()
     outPrint.flush()
 
-    val errOutput = errStream.toString
-    val outOutput = outStream.toString
+    // ECJ also prints its problems, but they reached the reporter as objects (see EcjProblemReporter). The text is only read when debugging, or when ECJ
+    // failed without reporting an error: then it holds the reason, such as an invalid option.
+    lazy val allOutput = outStream.toString + "\n" + errStream.toString
 
     ZincBridge.debug(s"[ECJ] Compile finished: success=$success")
-    if (errOutput.nonEmpty) ZincBridge.debug(s"[ECJ] stderr:\n$errOutput")
-    if (outOutput.nonEmpty) ZincBridge.debug(s"[ECJ] stdout:\n$outOutput")
+    ZincBridge.debug(s"[ECJ] output:\n$allOutput")
 
-    // Parse ECJ's structured text output
-    // ECJ format:
-    // ----------
-    // 1. ERROR in /path/to/File.java (at line 10)
-    //     source line here
-    //     ^^^^^
-    // Error message here
-    // ----------
-    val allOutput = outOutput + "\n" + errOutput
-    parseEcjOutput(allOutput, reporter)
-
-    // If compilation failed but we found no errors, report the raw output
     if (!success && !reporter.hasErrors) {
       val msg = if (allOutput.trim.nonEmpty) allOutput.trim else "ECJ compilation failed with no error message"
-      reporter.log(createProblem(None, 0, 0, 0, msg, isErr = true))
+      reporter.log(EcjCompiler.problem(None, None, None, None, None, msg, xsbti.Severity.Error))
     }
 
     success.booleanValue()
   }
+}
 
-  /** Parse ECJ's text output format to extract structured errors */
-  private def parseEcjOutput(output: String, reporter: Reporter): Unit = {
-    // ECJ separates problems with "----------"
-    val blocks = output.split("----------").map(_.trim).filter(_.nonEmpty)
+/** Reports ECJ's problems to zinc as ECJ hands them over, as objects, so that nothing parses ECJ's text output.
+  *
+  * Parsing the text lost what ECJ knows: a problem's column and offsets, and every problem whose block did not match the parser (infos, problems that belong to
+  * no source). ECJ lives in its own classloader, so its types are reached through reflection, looked up once per compile.
+  *
+  * The two functions are what [[EcjCompiler.generateReportingMainClass]] calls from inside ECJ's `Main`.
+  */
+private[analysis] final class EcjProblemReporter(ecjClassLoader: ClassLoader, reporter: Reporter) {
+  private val problemClass = ecjClassLoader.loadClass("org.eclipse.jdt.core.compiler.IProblem")
+  private val defaultProblemClass = ecjClassLoader.loadClass("org.eclipse.jdt.internal.compiler.problem.DefaultProblem")
+  private val requestorClass = ecjClassLoader.loadClass("org.eclipse.jdt.internal.compiler.ICompilerRequestor")
+  private val mainClass = ecjClassLoader.loadClass("org.eclipse.jdt.internal.compiler.batch.Main")
 
-    for (block <- blocks) {
-      val lines = block.linesIterator.toList
-      if (lines.nonEmpty) {
-        // First line format: "N. ERROR in /path/file.java (at line M)"
-        // or: "N. WARNING in /path/file.java (at line M)"
-        val headerPattern = """(\d+)\.\s+(ERROR|WARNING)\s+in\s+(.+?)\s+\(at line (\d+)\)""".r
+  private val getProblems = ecjClassLoader.loadClass("org.eclipse.jdt.internal.compiler.CompilationResult").getMethod("getProblems")
+  private val isError = problemClass.getMethod("isError")
+  private val isInfo = problemClass.getMethod("isInfo")
+  private val getMessage = problemClass.getMethod("getMessage")
+  private val getOriginatingFileName = problemClass.getMethod("getOriginatingFileName")
+  private val getSourceLineNumber = problemClass.getMethod("getSourceLineNumber")
+  private val getSourceStart = problemClass.getMethod("getSourceStart")
+  private val getSourceEnd = problemClass.getMethod("getSourceEnd")
+  private val getSourceColumnNumber = defaultProblemClass.getMethod("getSourceColumnNumber")
 
-        lines.head match {
-          case headerPattern(_, severityStr, filePath, lineStr) =>
-            val lineNum = lineStr.toInt
-            val isErr = severityStr == "ERROR"
-
-            // Find the message - it's after the source line and caret pointer
-            // Lines: [header, source line, caret line (^^^), message lines...]
-            val messageStartIdx = lines.indexWhere(_.trim.startsWith("^")) + 1
-            val messageLines = if (messageStartIdx > 0 && messageStartIdx < lines.length) {
-              lines.drop(messageStartIdx).takeWhile(_.nonEmpty)
-            } else {
-              // No caret found, try to get message from remaining lines
-              lines.drop(1).filter(l => l.nonEmpty && !l.forall(c => c == '^' || c == ' '))
-            }
-            val message = messageLines.mkString(" ").trim
-
-            if (message.nonEmpty) {
-              reporter.log(createProblem(Some(filePath), lineNum, 0, 0, message, isErr))
-            }
-
-          case _ =>
-          // Non-standard block (e.g. summary line "N problems (X errors, Y warnings)").
-          // Do NOT guess severity here — the success flag + hasErrors fallback at the
-          // call site already handles the case where ECJ fails without any parsed errors.
-        }
-      }
+  /** Whether ECJ's options silence an extra problem. ECJ before 3.37 has no such method, and prints every extra problem, so then all are reported. */
+  private val isIgnored: Option[java.lang.reflect.Method] =
+    mainClass.getDeclaredMethods.find(m => m.getName == "isIgnored" && m.getParameterTypes.sameElements(Array(problemClass))).map { m =>
+      m.setAccessible(true)
+      m
     }
+
+  /** Wraps ECJ's requestor, which prints each source's problems and writes its class files, so that the problems also reach the reporter. */
+  val wrapRequestor: java.util.function.Function[AnyRef, AnyRef] = requestor =>
+    java.lang.reflect.Proxy.newProxyInstance(
+      ecjClassLoader,
+      Array(requestorClass),
+      (_, method, args) => {
+        val result =
+          try method.invoke(requestor, (if (args == null) Array.empty[AnyRef] else args)*)
+          catch { case e: java.lang.reflect.InvocationTargetException => throw e.getCause }
+        if (method.getName == "acceptResult") {
+          // `getProblems` leaves out tasks (TODO comments), which ECJ does not count as problems either
+          val problems = getProblems.invoke(args(0)).asInstanceOf[Array[AnyRef]]
+          if (problems != null) problems.foreach(p => if (p != null) report(p))
+        }
+        result
+      }
+    )
+
+  /** Reports the problems that belong to no source, unless ECJ's options silence them. */
+  val onExtraProblems: java.util.function.BiConsumer[AnyRef, AnyRef] = (main, problems) =>
+    problems
+      .asInstanceOf[java.util.List[AnyRef]]
+      .forEach(p => if (!isIgnored.exists(_.invoke(main, p).asInstanceOf[Boolean])) report(p))
+
+  private def report(problem: AnyRef): Unit = {
+    val severity =
+      if (isError.invoke(problem).asInstanceOf[Boolean]) xsbti.Severity.Error
+      else if (isInfo.invoke(problem).asInstanceOf[Boolean]) xsbti.Severity.Info
+      else xsbti.Severity.Warn
+    val line = getSourceLineNumber.invoke(problem).asInstanceOf[Int]
+    // ECJ's offsets are -1 when unknown, and its end is inclusive; its column is 1-based, a pointer 0-based
+    val start = getSourceStart.invoke(problem).asInstanceOf[Int]
+    val end = getSourceEnd.invoke(problem).asInstanceOf[Int]
+    val column = if (defaultProblemClass.isInstance(problem)) getSourceColumnNumber.invoke(problem).asInstanceOf[Int] else 0
+    reporter.log(
+      EcjCompiler.problem(
+        filePath = Option(getOriginatingFileName.invoke(problem).asInstanceOf[Array[Char]]).map(new String(_)),
+        line = Some(line).filter(_ > 0),
+        pointer = Some(column - 1).filter(_ >= 0),
+        startOffset = Some(start).filter(_ >= 0),
+        endOffset = Some(end + 1).filter(_ => start >= 0 && end >= start),
+        msg = getMessage.invoke(problem).asInstanceOf[String],
+        severity = severity
+      )
+    )
   }
+}
 
-  private def createProblem(
+private[analysis] object EcjCompiler {
+  private val BridgeClassName = "bleep/analysis/EcjCompilationProgressBridge"
+  private val ReportingMainClassName = "bleep/analysis/EcjReportingMain"
+  private val EcjMainClassName = "org/eclipse/jdt/internal/compiler/batch/Main"
+
+  private[analysis] def problem(
       filePath: Option[String],
-      lineNum: Int,
-      startOff: Int,
-      endOff: Int,
+      line: Option[Int],
+      pointer: Option[Int],
+      startOffset: Option[Int],
+      endOffset: Option[Int],
       msg: String,
-      isErr: Boolean
+      severity: xsbti.Severity
   ): xsbti.Problem = {
-    val sev = if (isErr) xsbti.Severity.Error else xsbti.Severity.Warn
-
+    // The Problem and Position methods share these parameters' names, so they read them through other names
+    def boxed(i: Option[Int]): Optional[Integer] = i.map(Integer.valueOf).toJava
+    val sev = severity
+    val lineNumber = boxed(line)
+    val pointerAt = boxed(pointer)
+    val start = boxed(startOffset)
+    val end = boxed(endOffset)
     new xsbti.Problem {
       def category(): String = "ECJ"
       def severity(): xsbti.Severity = sev
       def message(): String = msg
       def position(): xsbti.Position = new xsbti.Position {
-        def line(): Optional[Integer] = if (lineNum > 0) Optional.of(Integer.valueOf(lineNum)) else Optional.empty()
+        def line(): Optional[Integer] = lineNumber
         def lineContent(): String = ""
-        def offset(): Optional[Integer] = if (startOff > 0) Optional.of(Integer.valueOf(startOff)) else Optional.empty()
-        def pointer(): Optional[Integer] = Optional.empty()
+        def offset(): Optional[Integer] = start
+        def pointer(): Optional[Integer] = pointerAt
         def pointerSpace(): Optional[String] = Optional.empty()
-        def sourcePath(): Optional[String] = filePath.map(f => Optional.of[String](f)).getOrElse(Optional.empty())
-        def sourceFile(): Optional[java.io.File] = filePath.map(f => Optional.of[java.io.File](new java.io.File(f))).getOrElse(Optional.empty())
-        override def startOffset(): Optional[Integer] = if (startOff > 0) Optional.of(Integer.valueOf(startOff)) else Optional.empty()
-        override def endOffset(): Optional[Integer] = if (endOff > 0) Optional.of(Integer.valueOf(endOff)) else Optional.empty()
-        override def startLine(): Optional[Integer] = if (lineNum > 0) Optional.of(Integer.valueOf(lineNum)) else Optional.empty()
-        override def startColumn(): Optional[Integer] = Optional.empty()
+        def sourcePath(): Optional[String] = filePath.toJava
+        def sourceFile(): Optional[java.io.File] = filePath.map(new java.io.File(_)).toJava
+        override def startOffset(): Optional[Integer] = start
+        override def endOffset(): Optional[Integer] = end
+        override def startLine(): Optional[Integer] = lineNumber
+        override def startColumn(): Optional[Integer] = pointerAt
         override def endLine(): Optional[Integer] = Optional.empty()
         override def endColumn(): Optional[Integer] = Optional.empty()
       }
       override def rendered(): Optional[String] = {
-        val loc = filePath.map(f => s"$f:$lineNum: ").getOrElse("")
+        val loc = filePath.map(f => s"$f:${line.getOrElse(0)}: ").getOrElse("")
         Optional.of(s"$loc$msg")
       }
       override def diagnosticCode(): Optional[xsbti.DiagnosticCode] = Optional.empty()
@@ -1832,39 +1865,27 @@ private class EcjCompiler(
       override def actions(): java.util.List[xsbti.Action] = java.util.Collections.emptyList()
     }
   }
-}
-
-private[analysis] object EcjCompiler {
-  private val BridgeClassName = "bleep/analysis/EcjCompilationProgressBridge"
   private val ProgressSuperClass = "org/eclipse/jdt/core/compiler/CompilationProgress"
   private val AtomicIntDesc = "Ljava/util/concurrent/atomic/AtomicInteger;"
   private val AtomicBoolDesc = "Ljava/util/concurrent/atomic/AtomicBoolean;"
 
-  /** Try to create a Main with CompilationProgress for per-file progress. Falls back to the 3-param constructor if CompilationProgress is not available.
-    * Returns (mainInstance, hasProgress).
+  /** Try to create a Main with CompilationProgress for per-file progress. Falls back to a Main without progress if CompilationProgress is not available. Either
+    * way the Main reports its problems to `problems`. Returns (mainInstance, hasProgress).
     */
   def createMainWithProgress(
-      mainClass: Class[?],
       ecjClassLoader: ClassLoader,
       outPrint: java.io.PrintWriter,
       errPrint: java.io.PrintWriter,
       workedSoFar: java.util.concurrent.atomic.AtomicInteger,
       totalWorkUnits: java.util.concurrent.atomic.AtomicInteger,
-      cancelFlag: java.util.concurrent.atomic.AtomicBoolean
+      cancelFlag: java.util.concurrent.atomic.AtomicBoolean,
+      problems: EcjProblemReporter
   ): (AnyRef, Boolean) =
     try {
       val progressClass = ecjClassLoader.loadClass("org.eclipse.jdt.core.compiler.CompilationProgress")
 
       // Generate bridge class via ASM in a child classloader of ECJ's classloader
-      val bridgeBytes = generateBridgeClass()
-      val bridgeClassLoader = new ClassLoader(ecjClassLoader) {
-        override def findClass(name: String): Class[?] =
-          if (name == BridgeClassName.replace('/', '.'))
-            defineClass(name, bridgeBytes, 0, bridgeBytes.length)
-          else
-            throw new ClassNotFoundException(name)
-      }
-      val bridgeClass = bridgeClassLoader.loadClass(BridgeClassName.replace('/', '.'))
+      val bridgeClass = defineInChildOf(ecjClassLoader, BridgeClassName, generateBridgeClass())
 
       val bridgeInstance = bridgeClass
         .getConstructor(
@@ -1874,33 +1895,156 @@ private[analysis] object EcjCompiler {
         )
         .newInstance(workedSoFar, totalWorkUnits, cancelFlag)
 
-      // Use 5-param Main constructor: (PrintWriter, PrintWriter, boolean, Map, CompilationProgress)
-      val constructor5 = mainClass.getConstructor(
-        classOf[java.io.PrintWriter],
-        classOf[java.io.PrintWriter],
-        classOf[Boolean],
-        classOf[java.util.Map[?, ?]],
-        progressClass
-      )
-      val ecjMain = constructor5.newInstance(
-        outPrint,
-        errPrint,
-        java.lang.Boolean.FALSE,
-        null, // customDefaultOptions — null uses defaults
-        bridgeInstance
-      )
+      val reportingMain = defineInChildOf(ecjClassLoader, ReportingMainClassName, generateReportingMainClass(withProgress = true))
+      val ecjMain = reportingMain
+        .getConstructor(
+          classOf[java.io.PrintWriter],
+          classOf[java.io.PrintWriter],
+          classOf[Boolean],
+          classOf[java.util.Map[?, ?]],
+          progressClass,
+          classOf[java.util.function.Function[?, ?]],
+          classOf[java.util.function.BiConsumer[?, ?]]
+        )
+        .newInstance(
+          outPrint,
+          errPrint,
+          java.lang.Boolean.FALSE,
+          null, // customDefaultOptions — null uses defaults
+          bridgeInstance,
+          problems.wrapRequestor,
+          problems.onExtraProblems
+        )
       ZincBridge.debug("[ECJ] Using CompilationProgress for per-file progress")
-      (ecjMain, true)
+      (ecjMain.asInstanceOf[AnyRef], true)
     } catch {
       case e: Exception =>
         ZincBridge.debug(s"[ECJ] CompilationProgress not available (${e.getClass.getSimpleName}: ${e.getMessage}), using basic Main constructor")
-        val constructor3 = mainClass.getConstructor(
-          classOf[java.io.PrintWriter],
-          classOf[java.io.PrintWriter],
-          classOf[Boolean]
-        )
-        (constructor3.newInstance(outPrint, errPrint, java.lang.Boolean.FALSE), false)
+        (createMainWithoutProgress(ecjClassLoader, outPrint, errPrint, problems), false)
     }
+
+  /** A Main without per-file progress, reporting its problems to `problems`. */
+  def createMainWithoutProgress(
+      ecjClassLoader: ClassLoader,
+      outPrint: java.io.PrintWriter,
+      errPrint: java.io.PrintWriter,
+      problems: EcjProblemReporter
+  ): AnyRef =
+    defineInChildOf(ecjClassLoader, ReportingMainClassName, generateReportingMainClass(withProgress = false))
+      .getConstructor(
+        classOf[java.io.PrintWriter],
+        classOf[java.io.PrintWriter],
+        classOf[Boolean],
+        classOf[java.util.function.Function[?, ?]],
+        classOf[java.util.function.BiConsumer[?, ?]]
+      )
+      .newInstance(outPrint, errPrint, java.lang.Boolean.FALSE, problems.wrapRequestor, problems.onExtraProblems)
+      .asInstanceOf[AnyRef]
+
+  /** Defines one generated class in its own child of ECJ's classloader, so that it links against ECJ's types. */
+  private def defineInChildOf(ecjClassLoader: ClassLoader, internalName: String, bytes: Array[Byte]): Class[?] = {
+    val binaryName = internalName.replace('/', '.')
+    val loader = new ClassLoader(ecjClassLoader) {
+      override def findClass(name: String): Class[?] =
+        if (name == binaryName) defineClass(name, bytes, 0, bytes.length)
+        else throw new ClassNotFoundException(name)
+    }
+    loader.loadClass(binaryName)
+  }
+
+  /** Generate bytecode for a subclass of ECJ's batch `Main` that hands its problems to bleep as objects.
+    *
+    * ECJ's batch compiler only prints its problems, as text meant for a terminal. Its javax.tools front end (`EclipseCompilerImpl`) gets them as objects by
+    * overriding the same two methods this class does:
+    *   - `getBatchRequestor()` — returns `wrapRequestor.apply(super.getBatchRequestor())`. The requestor receives each source's `CompilationResult`, which
+    *     holds that source's problems.
+    *   - `loggingExtraProblems()` — calls `onExtraProblems.accept(this, this.extraProblems)`, then super. Extra problems belong to no source (an unknown
+    *     option, an annotation processor's message).
+    *
+    * Both functions are bleep's, from [[EcjProblemReporter]]. With `withProgress` the constructor takes a `CompilationProgress` and calls Main's 5-parameter
+    * constructor; without, it calls the 3-parameter one, so the class never names `CompilationProgress`.
+    */
+  private[analysis] def generateReportingMainClass(withProgress: Boolean): Array[Byte] = {
+    import org.objectweb.asm.{ClassWriter, Opcodes}
+
+    val FunctionDesc = "Ljava/util/function/Function;"
+    val BiConsumerDesc = "Ljava/util/function/BiConsumer;"
+    val PrintWriterDesc = "Ljava/io/PrintWriter;"
+    val RequestorType = "org/eclipse/jdt/internal/compiler/ICompilerRequestor"
+
+    val cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS)
+    cw.visit(Opcodes.V17, Opcodes.ACC_PUBLIC, ReportingMainClassName, null, EcjMainClassName, null)
+    cw.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "wrapRequestor", FunctionDesc, null, null).visitEnd()
+    cw.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "onExtraProblems", BiConsumerDesc, null, null).visitEnd()
+
+    locally {
+      val (ctorDesc, superDesc, functionSlot) =
+        if (withProgress)
+          (
+            s"(${PrintWriterDesc}${PrintWriterDesc}ZLjava/util/Map;L$ProgressSuperClass;$FunctionDesc$BiConsumerDesc)V",
+            s"(${PrintWriterDesc}${PrintWriterDesc}ZLjava/util/Map;L$ProgressSuperClass;)V",
+            6
+          )
+        else
+          (s"(${PrintWriterDesc}${PrintWriterDesc}Z$FunctionDesc$BiConsumerDesc)V", s"(${PrintWriterDesc}${PrintWriterDesc}Z)V", 4)
+      val mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", ctorDesc, null, null)
+      mv.visitCode()
+      mv.visitVarInsn(Opcodes.ALOAD, 0)
+      mv.visitVarInsn(Opcodes.ALOAD, 1)
+      mv.visitVarInsn(Opcodes.ALOAD, 2)
+      mv.visitVarInsn(Opcodes.ILOAD, 3)
+      if (withProgress) {
+        mv.visitVarInsn(Opcodes.ALOAD, 4)
+        mv.visitVarInsn(Opcodes.ALOAD, 5)
+      }
+      mv.visitMethodInsn(Opcodes.INVOKESPECIAL, EcjMainClassName, "<init>", superDesc, false)
+      mv.visitVarInsn(Opcodes.ALOAD, 0)
+      mv.visitVarInsn(Opcodes.ALOAD, functionSlot)
+      mv.visitFieldInsn(Opcodes.PUTFIELD, ReportingMainClassName, "wrapRequestor", FunctionDesc)
+      mv.visitVarInsn(Opcodes.ALOAD, 0)
+      mv.visitVarInsn(Opcodes.ALOAD, functionSlot + 1)
+      mv.visitFieldInsn(Opcodes.PUTFIELD, ReportingMainClassName, "onExtraProblems", BiConsumerDesc)
+      mv.visitInsn(Opcodes.RETURN)
+      mv.visitMaxs(0, 0)
+      mv.visitEnd()
+    }
+
+    // public ICompilerRequestor getBatchRequestor() { return (ICompilerRequestor) wrapRequestor.apply(super.getBatchRequestor()); }
+    locally {
+      val desc = s"()L$RequestorType;"
+      val mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "getBatchRequestor", desc, null, null)
+      mv.visitCode()
+      mv.visitVarInsn(Opcodes.ALOAD, 0)
+      mv.visitFieldInsn(Opcodes.GETFIELD, ReportingMainClassName, "wrapRequestor", FunctionDesc)
+      mv.visitVarInsn(Opcodes.ALOAD, 0)
+      mv.visitMethodInsn(Opcodes.INVOKESPECIAL, EcjMainClassName, "getBatchRequestor", desc, false)
+      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/function/Function", "apply", "(Ljava/lang/Object;)Ljava/lang/Object;", true)
+      mv.visitTypeInsn(Opcodes.CHECKCAST, RequestorType)
+      mv.visitInsn(Opcodes.ARETURN)
+      mv.visitMaxs(0, 0)
+      mv.visitEnd()
+    }
+
+    // protected void loggingExtraProblems() { onExtraProblems.accept(this, this.extraProblems); super.loggingExtraProblems(); }
+    locally {
+      val mv = cw.visitMethod(Opcodes.ACC_PROTECTED, "loggingExtraProblems", "()V", null, null)
+      mv.visitCode()
+      mv.visitVarInsn(Opcodes.ALOAD, 0)
+      mv.visitFieldInsn(Opcodes.GETFIELD, ReportingMainClassName, "onExtraProblems", BiConsumerDesc)
+      mv.visitVarInsn(Opcodes.ALOAD, 0)
+      mv.visitVarInsn(Opcodes.ALOAD, 0)
+      mv.visitFieldInsn(Opcodes.GETFIELD, EcjMainClassName, "extraProblems", "Ljava/util/ArrayList;")
+      mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/function/BiConsumer", "accept", "(Ljava/lang/Object;Ljava/lang/Object;)V", true)
+      mv.visitVarInsn(Opcodes.ALOAD, 0)
+      mv.visitMethodInsn(Opcodes.INVOKESPECIAL, EcjMainClassName, "loggingExtraProblems", "()V", false)
+      mv.visitInsn(Opcodes.RETURN)
+      mv.visitMaxs(0, 0)
+      mv.visitEnd()
+    }
+
+    cw.visitEnd()
+    cw.toByteArray
+  }
 
   /** Generate bytecode for a CompilationProgress subclass that bridges to AtomicInteger/AtomicBoolean.
     *
