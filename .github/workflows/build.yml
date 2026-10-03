@@ -243,6 +243,14 @@ jobs:
           # published under, and what a bleep.yaml would have had to name to ask for one.
           fetch-depth: 0
 
+      # native-image has MSVC compile query code that #includes headers from the GraalVM distribution, and cl.exe cannot open a path of 260 characters
+      # or more. Under coursier's default archive cache (C:\Users\runneradmin\AppData\Local\Coursier\Cache\arc\https\github.com\graalvm\...), the
+      # deepest of those headers is exactly 260 for GraalVM 25.0.2 — 25.0.1 fit at 259. A short archive cache takes ~40 characters off every one of them.
+      - name: Short coursier archive cache (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        shell: bash
+        run: echo "COURSIER_ARCHIVE_CACHE=${{ runner.temp }}\\arc" >> "$GITHUB_ENV"
+
       # ARM64 Linux needs JDK 21+ for UnixDomainSocketAddress in BSP server
       - uses: actions/setup-java@v6
         if: ${{ matrix.bootstrap_coursier }}
