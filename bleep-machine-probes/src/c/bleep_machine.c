@@ -47,7 +47,7 @@ JNIEXPORT jlong JNICALL Java_bleep_machine_MachineNative_macHostPort(JNIEnv *env
  *   3 wire_count                     vm_stat's "Pages wired down"
  *   4 compressor_page_count          vm_stat's "Pages occupied by compressor"
  *   5 kern.memorystatus_vm_pressure_level (1 normal, 2 warning, 4 critical)
- *   6 purgeable_count                vm_stat's "Pages purgeable" (part of internal; reported, not used for usedMb)
+ *   6 purgeable_count                vm_stat's "Pages purgeable" (part of internal, subtracted from it for usedMb)
  */
 JNIEXPORT jint JNICALL Java_bleep_machine_MachineNative_macSample(JNIEnv *env, jobject self, jlong hostPort, jlongArray out) {
     (void)self;

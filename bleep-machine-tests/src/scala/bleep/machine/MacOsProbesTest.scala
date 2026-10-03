@@ -22,13 +22,14 @@ class MacOsProbesTest extends AnyFunSuite with Matchers {
     out
   }
 
-  test("used memory is vm_stat's anonymous + wired + occupied by compressor") {
+  test("used memory is vm_stat's anonymous - purgeable + wired + occupied by compressor") {
     assume(onMac)
     val before = probes.sample()
     val stats = bleep.MachineMemory.MacOs.parse(run("/usr/bin/vm_stat"))
     val after = probes.sample()
     val pageSize = stats("page size")
-    val vmStatUsedMb = (stats("Anonymous pages") + stats("Pages wired down") + stats("Pages occupied by compressor")) * pageSize / (1024 * 1024)
+    val vmStatUsedMb =
+      (stats("Anonymous pages") - stats("Pages purgeable") + stats("Pages wired down") + stats("Pages occupied by compressor")) * pageSize / (1024 * 1024)
     // Memory moves between the readings; allow it to have moved by up to 512 MB in either direction.
     vmStatUsedMb should be >= (math.min(before.usedMb, after.usedMb) - 512)
     vmStatUsedMb should be <= (math.max(before.usedMb, after.usedMb) + 512)

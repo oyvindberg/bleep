@@ -2,10 +2,14 @@ package bleep.machine
 
 /** The macOS probes, through the JNI library (`bleep_machine.c`). Apple silicon only.
   *
-  * '''Used memory''' is what `vm_stat` calls anonymous + wired + occupied by compressor, read from `host_statistics64` (`internal_page_count`, `wire_count`,
-  * `compressor_page_count`) times the kernel page size. That is the memory nobody gets back without paying for it: anonymous pages can only go to the
-  * compressor or swap, wired pages cannot move, and the compressor's own pages are the anonymous memory already squeezed out — leaving them out is what made
-  * the old budget believe a machine with 7 GB in the compressor was nearly empty. File-backed pages are not counted; the kernel drops them for free.
+  * '''Used memory''' is what `vm_stat` calls anonymous − purgeable + wired + occupied by compressor, read from `host_statistics64` (`internal_page_count −
+  * purgeable_count + wire_count + compressor_page_count`) times the kernel page size. That is the memory nobody gets back without paying for it: anonymous
+  * pages can only go to the compressor or swap, wired pages cannot move, and the compressor's own pages are the anonymous memory already squeezed out — leaving
+  * them out is what made the old budget believe a machine with 7 GB in the compressor was nearly empty.
+  *
+  * Purgeable pages are anonymous but not a cost: an app marks them as a discardable cache (`VM_PURGABLE`, `NSPurgeableData`), and under pressure the kernel
+  * simply drops them, with no compression and no swap. Activity Monitor subtracts them for "App Memory" for the same reason. File-backed pages are not counted
+  * either; the kernel drops them for free.
   *
   * '''Pressure''' is `kern.memorystatus_vm_pressure_level`, the kernel's own verdict (what Activity Monitor's pressure graph shows).
   *
@@ -48,7 +52,7 @@ object MacOsProbes {
     val pageSize = out(1)
     MachineSample(
       physicalMb = out(0) / MB,
-      usedMb = (out(2) + out(3) + out(4)) * pageSize / MB,
+      usedMb = (out(2) - out(6) + out(3) + out(4)) * pageSize / MB,
       pressure = RawPressure.MacOs(out(5).toInt)
     )
   }
