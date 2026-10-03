@@ -149,6 +149,12 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("without a pressure signal the decision is exactly the decision under Normal: the brake is off, nothing else changes") {
+    forAll(Runs, Seed + 15) { in =>
+      run(in.copy(view = in.view.copy(pressure = Pressure.NoSignal("no PSI")))) shouldBe run(in.copy(view = in.view.copy(pressure = Pressure.Normal)))
+    }
+  }
+
   test("Critical pressure evicts every idle fork that no guarantee reuses") {
     forAll(Runs, Seed + 8) { in =>
       val critical = in.copy(view = in.view.copy(pressure = Pressure.Critical))

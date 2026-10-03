@@ -62,6 +62,14 @@ class PressureTest extends AnyFunSuite with Matchers {
     an[IllegalArgumentException] should be thrownBy Pressure.normalise(RawPressure.Windows(50, -1, 10, lowMemory = false), t)
   }
 
+  test("a platform without a pressure source normalises to NoSignal with its reason, and only Elevated and Critical withhold new forks") {
+    Pressure.normalise(RawPressure.Unavailable("kernel without PSI"), t) shouldBe Pressure.NoSignal("kernel without PSI")
+    Pressure.withholdsNewForks(Pressure.NoSignal("kernel without PSI")) shouldBe false
+    Pressure.withholdsNewForks(Pressure.Normal) shouldBe false
+    Pressure.withholdsNewForks(Pressure.Elevated) shouldBe true
+    Pressure.withholdsNewForks(Pressure.Critical) shouldBe true
+  }
+
   test("thresholds that are not percentages or fractions are rejected on construction") {
     an[IllegalArgumentException] should be thrownBy PressureThresholds(101.0, 90, 0.9)
     an[IllegalArgumentException] should be thrownBy PressureThresholds(10.0, 101, 0.9)

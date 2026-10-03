@@ -149,7 +149,7 @@ object Decide {
     // Pressure withholds new forks beyond guarantees, never the use of a fork that already exists: its memory is spent whether or not it works, and rule 2/3
     // has already decided which idle forks go (an evicted one is not available here). Under Critical every available idle fork was just evicted, so what
     // remains reusable is a busy shared fork of the request's own.
-    val spawnsAllowed = view.pressure == Pressure.Normal
+    val spawnsAllowed = !Pressure.withholdsNewForks(view.pressure)
     remaining.foreach {
       case d: InHeap =>
         if (cpuInUse + d.cpu <= params.parallelism) {

@@ -21,7 +21,7 @@ object DecideGen {
 
   def pick[A](r: Random, xs: List[A]): A = xs(r.nextInt(xs.length))
 
-  def pressure(r: Random): Pressure = pick(r, List(Pressure.Normal, Pressure.Normal, Pressure.Elevated, Pressure.Critical))
+  def pressure(r: Random): Pressure = pick(r, List(Pressure.Normal, Pressure.Normal, Pressure.Elevated, Pressure.Critical, Pressure.NoSignal("no PSI")))
 
   def lock(r: Random): LockState =
     pick(r, List(LockState.Held, LockState.Held, LockState.Unavailable(LockHolder.Announced(1L, 0L, 1500L)), LockState.NotNeeded))

@@ -164,6 +164,20 @@ class TickerTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("a platform without a pressure source is reported once, and scheduling goes on without the brake") {
+    withWorld { w =>
+      w.machineProbe.current.set(MachineSample(16_384L, 15_000L, RawPressure.Unavailable("kernel without PSI")))
+      val t = ticker(w)
+      t(Event.RegisterRequest(r1, RequestKind.Test))
+      t(Event.SubmitReady(r1, List(forkDemand(r1, "t1", 1000L, shared = false)), Map(k -> 1)))
+      t.tick()
+      t.tick()
+      t.tick()
+      w.effects.all.collect { case e: Effect.PressureSignalMissing => e } shouldBe List(Effect.PressureSignalMissing("kernel without PSI"))
+      w.effects.all.collect { case e: Effect.Spawn => e.demand.taskId.value } shouldBe List("t1")
+    }
+  }
+
   test("state.json is rewritten only when this server's entry changes") {
     withWorld { w =>
       val t = ticker(w)

@@ -45,4 +45,7 @@ trait SchedulerEffects {
 
   /** The tick wanted the lock and did not get it within the deadline. For the log, metrics and `top` (design §8 point 5). */
   def lockUnavailable(holder: LockHolder): Unit
+
+  /** The platform reports no memory pressure, so the pressure brake is off (design §9.1). Once per server, on the first tick that sees it: a loud warning. */
+  def pressureSignalMissing(reason: String): Unit
 }

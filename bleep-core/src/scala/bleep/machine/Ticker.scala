@@ -21,6 +21,7 @@ final class Ticker(deps: Ticker.Deps) {
   private var unstartedByRequest: Map[RequestId, Map[ForkKey, Int]] = Map.empty
   private var lastPublished: Option[StateJson] = None
   private var liveServersSeen: Int = 1
+  private var pressureSignalWarned: Boolean = false
 
   /** This server's view of itself, for tests and `top`. */
   def current: MyState = state
@@ -79,7 +80,7 @@ final class Ticker(deps: Ticker.Deps) {
       state = measure(state.copy(heap = deps.heapUsage()), now)
       val params = deps.params()
 
-      val (decision, lockState) =
+      val (decision, lockState, machine) =
         if (claimsPossible(state))
           deps.lock.locked(deps.lockWaitMs) { (lockState, timer) =>
             val sample = timer.step("probe")(deps.machineProbe.sample())
@@ -88,15 +89,16 @@ final class Ticker(deps: Ticker.Deps) {
               case LockState.Unavailable(_) | LockState.NotNeeded => Nil
             }
             if (lockState == LockState.Held) liveServersSeen = others.size + 1
-            val decision = timer.step("decide")(Decide.decide(view(sample, now), others, state, lockState, params, deps.heapGate, deps.identity))
+            val machine = view(sample, now)
+            val decision = timer.step("decide")(Decide.decide(machine, others, state, lockState, params, deps.heapGate, deps.identity))
             timer.step("write")(publishIfChanged(decision.publish))
-            (decision, lockState)
+            (decision, lockState, machine)
           }
         else {
-          val sample = deps.machineProbe.sample()
-          val decision = Decide.decide(view(sample, now), Nil, state, LockState.NotNeeded, params, deps.heapGate, deps.identity)
+          val machine = view(deps.machineProbe.sample(), now)
+          val decision = Decide.decide(machine, Nil, state, LockState.NotNeeded, params, deps.heapGate, deps.identity)
           publishIfChanged(decision.publish)
-          (decision, LockState.NotNeeded)
+          (decision, LockState.NotNeeded, machine)
         }
 
       state = decision.next
@@ -110,6 +112,12 @@ final class Ticker(deps: Ticker.Deps) {
       lockState match {
         case LockState.Unavailable(holder)        => deps.effects.lockUnavailable(holder)
         case LockState.Held | LockState.NotNeeded => ()
+      }
+      machine.pressure match {
+        case Pressure.NoSignal(reason) if !pressureSignalWarned =>
+          pressureSignalWarned = true
+          deps.effects.pressureSignalMissing(reason)
+        case _ => ()
       }
     }
 

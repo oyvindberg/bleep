@@ -16,11 +16,25 @@ object Pressure {
   /** The OS is stalling on memory. Additionally evict every idle fork. */
   case object Critical extends Pressure
 
+  /** The platform has no pressure source (`RawPressure.Unavailable`): the brake is off, nothing else changes (design §9.1). A case of [[Pressure]] rather than
+    * a separate flag, so that every match on the pressure is forced to say what it does without a signal, and no flag can disagree with a level. `reason` is
+    * for the one-time startup warning and for `top`.
+    */
+  case class NoSignal(reason: String) extends Pressure
+
+  /** Whether the brake is on at all: `Elevated` and `Critical` withhold new forks beyond guarantees. */
+  def withholdsNewForks(p: Pressure): Boolean = p match {
+    case Normal | NoSignal(_) => false
+    case Elevated | Critical  => true
+  }
+
   /** Maps a platform's raw pressure reading to [[Pressure]]. A reading outside what the platform documents throws: a scheduler guessing at an unknown level is
     * how the machine gets overcommitted.
     */
   def normalise(raw: RawPressure, thresholds: PressureThresholds): Pressure =
     raw match {
+      case RawPressure.Unavailable(reason) => NoSignal(reason)
+
       case RawPressure.MacOs(level) =>
         // `kern.memorystatus_vm_pressure_level`: 1 normal, 2 warning, 4 critical. No thresholds — the kernel has already judged.
         level match {
