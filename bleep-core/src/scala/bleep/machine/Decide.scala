@@ -7,34 +7,33 @@ import bleep.machine.Decision.{AdmitInHeap, Evict, EvictReason, HeapDeferred, Re
   */
 object Decide {
 
-  /** @param view
-    *   the machine, probed under the lock when one is held
-    * @param others
-    *   every other live server's published state; empty on a tick that took no lock (nothing to claim, so nothing to count against)
+  /** @param machine
+    *   the machine-wide inputs — probe, other servers, lock — or [[Machine.Unconstrained]], which has none of them
     * @param me
     *   this server
-    * @param lock
-    *   whether this tick may claim new memory
     * @param heapGate
     *   the compile heap gate's policy
     */
-  def decide(
-      view: MachineView,
-      others: List[StateJson],
-      me: MyState,
-      lock: LockState,
-      params: Params,
-      heapGate: HeapGate,
-      identity: ServerIdentity
-  ): Decision = {
-    val now = view.nowMs
+  def decide(machine: Machine, me: MyState, params: Params, heapGate: HeapGate, identity: ServerIdentity): Decision = {
+    val now = machine.nowMs
     val registered = me.requests.map(_.id).toSet
     me.ready.foreach(d => require(registered.contains(d.request), s"ready demand ${d.taskId.value} belongs to unregistered request ${d.request.value}"))
     require(me.ready.map(d => (d.request, d.taskId)).distinct.size == me.ready.size, "ready demands must be unique per request and task")
 
-    // ---- rule 1: room. Every fork still charged at its bound, on every server, is spent; the measured ones are in usedMb already.
-    val ceiling = view.physicalMb - params.headroomMb
-    var room: Long = ceiling - view.usedMb - others.map(_.startingBoundMb).sum - me.forks.collect { case f if f.state == ForkState.Starting => f.boundMb }.sum
+    // ---- rule 1: room. Every fork still charged at its bound, on every server, is spent; the measured ones are in usedMb already. Unconstrained has no
+    // room to run out of, no pressure to brake on and no lock to hold: the three machine-wide clauses below are simply absent.
+    val (roomLimited, critical, spawnsAllowed, lockHeld) = machine match {
+      case Machine.Cooperative(view, _, lock) =>
+        (true, view.pressure == Pressure.Critical, !Pressure.withholdsNewForks(view.pressure), lock == LockState.Held)
+      case Machine.Unconstrained(_) => (false, false, true, true)
+    }
+    var room: Long = machine match {
+      case Machine.Cooperative(view, others, _) =>
+        view.physicalMb - params.headroomMb - view.usedMb - others.map(_.startingBoundMb).sum - me.forks.collect {
+          case f if f.state == ForkState.Starting => f.boundMb
+        }.sum
+      case Machine.Unconstrained(_) => 0L // never consulted
+    }
 
     // ---- the working set this tick admits into. Local mutation only; the function is pure from outside.
     var forks: List[RunningFork] = me.forks
@@ -121,7 +120,7 @@ object Decide {
       evicted = evicted :+ Evict(fork.id, reason)
     }
     forks.filter(_.available).foreach { f =>
-      if (view.pressure == Pressure.Critical) evict(f, EvictReason.CriticalPressure)
+      if (critical) evict(f, EvictReason.CriticalPressure)
       else if (me.unstartedSuitesByKey.getOrElse(f.key, 0) <= 0) evict(f, EvictReason.NothingToReuseIt)
     }
 
@@ -149,7 +148,6 @@ object Decide {
     // Pressure withholds new forks beyond guarantees, never the use of a fork that already exists: its memory is spent whether or not it works, and rule 2/3
     // has already decided which idle forks go (an evicted one is not available here). Under Critical every available idle fork was just evicted, so what
     // remains reusable is a busy shared fork of the request's own.
-    val spawnsAllowed = !Pressure.withholdsNewForks(view.pressure)
     remaining.foreach {
       case d: InHeap =>
         if (cpuInUse + d.cpu <= params.parallelism) {
@@ -172,8 +170,8 @@ object Decide {
           idleForkFor(d).orElse(joinableFor(d)) match {
             case Some(fork) => takeReuse(d, fork, guaranteed = false)
             case None       =>
-              if (spawnsAllowed && lock == LockState.Held && spawnedThisTick < params.maxNewForksPerTick) {
-                if (d.boundMb > room) {
+              if (spawnsAllowed && lockHeld && spawnedThisTick < params.maxNewForksPerTick) {
+                if (roomLimited && d.boundMb > room) {
                   // Rule 3 under shortage: idle forks, oldest first, before anything new — but only as many as make this admission possible. Decision: when
                   // even all of them would not make it fit, none is evicted; the demand waits for room, and warm forks for keys still in use stay warm.
                   val idle = forks.filter(_.available).sortBy(_.startedAtMs)
@@ -182,7 +180,7 @@ object Decide {
                     idle.scanLeft((List.empty[RunningFork], 0L)) { case ((acc, freed), f) => (acc :+ f, freed + f.reclaimableMb) }.find(_._2 >= needed)
                   chosen.foreach { case (toEvict, _) => toEvict.foreach(f => evict(f, EvictReason.RoomShortage)) }
                 }
-                if (d.boundMb <= room) {
+                if (!roomLimited || d.boundMb <= room) {
                   takeSpawn(d, guaranteed = false)
                   spawnedThisTick += 1
                 }

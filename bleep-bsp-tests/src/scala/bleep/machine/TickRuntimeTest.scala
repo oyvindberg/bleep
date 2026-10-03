@@ -84,6 +84,19 @@ class TickRuntimeTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("an unconstrained runtime says so once at start, before anything is scheduled") {
+    withWorld { w =>
+      val runtime = new TickRuntime(
+        w.depsUnconstrained("no probe library for this platform", tickIntervalPerServerMs = 10L),
+        TypedLogger.DevNull,
+        t => fail(s"scheduler died: $t")
+      )
+      runtime.start()
+      try w.effects.all shouldBe List(Effect.SchedulingUnconstrained("no probe library for this platform"))
+      finally runtime.close()
+    }
+  }
+
   test("close stops the thread; calls after it are refused") {
     withWorld { w =>
       val runtime = new TickRuntime(w.deps(lockWaitMs = 100L, tickIntervalPerServerMs = 10L), TypedLogger.DevNull, t => fail(s"scheduler died: $t"))

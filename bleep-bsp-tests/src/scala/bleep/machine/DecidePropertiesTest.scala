@@ -10,7 +10,9 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
   private val Seed = 20261003L
 
   private def run(in: Inputs, gate: HeapGate = HeapGate.alwaysAdmit): Decision =
-    Decide.decide(in.view, in.others, in.me, in.lock, in.params, gate, identity)
+    Decide.decide(in.machine, in.me, in.params, gate, identity)
+
+  private def runUnconstrained(in: Inputs): Decision = Decide.decide(Machine.Unconstrained(in.view.nowMs), in.me, in.params, HeapGate.alwaysAdmit, identity)
 
   private def reclaimed(in: Inputs, d: Decision): Long =
     d.evict.map(e => in.me.forks.find(_.id == e.fork).get.reclaimableMb).sum
@@ -90,14 +92,14 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
       )
       var state = hostile.me
       (1 to n).foreach { tick =>
-        val d = Decide.decide(hostile.view, hostile.others, state, hostile.lock, hostile.params, HeapGate.alwaysAdmit, identity)
+        val d = Decide.decide(hostile.machine, state, hostile.params, HeapGate.alwaysAdmit, identity)
         d.spawn.map(s => (s.demand.request.value, s.guaranteed)) shouldBe List((s"q${tick - 1}", true))
         d.reuse shouldBe empty
         state = d.next
         state.forks.count(!_.idle) shouldBe tick
       }
       requests.foreach(r => state.forks.exists(f => f.owner == r.id && !f.idle) shouldBe true)
-      Decide.decide(hostile.view, hostile.others, state, hostile.lock, hostile.params, HeapGate.alwaysAdmit, identity).spawn shouldBe empty
+      Decide.decide(hostile.machine, state, hostile.params, HeapGate.alwaysAdmit, identity).spawn shouldBe empty
     }
   }
 
@@ -152,6 +154,48 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
   test("without a pressure signal the decision is exactly the decision under Normal: the brake is off, nothing else changes") {
     forAll(Runs, Seed + 15) { in =>
       run(in.copy(view = in.view.copy(pressure = Pressure.NoSignal("no PSI")))) shouldBe run(in.copy(view = in.view.copy(pressure = Pressure.Normal)))
+    }
+  }
+
+  test("unconstrained is cooperative with unlimited room, no pressure, a held lock and nobody else: nothing else is taken away") {
+    forAll(Runs, Seed + 16) { in =>
+      val boundless = in.copy(view = in.view.copy(physicalMb = Long.MaxValue / 4, usedMb = 0L, pressure = Pressure.Normal), others = Nil, lock = LockState.Held)
+      runUnconstrained(in) shouldBe run(boundless)
+    }
+  }
+
+  test("unconstrained keeps the local rules: spawns per tick bounded, cpu within parallelism beyond guarantees, warm reuse before spawn, no shortage eviction") {
+    forAll(Runs, Seed + 17) { in =>
+      val d = runUnconstrained(in)
+      d.spawn.size should be <= in.params.maxNewForksPerTick
+      val beyond = d.reuse.exists(!_.guaranteed) || d.spawn.exists(!_.guaranteed) || d.admitInHeap.exists(!_.guaranteed)
+      if (beyond) d.next.cpuInUse should be <= in.params.parallelism
+      d.evict.foreach(_.reason should not be Decision.EvictReason.RoomShortage)
+      val touched = d.reuse.map(_.fork).toSet ++ d.evict.map(_.fork).toSet
+      val unusedIdleKeys = in.me.forks.filter(f => f.available && !touched.contains(f.id)).map(_.key).toSet
+      d.spawn.foreach(s => unusedIdleKeys should not contain s.demand.key)
+      val wanting = wantingGuarantee(in).map(_.id).toSet
+      in.me.requests.foreach { r =>
+        val guaranteed = d.reuse.count(x => x.guaranteed && x.demand.request == r.id) + d.spawn.count(x => x.guaranteed && x.demand.request == r.id)
+        if (wanting.contains(r.id)) guaranteed should be <= 1 else guaranteed shouldBe 0
+      }
+    }
+  }
+
+  test("unconstrained: every request gets its guaranteed fork within as many ticks as there are requests ahead of it") {
+    forAll(Runs / 4, Seed + 18) { in =>
+      val n = 1 + new scala.util.Random(in.view.usedMb).nextInt(5)
+      val requests = (0 until n).toList.map(i => Request(RequestId(s"q$i"), RequestKind.Test, startedAtMs = 100L * i))
+      val ready =
+        requests.map(r => ForkDemand(r.id, TaskId(s"${r.id.value}-t"), ForkKind.TestSuite, ForkKey(s"key-${r.id.value}"), 1024L, cpu = 1, shared = false))
+      val params = in.params.copy(parallelism = 1, maxNewForksPerTick = 1)
+      var state = MyState.empty.copy(requests = requests, ready = ready, nextForkId = 1L)
+      (1 to n).foreach { tick =>
+        val d = Decide.decide(Machine.Unconstrained(in.view.nowMs), state, params, HeapGate.alwaysAdmit, identity)
+        d.spawn.map(s => (s.demand.request.value, s.guaranteed)) shouldBe List((s"q${tick - 1}", true))
+        state = d.next
+      }
+      requests.foreach(r => state.forks.exists(f => f.owner == r.id && !f.idle) shouldBe true)
     }
   }
 

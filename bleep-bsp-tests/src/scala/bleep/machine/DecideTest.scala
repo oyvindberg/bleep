@@ -51,7 +51,7 @@ class DecideTest extends AnyFunSuite with Matchers {
       gate: HeapGate = HeapGate.alwaysAdmit,
       p: Params = params
   ) =
-    Decide.decide(v, others, me, lock, p, gate, identity)
+    Decide.decide(Machine.Cooperative(v, others, lock), me, p, gate, identity)
 
   private def other(forks: StateFork*): StateJson =
     StateJson(

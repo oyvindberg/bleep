@@ -217,6 +217,31 @@ object LockHolder {
   }
 }
 
+/** The machine-wide half of a decision's inputs — or its absence. Design §9.1: `unconstrained` runs the same tick and `decide` without the machine-wide parts,
+  * so those parts are one input that is either there or not, rather than three parameters a mode flag would have `decide` half-ignore. With
+  * [[Machine.Unconstrained]] there is no room, no pressure brake and no lock to wait for; parallelism, the heap gate, warm reuse, idle eviction, one spawn per
+  * tick and the guarantee are all that remain.
+  */
+sealed trait Machine {
+  def nowMs: Long
+}
+
+object Machine {
+
+  /** @param view
+    *   the machine, probed under the lock when one is held
+    * @param others
+    *   every other live server's published state; empty on a tick that took no lock (nothing to claim, so nothing to count against)
+    * @param lock
+    *   whether this tick may claim new memory
+    */
+  case class Cooperative(view: MachineView, others: List[StateJson], lock: LockState) extends Machine {
+    def nowMs: Long = view.nowMs
+  }
+
+  case class Unconstrained(nowMs: Long) extends Machine
+}
+
 /** The scheduler's tunables.
   *
   * @param headroomMb

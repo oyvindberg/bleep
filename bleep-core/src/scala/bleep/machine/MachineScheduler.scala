@@ -48,4 +48,9 @@ trait SchedulerEffects {
 
   /** The platform reports no memory pressure, so the pressure brake is off (design §9.1). Once per server, on the first tick that sees it: a loud warning. */
   def pressureSignalMissing(reason: String): Unit
+
+  /** This server schedules unconstrained (design §9.1): no machine-wide coordination at all. Once, at start — the user asked for it, or the probes cannot run
+    * on this OS/architecture, in which case this is the loud warning.
+    */
+  def schedulingUnconstrained(reason: String): Unit
 }

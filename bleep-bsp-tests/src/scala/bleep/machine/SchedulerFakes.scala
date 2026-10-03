@@ -49,6 +49,7 @@ object SchedulerFakes {
     case class HeapDeferred(demand: InHeap, delayMs: Long, firstDeferredAtMs: Long) extends Effect
     case class LockUnavailable(holder: LockHolder) extends Effect
     case class PressureSignalMissing(reason: String) extends Effect
+    case class SchedulingUnconstrained(reason: String) extends Effect
   }
 
   final class RecordingEffects extends SchedulerEffects {
@@ -63,6 +64,7 @@ object SchedulerFakes {
       recorded.add(Effect.HeapDeferred(demand, delayMs, firstDeferredAtMs)): Unit
     override def lockUnavailable(holder: LockHolder): Unit = recorded.add(Effect.LockUnavailable(holder)): Unit
     override def pressureSignalMissing(reason: String): Unit = recorded.add(Effect.PressureSignalMissing(reason)): Unit
+    override def schedulingUnconstrained(reason: String): Unit = recorded.add(Effect.SchedulingUnconstrained(reason)): Unit
   }
 
   /** A whole fake world in a temp directory: `socket/<own>` for this server, `socket/` for discovery. */
@@ -80,20 +82,32 @@ object SchedulerFakes {
     /** Not this JVM, so that a state file written by this JVM's pid counts as another live server. */
     val identity: ServerIdentity = ServerIdentity(pid = 1L, startedAtEpochMs = 1L, bleepVersion = "test")
 
-    def deps(lockWaitMs: Long, tickIntervalPerServerMs: Long): Ticker.Deps = Ticker.Deps(
-      machineProbe = machineProbe,
-      forkProbe = forkProbe,
-      thresholds = PressureThresholds.provisional,
-      lock = lock,
-      ownSocketDir = ownSocketDir,
-      discovery = new ServerDiscovery(bspSocketDir, identity, () => clock.get(), listingTtlMs = 1000L),
+    def deps(lockWaitMs: Long, tickIntervalPerServerMs: Long): Ticker.Deps =
+      withMode(
+        Ticker.SchedulingMode.Cooperative(
+          machineProbe = machineProbe,
+          forkProbe = forkProbe,
+          thresholds = PressureThresholds.provisional,
+          lock = lock,
+          lockWaitMs = lockWaitMs,
+          ownSocketDir = ownSocketDir,
+          discovery = new ServerDiscovery(bspSocketDir, identity, () => clock.get(), listingTtlMs = 1000L)
+        ),
+        tickIntervalPerServerMs
+      )
+
+    /** Unconstrained: the fakes for probes, lock and files still exist here, so a test can assert they were never touched. */
+    def depsUnconstrained(reason: String, tickIntervalPerServerMs: Long): Ticker.Deps =
+      withMode(Ticker.SchedulingMode.Unconstrained(reason), tickIntervalPerServerMs)
+
+    private def withMode(mode: Ticker.SchedulingMode, tickIntervalPerServerMs: Long): Ticker.Deps = Ticker.Deps(
+      mode = mode,
       identity = identity,
       params = () => params.get(),
       heapGate = HeapGate.alwaysAdmit,
       heapUsage = () => heap.get(),
       clock = () => clock.get(),
       effects = effects,
-      lockWaitMs = lockWaitMs,
       tickIntervalPerServerMs = tickIntervalPerServerMs
     )
 

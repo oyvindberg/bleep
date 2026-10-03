@@ -77,29 +77,36 @@ final class Ticker(deps: Ticker.Deps) {
   def tick(): Unit =
     if (!idle) {
       val now = deps.clock()
-      state = measure(state.copy(heap = deps.heapUsage()), now)
+      state = state.copy(heap = deps.heapUsage())
       val params = deps.params()
 
-      val (decision, lockState, machine) =
-        if (claimsPossible(state))
-          deps.lock.locked(deps.lockWaitMs) { (lockState, timer) =>
-            val sample = timer.step("probe")(deps.machineProbe.sample())
-            val others = lockState match {
-              case LockState.Held                                 => timer.step("read")(deps.discovery.others())
-              case LockState.Unavailable(_) | LockState.NotNeeded => Nil
+      val (decision, lockState, pressure) = deps.mode match {
+        case SchedulingMode.Unconstrained(_) =>
+          // Nothing machine-wide exists in this mode (design §9.1): no probe, no lock, no file, by construction — the mode carries none of them.
+          (Decide.decide(Machine.Unconstrained(now), state, params, deps.heapGate, deps.identity), LockState.NotNeeded, Option.empty[Pressure])
+
+        case coop: SchedulingMode.Cooperative =>
+          state = measure(coop.forkProbe, state, now)
+          if (claimsPossible(state))
+            coop.lock.locked(coop.lockWaitMs) { (lockState, timer) =>
+              val sample = timer.step("probe")(coop.machineProbe.sample())
+              val others = lockState match {
+                case LockState.Held                                 => timer.step("read")(coop.discovery.others())
+                case LockState.Unavailable(_) | LockState.NotNeeded => Nil
+              }
+              if (lockState == LockState.Held) liveServersSeen = others.size + 1
+              val view = machineView(coop, sample, now)
+              val decision = timer.step("decide")(Decide.decide(Machine.Cooperative(view, others, lockState), state, params, deps.heapGate, deps.identity))
+              timer.step("write")(publishIfChanged(coop.ownSocketDir, decision.publish))
+              (decision, lockState, Some(view.pressure))
             }
-            if (lockState == LockState.Held) liveServersSeen = others.size + 1
-            val machine = view(sample, now)
-            val decision = timer.step("decide")(Decide.decide(machine, others, state, lockState, params, deps.heapGate, deps.identity))
-            timer.step("write")(publishIfChanged(decision.publish))
-            (decision, lockState, machine)
+          else {
+            val view = machineView(coop, coop.machineProbe.sample(), now)
+            val decision = Decide.decide(Machine.Cooperative(view, Nil, LockState.NotNeeded), state, params, deps.heapGate, deps.identity)
+            publishIfChanged(coop.ownSocketDir, decision.publish)
+            (decision, LockState.NotNeeded, Some(view.pressure))
           }
-        else {
-          val machine = view(deps.machineProbe.sample(), now)
-          val decision = Decide.decide(machine, Nil, state, LockState.NotNeeded, params, deps.heapGate, deps.identity)
-          publishIfChanged(decision.publish)
-          (decision, LockState.NotNeeded, machine)
-        }
+      }
 
       state = decision.next
 
@@ -113,22 +120,22 @@ final class Ticker(deps: Ticker.Deps) {
         case LockState.Unavailable(holder)        => deps.effects.lockUnavailable(holder)
         case LockState.Held | LockState.NotNeeded => ()
       }
-      machine.pressure match {
-        case Pressure.NoSignal(reason) if !pressureSignalWarned =>
+      pressure match {
+        case Some(Pressure.NoSignal(reason)) if !pressureSignalWarned =>
           pressureSignalWarned = true
           deps.effects.pressureSignalMissing(reason)
         case _ => ()
       }
     }
 
-  private def view(sample: MachineSample, now: Long): MachineView =
-    MachineView(physicalMb = sample.physicalMb, usedMb = sample.usedMb, pressure = Pressure.normalise(sample.pressure, deps.thresholds), nowMs = now)
+  private def machineView(coop: SchedulingMode.Cooperative, sample: MachineSample, now: Long): MachineView =
+    MachineView(physicalMb = sample.physicalMb, usedMb = sample.usedMb, pressure = Pressure.normalise(sample.pressure, coop.thresholds), nowMs = now)
 
   /** The file is rewritten only when this server's entry changed (design §7); `updatedAtEpochMs` alone is not a change. */
-  private def publishIfChanged(publish: StateJson): Unit = {
+  private def publishIfChanged(ownSocketDir: Path, publish: StateJson): Unit = {
     val changed = lastPublished.forall(last => last.copy(updatedAtEpochMs = publish.updatedAtEpochMs) != publish)
     if (changed) {
-      StateFile.write(deps.ownSocketDir, publish)
+      StateFile.write(ownSocketDir, publish)
       lastPublished = Some(publish)
     }
   }
@@ -142,7 +149,7 @@ final class Ticker(deps: Ticker.Deps) {
   private def update(f: RunningFork): Unit =
     state = state.copy(forks = state.forks.map(x => if (x.id == f.id) f else x))
 
-  private def measure(s: MyState, now: Long): MyState =
+  private def measure(forkProbe: ForkProbe, s: MyState, now: Long): MyState =
     s.copy(forks = s.forks.map { f =>
       val due = f.state match {
         case ForkState.Starting          => now - f.startedAtMs >= MeasureAfterMs
@@ -150,7 +157,7 @@ final class Ticker(deps: Ticker.Deps) {
       }
       f.pid match {
         case Some(pid) if due =>
-          deps.forkProbe.footprintMb(pid) match {
+          forkProbe.footprintMb(pid) match {
             case Some(footprint) => f.copy(state = ForkState.Measured(footprint, now))
             case None            => f // exited between the decision to measure and the measurement; its exit event is on its way
           }
@@ -187,32 +194,53 @@ object Ticker {
     case class ForkExited(fork: ForkId) extends Event
   }
 
+  /** How this server takes part in machine-wide scheduling (design §9.1). The machine-wide dependencies — probes, lock, state files — live only in
+    * [[SchedulingMode.Cooperative]], so an unconstrained server cannot touch them: there is nothing to touch.
+    *
+    * Phase C selects it: `machineScheduling: cooperative | unconstrained` from the user config (not yet a `BleepConfig` field), and `Unconstrained` with a
+    * reason whenever the probe module (`Probes.forThisMachine`) has no probe for this OS/architecture — reported loudly through
+    * `SchedulerEffects.schedulingUnconstrained`. A missing pressure source alone does not change the mode (`Pressure.NoSignal`).
+    */
+  sealed trait SchedulingMode
+  object SchedulingMode {
+
+    /** @param ownSocketDir
+      *   where this server's `state.json` goes
+      * @param discovery
+      *   the other servers' `state.json`, over the socket-dir layout
+      */
+    case class Cooperative(
+        machineProbe: MachineProbe,
+        forkProbe: ForkProbe,
+        thresholds: PressureThresholds,
+        lock: MachineLock,
+        lockWaitMs: Long,
+        ownSocketDir: Path,
+        discovery: ServerDiscovery
+    ) extends SchedulingMode
+
+    /** @param reason
+      *   why: the user's config, or the OS/architecture the probes cannot run on
+      */
+    case class Unconstrained(reason: String) extends SchedulingMode
+  }
+
   /** Everything a tick reaches for. All of it is injectable: the runtime's tests use fake probes, a fake clock, a fake lock, temp directories and an in-memory
     * effect sink, and never spawn a process or touch the real cache dir.
     *
-    * @param ownSocketDir
-    *   where this server's `state.json` goes
-    * @param discovery
-    *   the other servers' `state.json`, over the socket-dir layout
     * @param params
     *   re-read every tick, so a `parallelism` change in the user config applies to the next decision
     * @param clock
     *   epoch milliseconds
     */
   case class Deps(
-      machineProbe: MachineProbe,
-      forkProbe: ForkProbe,
-      thresholds: PressureThresholds,
-      lock: MachineLock,
-      ownSocketDir: Path,
-      discovery: ServerDiscovery,
+      mode: SchedulingMode,
       identity: ServerIdentity,
       params: () => Params,
       heapGate: HeapGate,
       heapUsage: () => HeapUsage,
       clock: () => Long,
       effects: SchedulerEffects,
-      lockWaitMs: Long,
       tickIntervalPerServerMs: Long
   )
 }

@@ -30,7 +30,13 @@ final class TickRuntime(deps: Ticker.Deps, logger: Logger, onDeath: Throwable =>
   private val thread: Thread = new Thread(() => loop(), TickRuntime.ThreadName)
   thread.setDaemon(true)
 
-  def start(): Unit = thread.start()
+  def start(): Unit = {
+    deps.mode match {
+      case Ticker.SchedulingMode.Unconstrained(reason) => deps.effects.schedulingUnconstrained(reason)
+      case _: Ticker.SchedulingMode.Cooperative        => ()
+    }
+    thread.start()
+  }
 
   private def loop(): Unit =
     try

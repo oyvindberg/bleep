@@ -8,6 +8,7 @@ import scala.util.Random
 object DecideGen {
 
   case class Inputs(view: MachineView, others: List[StateJson], me: MyState, lock: LockState, params: Params) {
+    def machine: Machine = Machine.Cooperative(view, others, lock)
     def ceiling: Long = view.physicalMb - params.headroomMb
 
     /** Rule 1's room before this tick admits or evicts anything. */

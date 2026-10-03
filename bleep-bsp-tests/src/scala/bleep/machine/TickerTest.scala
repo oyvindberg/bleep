@@ -178,6 +178,40 @@ class TickerTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("unconstrained: no probe, no lock, no file, ever — and the guarantee, one spawn per tick, warm reuse and idle eviction still run") {
+    withWorld { w =>
+      val t = new Ticker(w.depsUnconstrained("test", tickIntervalPerServerMs = 10L))
+      t(Event.RegisterRequest(r1, RequestKind.Test))
+      t(Event.RegisterRequest(r2, RequestKind.Test))
+      t(Event.SubmitReady(r1, List(forkDemand(r1, "t1", 1000L, shared = false)), Map(k -> 2)))
+      t(Event.SubmitReady(r2, List(forkDemand(r2, "t2", 1000L, shared = false)), Map(k -> 1)))
+      t.tick()
+      w.effects.all.collect { case e: Effect.Spawn => e.demand.taskId.value } shouldBe List("t1") // one per tick, oldest first
+      t.tick()
+      w.effects.all.collect { case e: Effect.Spawn => e.demand.taskId.value } shouldBe List("t1", "t2")
+      t(Event.ForkSpawned(ForkId(1), 500L))
+      t(Event.ForkWorkFinished(ForkId(1), 1))
+      t(Event.SubmitReady(r1, List(forkDemand(r1, "t3", 1000L, shared = false)), Map(k -> 1)))
+      w.effects.clear()
+      t.tick()
+      w.effects.all.collect { case e: Effect.Reuse => (e.demand.taskId.value, e.fork.value) } shouldBe List(("t3", 1L))
+      t(Event.ForkWorkFinished(ForkId(1), 1))
+      t(Event.SubmitReady(r1, Nil, Map.empty))
+      w.effects.clear()
+      t.tick()
+      w.effects.all shouldBe Nil // r2 still has a suite to start on this key, so the fork stays warm
+      t(Event.SubmitReady(r2, Nil, Map.empty))
+      t.tick()
+      w.effects.all shouldBe List(Effect.Evict(ForkId(1), Decision.EvictReason.NothingToReuseIt))
+      // Nothing machine-wide was touched, by construction and in fact.
+      w.machineProbe.samples.get() shouldBe 0
+      w.forkProbe.calls.get() shouldBe 0
+      w.lock.calls.get() shouldBe 0
+      w.ownState shouldBe None
+      t.cadenceMs shouldBe 10L
+    }
+  }
+
   test("state.json is rewritten only when this server's entry changes") {
     withWorld { w =>
       val t = ticker(w)
