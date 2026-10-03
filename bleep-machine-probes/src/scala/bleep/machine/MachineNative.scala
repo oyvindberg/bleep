@@ -4,7 +4,7 @@ import java.io.IOException
 import java.nio.file.{Files, Path, StandardCopyOption}
 import java.security.MessageDigest
 
-/** The JNI entry points of `bleep-core/src/c/bleep_machine.c`, the probes' native half on macOS and Windows.
+/** The JNI entry points of `bleep-machine-probes/src/c/bleep_machine.c`, the probes' native half on macOS and Windows.
   *
   * JNI rather than the FFM API because the probes run on the build's own JVM, which may be JDK 17: FFM is final only from 22. JNI rather than forking `vm_stat`
   * or `footprint` because the scheduler asks up to every 10 ms.
@@ -31,7 +31,7 @@ object MachineNative {
   /** Must equal `BLEEP_MACHINE_ABI_VERSION` in the C source. */
   val AbiVersion: Int = 1
 
-  /** Where the library for `platform` lives on the classpath (inside the bleep-core jar), as `(directory, file name)`. */
+  /** Where the library for `platform` lives on the classpath (inside the bleep-machine-probes jar), as `(directory, file name)`. */
   def resourceFor(platform: ProbePlatform): (String, String) = platform match {
     case ProbePlatform.MacOsArm64 => ("bleep/machine/native/darwin-arm64", "libbleep-machine.dylib")
     case ProbePlatform.WindowsX64 => ("bleep/machine/native/windows-x86_64", "bleep-machine.dll")
@@ -50,8 +50,8 @@ object MachineNative {
     val in = classOf[MachineNative].getClassLoader.getResourceAsStream(resource)
     if (in == null)
       throw new IllegalStateException(
-        s"This bleep has no native memory probe for $platform: `$resource` is not on the classpath. A bleep built from source builds it in bleep-core's " +
-          "sourcegen step (bleep.scripts.BuildMachineNative), which needs a C compiler; a released bleep-core jar carries one for every supported platform."
+        s"This bleep has no native memory probe for $platform: `$resource` is not on the classpath. A bleep built from source builds it in bleep-machine-probes' " +
+          "sourcegen step (bleep.scripts.BuildMachineNative), which needs a C compiler; a released bleep-machine-probes jar carries one for every supported platform."
       )
     val bytes =
       try in.readAllBytes()
