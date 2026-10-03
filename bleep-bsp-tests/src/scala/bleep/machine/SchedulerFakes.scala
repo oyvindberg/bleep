@@ -47,7 +47,7 @@ object SchedulerFakes {
     case class StartInHeap(demand: InHeap, guaranteed: Boolean) extends Effect
     case class Evict(fork: ForkId, reason: Decision.EvictReason) extends Effect
     case class HeapDeferred(demand: InHeap, delayMs: Long, firstDeferredAtMs: Long) extends Effect
-    case class LockUnavailable(holder: String, heldForMs: Long) extends Effect
+    case class LockUnavailable(holder: LockHolder) extends Effect
   }
 
   final class RecordingEffects extends SchedulerEffects {
@@ -60,7 +60,7 @@ object SchedulerFakes {
     override def evict(fork: ForkId, reason: Decision.EvictReason): Unit = recorded.add(Effect.Evict(fork, reason)): Unit
     override def heapDeferred(demand: InHeap, delayMs: Long, firstDeferredAtMs: Long): Unit =
       recorded.add(Effect.HeapDeferred(demand, delayMs, firstDeferredAtMs)): Unit
-    override def lockUnavailable(holder: String, heldForMs: Long): Unit = recorded.add(Effect.LockUnavailable(holder, heldForMs)): Unit
+    override def lockUnavailable(holder: LockHolder): Unit = recorded.add(Effect.LockUnavailable(holder)): Unit
   }
 
   /** A whole fake world in a temp directory: `socket/<own>` for this server, `socket/` for discovery. */

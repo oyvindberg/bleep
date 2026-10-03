@@ -87,8 +87,8 @@ class MachineLockTest extends AnyFunSuite with Matchers {
         val state = l.locked(waitMs = 300L)((state, _) => state)
         val waitedMs = (System.nanoTime() - started) / 1_000_000L
         state match {
-          case LockState.Unavailable(who, heldForMs) =>
-            who shouldBe s"pid ${holder.pid}"
+          case LockState.Unavailable(LockHolder.Announced(pid, _, heldForMs)) =>
+            pid shouldBe holder.pid
             heldForMs should be >= 0L
           case other => fail(s"expected Unavailable, got $other")
         }
@@ -127,8 +127,8 @@ class MachineLockTest extends AnyFunSuite with Matchers {
         new ProcessBuilder("kill", "-STOP", holder.pid.toString).inheritIO().start().waitFor() shouldBe 0
         val state = l.locked(waitMs = 300L)((state, _) => state)
         state match {
-          case LockState.Unavailable(who, _) => who shouldBe s"pid ${holder.pid}"
-          case other                         => fail(s"expected Unavailable, got $other")
+          case LockState.Unavailable(LockHolder.Announced(pid, _, _)) => pid shouldBe holder.pid
+          case other                                                  => fail(s"expected Unavailable, got $other")
         }
       } finally {
         new ProcessBuilder("kill", "-CONT", holder.pid.toString).inheritIO().start().waitFor(): Unit
@@ -155,6 +155,26 @@ class MachineLockTest extends AnyFunSuite with Matchers {
         holder.process.waitFor() shouldBe 0
       } finally l.close()
     }
+  }
+
+  test("the announcement is blanked before release, in this process and in another") {
+    withTempDir { dir =>
+      val path = dir.resolve("machine.lock")
+      val l = lock(path)
+      try {
+        l.locked(waitMs = 100L)((_, _) => l.readAnnouncement().isDefined shouldBe true)
+        l.readAnnouncement() shouldBe None
+        val holder = startHolder(path, holdMs = 0L)
+        holder.process.waitFor() shouldBe 0
+        l.readAnnouncement() shouldBe None
+      } finally l.close()
+    }
+  }
+
+  test("a blank announcement is modelled as an unannounced holder, an announcement as who and for how long") {
+    MachineLock.holderFrom(None, nowMs = 5000L) shouldBe LockHolder.Unannounced
+    MachineLock.holderFrom(Some(MachineLock.Announcement(12L, 34L, acquiredAtEpochMs = 4000L)), nowMs = 5000L) shouldBe LockHolder.Announced(12L, 34L, 1000L)
+    MachineLock.holderFrom(Some(MachineLock.Announcement(12L, 34L, acquiredAtEpochMs = 6000L)), nowMs = 5000L) shouldBe LockHolder.Announced(12L, 34L, 0L)
   }
 
   test("an announcement that is not one is rejected") {

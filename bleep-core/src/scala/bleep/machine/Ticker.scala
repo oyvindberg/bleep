@@ -84,8 +84,8 @@ final class Ticker(deps: Ticker.Deps) {
           deps.lock.locked(deps.lockWaitMs) { (lockState, timer) =>
             val sample = timer.step("probe")(deps.machineProbe.sample())
             val others = lockState match {
-              case LockState.Held                                    => timer.step("read")(StateFile.discoverOthers(deps.bspSocketDir, deps.identity))
-              case LockState.Unavailable(_, _) | LockState.NotNeeded => Nil
+              case LockState.Held                                 => timer.step("read")(StateFile.discoverOthers(deps.bspSocketDir, deps.identity))
+              case LockState.Unavailable(_) | LockState.NotNeeded => Nil
             }
             if (lockState == LockState.Held) liveServersSeen = others.size + 1
             val decision = timer.step("decide")(Decide.decide(view(sample, now), others, state, lockState, params, deps.heapGate, deps.identity))
@@ -108,8 +108,8 @@ final class Ticker(deps: Ticker.Deps) {
       decision.admitInHeap.foreach(a => deps.effects.startInHeap(a.demand, a.guaranteed))
       decision.heapDeferred.foreach(h => deps.effects.heapDeferred(h.demand, h.delayMs, h.firstDeferredAtMs))
       lockState match {
-        case LockState.Unavailable(holder, heldForMs) => deps.effects.lockUnavailable(holder, heldForMs)
-        case LockState.Held | LockState.NotNeeded     => ()
+        case LockState.Unavailable(holder)        => deps.effects.lockUnavailable(holder)
+        case LockState.Held | LockState.NotNeeded => ()
       }
     }
 

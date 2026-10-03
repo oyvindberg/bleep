@@ -125,14 +125,14 @@ class TickerTest extends AnyFunSuite with Matchers {
   test("an unavailable lock still spawns the guarantee, reads nobody, and is reported") {
     withWorld { w =>
       w.otherServer("bbbb", forks = Nil)
-      w.lock.answer.set(LockState.Unavailable("pid 77", 1234L))
+      w.lock.answer.set(LockState.Unavailable(LockHolder.Announced(77L, 1L, 1234L)))
       val t = ticker(w)
       t(Event.RegisterRequest(r1, RequestKind.Test))
       t(Event.SubmitReady(r1, List(forkDemand(r1, "t1", 1000L, shared = false), forkDemand(r1, "t2", 1000L, shared = false)), Map(k -> 2)))
       t.tick()
       w.effects.all shouldBe List(
         Effect.Spawn(forkDemand(r1, "t1", 1000L, shared = false), ForkId(1), guaranteed = true),
-        Effect.LockUnavailable("pid 77", 1234L)
+        Effect.LockUnavailable(LockHolder.Announced(77L, 1L, 1234L))
       )
       t.cadenceMs shouldBe 10L // nobody was read
       w.ownState.get.forks.map(_.id) shouldBe List(1L) // published without the lock: more for the next holder to count, never less

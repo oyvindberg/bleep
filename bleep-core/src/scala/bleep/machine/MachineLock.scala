@@ -51,11 +51,19 @@ object MachineLock {
 
   def path(userPaths: bleep.UserPaths): Path = userPaths.cacheDir.resolve(FileName)
 
-  /** What a holder writes into the file: `pid:startedAt acquiredAt=T`. */
+  /** What a holder writes into the file: `pid:startedAt acquiredAt=T`. Blanked again just before release, so a waiter that reads it sees the current holder or
+    * nothing — never a previous holder's stale line.
+    */
   case class Announcement(pid: Long, startedAtEpochMs: Long, acquiredAtEpochMs: Long) {
     def render: String = s"$pid:$startedAtEpochMs acquiredAt=$acquiredAtEpochMs"
-    def holder: String = s"pid $pid"
   }
+
+  /** What a waiter concludes from the announcement it read after its deadline. */
+  def holderFrom(announcement: Option[Announcement], nowMs: Long): LockHolder =
+    announcement match {
+      case Some(a) => LockHolder.Announced(a.pid, a.startedAtEpochMs, heldForMs = math.max(0L, nowMs - a.acquiredAtEpochMs))
+      case None    => LockHolder.Unannounced
+    }
 
   object Announcement {
     private val Pattern = """(\d+):(\d+) acquiredAt=(\d+)""".r
@@ -102,7 +110,9 @@ final class FileMachineLock(path: Path, self: ServerIdentity, logger: Logger) ex
           announce(Announcement(self.pid, self.startedAtEpochMs, System.currentTimeMillis()))
           body(LockState.Held, timer)
         } finally {
-          held.release()
+          // Blank the announcement while still holding the lock, so nobody reads this holder's line after the lock is free.
+          try blank()
+          finally held.release()
           val heldMs = (System.nanoTime() - acquiredAtNanos) / 1_000_000L
           if (heldMs > LongHoldMs) logger.warn(s"machine.lock held for ${heldMs}ms (threshold ${LongHoldMs}ms): ${timer.describe}")
         }
@@ -111,14 +121,17 @@ final class FileMachineLock(path: Path, self: ServerIdentity, logger: Logger) ex
 
   /** Who holds it, as read from the announcement; read after the deadline, never under the lock. */
   private def unavailable(): LockState.Unavailable =
-    readAnnouncement() match {
-      case Some(a) => LockState.Unavailable(a.holder, heldForMs = math.max(0L, System.currentTimeMillis() - a.acquiredAtEpochMs))
-      case None    => LockState.Unavailable("unannounced holder", heldForMs = 0L)
-    }
+    LockState.Unavailable(holderFrom(readAnnouncement(), System.currentTimeMillis()))
 
   private def announce(a: Announcement): Unit = {
     val bytes = a.render.getBytes(StandardCharsets.UTF_8)
     require(bytes.length <= ContentBytes, s"announcement '${a.render}' exceeds $ContentBytes bytes")
+    writeContent(bytes)
+  }
+
+  private def blank(): Unit = writeContent(Array.empty[Byte])
+
+  private def writeContent(bytes: Array[Byte]): Unit = {
     val buffer = ByteBuffer.allocate(ContentBytes)
     buffer.put(bytes): Unit
     while (buffer.hasRemaining) buffer.put(' '.toByte): Unit

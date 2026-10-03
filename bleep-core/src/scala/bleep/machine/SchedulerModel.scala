@@ -188,12 +188,33 @@ object LockState {
   case object Held extends LockState
 
   /** The deadline passed with another server holding it. Guarantees, reuse and eviction still apply; nothing beyond them. */
-  case class Unavailable(holder: String, heldForMs: Long) extends LockState
+  case class Unavailable(holder: LockHolder) extends LockState
 
   /** This tick had nothing to claim and did not try (design §6.3). Decision: a third state rather than overloading `Unavailable`, so a tick that chose not to
     * lock is distinguishable in logs and metrics from one that was refused.
     */
   case object NotNeeded extends LockState
+}
+
+/** Who held `machine.lock` when a waiter gave up, as read from the announcement in the file (design §8 point 3). */
+sealed trait LockHolder {
+  def describe: String
+}
+
+object LockHolder {
+
+  /** The holder had written its announcement: a real, possibly stuck, holder. */
+  case class Announced(pid: Long, startedAtEpochMs: Long, heldForMs: Long) extends LockHolder {
+    def describe: String = s"pid $pid for ${heldForMs}ms"
+  }
+
+  /** The announcement was blank when the waiter looked. A holder blanks it just before releasing and writes it just after acquiring, so this is a holder in the
+    * act of letting go or of taking the lock — a transient, not a stuck process, and nothing to name. Modelled rather than defaulted so that a log line saying
+    * "unannounced" is a statement about the file, not a guess.
+    */
+  case object Unannounced extends LockHolder {
+    def describe: String = "an unannounced holder (just released, or not yet announced)"
+  }
 }
 
 /** The scheduler's tunables.

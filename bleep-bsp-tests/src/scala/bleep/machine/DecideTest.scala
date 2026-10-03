@@ -124,7 +124,7 @@ class DecideTest extends AnyFunSuite with Matchers {
 
   test("a guaranteed fork reuses an idle warm fork before anything is evicted, even under Critical pressure") {
     val me = blank.copy(requests = List(r1), forks = List(fork(1, r1)), ready = List(demand(r1, "t1")), unstartedSuitesByKey = Map(k -> 1))
-    val d = decide(me, view(usedMb = 9500L, pressure = Pressure.Critical), lock = LockState.Unavailable("pid 5:0", 3000L))
+    val d = decide(me, view(usedMb = 9500L, pressure = Pressure.Critical), lock = LockState.Unavailable(LockHolder.Announced(5L, 0L, 3000L)))
     d.reuse.map(x => (x.fork.value, x.guaranteed)) shouldBe List((1L, true))
     d.spawn shouldBe empty
     d.evict shouldBe empty

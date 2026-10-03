@@ -40,5 +40,5 @@ trait SchedulerEffects {
   def heapDeferred(demand: InHeap, delayMs: Long, firstDeferredAtMs: Long): Unit
 
   /** The tick wanted the lock and did not get it within the deadline. For the log, metrics and `top` (design §8 point 5). */
-  def lockUnavailable(holder: String, heldForMs: Long): Unit
+  def lockUnavailable(holder: LockHolder): Unit
 }

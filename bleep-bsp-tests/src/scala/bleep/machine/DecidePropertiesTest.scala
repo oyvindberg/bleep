@@ -44,7 +44,7 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
     forAll(Runs, Seed + 2) { in =>
       val hostile = in.copy(
         view = in.view.copy(usedMb = in.view.physicalMb + 1000L, pressure = Pressure.Elevated),
-        lock = LockState.Unavailable("pid 7:0", 2000L),
+        lock = LockState.Unavailable(LockHolder.Announced(7L, 0L, 2000L)),
         params = in.params.copy(parallelism = 1)
       )
       val d = run(hostile)
@@ -125,7 +125,7 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
 
   test("an unavailable lock allows guarantees, reuse and eviction, and no other spawn") {
     forAll(Runs, Seed + 9) { in =>
-      val d = run(in.copy(lock = LockState.Unavailable("pid 9:0", 1200L)))
+      val d = run(in.copy(lock = LockState.Unavailable(LockHolder.Unannounced)))
       d.spawn.foreach(_.guaranteed shouldBe true)
       // Beyond withholding spawns, it changes nothing: the tick decides exactly as one that had nothing to claim.
       d shouldBe run(in.copy(lock = LockState.NotNeeded))
@@ -135,7 +135,7 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
 
   test("compiles never depend on room or the lock") {
     def variants(in: Inputs): List[Inputs] = List(
-      in.copy(lock = LockState.Unavailable("pid 3:0", 5000L)),
+      in.copy(lock = LockState.Unavailable(LockHolder.Announced(3L, 0L, 5000L))),
       in.copy(lock = LockState.NotNeeded),
       in.copy(view = in.view.copy(usedMb = 0L), others = Nil),
       in.copy(view = in.view.copy(usedMb = in.view.physicalMb * 2))
