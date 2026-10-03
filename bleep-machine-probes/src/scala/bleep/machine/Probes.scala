@@ -19,11 +19,11 @@ object Probes {
       case ProbePlatform.Linux =>
         val proc = Path.of("/proc")
         Probes(new LinuxMachineProbe(proc, Path.of("/sys/fs/cgroup")), new LinuxForkProbe(proc))
-      case ProbePlatform.MacOsArm64 =>
-        val mac = new MacOsProbes(MachineNative.load(nativeLibDir, ProbePlatform.MacOsArm64))
+      case platform @ (ProbePlatform.MacOsArm64 | ProbePlatform.MacOsX64) =>
+        val mac = new MacOsProbes(MachineNative.load(nativeLibDir, platform))
         Probes(mac, mac)
-      case ProbePlatform.WindowsX64 =>
-        val windows = new WindowsProbes(MachineNative.load(nativeLibDir, ProbePlatform.WindowsX64))
+      case platform @ (ProbePlatform.WindowsX64 | ProbePlatform.WindowsArm64) =>
+        val windows = new WindowsProbes(MachineNative.load(nativeLibDir, platform))
         Probes(windows, windows)
     }
     checked(probes)
@@ -40,20 +40,34 @@ object Probes {
   }
 }
 
-/** The platforms bleep can measure. Intel macOS is deliberately absent: bleep no longer supports it. */
+/** The platforms bleep has probes for.
+  *
+  * [[MacOsX64]] and [[WindowsArm64]] are built but UNTESTED: their library is compiled (the x86_64 slice of the universal dylib, and a cross-compiled arm64
+  * DLL), but bleep supports neither platform and CI has no runner to run them on. Nothing has ever checked that they load or read sensible numbers.
+  */
 sealed trait ProbePlatform
 object ProbePlatform {
   case object Linux extends ProbePlatform
   case object MacOsArm64 extends ProbePlatform
   case object WindowsX64 extends ProbePlatform
 
+  /** Built, never run. See [[ProbePlatform]]. */
+  case object MacOsX64 extends ProbePlatform
+
+  /** Built, never run. See [[ProbePlatform]]. */
+  case object WindowsArm64 extends ProbePlatform
+
   def current(): ProbePlatform = from(System.getProperty("os.name"), System.getProperty("os.arch"))
 
   def from(osName: String, osArch: String): ProbePlatform = {
     val os = osName.toLowerCase(java.util.Locale.ROOT)
+    val x64 = osArch == "amd64" || osArch == "x86_64"
+    val arm64 = osArch == "aarch64"
     if (os.startsWith("linux")) Linux
-    else if (os.startsWith("mac") && osArch == "aarch64") MacOsArm64
-    else if (os.startsWith("windows") && (osArch == "amd64" || osArch == "x86_64")) WindowsX64
-    else throw new UnsupportedOperationException(s"bleep cannot measure memory on $osName/$osArch: supported are Linux, macOS on arm64 and Windows on x64")
+    else if (os.startsWith("mac") && arm64) MacOsArm64
+    else if (os.startsWith("mac") && x64) MacOsX64
+    else if (os.startsWith("windows") && x64) WindowsX64
+    else if (os.startsWith("windows") && arm64) WindowsArm64
+    else throw new UnsupportedOperationException(s"bleep cannot measure memory on $osName/$osArch: it has probes for Linux, macOS and Windows on x64 and arm64")
   }
 }
