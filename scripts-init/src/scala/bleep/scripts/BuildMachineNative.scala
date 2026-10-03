@@ -1,23 +1,29 @@
 package bleep
 package scripts
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path, StandardCopyOption}
+import java.security.MessageDigest
 import scala.jdk.CollectionConverters.*
 
-/** Builds the JNI library behind bleep's machine probes (`bleep-machine-probes/src/c/bleep_machine.c`) into bleep-machine-probes's resources, under
-  * `bleep/machine/native/<platform>/`, where `bleep.machine.MachineNative` finds it.
+/** Builds the JNI library behind bleep's machine probes (`bleep-machine-probes/src/c/bleep_machine.c`), or checks that the checked-in builds are of the current
+  * source. Run it as `bleep build-machine-native` after editing the C file.
   *
-  * A machine can only build its own OS's libraries, with the C compiler it has: `clang` on macOS (Xcode command line tools) builds one universal dylib for
-  * arm64 and x86_64; `clang` on Windows x64 (LLVM, which finds the MSVC libraries itself) builds the x64 DLL and cross-compiles the arm64 one. Linux needs no
-  * library, so there this builds nothing. That is enough for every developer: the bleep they build runs on the machine they built it on.
+  * The libraries are checked in, under `bleep-machine-probes/src/resources/bleep/machine/native/<platform>/`, so packaging bleep needs no C toolchain and no
+  * job waits for a native build. Next to each library, `<file>.source-sha256` records the SHA-256 of the C source it was built from.
   *
-  * Intel macOS and Windows on arm64 are built but untested: bleep does not support them and CI has no runner for them.
+  *   - no arguments: builds the libraries this machine can build, into the checked-in location, and records the source hash next to each. `clang` on macOS
+  *     (Xcode command line tools) builds one universal dylib for arm64 and x86_64; `clang` on Windows x64 (LLVM, which finds the MSVC libraries itself) builds
+  *     the x64 DLL and cross-compiles the arm64 one. Linux needs no library and builds nothing.
+  *   - `--check`: fails unless every library is checked in with a recorded hash equal to the current C source's. Needs no compiler; CI runs it.
   *
-  * A bleep-machine-probes jar that is published has to carry every platform's library, so CI builds each one on its own OS and hands them to the job that
-  * publishes, which puts them under `native-prebuilt/<platform>/` before compiling. This copies whatever is there for the platforms it cannot build itself.
-  * `native-prebuilt` is declared under bleep-machine-probes' `sourceGlobs`, so dropping a library there re-runs this script.
+  * A machine can only build its own OS's libraries, so after editing the C file a developer builds theirs, pushes, and commits the other OS's libraries from
+  * the artifact the `native-libs` CI job uploads — that job rebuilds every library, tests the probes against the fresh build on each OS, and fails while any
+  * recorded hash is stale.
+  *
+  * Intel macOS (the x86_64 slice) and Windows on arm64 are built but untested: bleep does not support them and CI has no runner for them.
   */
-object BuildMachineNative extends BleepCodegenScript("BuildMachineNative") {
+object BuildMachineNative extends BleepScript("BuildMachineNative") {
   case class NativeTarget(platform: String, fileName: String)
   val DarwinUniversal: NativeTarget = NativeTarget("darwin-universal", "libbleep-machine.dylib")
   val WindowsX64: NativeTarget = NativeTarget("windows-x86_64", "bleep-machine.dll")
@@ -32,35 +38,50 @@ object BuildMachineNative extends BleepCodegenScript("BuildMachineNative") {
     else Nil
   }
 
-  override def run(started: Started, commands: Commands, targets: List[Target], args: List[String]): Unit = {
-    val buildDir = started.buildPaths.buildDir
-    val source = buildDir.resolve("bleep-machine-probes/src/c/bleep_machine.c")
-    val prebuiltDir = buildDir.resolve("native-prebuilt")
-    val host = hostTargets(System.getProperty("os.name"), System.getProperty("os.arch"))
-    val logger = started.logger
+  /** SHA-256 of the C source, with line endings normalised so a Windows checkout with `core.autocrlf` hashes the same as everyone else's. */
+  def sourceHash(source: Path): String = {
+    val normalised = new String(Files.readAllBytes(source), StandardCharsets.UTF_8).replace("\r\n", "\n")
+    MessageDigest.getInstance("SHA-256").digest(normalised.getBytes(StandardCharsets.UTF_8)).map(b => f"${b & 0xff}%02x").mkString
+  }
 
-    targets.foreach { target =>
-      target.project.name.value match {
-        case "bleep-machine-probes" =>
-          val outDir = target.resources.resolve("bleep/machine/native")
-          if (host.isEmpty) logger.info(s"No machine-probe library to build on ${System.getProperty("os.name")}/${System.getProperty("os.arch")}")
-          host.foreach { t =>
-            if (Files.exists(prebuiltDir.resolve(t.platform)))
-              sys.error(s"${prebuiltDir.resolve(t.platform)} holds a prebuilt library for ${t.platform}, which this machine builds itself. Remove one of them.")
-            compile(t, source, outDir.resolve(t.platform).resolve(t.fileName), started)
+  def sidecar(lib: Path): Path = lib.resolveSibling(lib.getFileName.toString + ".source-sha256")
+
+  override def run(started: Started, commands: Commands, args: List[String]): Unit = {
+    val module = started.buildPaths.buildDir.resolve("bleep-machine-probes")
+    val source = module.resolve("src/c/bleep_machine.c")
+    val nativeDir = module.resolve("src/resources/bleep/machine/native")
+    val hash = sourceHash(source)
+    def lib(t: NativeTarget): Path = nativeDir.resolve(t.platform).resolve(t.fileName)
+
+    args match {
+      case List("--check") =>
+        val problems = All.flatMap { t =>
+          val l = lib(t)
+          if (!Files.isRegularFile(l)) List(s"$l is missing")
+          else if (!Files.isRegularFile(sidecar(l))) List(s"${sidecar(l)} is missing")
+          else {
+            val recorded = Files.readString(sidecar(l)).trim
+            if (recorded != hash) List(s"$l was built from source $recorded, but $source is now $hash") else Nil
           }
-          All.filterNot(host.contains).foreach { t =>
-            val prebuilt = prebuiltDir.resolve(t.platform).resolve(t.fileName)
-            if (Files.exists(prebuilt)) {
-              val to = outDir.resolve(t.platform).resolve(t.fileName)
-              Files.createDirectories(to.getParent)
-              Files.copy(prebuilt, to, StandardCopyOption.REPLACE_EXISTING)
-              logger.info(s"Using prebuilt $prebuilt")
-            }
-          }
-        case other =>
-          sys.error(s"BuildMachineNative builds bleep-machine-probes' native library; it has nothing for '$other'")
-      }
+        }
+        if (problems.nonEmpty)
+          sys.error(
+            (s"The checked-in machine-probe libraries are not built from the current $source:" :: problems).mkString("\n  ") +
+              "\nRebuild with `bleep build-machine-native` on macOS and Windows, or commit the `machine-probe-*` artifacts of the native-libs CI job."
+          )
+        started.logger.info(s"All ${All.size} machine-probe libraries are built from the current source ($hash)")
+
+      case Nil =>
+        val host = hostTargets(System.getProperty("os.name"), System.getProperty("os.arch"))
+        if (host.isEmpty) started.logger.info(s"No machine-probe library to build on ${System.getProperty("os.name")}/${System.getProperty("os.arch")}")
+        host.foreach { t =>
+          compile(t, source, lib(t), started)
+          Files.writeString(sidecar(lib(t)), hash + "\n")
+          started.logger.info(s"Built ${lib(t)} from source $hash")
+        }
+
+      case other =>
+        sys.error(s"usage: bleep build-machine-native [--check], got: ${other.mkString(" ")}")
     }
   }
 
@@ -75,8 +96,8 @@ object BuildMachineNative extends BleepCodegenScript("BuildMachineNative") {
     val out = scratch.resolve(t.fileName)
     val cmd: List[String] = t match {
       case DarwinUniversal =>
-        // One file for both architectures, so the loader needs no choice between them. A fixed install name: by default it is the output path, a random scratch directory, which would make every build a different file — and the loader
-        // unpacks the library under its content hash, so each rebuild would leave another copy in the user's cache directory.
+        // One file for both architectures, so the loader needs no choice between them. A fixed install name: by default it is the output path, a random
+        // scratch directory, which would make every build a different file.
         List("clang", "-arch", "arm64", "-arch", "x86_64", "-mmacosx-version-min=11.0", "-dynamiclib", "-install_name", "@rpath/libbleep-machine.dylib") ++
           List("-O2", "-Wall", "-Wextra", "-Werror") ++
           List("-I", include.toString, "-I", include.resolve("darwin").toString, "-o", out.toString, source.toString)
@@ -97,7 +118,7 @@ object BuildMachineNative extends BleepCodegenScript("BuildMachineNative") {
         case e: java.io.IOException =>
           throw new RuntimeException(
             s"Could not start `clang` to build bleep's machine-probe library for ${t.platform}. Install a C compiler (${
-                if (t == DarwinUniversal) "xcode-select --install" else "LLVM, with the Visual Studio C++ build tools"
+                if (t == DarwinUniversal) "xcode-select --install" else "LLVM, with the Visual Studio C++ build tools including ARM64"
               }).",
             e
           )
