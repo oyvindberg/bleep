@@ -36,3 +36,6 @@ dedup-report.txt
 
 # staged by CI when it uploads the jars that go with a dev binary
 dev-jars/
+
+# Native machine-probe libraries CI built on other OSes, for bleep-core to package (see BuildMachineNative)
+/native-prebuilt
