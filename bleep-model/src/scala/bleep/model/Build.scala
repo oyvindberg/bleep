@@ -148,6 +148,35 @@ sealed trait Build {
     seen.toSet
   }
 
+  /** What a project's `postCompile` step reads: its script project and its inputs. Built before that step runs, not before the compile it follows, so the
+    * compile does not wait for them.
+    */
+  lazy val resolvedPostCompileReads: Map[CrossProjectName, SortedSet[CrossProjectName]] =
+    resolvedIndirectDependencies.collect {
+      case (crossProjectName, indirect) if explodedProjects(crossProjectName).postCompile.isDefined =>
+        (crossProjectName, SortedSet.from(indirect.collect { case d if isPostCompileReason(d.reason) => d.project }))
+    }
+
+  /** What must be built before a project compiles: [[resolvedBuildOrderDeps]] without what only its `postCompile` step reads. */
+  lazy val resolvedCompileDeps: Map[CrossProjectName, SortedSet[CrossProjectName]] =
+    resolvedDependsOn.map { case (crossProjectName, direct) =>
+      (crossProjectName, direct ++ resolvedIndirectDependencies(crossProjectName).collect { case d if !isPostCompileReason(d.reason) => d.project })
+    }
+
+  /** Everything a compile of `name` reads the output of, transitively through [[resolvedCompileDeps]]. Excludes `name` itself. */
+  def transitiveCompileDepsFor(name: CrossProjectName): Set[CrossProjectName] = {
+    val seen = scala.collection.mutable.Set.empty[CrossProjectName]
+    def go(p: CrossProjectName): Unit = resolvedCompileDeps(p).foreach(dep => if (seen.add(dep)) go(dep))
+    go(name)
+    seen.toSet
+  }
+
+  private def isPostCompileReason(reason: IndirectDependency.Reason): Boolean =
+    reason match {
+      case IndirectDependency.Reason.PostCompileScript(_) | IndirectDependency.Reason.PostCompileInput                                    => true
+      case IndirectDependency.Reason.Sourcegen(_) | IndirectDependency.Reason.SourcegenInput(_) | IndirectDependency.Reason.ScalaCompiler => false
+    }
+
   def transitiveDependenciesFor(name: CrossProjectName): Map[CrossProjectName, Project] = {
     val builder = Map.newBuilder[CrossProjectName, Project]
 

@@ -36,8 +36,17 @@ object TaskDag {
     override def toString: String = value
   }
   object TaskId {
+
+    /** The project is built: its classes are what consumers read. For a project with a `postCompile` step that is the step's output, so this names the
+      * [[PostCompileTask]], and the compile before it is [[CompilerOutput]].
+      */
     case class Compile(project: CrossProjectName) extends TaskId {
       val value: String = s"compile:${project.value}"
+    }
+
+    /** The compile of a project with a `postCompile` step: what the compiler wrote, before the step rewrites it into the project's classes. */
+    case class CompilerOutput(project: CrossProjectName) extends TaskId {
+      val value: String = s"compiler-output:${project.value}"
     }
     case class Link(project: CrossProjectName) extends TaskId {
       val value: String = s"link:${project.value}"
@@ -107,9 +116,9 @@ object TaskDag {
   def costOf(task: Task, forkHeaps: ForkHeaps): Cost =
     task match {
       // In-server work: a core, and no fork memory. Compile heap is watched separately by HeapPressureGate.
-      case ct: CompileTask =>
-        // A post-compile script is a fork like a sourcegen script, run inside the compile task, so the task declares its memory up front.
-        Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = if (ct.postCompile) forkHeaps.sourcegenMb else 0L)
+      case _: CompileTask => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
+      // A post-compile script is a fork like a sourcegen script.
+      case _: PostCompileTask                 => Cost(MachineResources.ResourceKind.SourcegenFork, cpu = 1, memoryMb = forkHeaps.sourcegenMb)
       case _: DiscoverTask                    => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
       case _: ResolveAnnotationProcessorsTask => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
       // Forks: charged the heap they are started with plus the non-heap a JVM also commits.
@@ -137,10 +146,23 @@ object TaskDag {
       project: CrossProjectName,
       projectDependencies: Set[CrossProjectName],
       dependencies: Set[TaskId],
-      /** The project declares a `postCompile`, so a successful compile also forks its script — see [[bleep.bsp.PostCompileRunner]]. */
+      /** The project declares a `postCompile`, so this compile is followed by a [[PostCompileTask]], which consumers wait for instead. */
       postCompile: Boolean
   ) extends Task {
+    val id: TaskId = if (postCompile) TaskId.CompilerOutput(project) else TaskId.Compile(project)
+  }
+
+  /** Run a project's `postCompile` script on what its compile wrote — see [[bleep.bsp.PostCompileRunner]].
+    *
+    * A task of its own so that what the script reads (`reads`: its script project and inputs) holds back only the script, not the compile before it. Takes the
+    * project's [[TaskId.Compile]], so everything downstream waits for the script's output rather than the compiler's.
+    */
+  case class PostCompileTask(
+      project: CrossProjectName,
+      reads: Set[CrossProjectName]
+  ) extends Task {
     val id: TaskId = TaskId.Compile(project)
+    val dependencies: Set[TaskId] = reads.map(p => TaskId.Compile(p): TaskId) + TaskId.CompilerOutput(project)
   }
 
   /** Run a sourcegen script for a set of target projects.
@@ -724,9 +746,16 @@ object TaskDag {
         * main class", and Kotlin/Native failed with "could not find '/main' function".
         */
       testProjects: Set[CrossProjectName],
-      /** Which of these projects declare a `postCompile` script. */
-      postCompileProjects: Set[CrossProjectName]
-  )
+      /** The projects that declare a `postCompile` script, each with what that script reads (its script project and inputs). `allProjectDeps` leaves these out:
+        * they are built before the script runs, not before the compile.
+        */
+      postCompile: Map[CrossProjectName, Set[CrossProjectName]]
+  ) {
+
+    /** Everything that must be built for a project, its post-compile step included: what decides which projects a build covers. */
+    lazy val buildOrderDeps: Map[CrossProjectName, Set[CrossProjectName]] =
+      allProjectDeps.map { case (p, deps) => (p, deps ++ postCompile.getOrElse(p, Set.empty)) }
+  }
 
   /** What each kind of forked JVM is charged: its heap plus the non-heap a JVM also commits (metaspace, code cache, stacks, GC structures). Resolved from
     * config once when the DAG is built, so the number a task declares is the number the fork is actually started with.
@@ -747,7 +776,7 @@ object TaskDag {
       sourcegen = SourcegenPlan.empty,
       apPlan = AnnotationProcessorPlan.empty,
       kspPlan = SymbolProcessorPlan.empty,
-      postCompileProjects = Set.empty
+      postCompile = Map.empty
     )
   }
 
@@ -837,23 +866,30 @@ object TaskDag {
       (tasks, extraScriptProjects)
     }
 
+  /** What builds each of `allProjects`: its compile, and for a project with a `postCompile` step, the step after it. */
+  private def buildProjectTasks(allProjects: Set[CrossProjectName], ctx: BuildContext): Set[Task] =
+    allProjects.flatMap { project =>
+      val (projectDeps, deps) = compileDeps(project, ctx, allProjects)
+      ctx.postCompile.get(project) match {
+        case Some(reads) => Set[Task](CompileTask(project, projectDeps, deps, postCompile = true), PostCompileTask(project, reads))
+        case None        => Set[Task](CompileTask(project, projectDeps, deps, postCompile = false))
+      }
+    }
+
   /** Build DAG for compile-only (no linking, no tests). */
   def buildCompileDag(projects: Set[CrossProjectName], ctx: BuildContext): Dag = {
-    val targetTransitive = transitiveDependencies(projects, ctx.allProjectDeps)
+    val targetTransitive = transitiveDependencies(projects, ctx.buildOrderDeps)
     val (sourcegenTasks, extraScriptProjects) = sourcegenTasksAndScriptCompiles(targetTransitive, ctx.sourcegen)
     // Script projects' transitive compile tasks — we already have the dep closure from the plan, but they may themselves depend on others we haven't walked.
-    val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.allProjectDeps)
+    val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.buildOrderDeps)
     val allProjects = targetTransitive ++ scriptTransitive
 
-    val compileTasks = allProjects.map { project =>
-      val (projectDeps, deps) = compileDeps(project, ctx, allProjects)
-      CompileTask(project, projectDeps, deps, postCompile = ctx.postCompileProjects.contains(project))
-    }
+    val projectTasks = buildProjectTasks(allProjects, ctx)
 
     val apTasks = annotationProcessorTasks(allProjects, ctx.apPlan)
     val kspTasks = symbolProcessorTasks(allProjects, ctx.kspPlan, ctx.allProjectDeps)
 
-    Dag.fromTasks(compileTasks.toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
+    Dag.fromTasks(projectTasks.toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
   }
 
   /** Build initial DAG for test execution.
@@ -867,15 +903,12 @@ object TaskDag {
     * command is asking.
     */
   def buildTestDag(targets: Set[CrossProjectName], ctx: BuildContext): Dag = {
-    val targetTransitive = transitiveDependencies(targets, ctx.allProjectDeps)
+    val targetTransitive = transitiveDependencies(targets, ctx.buildOrderDeps)
     val (sourcegenTasks, extraScriptProjects) = sourcegenTasksAndScriptCompiles(targetTransitive, ctx.sourcegen)
-    val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.allProjectDeps)
+    val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.buildOrderDeps)
     val allProjects = targetTransitive ++ scriptTransitive
 
-    val compileTasks = allProjects.map { project =>
-      val (projectDeps, deps) = compileDeps(project, ctx, allProjects)
-      CompileTask(project, projectDeps, deps, postCompile = ctx.postCompileProjects.contains(project))
-    }
+    val projectTasks = buildProjectTasks(allProjects, ctx)
 
     val suiteBearing = targets.filter(ctx.testProjects)
 
@@ -894,20 +927,17 @@ object TaskDag {
     val apTasks = annotationProcessorTasks(allProjects, ctx.apPlan)
     val kspTasks = symbolProcessorTasks(allProjects, ctx.kspPlan, ctx.allProjectDeps)
 
-    Dag.fromTasks((compileTasks ++ linkTasks ++ discoverTasks).toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
+    Dag.fromTasks((projectTasks ++ linkTasks ++ discoverTasks).toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
   }
 
   /** Build DAG for linking (compile + link without tests). */
   def buildLinkDag(projects: Set[CrossProjectName], ctx: BuildContext, releaseMode: Boolean): Dag = {
-    val targetTransitive = transitiveDependencies(projects, ctx.allProjectDeps)
+    val targetTransitive = transitiveDependencies(projects, ctx.buildOrderDeps)
     val (sourcegenTasks, extraScriptProjects) = sourcegenTasksAndScriptCompiles(targetTransitive, ctx.sourcegen)
-    val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.allProjectDeps)
+    val scriptTransitive = transitiveDependencies(extraScriptProjects, ctx.buildOrderDeps)
     val allProjects = targetTransitive ++ scriptTransitive
 
-    val compileTasks = allProjects.map { project =>
-      val (projectDeps, deps) = compileDeps(project, ctx, allProjects)
-      CompileTask(project, projectDeps, deps, postCompile = ctx.postCompileProjects.contains(project))
-    }
+    val projectTasks = buildProjectTasks(allProjects, ctx)
 
     val linkTasks = projects.flatMap { project =>
       ctx.platforms.get(project) match {
@@ -920,7 +950,7 @@ object TaskDag {
     val apTasks = annotationProcessorTasks(allProjects, ctx.apPlan)
     val kspTasks = symbolProcessorTasks(allProjects, ctx.kspPlan, ctx.allProjectDeps)
 
-    Dag.fromTasks((compileTasks ++ linkTasks).toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
+    Dag.fromTasks((projectTasks ++ linkTasks).toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
   }
 
   /** Get transitive dependencies for a set of projects */
@@ -976,6 +1006,7 @@ object TaskDag {
     */
   case class Handlers(
       compile: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
+      postCompile: (PostCompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
       link: (LinkTask, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
       /** Discovery reads the linked artifact on JS and Native — it asks the binary to enumerate its own suites — so it needs the same link output the run does.
         */
@@ -998,10 +1029,21 @@ object TaskDag {
         * a property of the daemon's own heap right now, and the thing that relieves it is another task finishing. It belongs here rather than inside the
         * compile handler because a gate below admission holds a machine-wide CPU permit while it waits — starving tests and links that could have run.
         *
-        * Callers with no opinion pass `_ => IO.pure(true)`. Explicitly, not by default: a no-op default is a default parameter in disguise.
+        * Callers with no opinion pass `_ => IO.pure(CompileAdmission.Admit)`. Explicitly, not by default: a no-op default is a default parameter in disguise.
         */
-      mayAdmitCompile: CompileTask => IO[Boolean]
+      mayAdmitCompile: CompileTask => IO[CompileAdmission]
   )
+
+  /** Whether a compile may start now. */
+  sealed trait CompileAdmission
+  object CompileAdmission {
+    case object Admit extends CompileAdmission
+
+    /** Not now; ask again after `retryAfter`. The executor schedules that second look itself: a compile deferred while nothing else finishes would otherwise
+      * wait for whatever finishes next, however long that takes.
+      */
+    case class Defer(retryAfter: scala.concurrent.duration.FiniteDuration) extends CompileAdmission
+  }
 
   /** Create a DAG executor with the given handlers. */
   def executor(handlers: Handlers): DagExecutor = new DagExecutor {
@@ -1034,10 +1076,10 @@ object TaskDag {
         * `idle` bypasses the gate for the same reason it bypasses `tryReserve` below — with nothing running, nothing will complete to reconsider this, so
         * deferring would stall the build rather than delay a start.
         */
-      def mayAdmit(task: Task, idle: Boolean): IO[Boolean] =
+      def mayAdmit(task: Task, idle: Boolean): IO[CompileAdmission] =
         task match {
           case c: CompileTask if !idle => handlers.mayAdmitCompile(c)
-          case _                       => IO.pure(true)
+          case _                       => IO.pure(CompileAdmission.Admit)
         }
 
       def reserveFor(task: Task): IO[Option[(Task, IO[Unit])]] = {
@@ -1045,34 +1087,37 @@ object TaskDag {
         machine.tryReserve(c.kind, task.id.toString, c.cpu, c.memoryMb).map(_.map(release => (task, release)))
       }
 
-      def admit(candidates: List[Task], idle: Boolean): IO[List[(Task, IO[Unit])]] =
+      /** What one admission pass decided: the tasks to start, and when to look again at any compile the heap gate deferred. */
+      case class Admitted(started: List[(Task, IO[Unit])], retryAfter: Option[scala.concurrent.duration.FiniteDuration])
+
+      def admit(candidates: List[Task], idle: Boolean): IO[Admitted] = {
+        // One candidate: started, deferred until a given time, or not started for want of resources (reconsidered when a task completes and frees them).
+        def tryOne(task: Task, idle: Boolean): IO[Either[scala.concurrent.duration.FiniteDuration, Option[(Task, IO[Unit])]]] =
+          mayAdmit(task, idle).flatMap {
+            case CompileAdmission.Admit             => reserveFor(task).map(Right(_))
+            case CompileAdmission.Defer(retryAfter) => IO.pure(Left(retryAfter))
+          }
+
         candidates match {
-          case Nil           => IO.pure(Nil)
+          case Nil           => IO.pure(Admitted(Nil, None))
           case first :: rest =>
             val firstCost = costOf(first, forkHeaps)
-            val firstAdmission: IO[Option[(Task, IO[Unit])]] =
+            val firstAdmission: IO[Either[scala.concurrent.duration.FiniteDuration, Option[(Task, IO[Unit])]]] =
               if (idle)
                 machine
                   .reserveUntilReleased(firstCost.kind, first.id.toString, firstCost.cpu, firstCost.memoryMb)
-                  .map(release => Some((first, release)))
-              else
-                mayAdmit(first, idle).flatMap {
-                  case true  => reserveFor(first)
-                  case false => IO.pure(None)
-                }
+                  .map(release => Right(Some((first, release))))
+              else tryOne(first, idle)
 
             firstAdmission.flatMap { headResult =>
-              rest
-                .traverse { task =>
-                  // Never `idle` here: if the head was admitted, something is running by definition.
-                  mayAdmit(task, idle = false).flatMap {
-                    case true  => reserveFor(task)
-                    case false => IO.pure(None)
-                  }
-                }
-                .map(tail => (headResult :: tail).flatten)
+              // Never `idle` for the rest: if the head was admitted, something is running by definition.
+              rest.traverse(tryOne(_, idle = false)).map { tail =>
+                val all = headResult :: tail
+                Admitted(all.collect { case Right(Some(started)) => started }, all.collect { case Left(retryAfter) => retryAfter }.minOption)
+              }
             }
         }
+      }
 
       def emit(event: DagEvent): IO[Unit] = eventQueue.offer(Some(event))
 
@@ -1172,6 +1217,9 @@ object TaskDag {
                 task match {
                   case ct: CompileTask =>
                     withRecovery(s"Compile ${ct.project.value}", taskKill)(handlers.compile(ct, taskKill))
+
+                  case pct: PostCompileTask =>
+                    withRecovery(s"Post-compile ${pct.project.value}", taskKill)(handlers.postCompile(pct, taskKill))
 
                   case lt: LinkTask =>
                     withRecovery(s"Link ${lt.project.value}", taskKill) {
@@ -1384,7 +1432,11 @@ object TaskDag {
                 // reserving inside meant everything queued FIFO in the governor and this sort was
                 // decoration.
                 prioritized = readyTasks.toList.sortBy(t => -depCounts.getOrElse(t.id, 0))
-                admitted <- admit(prioritized, idle = running.isEmpty)
+                admission <- admit(prioritized, idle = running.isEmpty)
+                admitted = admission.started
+                // A deferred compile is looked at again when its stagger is up, not only when some task happens to complete — a long compile in flight
+                // would otherwise hold back one that was only asked to wait a moment.
+                _ <- admission.retryAfter.traverse_(delay => supervisor.supervise(IO.sleep(delay) >> wakeup.tryOffer(()).void).void)
                 // Start tasks. The guarantee releases the reservation, cleans up runningRef and wakes
                 // the loop — and the wakeup is what re-runs admission, so a completion is exactly when
                 // the next task gets its chance.

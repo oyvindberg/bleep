@@ -1814,7 +1814,7 @@ class MultiWorkspaceBspServer(
 
       // Get all project dependencies (for TaskDag)
       val allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]] =
-        started.build.resolvedBuildOrderDeps.map { case (crossName, deps) =>
+        started.build.resolvedCompileDeps.map { case (crossName, deps) =>
           crossName -> deps.toSet
         }
 
@@ -1933,7 +1933,7 @@ class MultiWorkspaceBspServer(
           apPlan,
           kspPlan,
           testProjects = allProjectDeps.keySet.filter(p => started.build.explodedProjects(p).isTestProject.getOrElse(false)),
-          postCompileProjects = allProjectDeps.keySet.filter(p => started.build.explodedProjects(p).postCompile.isDefined)
+          postCompile = started.build.resolvedPostCompileReads.map { case (p, reads) => (p, reads.toSet) }
         )
         val initialDag = TaskDag.buildDag(projectsToCompile, buildCtx, buildMode)
         debugLog(
@@ -1984,6 +1984,7 @@ class MultiWorkspaceBspServer(
         val executor = TaskDag.executor(
           TaskDag.Handlers(
             compile = compileHandler,
+            postCompile = makePostCompileHandler(started),
             link = linkHandler,
             discover = discoverHandler,
             test = testHandler,
@@ -2056,7 +2057,8 @@ class MultiWorkspaceBspServer(
                 val durationMs = System.currentTimeMillis() - startTime
                 val isSuccess = dag.failed.isEmpty && dag.errored.isEmpty && !cancellation.isCancelled
                 BspMetrics.recordBuildEnd(workspace.toString, durationMs, isSuccess)
-                val compileTasks = dag.tasks.values.collect { case ct: TaskDag.CompileTask => ct.id }.toSet
+                // Each project's built state: for a project with a post-compile step that is the step, which is what `TaskId.Compile` names
+                val compileTasks = dag.tasks.values.collect { case ct: TaskDag.CompileTask => TaskDag.TaskId.Compile(ct.project): TaskDag.TaskId }.toSet
                 val linkTasks = dag.tasks.values.collect { case lt: TaskDag.LinkTask => lt.id }.toSet
                 val compileCompleted = compileTasks.count(dag.completed.contains)
                 val compileFailed = compileTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
@@ -2205,14 +2207,18 @@ class MultiWorkspaceBspServer(
     *
     * This replaced an `IO.sleep` loop that ran inside the compile task. The task had already been admitted by then, so it sat on a machine-wide CPU permit
     * while waiting — withholding capacity from tests and links that could have run. Refusing admission instead leaves the permit available, and the compile is
-    * reconsidered on the next wakeup, which fires whenever a task completes: exactly when heap is most likely to have been freed.
+    * reconsidered when its stagger is up, or sooner if a task completes: exactly when heap is most likely to have been freed.
     *
     * The refusal-time map is per DAG run and is what makes [[HeapPressureGate.MaxWaitMs]] enforceable at all now that there is no sleep to measure against: it
     * remembers when each project was first deferred, across separate admission attempts.
     *
     * `othersCompiling` is `> 0`, not `> 1` as the old in-task gate used: this runs BEFORE the reservation, so this compile is not in the count yet.
     */
-  private def makeCompileAdmission(originId: Option[String], threshold: Double, recorder: TranscriptRecorder): TaskDag.CompileTask => IO[Boolean] = {
+  private def makeCompileAdmission(
+      originId: Option[String],
+      threshold: Double,
+      recorder: TranscriptRecorder
+  ): TaskDag.CompileTask => IO[TaskDag.CompileAdmission] = {
     val listener = makeHeapPressureListener(originId, recorder)
     val firstRefusedAt = Ref.unsafe[IO, Map[String, EpochMs]](Map.empty)
 
@@ -2233,10 +2239,10 @@ class MultiWorkspaceBspServer(
         ) match {
           case HeapPressureGate.Decision.Admit =>
             refusedAt match {
-              case None        => IO.pure(true)
+              case None        => IO.pure(TaskDag.CompileAdmission.Admit)
               case Some(start) =>
                 firstRefusedAt.update(_ - projectName) >>
-                  IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, DurationMs(nowMs.value - start.value), nowMs)).as(true)
+                  IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, DurationMs(nowMs.value - start.value), nowMs)).as(TaskDag.CompileAdmission.Admit)
             }
           case HeapPressureGate.Decision.Defer(delayMs) =>
             firstRefusedAt.update(m => m.updated(projectName, m.getOrElse(projectName, nowMs))) >>
@@ -2252,7 +2258,7 @@ class MultiWorkspaceBspServer(
                   delayMs = delayMs,
                   othersCompiling = compiling
                 )
-              ).as(false)
+              ).as(TaskDag.CompileAdmission.Defer(scala.concurrent.duration.FiniteDuration(delayMs, java.util.concurrent.TimeUnit.MILLISECONDS)))
         }
       } yield admit
     }
@@ -2358,7 +2364,7 @@ class MultiWorkspaceBspServer(
 
       // Get all project dependencies (for compile tasks)
       val allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]] =
-        started.build.resolvedBuildOrderDeps.map { case (crossName, deps) =>
+        started.build.resolvedCompileDeps.map { case (crossName, deps) =>
           crossName -> deps.toSet
         }
 
@@ -2445,7 +2451,7 @@ class MultiWorkspaceBspServer(
         apPlan,
         kspPlan,
         testProjects = allProjectDeps.keySet.filter(p => started.build.explodedProjects(p).isTestProject.getOrElse(false)),
-        postCompileProjects = allProjectDeps.keySet.filter(p => started.build.explodedProjects(p).postCompile.isDefined)
+        postCompile = started.build.resolvedPostCompileReads.map { case (p, reads) => (p, reads.toSet) }
       )
       val initialDag = TaskDag.buildTestDag(testProjects, buildCtx)
       debugLog(
@@ -2815,6 +2821,7 @@ class MultiWorkspaceBspServer(
           val executor = TaskDag.executor(
             TaskDag.Handlers(
               compile = compileHandler,
+              postCompile = makePostCompileHandler(started),
               link = linkHandler,
               discover = discoverHandler,
               test = testHandler,
@@ -3122,10 +3129,7 @@ class MultiWorkspaceBspServer(
             case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, depAnalyses, None)
             case _                             => None
           }
-          // A noop compile of a post-compile project is only done once its classes are the script's output too; otherwise take the locked path, where zinc
-          // noops again and the script runs.
-          val postCompileDone = !compileTask.postCompile || PostCompileRunner.upToDate(started, compileTask.project)
-          if (noopResult.isDefined && postCompileDone) {
+          if (noopResult.isDefined) {
             // Say WHY nothing happened: without this event a noop's transcript is just Started/Finished, indistinguishable from a compile whose reason was
             // lost. With it, two noop runs of the same project carry identical logical facts — which is what lets a mechanical diff of two noop transcripts
             // report `identical` (the copy-state verification flow depends on exactly that).
@@ -3162,7 +3166,7 @@ class MultiWorkspaceBspServer(
                 // which is not the quantity anything wants to know.
                 val compileStartTime = System.currentTimeMillis()
                 IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                  compileProject(started, compileTask.project, originId, token, taskKillSignal, depAnalyses, apFlags, stamps, diagnosticTracker, recorder)
+                  compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, stamps, diagnosticTracker, recorder)
                     .guaranteeCase {
                       case cats.effect.Outcome.Succeeded(resultIO) =>
                         resultIO.flatMap { result =>
@@ -3202,7 +3206,6 @@ class MultiWorkspaceBspServer(
       project: CrossProjectName,
       originId: Option[String],
       cancellation: CancellationToken,
-      killSignal: Deferred[IO, KillReason],
       dependencyAnalyses: Map[Path, Path],
       additionalJavaOptions: List[String],
       stamps: Stamps.Pass,
@@ -3355,8 +3358,9 @@ class MultiWorkspaceBspServer(
     // class loading), so we must block any concurrent writer on those deps for the duration.
     // Sort by project name to enforce a global lock order and prevent deadlock between concurrent
     // compiles whose project sets overlap. Indirect dependencies too: this compile reads their output
-    // just the same — a compiler it loads, a post-compile script it forks, an input that script reads.
-    val transitiveDeps = started.build.transitiveBuildOrderDepsFor(project)
+    // just the same — a compiler it loads. Not what a post-compile step reads: that step is a task of
+    // its own, and takes its own locks.
+    val transitiveDeps = started.build.transitiveCompileDepsFor(project)
     val ownSpec: (CrossProjectName, Path, ProjectLock.LockMode) =
       (project, outputDir, ProjectLock.LockMode.Exclusive)
     val depSpecs: List[(CrossProjectName, Path, ProjectLock.LockMode)] =
@@ -3396,7 +3400,6 @@ class MultiWorkspaceBspServer(
         acc.flatMap(_ => one)
       }
 
-    val hasPostCompile = started.projectPaths(project).hasPostCompile
     locksResource
       .use { _ =>
         compiler
@@ -3410,27 +3413,47 @@ class MultiWorkspaceBspServer(
             // the workspace it is compiling.
             bleep.analysis.AnalysisCache.Ref(analysisCache, started.buildPaths.workspaceKey)
           )
-          .flatMap {
-            // Still under the exclusive lock: the script writes `classes`, which consumers read under their shared locks.
-            case success: ProjectCompileSuccess if hasPostCompile && !cancellation.isCancelled =>
-              PostCompileRunner.run(started, project, killSignal, line => bspInfo(line)).map(error => (success, error))
-            case other => IO.pure((other, None))
-          }
       }
       .map {
         case _ if cancellation.isCancelled =>
           TaskDag.TaskResult.Killed(KillReason.UserRequest)
-        case (_: ProjectCompileSuccess, None) =>
+        case _: ProjectCompileSuccess =>
           TaskDag.TaskResult.Success
-        case (_: ProjectCompileSuccess, Some(postCompileError)) =>
-          TaskDag.TaskResult.Failure(postCompileError, Nil)
-        case (f: ProjectCompileFailure, _) =>
+        case f: ProjectCompileFailure =>
           val errors = f.errors.map(toDiagnostic)
           TaskDag.TaskResult.Failure("Compilation failed", errors)
-        case (ProjectCompileCancelled(reason), _) =>
+        case ProjectCompileCancelled(reason) =>
           TaskDag.TaskResult.Killed(reason)
       }
   }
+
+  /** Run a project's `postCompile` script, unless its classes are already the script's output for what the compiler wrote now.
+    *
+    * Exclusive on the project, since the script writes the classes consumers read under their shared locks; shared on what the script reads.
+    */
+  private def makePostCompileHandler(started: Started): (TaskDag.PostCompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
+    (task, killSignal) => {
+      val project = task.project
+      val specs: List[(CrossProjectName, Path, ProjectLock.LockMode)] =
+        (project, started.projectPaths(project).targetDir / "classes", ProjectLock.LockMode.Exclusive) ::
+          task.reads.flatMap(r => started.build.transitiveBuildOrderDepsFor(r) + r).toList.map { d =>
+            (d, started.projectPaths(d).targetDir / "classes", ProjectLock.LockMode.Shared)
+          }
+      // Same global order as a compile's locks, so the two cannot deadlock.
+      val locks = specs.sortBy(_._1.value).foldLeft(cats.effect.Resource.pure[IO, Unit](())) { case (acc, (proj, dir, mode)) =>
+        acc.flatMap(_ => ProjectLock.acquire(proj, dir, mode, lockTimeout, () => ()).void)
+      }
+      locks.use { _ =>
+        PostCompileRunner.run(started, project, killSignal, line => bspInfo(line)).flatMap {
+          case None        => IO.pure(TaskDag.TaskResult.Success)
+          case Some(error) =>
+            killSignal.tryGet.map {
+              case Some(reason) => TaskDag.TaskResult.Killed(reason)
+              case None         => TaskDag.TaskResult.Failure(error, Nil)
+            }
+        }
+      }
+    }
 
   /** Discover test suites in a compiled project */
   /** Filter discovered suites by --only and --exclude patterns.
@@ -4225,6 +4248,7 @@ class MultiWorkspaceBspServer(
   /** Get trace category and name for a task. */
   private def taskCatName(task: TaskDag.Task): (TraceCategory, String) = task match {
     case ct: TaskDag.CompileTask                      => (TraceCategory.Compile, ct.project.value)
+    case pct: TaskDag.PostCompileTask                 => (TraceCategory.Compile, s"${pct.project.value} (post-compile)")
     case lt: TaskDag.LinkTask                         => (TraceCategory.Link, lt.project.value)
     case dt: TaskDag.DiscoverTask                     => (TraceCategory.Discover, dt.project.value)
     case tt: TaskDag.TestSuiteTask                    => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName.value}")
@@ -4286,6 +4310,39 @@ class MultiWorkspaceBspServer(
         BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Skipped, durationMs, Nil, skippedBecause = Some(failedDep.project), timestamp)
       case TaskDag.TaskResult.Killed(_) | TaskDag.TaskResult.Cancelled | _: TaskDag.TaskResult.TimedOut =>
         BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp)
+    }
+
+  /** The `CompileFinished` a finished compile or post-compile task reports, if any: one per project, when its classes are what consumers read.
+    *
+    * A project with a `postCompile` step is built by two tasks, and reports once: a successful compile only records how long it took, and the step then reports
+    * for both. A failed compile reports itself, so the step it skipped stays quiet. `compilerDurations` carries the compile's time between the two events; the
+    * step depends on the compile, so the compile's event always comes first.
+    */
+  private def projectBuiltEvent(
+      task: TaskDag.Task,
+      result: TaskDag.TaskResult,
+      durationMs: Long,
+      timestamp: Long,
+      compilerDurations: java.util.concurrent.ConcurrentHashMap[CrossProjectName, java.lang.Long]
+  ): Option[BleepBspProtocol.Event] =
+    task match {
+      case ct: TaskDag.CompileTask if ct.postCompile && result == TaskDag.TaskResult.Success =>
+        compilerDurations.put(ct.project, durationMs): Unit
+        None
+      case ct: TaskDag.CompileTask =>
+        Some(compileTaskFinishedEvent(ct.project, result, durationMs, timestamp))
+      case pct: TaskDag.PostCompileTask =>
+        result match {
+          case TaskDag.TaskResult.Skipped(failedDep) if failedDep.id == TaskDag.TaskId.CompilerOutput(pct.project) => None
+          case _: TaskDag.TaskResult.Skipped                                                                       =>
+            Some(compileTaskFinishedEvent(pct.project, result, durationMs, timestamp))
+          case _ =>
+            val compilerMs = Option(compilerDurations.remove(pct.project)).getOrElse(
+              throw new IllegalStateException(s"post-compile of ${pct.project.value} finished, but its compile reported no time")
+            )
+            Some(compileTaskFinishedEvent(pct.project, result, compilerMs + durationMs, timestamp))
+        }
+      case other => throw new IllegalArgumentException(s"not a compile task: ${other.id.value}")
     }
 
   /** Convert a LinkResult to a LinkFinished protocol event. */
@@ -4443,7 +4500,8 @@ class MultiWorkspaceBspServer(
       killSignal: Deferred[IO, KillReason],
       traceRecorder: TraceRecorder,
       recorder: TranscriptRecorder
-  ): fs2.Stream[IO, Unit] =
+  ): fs2.Stream[IO, Unit] = {
+    val compilerDurations = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, java.lang.Long]()
     fs2.Stream.fromQueueNoneTerminated(queue).evalMap { event =>
       def processEvent: IO[Unit] =
         event match {
@@ -4452,6 +4510,8 @@ class MultiWorkspaceBspServer(
             val protocolEvent: Option[BleepBspProtocol.Event] = task match {
               case ct: TaskDag.CompileTask =>
                 Some(BleepBspProtocol.Event.CompileStarted(ct.project, timestamp))
+              case _: TaskDag.PostCompileTask =>
+                None // Part of its project's compile, which already announced the start
               case _: TaskDag.LinkTask =>
                 None // Link tasks are not exposed via test protocol
               case dt: TaskDag.DiscoverTask =>
@@ -4488,8 +4548,8 @@ class MultiWorkspaceBspServer(
           case TaskDag.DagEvent.TaskFinished(task, result, durationMs, timestamp) =>
             val (cat, name) = taskCatName(task)
             val protocolEvent: Option[BleepBspProtocol.Event] = task match {
-              case ct: TaskDag.CompileTask =>
-                Some(compileTaskFinishedEvent(ct.project, result, durationMs, timestamp))
+              case _: TaskDag.CompileTask | _: TaskDag.PostCompileTask =>
+                projectBuiltEvent(task, result, durationMs, timestamp, compilerDurations)
 
               case lt: TaskDag.LinkTask =>
                 // Success and Failure are conveyed by the LinkFinished event the task body emits; the
@@ -4636,6 +4696,7 @@ class MultiWorkspaceBspServer(
 
       withDeadClientDetection(killSignal, "Test")(processEvent)
     }
+  }
 
   /** Consume compile/link events only (no test suite tracking).
     *
@@ -4648,7 +4709,8 @@ class MultiWorkspaceBspServer(
       killSignal: Deferred[IO, KillReason],
       traceRecorder: TraceRecorder,
       recorder: TranscriptRecorder
-  ): fs2.Stream[IO, Unit] =
+  ): fs2.Stream[IO, Unit] = {
+    val compilerDurations = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, java.lang.Long]()
     fs2.Stream.fromQueueNoneTerminated(queue).evalMap { event =>
       def processEvent: IO[Unit] = event match {
         case TaskDag.DagEvent.TaskStarted(task, timestamp) =>
@@ -4665,9 +4727,9 @@ class MultiWorkspaceBspServer(
         case TaskDag.DagEvent.TaskFinished(task, result, durationMs, timestamp) =>
           val (cat, name) = taskCatName(task)
           val protocolEvent: Option[BleepBspProtocol.Event] = task match {
-            case ct: TaskDag.CompileTask =>
-              logger.withContext("project", ct.project.value).withContext("durationMs", durationMs).info("Compile finished")
-              Some(compileTaskFinishedEvent(ct.project, result, durationMs, timestamp))
+            case _: TaskDag.CompileTask | _: TaskDag.PostCompileTask =>
+              logger.withContext("task", task.id.value).withContext("durationMs", durationMs).info("Compile finished")
+              projectBuiltEvent(task, result, durationMs, timestamp, compilerDurations)
             case lt: TaskDag.LinkTask =>
               // Success and Failure are conveyed by the LinkFinished event the task body emits; the
               // abnormal results never reached that emit and would otherwise vanish.
@@ -4703,6 +4765,7 @@ class MultiWorkspaceBspServer(
 
       withDeadClientDetection(killSignal, "Compile")(processEvent)
     }
+  }
 
   /** Convert a compiler error to a protocol Diagnostic preserving severity */
   private def toDiagnostic(error: CompilerError): BleepBspProtocol.Diagnostic = {
