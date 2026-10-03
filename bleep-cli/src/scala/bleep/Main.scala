@@ -125,6 +125,9 @@ object Main {
                   .ServerKill(logger, userPaths, Nil, all = true, force = force, deleteDir = force, deprecatedAlias = None, currentWorkspace = currentWorkspace)
             )
         ),
+        Opts.subcommand("prune", "delete the directories of compile servers that are no longer running — logs, metrics and all")(
+          Opts.unit.map(_ => (logger: Logger) => commands.server.ServerPrune(logger, userPaths))
+        ),
         Opts.subcommand("restart", "stop a compile server so the next build starts a fresh one with the current config")(
           (Opts.arguments[String]("id").orEmpty, Opts.flag("all", "restart every running compile server").orFalse).mapN { (ids, all) => (logger: Logger) =>
             commands.server.ServerRestart(logger, userPaths, ids, all = all, currentWorkspace = currentWorkspace)
@@ -1437,6 +1440,17 @@ object Main {
       ExitCode.Success
     }
 
+  /** `bleep server top` measures every compile server's memory from the client, and on macOS that is a `proc_pid_rusage` downcall reached by reflection — both
+    * of which need native-image metadata (`META-INF/native-image/build.bleep/process-memory`). Missing metadata does not crash; it throws inside a measurement
+    * and the dashboard shows no memory at all. So measure this process here, where a wrong answer fails the step.
+    */
+  private def selftestProcessMemory(): Unit =
+    if (Properties.isMac || Properties.isLinux)
+      ProcessMemory.system.footprintMb(ProcessHandle.current().pid()) match {
+        case Some(mb) if mb > 0 => println(s"own memory footprint: $mb MB")
+        case other              => sys.error(s"cannot measure process memory (got $other) — `bleep server top` would show none")
+      }
+
   /** lsp4j reads a JSON-RPC error with Gson's reflective adapter, so `ResponseError` needs reflection metadata in the native image. Without it Gson builds an
     * empty one, and every error the BSP server sent reached the user as `ResponseErrorException: null`, naming neither the request nor the cause. The JVM never
     * shows this, so check it where the binary runs.
@@ -1503,6 +1517,7 @@ object Main {
         selftestWindowsKernel32()
         selftestUserPaths(userPaths)
         selftestJsonRpcErrors()
+        selftestProcessMemory()
         selftestExecve()
 
       case "bsp" :: args =>

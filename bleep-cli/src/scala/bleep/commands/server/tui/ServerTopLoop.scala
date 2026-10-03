@@ -3,7 +3,7 @@ package commands
 package server
 package tui
 
-import bleep.bsp.{ServerAdminClient, ServerDirs}
+import bleep.bsp.{ServerAdminClient, ServerDirInfo, ServerDirs, ServerState}
 import jatatui.core.terminal.Terminal
 import jatatui.crossterm.{CrosstermBackend, Jatatui}
 import jatatui.react.Renderer
@@ -24,6 +24,9 @@ class ServerTopLoop(userPaths: UserPaths, currentWorkspace: Option[Path]) {
   private val InputPollNanos = 100_000_000 // 100ms, so a keystroke never waits on the data tick
   private val LogTailLines = 500
   private val LogPollIntervalMs = 250L
+
+  /** What the last scan learned about each directory, so stopped ones are not re-measured every second. Owned by the loop, like the clock and the socket. */
+  private var knownDirs: Map[String, ServerDirInfo] = Map.empty
 
   def run(): Unit = {
     val terminal: Terminal[CrosstermBackend] = Jatatui.init()
@@ -113,14 +116,21 @@ class ServerTopLoop(userPaths: UserPaths, currentWorkspace: Option[Path]) {
     } finally Jatatui.restore()
   }
 
-  private def initialState(): ServerTopState = ServerTopState.initial(System.currentTimeMillis())
+  private def initialState(): ServerTopState =
+    ServerTopState.initial(
+      System.currentTimeMillis(),
+      ServerTopState.Machine(physicalMemoryMb = MachineResources.physicalMemoryMb(fallbackMb = 0L), cores = Runtime.getRuntime.availableProcessors())
+    )
 
   /** One path for everything the user does, mouse or keyboard: pure update, then run whatever effects it asked for. */
   private def applyMsg(state: ServerTopState, msg: Msg): ServerTopState = {
     val (next, effects) = ServerTopUpdate.update(state, msg)
-    effects.foldLeft(next) { case (current, Effect.Perform(action, row)) =>
+    effects.foldLeft(next) { (current, effect) =>
       // Run the same command the CLI runs. One implementation, so the TUI cannot drift into doing something subtly different.
-      val message = perform(action, row.hash)
+      val message = effect match {
+        case Effect.Perform(action, row) => perform(action.verb, row.hash, logger => commandFor(action, row.hash, logger))
+        case Effect.PruneDead            => perform("prune", "stopped servers", logger => ServerPrune(logger, userPaths))
+      }
       val reported = ServerTopUpdate.update(current, Msg.ActionFinished(message))._1
       ServerTopUpdate.update(reported, Msg.Refreshed(scan(), System.currentTimeMillis()))._1
     }
@@ -178,12 +188,14 @@ class ServerTopLoop(userPaths: UserPaths, currentWorkspace: Option[Path]) {
       case _: _root_.tui.crossterm.KeyCode.Tab     => Some(KeyPress.NextTab)
       case _: _root_.tui.crossterm.KeyCode.Right   => Some(KeyPress.Right)
       case _: _root_.tui.crossterm.KeyCode.Left    => Some(KeyPress.Left)
-      case _: _root_.tui.crossterm.KeyCode.Esc     => Some(KeyPress.Quit)
+      case _: _root_.tui.crossterm.KeyCode.Esc     => Some(KeyPress.Back)
       case char: _root_.tui.crossterm.KeyCode.Char =>
         char.c() match {
           case 'q' | 'Q' => Some(KeyPress.Quit)
           case 'k'       => Some(KeyPress.Kill)
           case 'r'       => Some(KeyPress.Restart)
+          case 'd'       => Some(KeyPress.ShowDead)
+          case 'c'       => Some(KeyPress.PruneDead)
           case 'y' | 'Y' => Some(KeyPress.Yes)
           case 'n' | 'N' => Some(KeyPress.No)
           case 'j'       => Some(KeyPress.Down)
@@ -194,7 +206,8 @@ class ServerTopLoop(userPaths: UserPaths, currentWorkspace: Option[Path]) {
 
   /** One status query per running server per tick. Observer connections, so watching never keeps a daemon alive or resets its idle clock. */
   private def scan(): List[ServerRow] = {
-    val infos = ServerDirs.scan(userPaths)
+    val infos = ServerDirs.scanReusing(userPaths, knownDirs)
+    knownDirs = infos.map(info => info.hash -> info).toMap
     val mine = currentWorkspace.map(_.toAbsolutePath.normalize().toString)
 
     val queried = infos.map { info =>
@@ -215,9 +228,32 @@ class ServerTopLoop(userPaths: UserPaths, currentWorkspace: Option[Path]) {
     }
     val currentHash = ServerDirs.currentAmong(holders, bleep.model.BleepVersion.current.value)
 
+    val clientVersion = bleep.model.BleepVersion.current.value
     queried
-      .map { case (info, status, error) => ServerRow(info, status, error, isCurrent = currentHash.contains(info.hash)) }
-      .sortBy(row => (!row.isCurrent, !row.info.isRunning, row.hash))
+      .map { case (info, status, error) =>
+        // The daemon's own pid when it can say; else the pid file's, but only once confirmed to be this directory's daemon — the file outlives its daemon
+        // and the OS reuses the number, and sampling an unrelated process as "the compile server" is worse than showing nothing.
+        val handle =
+          if (info.state != ServerState.Running && info.state != ServerState.Wedged) None
+          else
+            status.map(_.pid) match {
+              case Some(pid) =>
+                val found = ProcessHandle.of(pid)
+                if (found.isPresent) Some(found.get()) else None
+              case None => info.pid.flatMap(ServerDirs.daemonProcess(info.socketDir, _))
+            }
+        ServerRow(
+          info,
+          status,
+          error,
+          isCurrent = currentHash.contains(info.hash),
+          processes = handle.map(ProcessTree.sample(_, ProcessMemory.system)),
+          parent = handle.flatMap(ProcessTree.parentOf),
+          // The server this build talks to is never the stray, whatever version it records — a snapshot client sees every server as "another version".
+          isOutdated = !currentHash.contains(info.hash) && info.identity.exists(_.bleepVersion != clientVersion)
+        )
+      }
+
   }
 
   /** Run a command without letting it write to the terminal.
@@ -228,13 +264,12 @@ class ServerTopLoop(userPaths: UserPaths, currentWorkspace: Option[Path]) {
     *
     * So the TUI hands the command a logger that stores instead of printing, and shows what it collected in the footer, where a message belongs.
     */
-  private def perform(action: Action, hash: String): String = {
+  private def perform(verb: String, target: String, command: Logger => BleepCommand): String = {
     val stored = ryddig.Loggers.storing()
-    val command = commandFor(action, hash, stored)
 
-    val outcome = command.run() match {
-      case Right(())       => s"${action.verb} $hash"
-      case Left(exception) => s"${action.verb} $hash failed: ${exception.message}"
+    val outcome = command(stored).run() match {
+      case Right(())       => s"$verb $target"
+      case Left(exception) => s"$verb $target failed: ${exception.message}"
     }
 
     // The last line the command logged is the informative one — "stopped", or why it could not be.

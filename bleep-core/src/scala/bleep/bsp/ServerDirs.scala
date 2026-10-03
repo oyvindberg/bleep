@@ -57,30 +57,56 @@ case class ServerDirInfo(
 object ServerDirs {
 
   /** Every socket directory under the cache, classified. Sorted running-first so the interesting rows are at the top. */
-  def scan(userPaths: UserPaths): List[ServerDirInfo] = {
-    val dirs =
-      if (FileUtils.exists(userPaths.bspSocketDir)) Files.list(userPaths.bspSocketDir).toScala(List).filter(Files.isDirectory(_))
-      else Nil
+  def scan(userPaths: UserPaths): List[ServerDirInfo] =
+    listDirs(userPaths).map(classify).sortBy(info => (!info.isRunning, info.socketDir.getFileName.toString))
 
-    dirs.map(classify).sortBy(info => (!info.isRunning, info.socketDir.getFileName.toString))
+  /** [[scan]], but trusting what was already learned about directories that are still stopped.
+    *
+    * For a stopped server, everything but the state is expensive and frozen: its size is a walk of the directory, and "crashed" is a search of up to three
+    * rotated logs for an OOM marker. Nothing writes to it any more, so neither can change — and `top` asks once a second, on machines that collect a hundred of
+    * these. Only the state is re-probed; a directory that comes back to life (a new daemon spawned into it) or changes kind is classified from scratch.
+    */
+  def scanReusing(userPaths: UserPaths, previous: Map[String, ServerDirInfo]): List[ServerDirInfo] =
+    listDirs(userPaths)
+      .map { dir =>
+        val pid = readPid(dir)
+        previous.get(dir.getFileName.toString) match {
+          case Some(known) if !known.isRunning && known.state != ServerState.Wedged && known.pid == pid =>
+            probe(dir, pid) match {
+              case Some(_) => classify(dir)
+              case None    => known
+            }
+          case _ => classify(dir)
+        }
+      }
+      .sortBy(info => (!info.isRunning, info.socketDir.getFileName.toString))
+
+  private def listDirs(userPaths: UserPaths): List[Path] =
+    if (FileUtils.exists(userPaths.bspSocketDir)) Files.list(userPaths.bspSocketDir).toScala(List).filter(Files.isDirectory(_))
+    else Nil
+
+  /** The cheap half of classification: `Some` if there is a live process behind the directory, without looking at anything on disk beyond the pid. */
+  private def probe(socketDir: Path, pid: Option[Long]): Option[ServerState] = {
+    val address = BspRifleConfig.Address.DomainSocket(socketDir.resolve("socket"))
+    // Liveness is a connect probe, never the pid file: a pid file can name a process that died, and a live process can have stopped listening. Only the socket
+    // answers the question a client actually cares about.
+    if (BspServerOperations.check(address).unsafeRunSync()) Some(ServerState.Running)
+    else
+      pid match {
+        case Some(p) if daemonProcess(socketDir, p).isDefined => Some(ServerState.Wedged)
+        case _                                                => None
+      }
   }
 
   def classify(socketDir: Path): ServerDirInfo = {
-    val address = BspRifleConfig.Address.DomainSocket(socketDir.resolve("socket"))
     val pid = readPid(socketDir)
 
-    // Liveness is a connect probe, never the pid file: a pid file can name a process that died, and a live process can have stopped listening. Only the socket
-    // answers the question a client actually cares about.
-    val connects = BspServerOperations.check(address).unsafeRunSync()
-
-    val state =
-      if (connects) ServerState.Running
-      else
-        pid match {
-          case Some(p) if ProcessHandle.of(p).isPresent => ServerState.Wedged
-          case Some(_)                                  => ServerState.Dead(crashed = crashed(socketDir))
-          case None                                     => ServerState.Litter
-        }
+    val state = probe(socketDir, pid).getOrElse {
+      pid match {
+        case Some(_) => ServerState.Dead(crashed = crashed(socketDir))
+        case None    => ServerState.Litter
+      }
+    }
 
     ServerDirInfo(
       socketDir = socketDir,
@@ -90,6 +116,47 @@ object ServerDirs {
       identity = ServerJson.read(socketDir),
       sizeBytes = dirSizeBytes(socketDir)
     )
+  }
+
+  /** The process behind a socket directory's pid file — but only if it really is the compile server for that directory.
+    *
+    * A pid file outlives its daemon: libdaemonjvm cleans stale pid and socket files when the *next* daemon acquires the lock, never when one exits, so every
+    * stopped server leaves both behind. Then the OS reuses the number. Observed: a directory whose daemon had exited cleanly half an hour earlier, its pid now
+    * belonging to `/usr/libexec/containermanagerd_system` — which `ls` reported as a wedged server, and which `kill` would have sent SIGTERM and then SIGKILL.
+    * "Is pid N alive" is not "is our daemon alive"; every path that classifies or signals a daemon by its pid file asks this instead.
+    *
+    * Identified by command line: the daemon's main class, and `--socket` naming this directory. A process whose command line the OS will not show us (another
+    * user's, a root daemon's) is not ours, since ours runs as us.
+    */
+  def daemonProcess(socketDir: Path, pid: Long): Option[ProcessHandle] = {
+    val found = ProcessHandle.of(pid)
+    if (!found.isPresent) None
+    else {
+      val handle = found.get()
+      val info = handle.info()
+      val arguments = if (info.arguments().isPresent) Some(info.arguments().get().toList) else None
+      val commandLine = if (info.commandLine().isPresent) Some(info.commandLine().get()) else None
+      if (isDaemonFor(arguments, commandLine, socketDir)) Some(handle) else None
+    }
+  }
+
+  /** The decision behind [[daemonProcess]], on what the OS reported, so it can be tested without a process to hand.
+    *
+    * Arguments where the platform gives them (macOS, Linux), since they survive spaces in paths; the joined command line where it does not (Windows reports
+    * only that).
+    */
+  private[bsp] def isDaemonFor(arguments: Option[List[String]], commandLine: Option[String], socketDir: Path): Boolean = {
+    val dir = socketDir.toAbsolutePath.normalize()
+    arguments match {
+      case Some(args) =>
+        args.contains(BspRifleConfig.ServerMainClass) &&
+        args.sliding(2).exists {
+          case List("--socket", value) => Paths.get(value).toAbsolutePath.normalize() == dir
+          case _                       => false
+        }
+      case None =>
+        commandLine.exists(line => line.contains(BspRifleConfig.ServerMainClass) && line.contains(s"--socket $dir"))
+    }
   }
 
   /** A compile server process with no socket directory left to find it by.

@@ -13,8 +13,8 @@ import scala.concurrent.duration._
   *
   * Graceful by default, through a ladder that only escalates when the gentler step does not work:
   *
-  *   1. `bleep/shutdown` over the protocol, which lets the daemon reply, close its accept loop, release its lock, remove its pid and socket files and flush its
-  *      metrics. The next client then gets a clean refusal and simply spawns a fresh daemon.
+  *   1. `bleep/shutdown` over the protocol, which lets the daemon reply, close its accept loop, release its lock, remove its pid and socket files (on its way
+  *      out, in its shutdown hook) and flush its metrics. The next client then gets a clean refusal and simply spawns a fresh daemon.
   *   1. `ProcessHandle.destroy` (SIGTERM on Unix) if it is still alive after the grace period.
   *   1. `destroyForcibly`, plus descendants.
   *
@@ -135,9 +135,8 @@ case class ServerKill(
       info.pid match {
         case None      => logger.info(s"${info.hash} has no pid file — nothing to signal")
         case Some(pid) =>
-          ProcessHandle.of(pid).ifPresent { handle =>
-            handle.destroy(): Unit
-          }
+          // Confirmed to be this directory's daemon first: the pid file outlives it and the number gets reused.
+          ServerDirs.daemonProcess(info.socketDir, pid).foreach(handle => handle.destroy(): Unit)
           if (!awaitStopped(info)) {
             logger.warn(s"${info.hash} is still serving after SIGTERM — forcing")
             BspServerOperations.forceKillAndCleanup(info.socketDir).unsafeRunSync()

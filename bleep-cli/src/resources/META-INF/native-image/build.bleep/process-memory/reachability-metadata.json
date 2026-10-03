@@ -1,0 +1,147 @@
+{
+  "comment": [
+    "bleep.ProcessMemory.MacOs measures a process's phys_footprint and CPU time with proc_pid_rusage (and mach_timebase_info), through java.lang.foreign.",
+    "It reaches java.lang.foreign by reflection (bleep compiles against JDK 17, which has no such package), so native-image needs every",
+    "method and field it looks up registered, and the downcall's shape registered under foreign. Without these `bleep server top` cannot",
+    "measure memory in the native binary. `bleep selftest` measures its own footprint, so CI fails if this falls out of step with the code."
+  ],
+  "foreign": {
+    "downcalls": [
+      {
+        "returnType": "jint",
+        "parameterTypes": [
+          "jint",
+          "jint",
+          "void*"
+        ]
+      },
+      {
+        "returnType": "jint",
+        "parameterTypes": [
+          "void*"
+        ]
+      }
+    ]
+  },
+  "reflection": [
+    {
+      "type": "java.lang.foreign.Linker",
+      "methods": [
+        {
+          "name": "nativeLinker",
+          "parameterTypes": []
+        },
+        {
+          "name": "defaultLookup",
+          "parameterTypes": []
+        },
+        {
+          "name": "downcallHandle",
+          "parameterTypes": [
+            "java.lang.foreign.MemorySegment",
+            "java.lang.foreign.FunctionDescriptor",
+            "java.lang.foreign.Linker$Option[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.foreign.Linker$Option"
+    },
+    {
+      "type": "java.lang.foreign.SymbolLookup",
+      "methods": [
+        {
+          "name": "find",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.foreign.FunctionDescriptor",
+      "methods": [
+        {
+          "name": "of",
+          "parameterTypes": [
+            "java.lang.foreign.MemoryLayout",
+            "java.lang.foreign.MemoryLayout[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.foreign.MemoryLayout"
+    },
+    {
+      "type": "java.lang.foreign.MemorySegment",
+      "methods": [
+        {
+          "name": "get",
+          "parameterTypes": [
+            "java.lang.foreign.ValueLayout$OfLong",
+            "long"
+          ]
+        },
+        {
+          "name": "get",
+          "parameterTypes": [
+            "java.lang.foreign.ValueLayout$OfInt",
+            "long"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.foreign.Arena",
+      "methods": [
+        {
+          "name": "ofConfined",
+          "parameterTypes": []
+        },
+        {
+          "name": "allocate",
+          "parameterTypes": [
+            "long"
+          ]
+        },
+        {
+          "name": "close",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.foreign.SegmentAllocator",
+      "methods": [
+        {
+          "name": "allocate",
+          "parameterTypes": [
+            "long"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.foreign.ValueLayout",
+      "fields": [
+        {
+          "name": "JAVA_INT"
+        },
+        {
+          "name": "JAVA_LONG"
+        },
+        {
+          "name": "ADDRESS"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.foreign.ValueLayout$OfLong"
+    },
+    {
+      "type": "java.lang.foreign.ValueLayout$OfInt"
+    }
+  ]
+}

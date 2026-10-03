@@ -33,6 +33,13 @@ trait ProcessMemory {
     * platform that records it saves us polling to catch the spike.
     */
   def peakFootprintMb(pid: Long): Option[Long]
+
+  /** Cumulative CPU time `pid` has used, user plus system, in milliseconds. `None` if the process is gone.
+    *
+    * Here rather than left to `ProcessHandle.Info.totalCpuDuration`, because on macOS that is empty for every process the JVM did not start itself — which is
+    * every compile server, seen from `bleep server top`. The kernel call that answers the memory question answers this one too.
+    */
+  def cpuTimeMs(pid: Long): Option[Long]
 }
 
 object ProcessMemory {
@@ -41,6 +48,17 @@ object ProcessMemory {
   object Unavailable extends ProcessMemory {
     def footprintMb(pid: Long): Option[Long] = None
     def peakFootprintMb(pid: Long): Option[Long] = None
+    def cpuTimeMs(pid: Long): Option[Long] = handleCpuTimeMs(pid)
+  }
+
+  /** What the JDK knows. Complete on Linux (it reads `/proc`) and Windows; on macOS only for the JVM's own children, so [[MacOs]] does not use it. */
+  private def handleCpuTimeMs(pid: Long): Option[Long] = {
+    val handle = ProcessHandle.of(pid)
+    if (!handle.isPresent) None
+    else {
+      val duration = handle.get().info().totalCpuDuration()
+      if (duration.isPresent) Some(duration.get().toMillis) else None
+    }
   }
 
   /** `phys_footprint`, read from the kernel via `proc_pid_rusage` — the same source `/usr/bin/footprint` reads.
@@ -62,6 +80,9 @@ object ProcessMemory {
       * ForkCostModelTest reads this JVM's own footprint and asserts the value is plausible, which is what would catch a layout that moved.
       */
     private final val StructBytes = 296L
+    // `ri_user_time` and `ri_system_time`, the 1st and 2nd `uint64_t`, in Mach absolute time units — see [[nanosPerTick]].
+    private final val UserTimeOffset = 16L
+    private final val SystemTimeOffset = 24L
     private final val PhysFootprintOffset = 72L
     private final val LifetimeMaxPhysFootprintOffset = 240L
     private final val RusageInfoV4 = 4
@@ -86,10 +107,49 @@ object ProcessMemory {
         .asInstanceOf[java.lang.invoke.MethodHandle]
     }
 
-    def footprintMb(pid: Long): Option[Long] = read(pid, PhysFootprintOffset)
-    def peakFootprintMb(pid: Long): Option[Long] = read(pid, LifetimeMaxPhysFootprintOffset)
+    def footprintMb(pid: Long): Option[Long] = read(pid, List(PhysFootprintOffset)).map(_.head / (1024L * 1024L))
+    def peakFootprintMb(pid: Long): Option[Long] = read(pid, List(LifetimeMaxPhysFootprintOffset)).map(_.head / (1024L * 1024L))
 
-    private def read(pid: Long, offset: Long): Option[Long] = {
+    def cpuTimeMs(pid: Long): Option[Long] =
+      read(pid, List(UserTimeOffset, SystemTimeOffset)).map(ticks => (BigDecimal(ticks.sum) * nanosPerTick / 1_000_000).toLong)
+
+    /** `mach_timebase_info`: how many nanoseconds one Mach absolute time unit is. 1 on Intel; 125/3 on Apple silicon, where reading ticks as nanoseconds would
+      * under-report CPU time 40-fold. Asked once; it is fixed for the life of the machine.
+      */
+    private lazy val nanosPerTick: BigDecimal = {
+      val linker = Ffm.Linker.getMethod("nativeLinker").invoke(null)
+      val lookup = Ffm.Linker.getMethod("defaultLookup").invoke(linker)
+      val symbol = Ffm.SymbolLookup
+        .getMethod("find", classOf[String])
+        .invoke(lookup, "mach_timebase_info")
+        .asInstanceOf[java.util.Optional[AnyRef]]
+        .orElseThrow(() => new RuntimeException("mach_timebase_info is missing from libSystem — cannot convert process CPU time on this macOS"))
+      val argLayouts = Ffm.array(Ffm.MemoryLayout, List(Ffm.layout("ADDRESS")))
+      val descriptor =
+        Ffm.FunctionDescriptor.getMethod("of", Ffm.MemoryLayout, Ffm.MemoryLayout.arrayType()).invoke(null, Ffm.layout("JAVA_INT"), argLayouts)
+      val handle = Ffm.Linker
+        .getMethod("downcallHandle", Ffm.MemorySegment, Ffm.FunctionDescriptor, Ffm.LinkerOption.arrayType())
+        .invoke(linker, symbol, descriptor, Ffm.array(Ffm.LinkerOption, Nil))
+        .asInstanceOf[java.lang.invoke.MethodHandle]
+
+      val arena = Ffm.Arena.getMethod("ofConfined").invoke(null)
+      try {
+        // struct mach_timebase_info { uint32_t numer; uint32_t denom; }
+        val buffer = Ffm.Arena.getMethod("allocate", java.lang.Long.TYPE).invoke(arena, java.lang.Long.valueOf(8L))
+        val rc = handle.invokeWithArguments(buffer).asInstanceOf[Integer]
+        if (rc.intValue() != 0) throw new RuntimeException(s"mach_timebase_info failed with $rc")
+        def int(offset: Long): Int =
+          Ffm.MemorySegment
+            .getMethod("get", Ffm.cls("ValueLayout$OfInt"), java.lang.Long.TYPE)
+            .invoke(buffer, Ffm.layout("JAVA_INT"), java.lang.Long.valueOf(offset))
+            .asInstanceOf[Integer]
+            .intValue()
+        BigDecimal(int(0)) / BigDecimal(int(4))
+      } finally Ffm.Arena.getMethod("close").invoke(arena): Unit
+    }
+
+    /** The raw `uint64_t` fields at `offsets`, from one `proc_pid_rusage` call. */
+    private def read(pid: Long, offsets: List[Long]): Option[List[Long]] = {
       val arena = Ffm.Arena.getMethod("ofConfined").invoke(null)
       try {
         val buffer = Ffm.Arena.getMethod("allocate", java.lang.Long.TYPE).invoke(arena, java.lang.Long.valueOf(StructBytes))
@@ -99,13 +159,14 @@ object ProcessMemory {
         // Non-zero is ESRCH: the process exited between being listed and being measured. That is the
         // expected race in a tree sweep, not an error worth surfacing.
         if (rc.intValue() != 0) None
-        else {
-          val bytes = Ffm.MemorySegment
-            .getMethod("get", Ffm.cls("ValueLayout$OfLong"), java.lang.Long.TYPE)
-            .invoke(buffer, Ffm.layout("JAVA_LONG"), java.lang.Long.valueOf(offset))
-            .asInstanceOf[java.lang.Long]
-          Some(bytes.longValue() / (1024L * 1024L))
-        }
+        else
+          Some(offsets.map { offset =>
+            Ffm.MemorySegment
+              .getMethod("get", Ffm.cls("ValueLayout$OfLong"), java.lang.Long.TYPE)
+              .invoke(buffer, Ffm.layout("JAVA_LONG"), java.lang.Long.valueOf(offset))
+              .asInstanceOf[java.lang.Long]
+              .longValue()
+          })
       } finally Ffm.Arena.getMethod("close").invoke(arena): Unit
     }
   }
@@ -148,6 +209,8 @@ object ProcessMemory {
       } catch { case _: java.io.IOException => None }
 
     def peakFootprintMb(pid: Long): Option[Long] = None
+
+    def cpuTimeMs(pid: Long): Option[Long] = handleCpuTimeMs(pid)
   }
 
   /** The macOS reading is a foreign-function call, and the daemon runs on the build's own JVM. A JDK older than 21 has no `java.lang.foreign` at all (it is
