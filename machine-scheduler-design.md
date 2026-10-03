@@ -191,6 +191,23 @@ Prerequisites found in the code:
   `bleep server top`'s "started by bleep mcp-server … keeps this server in use" is only a label derived from the parent process; it should be reworded
   once yielding exists.
 
+### 5.2 Busy servers shed the caches of idle workspaces
+
+A server that is working, but serves several workspaces (worktrees), holds cached state for all of them: the resolved build in `BuildCache` (exploded
+model, classpaths) and the Zinc analyses in `AnalysisCache`. Under the same trigger as §5.1 — `Pressure ≥ Elevated`, or another server `wantsMore` — it
+drops that state for every workspace with no active request:
+
+- `BuildCache.evict(workspace, variant)` (`BuildCache.scala` ~line 90) for each idle workspace, which also releases its analyses through `AnalysisCache`.
+  Today these caches only shed by count (`maxCachedWorkspaces`) and age; this adds memory need as a reason.
+- The cost is a cold load (build resolve, analysis read from disk) the next time that workspace is used — no correctness impact.
+- Freed heap only reaches the machine when the GC returns it. The server runs ZGC with `-XX:ZUncommitDelay=30 -XX:ZCollectionInterval=5`
+  (`BspRifleConfig.scala` ~line 117), so within ~30–35 s; where ZGC is not used (older JDKs, see "ZGC only where generational"), G1 returns memory far
+  less readily — the shed still prevents growth but may not shrink the footprint.
+- It is a graduated response: a busy server sheds idle workspaces (§5.2); an idle server sheds itself (§5.1). An idle server could take the §5.2 step
+  first and yield only if that is not enough (open, §11).
+- Decided per tick from data the tick already has (pressure, others' `wantsMore`, this server's active requests); no lock needed — it releases memory,
+  it never claims it.
+
 `parallelism` is per server, CPU only, read from the user config (re-read on change). Lowering it never kills running work; it is respected as work
 finishes. A fork holds cpu slots while it runs work (a batch fork as many as suites it runs at once, as today); an idle warm fork holds none.
 
@@ -336,11 +353,12 @@ deletes, then behaviour lands on top.
 ### Phase D — on top
 
 12. **`bleep server top` / `bleep/status`** show ceiling, used, pending, per-server guarantees and forks from `state.json`, plus lock holder/wait.
-13. **Idle servers yield** (§5.1) — the idle-yield check and the `shuttingDown` state; reword `top`'s "keeps this server in use" label.
-14. **Metrics** — tick events (hold time, decision summary, pressure) into `metrics.jsonl`.
-15. **Docs** — rewrite `docs/usage/resource-management.mdx` and the compile-server guide; remove mentions of the fork-memory budget; `parallelism`
+13. **Busy servers shed idle workspaces' caches** (§5.2).
+14. **Idle servers yield** (§5.1) — the idle-yield check and the `shuttingDown` state; reword `top`'s "keeps this server in use" label.
+15. **Metrics** — tick events (hold time, decision summary, pressure) into `metrics.jsonl`.
+16. **Docs** — rewrite `docs/usage/resource-management.mdx` and the compile-server guide; remove mentions of the fork-memory budget; `parallelism`
     documented as CPU-only, per server.
-16. **End-to-end validation** — two servers on the owner's machine running dlab tests, watched with `bleep server top`; then one small run per OS in CI.
+17. **End-to-end validation** — two servers on the owner's machine running dlab tests, watched with `bleep server top`; then one small run per OS in CI.
 
 Optional before Phase A, only if freezes bite while this is built: two small fixes to the *current* code (count compressor pages; subtract the server's
 own footprint in the retune), deleted again at step 11. The stopgap available today without code: `bleep server config parallelism 8` and
@@ -352,7 +370,7 @@ own footprint in the retune), deleted again at step 11. The stopgap available to
 - **Linux PSI thresholds** for `Elevated`/`Critical` — measure on a real Linux machine.
 - **Windows thresholds** for memory load / commit.
 - **`idleYieldAfter`**: how long a server must be idle before it may yield its memory (2–5 min?).
-- **Shrink before shutdown?** An idle server could first drop its build/analysis caches and let ZGC return the heap, and shut down only if that is not
-  enough. Simpler alternative: always shut down.
+- **Shrink before shutdown?** An idle server could first take the §5.2 step (drop every workspace's caches, let ZGC return the heap) and shut down only
+  if that is not enough. Simpler alternative: always shut down.
 - **Two-stage test admission** (task slot, then fork, because the fork key needs the classpath computed in the handler): keep for v1, or move classpath
   computation into discovery so a test demand is a single `ForkDemand`?
