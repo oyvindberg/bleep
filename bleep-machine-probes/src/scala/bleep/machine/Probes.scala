@@ -8,7 +8,8 @@ case class Probes(machine: MachineProbe, fork: ForkProbe)
 object Probes {
 
   /** Picks the implementation for this OS and architecture, and takes one reading with each so that a machine bleep cannot measure fails here, when the server
-    * starts, rather than on the scheduler's first tick. Throws on a platform with no implementation.
+    * starts, rather than on the scheduler's first tick. Throws on a platform with no implementation. A machine without a pressure source (a Linux kernel
+    * without PSI) is not one bleep cannot measure: its readings carry [[RawPressure.Unavailable]] and this does not throw.
     *
     * @param nativeLibDir
     *   where the JNI library is unpacked on macOS and Windows (a directory under bleep's cache dir); unused on Linux
@@ -25,6 +26,11 @@ object Probes {
         val windows = new WindowsProbes(MachineNative.load(nativeLibDir, ProbePlatform.WindowsX64))
         Probes(windows, windows)
     }
+    checked(probes)
+  }
+
+  /** `probes`, once each has taken a reading of this machine and this process. Throws if either cannot. */
+  def checked(probes: Probes): Probes = {
     probes.machine.sample(): Unit
     probes.fork.footprintMb(ProcessHandle.current().pid()) match {
       case Some(_) => ()

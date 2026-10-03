@@ -14,11 +14,7 @@ final class LinuxMachineProbe(procRoot: Path) extends MachineProbe {
 
   def sample(): MachineSample = {
     val mem = LinuxProc.parseMeminfo(LinuxProc.read(meminfo))
-    val pressure =
-      try LinuxProc.parsePsi(LinuxProc.read(psi))
-      catch {
-        case e: IOException => throw LinuxProc.psiUnavailable(psi, e)
-      }
+    val pressure = LinuxProc.readPsi(psi)
     MachineSample(
       physicalMb = mem.totalKb / 1024,
       usedMb = (mem.totalKb - mem.availableKb) / 1024,
@@ -117,16 +113,24 @@ object LinuxProc {
     RawPressure.LinuxPsi(someAvg10 = avg10("some"), fullAvg10 = avg10("full"))
   }
 
-  /** A kernel built without `CONFIG_PSI` has no `/proc/pressure`; one built with `CONFIG_PSI_DEFAULT_DISABLED` (RHEL 8, for one), or booted with `psi=0`, has
-    * the file but refuses to read it (EOPNOTSUPP). Either way the scheduler is missing the signal that tells it the machine is already reclaiming, and running
-    * without it would be scheduling on a guess, so this is an error rather than a quieter mode.
+  /** PSI from `path`, or [[RawPressure.Unavailable]] where the kernel has none.
+    *
+    * A kernel built without `CONFIG_PSI` has no such file; one built with `CONFIG_PSI_DEFAULT_DISABLED` (RHEL 8, for one), or booted with `psi=0`, has the file
+    * but refuses to read it with EOPNOTSUPP, which Java reports only as an IOException whose message is the errno text. Neither is a failure: the scheduler
+    * still has used memory against the ceiling and only loses its pressure brake. Any other read failure is a failure, and throws.
     */
-  def psiUnavailable(path: Path, cause: IOException): IllegalStateException =
-    new IllegalStateException(
-      s"Cannot read memory pressure from $path (${cause.getClass.getSimpleName}: ${cause.getMessage}). bleep's scheduler needs Linux pressure stall " +
-        "information (PSI): the kernel must be built with CONFIG_PSI, and if it is built with CONFIG_PSI_DEFAULT_DISABLED it must be booted with `psi=1`.",
-      cause
-    )
+  def readPsi(path: Path): RawPressure = {
+    def unavailable(why: String): RawPressure.Unavailable =
+      RawPressure.Unavailable(
+        s"$path $why: this Linux kernel reports no pressure stall information (PSI). It needs CONFIG_PSI, and a kernel built with " +
+          "CONFIG_PSI_DEFAULT_DISABLED must be booted with `psi=1`."
+      )
+    try parsePsi(read(path))
+    catch {
+      case _: NoSuchFileException                                      => unavailable("does not exist")
+      case e: IOException if e.getMessage == "Operation not supported" => unavailable("cannot be read (PSI is disabled)")
+    }
+  }
 
   /** Whether `pid` has exited, once a read of one of its files has failed: there is no `/proc/<pid>` any more. */
   def isGone(procRoot: Path, pid: Long): Boolean = !Files.exists(procRoot.resolve(pid.toString))

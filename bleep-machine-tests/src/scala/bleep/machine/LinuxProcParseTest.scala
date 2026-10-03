@@ -119,10 +119,24 @@ class LinuxProcParseTest extends AnyFunSuite with Matchers {
     }
   }
 
-  test("a kernel without PSI fails with an error that says what is missing") {
+  test("a kernel without PSI has no pressure signal, and says what is missing; memory is still measured") {
     withProc("meminfo" -> meminfo) { root =>
-      val e = intercept[IllegalStateException](new LinuxMachineProbe(root).sample())
-      e.getMessage should include("CONFIG_PSI")
+      val s = new LinuxMachineProbe(root).sample()
+      s.usedMb shouldBe (16374460L - 11126808L) / 1024
+      s.pressure match {
+        case RawPressure.Unavailable(reason) =>
+          reason should include("CONFIG_PSI")
+          reason should include("psi=1")
+        case other => fail(s"expected Unavailable, got $other")
+      }
+    }
+  }
+
+  test("the probes of a machine without PSI pass the startup check") {
+    val self = ProcessHandle.current().pid()
+    withProc("meminfo" -> meminfo, s"$self/status" -> status) { root =>
+      val probes = Probes.checked(Probes(new LinuxMachineProbe(root), new LinuxForkProbe(root)))
+      probes.machine.sample().pressure shouldBe a[RawPressure.Unavailable]
     }
   }
 
