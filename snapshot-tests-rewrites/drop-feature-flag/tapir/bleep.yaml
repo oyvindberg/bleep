@@ -23,6 +23,7 @@ projects:
         extends: template-scala-3-jvm
         libraryVersionSchemes: org.scala-sbt:compiler-interface:always
         scala:
+          options: -Xkind-projector
           version: 3.7.4
     dependsOn: tapir-openapi-codegen-core
     extends: template-common-main
@@ -2386,7 +2387,6 @@ templates:
         value of type org.scalatest.compatible.Assertion:s"'
       setup:
         order: mixed
-      strict: true
     sources: ./src/${SCOPE}/protobuf
   template-common-main:
     extends: template-common
@@ -2540,6 +2540,7 @@ templates:
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.4
       options: -Ywarn-macros:after
+      strict: true
   template-scala-2-and-3.3.8:
     extends: template-common
     source-layout: sbt-matrix
@@ -2566,6 +2567,7 @@ templates:
   template-scala-2.13-and-3:
     extends: template-common
     scala:
+      options: -language:higherKinds
       setup:
         addLibraryToBootClasspath: false
         filterLibraryFromClasspath: false
@@ -2579,7 +2581,10 @@ templates:
   template-scala-3:
     extends: template-scala-2.13-and-3
     scala:
-      options: -Xmax-inlines 64
+      options: -Wnonunit-statement -Wunused:explicits -Wunused:implicits -Wunused:imports
+        -Wunused:locals -Wunused:params -Wunused:privates -Wvalue-discard -Xmax-inlines
+        64 -deprecation -encoding utf8 -language:experimental.macros -language:implicitConversions
+        -unchecked
   template-scala-3-jvm:
     extends:
     - template-jvm
@@ -2590,6 +2595,7 @@ templates:
     - template-scala-2-and-3.3.8
     - template-scala-3
     scala:
+      options: -Ykind-projector
       version: 3.3.8
   template-scala-3.3.8-jvm:
     extends:

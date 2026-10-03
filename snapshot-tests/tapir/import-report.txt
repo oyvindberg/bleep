@@ -1,7 +1,7 @@
 # template inference
 templates: 32
 projects: 176
-settings: 1615 (1490 in projects, 125 in templates)
+settings: 1618 (1491 in projects, 127 in templates)
 
 # roundtrip
 sbt bloop export vs bleep resolved projects, normalized. `-` only in sbt, `+` only in bleep, `~` same jar at another version
