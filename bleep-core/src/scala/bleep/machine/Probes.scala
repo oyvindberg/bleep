@@ -18,6 +18,9 @@ object Probes {
       case ProbePlatform.Linux =>
         val proc = Path.of("/proc")
         Probes(new LinuxMachineProbe(proc), new LinuxForkProbe(proc))
+      case ProbePlatform.MacOsArm64 =>
+        val mac = new MacOsProbes(MachineNative.load(nativeLibDir, ProbePlatform.MacOsArm64))
+        Probes(mac, mac)
       case other =>
         throw new UnsupportedOperationException(s"bleep has no memory probes for $other yet (native library dir: $nativeLibDir)")
     }
