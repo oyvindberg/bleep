@@ -48,7 +48,7 @@ object Decide {
     var deferred: List[HeapDeferred] = Nil
     var deferredSince: Map[TaskId, Long] = me.heapDeferredSince
     var granted: Set[(RequestId, TaskId)] = Set.empty
-    var spawnsBeyondGuarantee = 0
+    var spawnedThisTick = 0
 
     /** Rule 5's "running fork" is one working for the request. Decision: an idle fork does not count — a request whose only fork sits idle while its next suite
       * is ready is not progressing, and under Elevated or Critical pressure the reuse that would fix that is exactly what rule 2 withholds.
@@ -125,11 +125,16 @@ object Decide {
       else if (me.unstartedSuitesByKey.getOrElse(f.key, 0) <= 0) evict(f, EvictReason.NothingToReuseIt)
     }
 
-    // ---- rule 5 by spawn: exactly one fork per command, regardless of room, cpu, pressure or lock.
+    // ---- rule 5 by spawn: one fork per command, regardless of room, cpu, pressure or lock — but a spawn is a spawn, and the tick spawns at most
+    // maxNewForksPerTick of them, guarantees first, oldest request first. A request whose guarantee needs a new fork may wait several ticks for the slot.
     requestsInOrder.foreach { r =>
       guaranteeCandidate(r) match {
-        case Some(d) => takeSpawn(d, guaranteed = true)
-        case None    =>
+        case Some(d) =>
+          if (spawnedThisTick < params.maxNewForksPerTick) {
+            takeSpawn(d, guaranteed = true)
+            spawnedThisTick += 1
+          }
+        case None =>
           // Only compiling: one in-heap slot the same way.
           if (!hasWorkingFork(r.id) && !hasRunningInHeap(r.id))
             readyByRequest.getOrElse(r.id, Nil).collectFirst { case d: InHeap => d }.foreach(d => takeInHeap(d, guaranteed = true))
@@ -164,7 +169,7 @@ object Decide {
           idleForkFor(d).orElse(joinableFor(d)) match {
             case Some(fork) => takeReuse(d, fork, guaranteed = false)
             case None       =>
-              if (lock == LockState.Held && spawnsBeyondGuarantee < params.maxNewForksPerTick) {
+              if (lock == LockState.Held && spawnedThisTick < params.maxNewForksPerTick) {
                 if (d.boundMb > room) {
                   // Rule 3 under shortage: idle forks, oldest first, before anything new — but only as many as make this admission possible. Decision: when
                   // even all of them would not make it fit, none is evicted; the demand waits for room, and warm forks for keys still in use stay warm.
@@ -176,7 +181,7 @@ object Decide {
                 }
                 if (d.boundMb <= room) {
                   takeSpawn(d, guaranteed = false)
-                  spawnsBeyondGuarantee += 1
+                  spawnedThisTick += 1
                 }
               }
           }

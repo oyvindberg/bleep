@@ -150,15 +150,21 @@ In order. Every rule is a pure function of the inputs above.
    remeasured at most once a second (measurements are for display and eviction choice, never for prediction).
 2. **Pressure.** `Elevated` → no admissions beyond guarantees. `Critical` → additionally evict every idle fork of this server.
 3. **Idle forks.** An idle fork stays warm **iff its key still has unstarted suites**; otherwise it is evicted immediately. Under room shortage, idle
-   forks are evicted (oldest first) before anything new is admitted.
-4. **Warm first.** For a ready test suite, in order of cost: an idle warm fork of the same key (free) → wait for a busy shared fork of the same key →
-   a new fork. A new fork costs memory, startup time and the per-tick spawn allowance; reuse costs none of them.
-5. **Guarantee: exactly one fork per command.** A request with no running fork and a ready `ForkDemand` gets one, regardless of `room`, `parallelism`,
-   pressure or lock state (after rule 3's eviction). A per-project shared fork counts as that one fork. A request that is only compiling gets one
+   forks are evicted (oldest first) before anything new is admitted — only as many as make that admission fit; if none would, none is evicted. Evicted
+   forks stay in the state, flagged, until their exit is reported: the process holds its memory until then. Guaranteed *reuse* (rule 5) runs before
+   these evictions, so Critical pressure never evicts a warm fork only to spawn a cold one for the same key; guaranteed *spawns* run after them.
+4. **Warm first.** For a ready test suite, in order of cost: an idle warm fork of the same key (free; another request's idle fork too, which then changes
+   owner) → join this request's busy per-project shared fork of the same key → a new fork. A new fork costs memory, startup time and the per-tick spawn
+   allowance; reuse costs none of them.
+5. **Guarantee: one fork per command.** A request with no *working* fork — one running work for it; an idle fork of its own does not count, since the
+   request is not progressing on it — and a ready `ForkDemand` gets one, regardless of `room`, `parallelism`, pressure or lock state: an idle warm fork
+   of the key if there is one (unlimited), else a new fork. A per-project shared fork counts as that one fork. A request that is only compiling gets one
    in-heap slot the same way. Sourcegen, annotation processors, KSP, link count as forks; `bleep run` creates no request.
-6. **Beyond the guarantee.** Admit ready `ForkDemand`s in priority order while the demand fits the machine `room`, fits **this server's** cpu slots
-   (`cpuInUse + demand.cpu ≤ parallelism`), and at most `maxNewForksPerTick = 1` new fork this tick. New forks only when `lock = Held`; reusing a warm
-   fork needs only the cpu slot.
+   **A guaranteed spawn is still a spawn**: it counts against `maxNewForksPerTick` and takes the slot before any non-guaranteed spawn, oldest request
+   first. A guarantee that needs a new fork may therefore take several ticks to be met; it is never skipped.
+6. **Beyond the guarantee.** Admit ready `ForkDemand`s in priority order — interleaved by rank across requests, oldest request first within a rank — while
+   the demand fits the machine `room`, fits **this server's** cpu slots (`cpuInUse + demand.cpu ≤ parallelism`), and at most `maxNewForksPerTick = 1`
+   new fork this tick in total (rule 5's included). New forks only when `lock = Held`; reusing a warm fork needs only the cpu slot.
 7. **Compiles.** `InHeap` demands need a local cpu slot and `HeapPressureGate.decide` = `Admit`. No machine room, no lock: their memory is the server's
    heap, already in `usedMb`.
 8. **Publish.** New forks enter `publish` as `Starting` with their bound, so the next lock holder counts them.

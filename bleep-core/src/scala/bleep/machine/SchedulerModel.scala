@@ -224,7 +224,8 @@ object LockHolder {
   * @param parallelism
   *   this server's cpu slots, from the user config, re-read on change. CPU only, per server.
   * @param maxNewForksPerTick
-  *   new forks beyond guarantees per tick (design: 1). Guaranteed forks are not bounded by it, because the guarantee is unconditional.
+  *   new forks per tick, guaranteed ones included (design: 1). Guaranteed spawns take the slot first, oldest request first; a guarantee that needs a new fork
+  *   may take several ticks to be met. Reusing a warm fork is not a spawn and is not counted.
   */
 case class Params(headroomMb: Long, parallelism: Int, maxNewForksPerTick: Int) {
   require(headroomMb >= 0L, s"headroomMb $headroomMb is negative")

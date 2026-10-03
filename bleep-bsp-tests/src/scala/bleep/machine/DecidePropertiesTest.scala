@@ -25,35 +25,79 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
     }
   }
 
-  test("every request with no running fork and a ready fork demand gets exactly one guaranteed fork, whatever the room, lock, pressure or cpu") {
+  /** Requests that want a guaranteed fork this tick: no working fork, a ready fork demand. */
+  private def wantingGuarantee(in: Inputs): List[Request] =
+    in.me.requests.filter { r =>
+      !in.me.forks.exists(f => f.owner == r.id && !f.idle) && in.me.ready.exists { case f: ForkDemand => f.request == r.id; case _ => false }
+    }
+
+  test("a guaranteed grant goes only to a request without a working fork, at most one per request, whatever the room, lock, pressure or cpu") {
     forAll(Runs, Seed + 1) { in =>
       val d = run(in)
+      val wanting = wantingGuarantee(in).map(_.id).toSet
       in.me.requests.foreach { r =>
-        val hadFork = in.me.forks.exists(f => f.owner == r.id && !f.idle)
-        val wantsFork = in.me.ready.exists { case f: ForkDemand => f.request == r.id; case _ => false }
-        val guaranteed = d.reuse.filter(x => x.guaranteed && x.demand.request == r.id).size + d.spawn.filter(x => x.guaranteed && x.demand.request == r.id).size
-        if (!hadFork && wantsFork) withClue(s"request ${r.id}: ")(guaranteed shouldBe 1)
+        val guaranteed = d.reuse.count(x => x.guaranteed && x.demand.request == r.id) + d.spawn.count(x => x.guaranteed && x.demand.request == r.id)
+        if (wanting.contains(r.id)) withClue(s"request ${r.id}: ")(guaranteed should be <= 1)
         else withClue(s"request ${r.id}: ")(guaranteed shouldBe 0)
-        // And it has one afterwards, in the published state.
-        if (!hadFork && wantsFork) d.next.forks.exists(_.owner == r.id) shouldBe true
+      }
+      // Guaranteed reuse is never withheld: a wanting request with an idle fork of its key available gets a guaranteed grant this tick.
+      val availableKeys = in.me.forks.filter(_.available).map(_.key).toSet
+      wantingGuarantee(in).foreach { r =>
+        val first = in.me.ready.collectFirst { case f: ForkDemand if f.request == r.id => f }.get
+        if (availableKeys.contains(first.key))
+          withClue(s"request ${r.id} with a warm fork of ${first.key}: ")(
+            (d.reuse ++ Nil).exists(x => x.guaranteed && x.demand.request == r.id) || d.spawn.exists(x => x.guaranteed && x.demand.request == r.id)
+          ) shouldBe true
       }
     }
   }
 
-  test("under the worst conditions a request with nothing running gets one fork and nothing more") {
+  test("at most maxNewForksPerTick forks are spawned per tick in total, guaranteed ones included, and under an unavailable lock too") {
     forAll(Runs, Seed + 2) { in =>
+      run(in).spawn.size should be <= in.params.maxNewForksPerTick
+      run(in.copy(lock = LockState.Unavailable(LockHolder.Announced(7L, 0L, 2000L)))).spawn.size should be <= in.params.maxNewForksPerTick
+      run(in.copy(params = in.params.copy(maxNewForksPerTick = 0))).spawn shouldBe Nil
+      run(in.copy(params = in.params.copy(maxNewForksPerTick = 3))).spawn.size should be <= 3
+    }
+  }
+
+  test("a pending guaranteed spawn takes the slot before any non-guaranteed spawn, oldest request first") {
+    forAll(Runs, Seed + 13) { in =>
+      val d = run(in)
+      // Whoever was still without a working fork after guaranteed reuse and got nothing: no younger request, and nobody beyond the guarantee, spawned.
+      val reusedGuarantee = d.reuse.filter(_.guaranteed).map(_.demand.request).toSet
+      val pending = wantingGuarantee(in).filterNot(r => reusedGuarantee.contains(r.id)).sortBy(r => (r.startedAtMs, r.id.value))
+      val spawnedGuarantee = d.spawn.filter(_.guaranteed).map(_.demand.request)
+      if (pending.nonEmpty) {
+        d.spawn.filter(!_.guaranteed) shouldBe empty
+        // The guaranteed spawns are a prefix of the pending requests in age order.
+        spawnedGuarantee shouldBe pending.map(_.id).take(spawnedGuarantee.size)
+      }
+    }
+  }
+
+  test("every request gets its guaranteed fork within as many ticks as there are requests ahead of it, under any conditions") {
+    forAll(Runs / 4, Seed + 14) { in =>
+      val n = 1 + new scala.util.Random(in.view.usedMb).nextInt(5)
+      val requests = (0 until n).toList.map(i => Request(RequestId(s"q$i"), RequestKind.Test, startedAtMs = 100L * i))
+      val ready =
+        requests.map(r => ForkDemand(r.id, TaskId(s"${r.id.value}-t"), ForkKind.TestSuite, ForkKey(s"key-${r.id.value}"), 1024L, cpu = 1, shared = false))
       val hostile = in.copy(
         view = in.view.copy(usedMb = in.view.physicalMb + 1000L, pressure = Pressure.Elevated),
         lock = LockState.Unavailable(LockHolder.Announced(7L, 0L, 2000L)),
-        params = in.params.copy(parallelism = 1)
+        params = in.params.copy(parallelism = 1, maxNewForksPerTick = 1),
+        me = MyState.empty.copy(requests = requests, ready = ready, nextForkId = 1L)
       )
-      val d = run(hostile)
-      hostile.me.requests.foreach { r =>
-        val hadFork = hostile.me.forks.exists(f => f.owner == r.id && !f.idle)
-        val wantsFork = hostile.me.ready.exists { case f: ForkDemand => f.request == r.id; case _ => false }
-        val grants = d.reuse.count(_.demand.request == r.id) + d.spawn.count(_.demand.request == r.id)
-        if (!hadFork && wantsFork) grants shouldBe 1 else grants shouldBe 0
+      var state = hostile.me
+      (1 to n).foreach { tick =>
+        val d = Decide.decide(hostile.view, hostile.others, state, hostile.lock, hostile.params, HeapGate.alwaysAdmit, identity)
+        d.spawn.map(s => (s.demand.request.value, s.guaranteed)) shouldBe List((s"q${tick - 1}", true))
+        d.reuse shouldBe empty
+        state = d.next
+        state.forks.count(!_.idle) shouldBe tick
       }
+      requests.foreach(r => state.forks.exists(f => f.owner == r.id && !f.idle) shouldBe true)
+      Decide.decide(hostile.view, hostile.others, state, hostile.lock, hostile.params, HeapGate.alwaysAdmit, identity).spawn shouldBe empty
     }
   }
 
@@ -77,13 +121,6 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
         if (unstarted == 0) withClue(s"fork $f: ")(evictedFor shouldBe Some(Decision.EvictReason.NothingToReuseIt))
         else withClue(s"fork $f: ")(evictedFor should (be(None) or be(Some(Decision.EvictReason.RoomShortage))))
       }
-    }
-  }
-
-  test("at most maxNewForksPerTick new forks beyond guarantees") {
-    forAll(Runs, Seed + 5) { in =>
-      val d = run(in)
-      d.spawn.count(!_.guaranteed) should be <= in.params.maxNewForksPerTick
     }
   }
 

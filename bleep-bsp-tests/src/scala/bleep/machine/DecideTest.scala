@@ -130,6 +130,21 @@ class DecideTest extends AnyFunSuite with Matchers {
     d.evict shouldBe empty
   }
 
+  test("two guarantees needing new forks share one spawn slot: the older request spawns this tick, the younger next tick") {
+    val me = blank.copy(requests = List(r2, r1), ready = List(demand(r2, "t2"), demand(r1, "t1")), unstartedSuitesByKey = Map(k -> 2))
+    val first = decide(me, view(usedMb = 9500L, pressure = Pressure.Elevated), lock = LockState.Unavailable(LockHolder.Unannounced))
+    first.spawn.map(s => (s.demand.taskId.value, s.guaranteed)) shouldBe List(("t1", true))
+    first.publish.wantsMore shouldBe true
+    val second = decide(first.next, view(usedMb = 9500L, pressure = Pressure.Elevated), lock = LockState.Unavailable(LockHolder.Unannounced))
+    second.spawn.map(s => (s.demand.taskId.value, s.guaranteed)) shouldBe List(("t2", true))
+    // A warm fork of the key, though, is reused for a guarantee without waiting for the slot — by the oldest request, whoever started the fork — and the
+    // spawn slot then goes to the other.
+    val warm = me.copy(forks = List(fork(1, r2)))
+    val d = decide(warm, view(usedMb = 9500L, pressure = Pressure.Elevated), lock = LockState.Unavailable(LockHolder.Unannounced))
+    d.reuse.map(x => (x.demand.taskId.value, x.guaranteed)) shouldBe List(("t1", true))
+    d.spawn.map(s => (s.demand.taskId.value, s.guaranteed)) shouldBe List(("t2", true))
+  }
+
   test("an idle fork of another request is reused, and changes owner") {
     val me = blank.copy(requests = List(r1, r2), forks = List(fork(1, r1)), ready = List(demand(r2, "t1")), unstartedSuitesByKey = Map(k -> 1))
     val d = decide(me)
