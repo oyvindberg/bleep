@@ -110,8 +110,8 @@ class LinuxProcParseTest extends AnyFunSuite with Matchers {
   }
 
   test("machine sample from a /proc tree") {
-    withProc("meminfo" -> meminfo, "pressure/memory" -> psi) { root =>
-      new LinuxMachineProbe(root).sample() shouldBe MachineSample(
+    withProc("meminfo" -> meminfo, "pressure/memory" -> psi, "self/cgroup" -> "0::/\n") { root =>
+      new LinuxMachineProbe(root, root.resolve("sys/fs/cgroup")).sample() shouldBe MachineSample(
         physicalMb = 16374460L / 1024,
         usedMb = (16374460L - 11126808L) / 1024,
         pressure = RawPressure.LinuxPsi(12.34, 1.5)
@@ -120,8 +120,8 @@ class LinuxProcParseTest extends AnyFunSuite with Matchers {
   }
 
   test("a kernel without PSI has no pressure signal, and says what is missing; memory is still measured") {
-    withProc("meminfo" -> meminfo) { root =>
-      val s = new LinuxMachineProbe(root).sample()
+    withProc("meminfo" -> meminfo, "self/cgroup" -> "0::/\n") { root =>
+      val s = new LinuxMachineProbe(root, root.resolve("sys/fs/cgroup")).sample()
       s.usedMb shouldBe (16374460L - 11126808L) / 1024
       s.pressure match {
         case RawPressure.Unavailable(reason) =>
@@ -134,9 +134,69 @@ class LinuxProcParseTest extends AnyFunSuite with Matchers {
 
   test("the probes of a machine without PSI pass the startup check") {
     val self = ProcessHandle.current().pid()
-    withProc("meminfo" -> meminfo, s"$self/status" -> status) { root =>
-      val probes = Probes.checked(Probes(new LinuxMachineProbe(root), new LinuxForkProbe(root)))
+    withProc("meminfo" -> meminfo, s"$self/status" -> status, "self/cgroup" -> "0::/\n") { root =>
+      val probes = Probes.checked(Probes(new LinuxMachineProbe(root, root.resolve("sys/fs/cgroup")), new LinuxForkProbe(root)))
       probes.machine.sample().pressure shouldBe a[RawPressure.Unavailable]
+    }
+  }
+
+  private val GiB = 1024L * 1024L * 1024L
+  private val cgroupPsi = "some avg10=40.00 avg60=10.00 avg300=2.00 total=1\nfull avg10=5.00 avg60=1.00 avg300=0.20 total=1\n"
+  private def containerFiles(maxBytes: String): List[(String, String)] = List(
+    "meminfo" -> meminfo,
+    "pressure/memory" -> psi,
+    "self/cgroup" -> "0::/docker/abc\n",
+    "sys/fs/cgroup/cgroup.controllers" -> "cpuset cpu io memory pids\n",
+    "sys/fs/cgroup/docker/abc/memory.max" -> s"$maxBytes\n",
+    "sys/fs/cgroup/docker/abc/memory.current" -> s"${3 * GiB}\n",
+    "sys/fs/cgroup/docker/abc/memory.stat" -> s"anon ${2 * GiB}\nfile ${GiB}\nactive_file 0\ninactive_file ${GiB}\n",
+    "sys/fs/cgroup/docker/abc/memory.pressure" -> cgroupPsi
+  )
+  private val hostSample = MachineSample(16374460L / 1024, (16374460L - 11126808L) / 1024, RawPressure.LinuxPsi(12.34, 1.5))
+
+  test("cgroup v2 with a memory.max limit: the cgroup is the machine") {
+    withProc(containerFiles((4 * GiB).toString)*) { root =>
+      new LinuxMachineProbe(root, root.resolve("sys/fs/cgroup")).sample() shouldBe MachineSample(
+        physicalMb = 4096,
+        usedMb = 2048, // memory.current minus the inactive file cache it could drop
+        pressure = RawPressure.LinuxPsi(40.0, 5.0)
+      )
+    }
+  }
+
+  test("cgroup v2: an ancestor's tighter limit binds") {
+    withProc(
+      (containerFiles("max") :+ ("sys/fs/cgroup/docker/memory.max" -> s"${8 * GiB}\n")) ++ List(
+        "sys/fs/cgroup/docker/memory.current" -> s"${5 * GiB}\n",
+        "sys/fs/cgroup/docker/memory.stat" -> s"inactive_file ${GiB}\n",
+        "sys/fs/cgroup/docker/memory.pressure" -> cgroupPsi
+      )*
+    ) { root =>
+      new LinuxMachineProbe(root, root.resolve("sys/fs/cgroup")).sample() shouldBe MachineSample(8192, 4096, RawPressure.LinuxPsi(40.0, 5.0))
+    }
+  }
+
+  test("cgroup v2 without a limit (`max`): the host's numbers") {
+    withProc(containerFiles("max")*) { root =>
+      new LinuxMachineProbe(root, root.resolve("sys/fs/cgroup")).sample() shouldBe hostSample
+    }
+  }
+
+  test("cgroup v2 limit above the host's memory: the host's numbers") {
+    withProc(containerFiles((64 * GiB).toString)*) { root =>
+      new LinuxMachineProbe(root, root.resolve("sys/fs/cgroup")).sample() shouldBe hostSample
+    }
+  }
+
+  test("cgroup v1 memory controller: the host's numbers, whatever v2 files exist") {
+    withProc((containerFiles((4 * GiB).toString) :+ ("self/cgroup" -> "12:memory:/docker/abc\n11:cpu,cpuacct:/docker/abc\n0::/docker/abc\n"))*) { root =>
+      new LinuxMachineProbe(root, root.resolve("sys/fs/cgroup")).sample() shouldBe hostSample
+    }
+  }
+
+  test("a cgroup that /proc/self/cgroup names but the hierarchy lacks is an error") {
+    withProc((containerFiles((4 * GiB).toString) :+ ("self/cgroup" -> "0::/elsewhere\n"))*) { root =>
+      intercept[IllegalStateException](new LinuxMachineProbe(root, root.resolve("sys/fs/cgroup"))).getMessage should include("/elsewhere")
     }
   }
 

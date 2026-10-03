@@ -18,7 +18,7 @@ object Probes {
     val probes = ProbePlatform.current() match {
       case ProbePlatform.Linux =>
         val proc = Path.of("/proc")
-        Probes(new LinuxMachineProbe(proc), new LinuxForkProbe(proc))
+        Probes(new LinuxMachineProbe(proc, Path.of("/sys/fs/cgroup")), new LinuxForkProbe(proc))
       case ProbePlatform.MacOsArm64 =>
         val mac = new MacOsProbes(MachineNative.load(nativeLibDir, ProbePlatform.MacOsArm64))
         Probes(mac, mac)
