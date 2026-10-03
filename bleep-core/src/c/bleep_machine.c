@@ -99,3 +99,98 @@ JNIEXPORT jlong JNICALL Java_bleep_machine_MachineNative_macFootprint(JNIEnv *en
     return (jlong)ri.ri_phys_footprint;
 }
 #endif
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <psapi.h>
+#include <stdint.h>
+
+/* The system's low-memory resource notification, for the life of the probe: a handle, or -GetLastError(). */
+JNIEXPORT jlong JNICALL Java_bleep_machine_MachineNative_winLowMemoryNotification(JNIEnv *env, jobject self) {
+    (void)env;
+    (void)self;
+    HANDLE h = CreateMemoryResourceNotification(LowMemoryResourceNotification);
+    if (h == NULL) return -(jlong)GetLastError();
+    return (jlong)(intptr_t)h;
+}
+
+/* Statuses of winSample. On failure out[0] holds GetLastError(). */
+#define WIN_OK 0
+#define WIN_GLOBAL_MEMORY_STATUS 1
+#define WIN_QUERY_NOTIFICATION 2
+
+/* One reading of the machine, into out[0..5]:
+ *   0 ullTotalPhys    1 ullAvailPhys    2 dwMemoryLoad
+ *   3 ullTotalPageFile (the commit limit)    4 ullAvailPageFile
+ *   5 1 if the low-memory resource notification is signalled, else 0
+ */
+JNIEXPORT jint JNICALL Java_bleep_machine_MachineNative_winSample(JNIEnv *env, jobject self, jlong notification, jlongArray out) {
+    (void)self;
+    jlong values[6];
+
+    MEMORYSTATUSEX status;
+    status.dwLength = sizeof(status);
+    if (!GlobalMemoryStatusEx(&status)) {
+        values[0] = (jlong)GetLastError();
+        (*env)->SetLongArrayRegion(env, out, 0, 1, values);
+        return WIN_GLOBAL_MEMORY_STATUS;
+    }
+
+    BOOL low = FALSE;
+    if (!QueryMemoryResourceNotification((HANDLE)(intptr_t)notification, &low)) {
+        values[0] = (jlong)GetLastError();
+        (*env)->SetLongArrayRegion(env, out, 0, 1, values);
+        return WIN_QUERY_NOTIFICATION;
+    }
+
+    values[0] = (jlong)status.ullTotalPhys;
+    values[1] = (jlong)status.ullAvailPhys;
+    values[2] = (jlong)status.dwMemoryLoad;
+    values[3] = (jlong)status.ullTotalPageFile;
+    values[4] = (jlong)status.ullAvailPageFile;
+    values[5] = low ? 1 : 0;
+    (*env)->SetLongArrayRegion(env, out, 0, 6, values);
+    return WIN_OK;
+}
+
+/* Returned by winFootprint when the process no longer exists. Every other negative value is -GetLastError(). */
+#define WIN_GONE INT64_MIN
+
+/* PrivateUsage of pid in bytes (PROCESS_MEMORY_COUNTERS_EX: private committed memory, resident or paged out). */
+JNIEXPORT jlong JNICALL Java_bleep_machine_MachineNative_winFootprint(JNIEnv *env, jobject self, jint pid) {
+    (void)env;
+    (void)self;
+    HANDLE process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, (DWORD)pid);
+    if (process == NULL) {
+        DWORD error = GetLastError();
+        /* No process with that id. */
+        if (error == ERROR_INVALID_PARAMETER) return WIN_GONE;
+        return -(jlong)error;
+    }
+
+    /* A process object outlives the process while anyone holds a handle to it — the JVM that started it does, until the
+     * Process is collected — so opening it succeeds after it has exited. Its exit code says whether it still runs. */
+    DWORD exitCode = 0;
+    if (!GetExitCodeProcess(process, &exitCode)) {
+        DWORD error = GetLastError();
+        CloseHandle(process);
+        return -(jlong)error;
+    }
+    if (exitCode != STILL_ACTIVE) {
+        CloseHandle(process);
+        return WIN_GONE;
+    }
+
+    PROCESS_MEMORY_COUNTERS_EX counters;
+    ZeroMemory(&counters, sizeof(counters));
+    counters.cb = sizeof(counters);
+    if (!GetProcessMemoryInfo(process, (PROCESS_MEMORY_COUNTERS *)&counters, sizeof(counters))) {
+        DWORD error = GetLastError();
+        CloseHandle(process);
+        return -(jlong)error;
+    }
+    CloseHandle(process);
+    return (jlong)counters.PrivateUsage;
+}
+#endif
