@@ -275,6 +275,9 @@ CPU is local and never needs it. Ticks that only admit compiles, reuse warm fork
 - **Cadence:** finishing a tick schedules the next in `10 ms × number of live servers` — the machine as a whole ticks about every 10 ms.
 - **Events tick immediately** (coalesced, like `TaskDag`'s wakeup queue, `TaskDag.scala:1374-1380`): request start/end, task ready/finished, fork ready/exit.
 - Ticks run on a **dedicated thread**, not the cats-effect compute pool, so a saturated compile pool cannot delay a lock holder.
+- **A dead scheduler kills the server.** A tick that throws (a probe that cannot read the machine, an unreadable `state.json`) ends the scheduler
+  thread; the failure is logged, every later call throws it, and `TickRuntime`'s `onDeath` signal is wired by the daemon to its own shutdown (Phase C).
+  A server that quietly stopped deciding would hold every request forever with no diagnostic.
 - Under the lock, in order: take lock → probe machine (after the lock, so it includes every earlier claim) → read all `state.json` → `decide` → write own
   `state.json` → release in `finally`. Starting and killing processes, logging and anything else happen after release.
 - Cost at 10 ms: all probes in-process (§9) — microseconds. The file is rewritten only when this server's entry changed.

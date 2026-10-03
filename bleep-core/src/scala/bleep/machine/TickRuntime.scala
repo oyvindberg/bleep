@@ -12,10 +12,14 @@ import java.util.concurrent.locks.LockSupport
   * else for the cadence. Many events between two ticks coalesce into one tick, like `TaskDag`'s wakeup queue. A park permit is never lost: an unpark before the
   * park makes the park return at once.
   *
-  * A tick that throws — a probe that cannot read the machine, a state file that cannot be parsed — ends the runtime: the failure is logged, kept, and rethrown
-  * from every later call, because a scheduler that quietly stopped deciding would leave every request waiting forever with no diagnostic.
+  * A tick that throws — a probe that cannot read the machine, a state file that cannot be parsed — ends the runtime, and a dead scheduler must end the server:
+  * the failure is logged, kept, rethrown from every later call, and handed to `onDeath`, which the daemon wires to its own loud shutdown (Phase C). A scheduler
+  * that quietly stopped deciding would leave every request waiting forever with no diagnostic; a server without a scheduler is no server.
+  *
+  * @param onDeath
+  *   called once, on the scheduler's thread, with the failure that ended it
   */
-final class TickRuntime(deps: Ticker.Deps, logger: Logger) extends MachineScheduler with AutoCloseable {
+final class TickRuntime(deps: Ticker.Deps, logger: Logger, onDeath: Throwable => Unit) extends MachineScheduler with AutoCloseable {
   import Ticker.Event
 
   private val ticker = new Ticker(deps)
@@ -44,7 +48,8 @@ final class TickRuntime(deps: Ticker.Deps, logger: Logger) extends MachineSchedu
     catch {
       case t: Throwable =>
         failure.set(t)
-        logger.error(s"the machine scheduler stopped: ${t.getMessage}", t)
+        logger.error(s"the machine scheduler stopped, and the server cannot run without it: ${t.getMessage}", t)
+        onDeath(t)
         throw t
     }
 

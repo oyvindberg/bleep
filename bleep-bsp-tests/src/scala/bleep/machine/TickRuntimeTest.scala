@@ -14,7 +14,7 @@ class TickRuntimeTest extends AnyFunSuite with Matchers {
 
   test("an event from another thread wakes the dedicated thread, which decides and reports through the effects") {
     withWorld { w =>
-      val runtime = new TickRuntime(w.deps(lockWaitMs = 100L, tickIntervalPerServerMs = 10L), TypedLogger.DevNull)
+      val runtime = new TickRuntime(w.deps(lockWaitMs = 100L, tickIntervalPerServerMs = 10L), TypedLogger.DevNull, t => fail(s"scheduler died: $t"))
       runtime.start()
       try {
         runtime.registerRequest(r1, RequestKind.Test)
@@ -31,7 +31,7 @@ class TickRuntimeTest extends AnyFunSuite with Matchers {
 
   test("with nothing to schedule the thread does not tick at all; with a request it ticks at the cadence") {
     withWorld { w =>
-      val runtime = new TickRuntime(w.deps(lockWaitMs = 100L, tickIntervalPerServerMs = 10L), TypedLogger.DevNull)
+      val runtime = new TickRuntime(w.deps(lockWaitMs = 100L, tickIntervalPerServerMs = 10L), TypedLogger.DevNull, t => fail(s"scheduler died: $t"))
       runtime.start()
       try {
         Thread.sleep(100L)
@@ -51,7 +51,7 @@ class TickRuntimeTest extends AnyFunSuite with Matchers {
   test("a burst of events while a tick is in progress coalesces into one following tick") {
     withWorld { w =>
       w.machineProbe.delayMs.set(80L)
-      val runtime = new TickRuntime(w.deps(lockWaitMs = 100L, tickIntervalPerServerMs = 1000L), TypedLogger.DevNull)
+      val runtime = new TickRuntime(w.deps(lockWaitMs = 100L, tickIntervalPerServerMs = 1000L), TypedLogger.DevNull, t => fail(s"scheduler died: $t"))
       runtime.start()
       try {
         runtime.registerRequest(r1, RequestKind.Compile)
@@ -67,13 +67,17 @@ class TickRuntimeTest extends AnyFunSuite with Matchers {
 
   test("a probe that fails stops the runtime, and every later call says so with the cause") {
     withWorld { w =>
-      val runtime = new TickRuntime(w.deps(lockWaitMs = 100L, tickIntervalPerServerMs = 10L), TypedLogger.DevNull)
+      val death = new java.util.concurrent.atomic.AtomicReference[Throwable](null)
+      val runtime = new TickRuntime(w.deps(lockWaitMs = 100L, tickIntervalPerServerMs = 10L), TypedLogger.DevNull, death.set)
       runtime.start()
       try {
         w.machineProbe.failWith.set(new IllegalStateException("host_statistics64 failed"))
         runtime.registerRequest(r1, RequestKind.Compile)
         eventually(5000L)(runtime.failed.isDefined) shouldBe true
         runtime.failed.get.getMessage shouldBe "host_statistics64 failed"
+        // The server's signal: it must shut down on this.
+        eventually(5000L)(death.get() != null) shouldBe true
+        death.get().getMessage shouldBe "host_statistics64 failed"
         val refused = intercept[IllegalStateException](runtime.unregisterRequest(r1))
         refused.getCause.getMessage shouldBe "host_statistics64 failed"
       } finally runtime.close()
@@ -82,7 +86,7 @@ class TickRuntimeTest extends AnyFunSuite with Matchers {
 
   test("close stops the thread; calls after it are refused") {
     withWorld { w =>
-      val runtime = new TickRuntime(w.deps(lockWaitMs = 100L, tickIntervalPerServerMs = 10L), TypedLogger.DevNull)
+      val runtime = new TickRuntime(w.deps(lockWaitMs = 100L, tickIntervalPerServerMs = 10L), TypedLogger.DevNull, t => fail(s"scheduler died: $t"))
       runtime.start()
       runtime.close()
       runtime.close() // idempotent

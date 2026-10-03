@@ -15,6 +15,10 @@ package bleep.machine
   *      wants them.
   *
   * Every call is non-blocking: it queues an event and wakes the tick thread. Nothing is decided on the caller's thread.
+  *
+  * A scheduler that dies takes the server with it: [[TickRuntime]] hands the failure to its `onDeath` callback, and the daemon must wire that to a loud
+  * shutdown (log, exit). Later calls throw the stored failure meanwhile. There is no running without a scheduler — a server that stopped deciding would hold
+  * every request forever.
   */
 trait MachineScheduler {
   def registerRequest(id: RequestId, kind: RequestKind): Unit
