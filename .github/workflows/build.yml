@@ -59,7 +59,7 @@ jobs:
       # `publish-local` already ran above, for the dev script's own benefit. This only keeps its output.
       #
       # From `build` alone, not the matrix: these are JVM jars, identical whichever runner produced them, so one
-      # upload serves all five binaries. ~15MB, of which ~13MB is jars (sources and javadoc are in there too, and
+      # upload serves all four binaries. ~15MB, of which ~13MB is jars (sources and javadoc are in there too, and
       # worth keeping — an IDE pointed at a dev build wants them).
       - name: Stage jars for the dev binaries
         shell: bash
@@ -222,12 +222,6 @@ jobs:
             dev_script: bleep-cli.sh
             ni_script: ni-build.sh
             bootstrap_coursier: true
-          - os: macos-15-intel
-            file_name: bleep
-            artifact_name: bleep-x86_64-apple-darwin
-            dev_script: bleep-cli.sh
-            ni_script: ni-build.sh
-            bootstrap_coursier: false
           - os: macos-latest
             file_name: bleep
             artifact_name: bleep-arm64-apple-darwin
@@ -391,7 +385,7 @@ jobs:
         # ourselves fails the *step*, which keeps the `if: always()` collection below alive.
         #
         # Measured healthy durations for this step: 4m45s ubuntu-arm, 6m31s ubuntu, 10m13s macos-arm,
-        # 11m31s macos-intel, 12m52s-13m14s windows. Windows has since roughly halved — 13 consecutive re-runs on
+        # 12m52s-13m14s windows. Windows has since roughly halved — 13 consecutive re-runs on
         # 2026-08-09 measured 5m11s-7m8s, from the analysis-sharing and noop-fast-path work — so the margin below is
         # now larger than it was sized for, not tighter. 20m keeps the >1.5x-the-slowest margin this cap was originally
         # sized for; only the enforcement was broken, so tightening the number too is not the fix. Runner variance is

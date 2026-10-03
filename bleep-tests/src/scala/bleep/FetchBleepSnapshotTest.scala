@@ -51,14 +51,12 @@ class FetchBleepSnapshotTest extends AnyFunSuite with Matchers {
     // These must stay in step with `matrix.artifact_name`; a typo here is only discovered by someone trying a snapshot.
     val expected = Set(
       "bleep-arm64-apple-darwin",
-      "bleep-x86_64-apple-darwin",
       "bleep-x86_64-pc-linux",
       "bleep-arm64-pc-linux",
       "bleep-x86_64-pc-win32"
     )
     val actual = List(
       OsArch.MacosArm64(freedFromJail = false),
-      OsArch.MacosAmd64,
       OsArch.LinuxAmd64,
       OsArch.LinuxArm64,
       OsArch.WindowsAmd64
@@ -66,6 +64,10 @@ class FetchBleepSnapshotTest extends AnyFunSuite with Matchers {
 
     actual.collect { case Left(err) => err } shouldBe empty
     actual.collect { case Right(name) => name }.toSet shouldBe expected
+  }
+
+  test("an Intel Mac is refused up front, since build.yml no longer builds one") {
+    FetchBleepSnapshot.artifactNameFor(OsArch.MacosAmd64).isLeft shouldBe true
   }
 
   test("latestRelease is a different bleep — the last resort, never the first choice") {
