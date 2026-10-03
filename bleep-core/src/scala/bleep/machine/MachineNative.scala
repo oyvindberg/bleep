@@ -14,6 +14,11 @@ import java.security.MessageDigest
   */
 final class MachineNative private () {
   @native def abiVersion(): Int
+
+  // macOS — see the C source for the layout of `out` and the statuses.
+  @native def macHostPort(): Long
+  @native def macSample(hostPort: Long, out: Array[Long]): Int
+  @native def macFootprint(pid: Int): Long
 }
 
 object MachineNative {
