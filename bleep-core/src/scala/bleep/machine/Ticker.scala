@@ -84,7 +84,7 @@ final class Ticker(deps: Ticker.Deps) {
           deps.lock.locked(deps.lockWaitMs) { (lockState, timer) =>
             val sample = timer.step("probe")(deps.machineProbe.sample())
             val others = lockState match {
-              case LockState.Held                                 => timer.step("read")(StateFile.discoverOthers(deps.bspSocketDir, deps.identity))
+              case LockState.Held                                 => timer.step("read")(deps.discovery.others())
               case LockState.Unavailable(_) | LockState.NotNeeded => Nil
             }
             if (lockState == LockState.Held) liveServersSeen = others.size + 1
@@ -184,8 +184,8 @@ object Ticker {
     *
     * @param ownSocketDir
     *   where this server's `state.json` goes
-    * @param bspSocketDir
-    *   the parent of every server's socket dir, scanned for the others' `state.json`
+    * @param discovery
+    *   the other servers' `state.json`, over the socket-dir layout
     * @param params
     *   re-read every tick, so a `parallelism` change in the user config applies to the next decision
     * @param clock
@@ -197,7 +197,7 @@ object Ticker {
       thresholds: PressureThresholds,
       lock: MachineLock,
       ownSocketDir: Path,
-      bspSocketDir: Path,
+      discovery: ServerDiscovery,
       identity: ServerIdentity,
       params: () => Params,
       heapGate: HeapGate,

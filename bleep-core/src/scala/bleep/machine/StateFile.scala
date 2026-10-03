@@ -80,18 +80,23 @@ object StateFile {
     *   dead process and is dropped by liveness like any other.
     */
   def discoverOthers(bspSocketDir: Path, self: ServerIdentity): List[StateJson] =
+    readOthers(listSocketDirs(bspSocketDir), self)
+
+  /** The socket directories as they are on disk now. */
+  def listSocketDirs(bspSocketDir: Path): List[Path] =
     if (!Files.isDirectory(bspSocketDir)) Nil
     else {
-      val dirs = {
-        val stream = Files.list(bspSocketDir)
-        try stream.toScala(List).filter(Files.isDirectory(_))
-        finally stream.close()
-      }
-      dirs
-        .flatMap(read)
-        .filterNot(s => s.pid == self.pid && s.startedAtEpochMs == self.startedAtEpochMs)
-        .filter(isLive)
+      val stream = Files.list(bspSocketDir)
+      try stream.toScala(List).filter(Files.isDirectory(_))
+      finally stream.close()
     }
+
+  /** The live state behind each of `dirs`, fresh from disk, this server left out. */
+  def readOthers(dirs: List[Path], self: ServerIdentity): List[StateJson] =
+    dirs
+      .flatMap(read)
+      .filterNot(s => s.pid == self.pid && s.startedAtEpochMs == self.startedAtEpochMs)
+      .filter(isLive)
 
   // ---- json. Hand-written rather than derived: the file is read by every later bleep version, so its spelling is a contract, not a reflection of case
   // class field order.
@@ -180,4 +185,28 @@ object StateFile {
       shuttingDown <- c.get[Boolean]("shuttingDown")
       forks <- c.get[List[StateFork]]("forks")
     } yield StateJson(StateJson.CurrentVersion, pid, startedAt, bleepVersion, updatedAt, requests, cpuInUse, wantsMore, shuttingDown, forks)
+}
+
+/** [[StateFile.discoverOthers]] for the tick: the directory listing is cached for `listingTtlMs`, every known server's `state.json` is read fresh on every
+  * call. The listing changes only when a server is spawned or pruned, and a new server takes longer than a second to be anything but idle — while the state
+  * files are exactly the data the lock serialises, so they are never stale.
+  *
+  * @param clock
+  *   epoch milliseconds, injected so a test can move it
+  */
+final class ServerDiscovery(bspSocketDir: Path, self: ServerIdentity, clock: () => Long, listingTtlMs: Long) {
+  require(listingTtlMs >= 0L, s"listingTtlMs $listingTtlMs is negative")
+  private var listing: Option[(Long, List[Path])] = None
+
+  def others(): List[StateJson] = {
+    val now = clock()
+    val dirs = listing match {
+      case Some((listedAt, dirs)) if now - listedAt < listingTtlMs => dirs
+      case _                                                       =>
+        val fresh = StateFile.listSocketDirs(bspSocketDir)
+        listing = Some((now, fresh))
+        fresh
+    }
+    StateFile.readOthers(dirs, self)
+  }
 }

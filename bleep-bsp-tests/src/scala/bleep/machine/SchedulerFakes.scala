@@ -84,7 +84,7 @@ object SchedulerFakes {
       thresholds = PressureThresholds.provisional,
       lock = lock,
       ownSocketDir = ownSocketDir,
-      bspSocketDir = bspSocketDir,
+      discovery = new ServerDiscovery(bspSocketDir, identity, () => clock.get(), listingTtlMs = 1000L),
       identity = identity,
       params = () => params.get(),
       heapGate = HeapGate.alwaysAdmit,

@@ -183,6 +183,31 @@ class StateFileTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("the tick's discovery caches the directory listing for its ttl and reads every state file fresh") {
+    withTempDir { root =>
+      val socketRoot = Files.createDirectories(root.resolve("socket"))
+      val me = ServerIdentity(pid = 999_999_999L, startedAtEpochMs = 0L, bleepVersion = "me")
+      val clock = new java.util.concurrent.atomic.AtomicLong(10_000L)
+      val discovery = new ServerDiscovery(socketRoot, me, () => clock.get(), listingTtlMs = 1000L)
+      val live = state(self.pid, self.startedAtEpochMs, Nil)
+      val a = Files.createDirectories(socketRoot.resolve("aaaa"))
+      StateFile.write(a, live.copy(bleepVersion = "a", cpuInUse = 1))
+      discovery.others().map(s => (s.bleepVersion, s.cpuInUse)) shouldBe List(("a", 1))
+      // A new directory is not seen until the listing expires; a changed file in a known directory is seen at once.
+      val b = Files.createDirectories(socketRoot.resolve("bbbb"))
+      StateFile.write(b, live.copy(bleepVersion = "b"))
+      StateFile.write(a, live.copy(bleepVersion = "a", cpuInUse = 7))
+      clock.set(10_999L)
+      discovery.others().map(s => (s.bleepVersion, s.cpuInUse)) shouldBe List(("a", 7))
+      clock.set(11_000L)
+      discovery.others().map(_.bleepVersion).sorted shouldBe List("a", "b")
+      // A pruned directory's file is simply absent on the next read.
+      Files.delete(StateFile.file(b))
+      Files.delete(b)
+      discovery.others().map(_.bleepVersion) shouldBe List("a")
+    }
+  }
+
   test("a state file that cannot be parsed fails discovery loudly") {
     withTempDir { root =>
       val dir = Files.createDirectories(root.resolve("ffff"))
