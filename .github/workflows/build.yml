@@ -16,19 +16,19 @@ jobs:
   # carry all of them: `build` and `release` put these under native-prebuilt/, which the sourcegen step packages. Linux
   # needs no library (its probes read /proc). Short on purpose — `build` waits for it.
   native-libs:
-    name: Machine-probe library for ${{ matrix.platform }}
+    name: Machine-probe libraries built on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         include:
+          # One universal dylib, arm64 + x86_64
           - os: macos-latest
-            platform: darwin-arm64
-            file: libbleep-machine.dylib
+            name: darwin
+          # x64, and arm64 cross-compiled
           - os: windows-latest
-            platform: windows-x86_64
-            file: bleep-machine.dll
+            name: windows
     steps:
       # No submodules: loading the build and running a sourcegen script reads none of the liberated sources.
       - uses: actions/checkout@v7
@@ -36,21 +36,18 @@ jobs:
       - uses: coursier/cache-action@v8
         with:
           extraFiles: bleep.yaml
-      - name: Build the library
+      - name: Build the libraries
         shell: bash
         run: |
           bleep --no-color sourcegen bleep-machine-probes
-          lib=$(find .bleep -path '*bleep.scripts.BuildMachineNative*' -name '${{ matrix.file }}')
-          if [ -z "$lib" ] || [ "$(printf '%s\n' "$lib" | wc -l)" -ne 1 ]; then
-            echo "::error::expected exactly one ${{ matrix.file }} under .bleep, found: '$lib'"
-            exit 1
-          fi
-          mkdir -p native-out/${{ matrix.platform }}
-          cp "$lib" native-out/${{ matrix.platform }}/
-          ls -la native-out/${{ matrix.platform }}
+          dir=$(find .bleep -type d -path '*bleep.scripts.BuildMachineNative/bleep/machine/native')
+          [ -n "$dir" ] || { echo "::error::no libraries under .bleep"; exit 1; }
+          mkdir -p native-out
+          cp -r "$dir"/* native-out/
+          find native-out -type f -exec ls -la {} \;
       - uses: actions/upload-artifact@v7
         with:
-          name: machine-probe-${{ matrix.platform }}
+          name: machine-probe-${{ matrix.name }}
           path: native-out
           retention-days: 7
           if-no-files-found: error

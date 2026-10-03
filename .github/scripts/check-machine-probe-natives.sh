@@ -14,7 +14,7 @@ if [ -z "$jars" ]; then
 fi
 for jar in $jars; do
   listing=$(unzip -l "$jar")
-  for lib in bleep/machine/native/darwin-arm64/libbleep-machine.dylib bleep/machine/native/windows-x86_64/bleep-machine.dll; do
+  for lib in bleep/machine/native/darwin-universal/libbleep-machine.dylib bleep/machine/native/windows-x86_64/bleep-machine.dll bleep/machine/native/windows-arm64/bleep-machine.dll; do
     if ! grep -q "$lib" <<<"$listing"; then
       echo "::error::$jar has no $lib"
       exit 1

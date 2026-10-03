@@ -33,9 +33,11 @@ object MachineNative {
 
   /** Where the library for `platform` lives on the classpath (inside the bleep-machine-probes jar), as `(directory, file name)`. */
   def resourceFor(platform: ProbePlatform): (String, String) = platform match {
-    case ProbePlatform.MacOsArm64 => ("bleep/machine/native/darwin-arm64", "libbleep-machine.dylib")
-    case ProbePlatform.WindowsX64 => ("bleep/machine/native/windows-x86_64", "bleep-machine.dll")
-    case ProbePlatform.Linux      => throw new IllegalArgumentException("Linux needs no native library: its probes read /proc")
+    // One universal dylib carries both macOS architectures.
+    case ProbePlatform.MacOsArm64 | ProbePlatform.MacOsX64 => ("bleep/machine/native/darwin-universal", "libbleep-machine.dylib")
+    case ProbePlatform.WindowsX64                          => ("bleep/machine/native/windows-x86_64", "bleep-machine.dll")
+    case ProbePlatform.WindowsArm64                        => ("bleep/machine/native/windows-arm64", "bleep-machine.dll")
+    case ProbePlatform.Linux                               => throw new IllegalArgumentException("Linux needs no native library: its probes read /proc")
   }
 
   /** Unpacks the library for `platform` from the classpath into `dir` and loads it.
