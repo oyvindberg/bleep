@@ -21,8 +21,9 @@ object Probes {
       case ProbePlatform.MacOsArm64 =>
         val mac = new MacOsProbes(MachineNative.load(nativeLibDir, ProbePlatform.MacOsArm64))
         Probes(mac, mac)
-      case other =>
-        throw new UnsupportedOperationException(s"bleep has no memory probes for $other yet (native library dir: $nativeLibDir)")
+      case ProbePlatform.WindowsX64 =>
+        val windows = new WindowsProbes(MachineNative.load(nativeLibDir, ProbePlatform.WindowsX64))
+        Probes(windows, windows)
     }
     probes.machine.sample(): Unit
     probes.fork.footprintMb(ProcessHandle.current().pid()) match {
