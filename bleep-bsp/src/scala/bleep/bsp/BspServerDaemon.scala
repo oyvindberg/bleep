@@ -321,6 +321,13 @@ object BspServerDaemon {
                 running = snapshot.active.size,
                 waiting = snapshot.waiting.size
               )
+              // Before recording, so the metric shows what is held after the sweep. This loop already reads the cached workspaces every 15s, which makes it
+              // the natural place to notice that some of them have been deleted.
+              buildCache.evictMissing(logger)
+              getWorkspaces.filterNot(Files.isDirectory(_)).foreach { gone =>
+                unregisterWorkspace(gone)
+                logger.withContext("workspace", gone.toString).info("Unregistering a workspace: its directory no longer exists")
+              }
               BspMetrics.recordWorkspaceState(buildCache.cachedWorkspaces, buildCache.bound)
               BspMetrics.recordAnalysisCache(analysisCache.stats)
             }

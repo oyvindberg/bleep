@@ -3,7 +3,7 @@ package bleep.bsp
 import bleep.{model, BleepException, Started}
 import ryddig.Logger
 
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import scala.jdk.CollectionConverters.*
@@ -103,6 +103,37 @@ class BuildCache(maxWorkspaces: Int, analysisCache: bleep.analysis.AnalysisCache
     analysisCache.evictWorkspace(key)
   }
 
+  /** Drop every build whose workspace directory is gone — a deleted git worktree, above all — along with its analyses.
+    *
+    * LRU eviction alone never reaches these: it only runs when another build is loaded, and only down to the bound, so a daemon kept busy by a few live
+    * workspaces held the dead ones indefinitely. Observed: a daemon holding twelve workspaces, nine of them deleted agent worktrees, with 935 analyses and most
+    * of an 8.6GB post-GC heap between them. Nothing can ever ask for a build whose directory does not exist, so there is nothing to weigh — it goes.
+    *
+    * Busy ones are left for the next sweep: an operation still in flight against a directory deleted under it will fail on its own, and evicting mid-flight
+    * buys nothing. Called periodically by the daemon; one `isDirectory` per cached workspace.
+    */
+  def evictMissing(logger: Logger): Unit =
+    entries.synchronized {
+      val doomed = BuildCache.selectMissing(
+        present = entries.keySet().iterator().asScala.toVector,
+        exists = (key: model.WorkspaceKey) => Files.isDirectory(key.workspace),
+        isBusy = (key: model.WorkspaceKey) => SharedWorkspaceState.getActiveOperations(key.workspace).nonEmpty
+      )
+      doomed.foreach { key =>
+        val freed = dropAll(key)
+        // Its lock goes too, or one lock object per deleted worktree accumulates for the life of the daemon. A load racing this for the same key would at
+        // worst run alongside one under the old lock — for a directory that no longer exists, so both fail.
+        loadLocks.remove(key): Unit
+        logger
+          .withContext("workspace", key.workspace.toString)
+          .withContext("variant", key.variant.toString)
+          .withContext("analysesFreed", freed.entries)
+          .withContext("analysisMbFreed", freed.fileBytes / (1024 * 1024))
+          .info("Evicting a cached build: its workspace directory no longer exists")
+        BspMetrics.recordCacheEvict("buildCache", key.workspace.toString)
+      }
+    }
+
   /** The workspaces currently held, for telemetry. Distinct: one workspace can hold several variants, but the interesting quantity is how many builds' worth of
     * state is resident.
     */
@@ -150,6 +181,10 @@ class BuildCache(maxWorkspaces: Int, analysisCache: bleep.analysis.AnalysisCache
 }
 
 object BuildCache {
+
+  /** Which entries belong to workspaces that no longer exist, leaving out any with work in flight. Pure, for the same reason as [[selectEvictions]]. */
+  private[bsp] def selectMissing[K](present: Vector[K], exists: K => Boolean, isBusy: K => Boolean): Vector[K] =
+    present.filter(key => !exists(key) && !isBusy(key))
 
   /** Which entries to drop so that at most `bound` remain: least recently used first, never `keep`, never a busy one.
     *

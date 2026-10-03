@@ -134,20 +134,36 @@ object BspTestHarness {
 
   /** Run a test with the BSP server (simple version - auto-detects project) */
   def withServer[A](workspaceRoot: Path)(f: BspClient => A): A = {
-    val harness = new BspTestHarness(workspaceRoot, None)
+    val (analysisCache, buildCache) = freshCaches()
+    val harness = new BspTestHarness(workspaceRoot, None, analysisCache, buildCache)
     harness.use(f)
   }
 
   /** Run a test with BSP server and explicit project configuration */
   def withProject[A](workspaceRoot: Path, config: ProjectConfig)(f: BspClient => A): A = {
-    val harness = new BspTestHarness(workspaceRoot, Some(List(config)))
+    val (analysisCache, buildCache) = freshCaches()
+    withProjectAndCaches(workspaceRoot, config, analysisCache, buildCache)(f)
+  }
+
+  /** Like [[withProject]], with the daemon-scoped caches supplied by the test, so it can look at what the server cached and act on the cache directly. */
+  def withProjectAndCaches[A](workspaceRoot: Path, config: ProjectConfig, analysisCache: bleep.analysis.AnalysisCache, buildCache: bleep.bsp.BuildCache)(
+      f: BspClient => A
+  ): A = {
+    val harness = new BspTestHarness(workspaceRoot, Some(List(config)), analysisCache, buildCache)
     harness.use(f)
   }
 
   /** Run a test with BSP server and multiple project configurations */
   def withProjects[A](workspaceRoot: Path, configs: List[ProjectConfig])(f: BspClient => A): A = {
-    val harness = new BspTestHarness(workspaceRoot, Some(configs))
+    val (analysisCache, buildCache) = freshCaches()
+    val harness = new BspTestHarness(workspaceRoot, Some(configs), analysisCache, buildCache)
     harness.use(f)
+  }
+
+  /** One server per harness, so fresh daemon-scoped caches, bounded the way a real daemon on this machine would bound them. */
+  def freshCaches(): (bleep.analysis.AnalysisCache, bleep.bsp.BuildCache) = {
+    val analysisCache = new bleep.analysis.AnalysisCache
+    (analysisCache, new bleep.bsp.BuildCache(bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), analysisCache))
   }
 
   /** Client interface for sending BSP requests */
@@ -198,7 +214,12 @@ object BspTestHarness {
   }
 }
 
-class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHarness.ProjectConfig]]) {
+class BspTestHarness(
+    workspaceRoot: Path,
+    projectConfigs: Option[List[BspTestHarness.ProjectConfig]],
+    harnessAnalysisCache: bleep.analysis.AnalysisCache,
+    harnessBuildCache: BuildCache
+) {
   import BspTestHarness._
   import JsonRpcCodecs.given
 
@@ -210,7 +231,6 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
     // The production server. It has no way to be handed build state directly — it compiles the
     // build its client sends — so the configs are lowered into the same payload a real bleep
     // client would send, and delivered through build/initialize below.
-    val harnessAnalysisCache = new bleep.analysis.AnalysisCache
     val server = new MultiWorkspaceBspServer(
       clientToServer.source,
       serverToClient.sink,
@@ -219,7 +239,7 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
       heapMonitor = HeapMonitor.system,
       // One server per harness, so fresh daemon-scoped state is the right scope here.
       kspMutexes = new KspMutexes,
-      buildCache = new BuildCache(bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), harnessAnalysisCache),
+      buildCache = harnessBuildCache,
       analysisCache = harnessAnalysisCache,
       daemonInfo = DaemonInfo.inProcess(bleep.model.BspServerConfig.default),
       connId = 1,

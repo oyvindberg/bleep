@@ -51,4 +51,40 @@ class BuildCacheEvictionTest extends AnyFunSuite with Matchers {
     val present = Vector("busy1" -> 1L, "busy2" -> 2L, "busy3" -> 3L, "idle1" -> 4L, "keep" -> 5L)
     select(present, keep = "keep", bound = 3, busy = Set("busy1", "busy2", "busy3")) shouldBe Vector("idle1")
   }
+
+  // ── workspaces that no longer exist ────────────────────────────
+
+  test("a cached build whose workspace directory is gone is evicted, whatever the bound") {
+    BuildCache.selectMissing[String](Vector("deleted", "alive"), exists = _ == "alive", isBusy = _ => false) shouldBe Vector("deleted")
+  }
+
+  test("a deleted workspace with work in flight is left for a later sweep") {
+    BuildCache.selectMissing[String](Vector("deleted-busy", "deleted-idle"), exists = _ => false, isBusy = _ == "deleted-busy") shouldBe Vector("deleted-idle")
+  }
+
+  /** The whole path, with a real resolved build: a worktree is loaded, its directory is deleted, and the sweep the daemon runs drops it while leaving a live
+    * one.
+    */
+  test("a real cached build is evicted once its workspace directory is deleted, and a live one is kept") {
+    val root = java.nio.file.Files.createTempDirectory("bleep-build-cache-missing")
+    val alive = java.nio.file.Files.createDirectories(root.resolve("alive"))
+    val deleted = java.nio.file.Files.createDirectories(root.resolve("deleted"))
+    val classpath = bleep.analysis.CompilerResolver.resolveScalaLibrary("3.7.4").toList
+    val (analysisCache, buildCache) = bleep.analysis.BspTestHarness.freshCaches()
+
+    List(alive, deleted).foreach { workspace =>
+      java.nio.file.Files.createDirectories(workspace.resolve("src"))
+      val config = bleep.analysis.BspTestHarness.ProjectConfig.scala("p", Set(workspace.resolve("src")), "3.7.4", classpath, isTest = false)
+      bleep.analysis.BspTestHarness.withProjectAndCaches(workspace, config, analysisCache, buildCache) { client =>
+        client.initialize(): Unit
+        client.buildTargets(): Unit
+      }
+    }
+    buildCache.cachedWorkspaces.toSet shouldBe Set(alive.toString, deleted.toString)
+
+    bleep.internal.FileUtils.deleteDirectory(deleted)
+    buildCache.evictMissing(ryddig.Loggers.storing())
+
+    buildCache.cachedWorkspaces shouldBe List(alive.toString)
+  }
 }
