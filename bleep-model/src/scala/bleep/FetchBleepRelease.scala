@@ -64,7 +64,13 @@ object FetchBleepRelease {
 
         Await.result(fetching, Duration.Inf) match {
           case Left(artifactError) =>
-            Left(new BleepException.ArtifactResolveError(artifactError, s"bleep version ${wanted.value}"))
+            // Releases after 1.0.0-M14 are built with a GraalVM that has no Intel Mac distribution, so they have no asset for it. Older ones still do, which
+            // is why the URL above stays: only the failure gets the explanation.
+            val context = osArch match {
+              case OsArch.MacosAmd64 => s"bleep version ${wanted.value} (there is no macOS x86_64 build of bleep after 1.0.0-M14)"
+              case _                 => s"bleep version ${wanted.value}"
+            }
+            Left(new BleepException.ArtifactResolveError(artifactError, context))
           case Right(file) =>
             findExecutable(file) match {
               case Left(msg) =>

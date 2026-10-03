@@ -12,9 +12,6 @@ chmod +x artifacts/bleep-x86_64-pc-linux/bleep
 chmod +x artifacts/bleep-arm64-pc-linux/bleep
 (cd artifacts/bleep-arm64-pc-linux && tar cvfz "$CWD/work/release/bleep-arm64-pc-linux.tar.gz" bleep)
 
-chmod +x artifacts/bleep-x86_64-apple-darwin/bleep
-(cd artifacts/bleep-x86_64-apple-darwin && tar cvfz "$CWD/work/release/bleep-x86_64-apple-darwin.tar.gz" bleep)
-
 chmod +x artifacts/bleep-arm64-apple-darwin/bleep
 (cd artifacts/bleep-arm64-apple-darwin && tar cvfz "$CWD/work/release/bleep-arm64-apple-darwin.tar.gz" bleep)
 
@@ -35,8 +32,8 @@ chmod +x artifacts/bleep-arm64-apple-darwin/bleep
   cd work/release
   sha256sum bleep-*.tar.gz bleep-*.zip > SHA256SUMS
   count=$(wc -l < SHA256SUMS)
-  if [ "$count" -ne 5 ]; then
-    echo "::error::expected 5 release archives to hash, got $count" >&2
+  if [ "$count" -ne 4 ]; then
+    echo "::error::expected 4 release archives to hash, got $count" >&2
     cat SHA256SUMS >&2
     exit 1
   fi

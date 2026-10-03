@@ -4,7 +4,7 @@ title: Install Bleep
 
 # Install Bleep
 
-Every release publishes five native binaries — there is no JVM to install first, and no wrapper
+Every release publishes four native binaries — there is no JVM to install first, and no wrapper
 script in your repo. Pick whichever of the routes below fits your machine or your CI image.
 
 Behind a corporate proxy, a TLS-intercepting firewall, or on an air-gapped network? Read
@@ -21,14 +21,19 @@ which uploads exactly these assets to the
 | --- | --- | --- | --- |
 | Linux x86\_64 | `bleep-x86_64-pc-linux.tar.gz` | yes | yes |
 | Linux arm64 | `bleep-arm64-pc-linux.tar.gz` | yes | yes |
-| macOS x86\_64 (Intel) | `bleep-x86_64-apple-darwin.tar.gz` | yes | yes |
 | macOS arm64 (Apple silicon) | `bleep-arm64-apple-darwin.tar.gz` | yes | yes |
 | Windows x86\_64 | `bleep-x86_64-pc-win32.zip` | **no** | yes |
 
-Plus a `SHA256SUMS` asset covering all five (see [Verify the download](#verify-the-download)).
+Plus a `SHA256SUMS` asset covering all four (see [Verify the download](#verify-the-download)).
 
-Every one of those five is built *and its test suite run* on a runner of that architecture before
+Every one of those four is built *and its test suite run* on a runner of that architecture before
 the release job will publish it. There is no Windows arm64 and no 32-bit build.
+
+There is no macOS x86\_64 (Intel) build after 1.0.0-M14: GraalVM 25.0.2, which bleep is built with,
+no longer ships for Intel Macs. 1.0.0-M14 and earlier still have their
+`bleep-x86_64-apple-darwin.tar.gz` asset, so pinning one of those (`BLEEP_VERSION` for the
+installer, `bleep:1.0.0-M14` for coursier) still works. Newer versions on an Intel Mac take the coursier
+channel's route for platforms without a prebuilt binary (see [Via Coursier](#via-coursier)).
 
 The `.tar.gz` archives contain a single executable named `bleep` at the archive root; the Windows
 zip contains `bleep.exe`.
@@ -94,7 +99,7 @@ shasum -a 256 --ignore-missing -c SHA256SUMS
 ```
 
 `--ignore-missing` is what lets you check one archive against the full list; drop it if you
-downloaded all five. On Windows:
+downloaded all four. On Windows:
 
 ```powershell
 certutil -hashfile bleep-x86_64-pc-win32.zip SHA256
@@ -138,8 +143,8 @@ cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/c
 ```
 
 The [channel file](https://github.com/oyvindberg/bleep/blob/master/coursier-channel.json) maps
-`x86_64-pc-linux`, `aarch64-pc-linux`, `x86_64-apple-darwin`, `aarch64-apple-darwin` and
-`x86_64-pc-win32` to the prebuilt release archives, and falls back to launching
+`x86_64-pc-linux`, `aarch64-pc-linux`, `aarch64-apple-darwin` and `x86_64-pc-win32` to the
+prebuilt release archives (and `x86_64-apple-darwin` too, for 1.0.0-M14 and earlier), and falls back to launching
 `build.bleep:bleep-cli_3` from Maven Central on any platform without one.
 
 On a locked-down network this is often the easier route, because the `cs` launcher already has

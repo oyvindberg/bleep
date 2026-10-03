@@ -59,7 +59,7 @@ jobs:
       # `publish-local` already ran above, for the dev script's own benefit. This only keeps its output.
       #
       # From `build` alone, not the matrix: these are JVM jars, identical whichever runner produced them, so one
-      # upload serves all five binaries. ~15MB, of which ~13MB is jars (sources and javadoc are in there too, and
+      # upload serves all four binaries. ~15MB, of which ~13MB is jars (sources and javadoc are in there too, and
       # worth keeping — an IDE pointed at a dev build wants them).
       - name: Stage jars for the dev binaries
         shell: bash
@@ -222,12 +222,6 @@ jobs:
             dev_script: bleep-cli.sh
             ni_script: ni-build.sh
             bootstrap_coursier: true
-          - os: macos-15-intel
-            file_name: bleep
-            artifact_name: bleep-x86_64-apple-darwin
-            dev_script: bleep-cli.sh
-            ni_script: ni-build.sh
-            bootstrap_coursier: false
           - os: macos-latest
             file_name: bleep
             artifact_name: bleep-arm64-apple-darwin
@@ -248,6 +242,14 @@ jobs:
           # no tags, so it finds none and produces `0.0.0+1-<sha>` — which is what the jars and every native image were
           # published under, and what a bleep.yaml would have had to name to ask for one.
           fetch-depth: 0
+
+      # native-image has MSVC compile query code that #includes headers from the GraalVM distribution, and cl.exe cannot open a path of 260 characters
+      # or more. Under coursier's default archive cache (C:\Users\runneradmin\AppData\Local\Coursier\Cache\arc\https\github.com\graalvm\...), the
+      # deepest of those headers is exactly 260 for GraalVM 25.0.2 — 25.0.1 fit at 259. A short archive cache takes ~40 characters off every one of them.
+      - name: Short coursier archive cache (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        shell: bash
+        run: echo "COURSIER_ARCHIVE_CACHE=${{ runner.temp }}\\arc" >> "$GITHUB_ENV"
 
       # ARM64 Linux needs JDK 21+ for UnixDomainSocketAddress in BSP server
       - uses: actions/setup-java@v6
@@ -391,7 +393,7 @@ jobs:
         # ourselves fails the *step*, which keeps the `if: always()` collection below alive.
         #
         # Measured healthy durations for this step: 4m45s ubuntu-arm, 6m31s ubuntu, 10m13s macos-arm,
-        # 11m31s macos-intel, 12m52s-13m14s windows. Windows has since roughly halved — 13 consecutive re-runs on
+        # 12m52s-13m14s windows. Windows has since roughly halved — 13 consecutive re-runs on
         # 2026-08-09 measured 5m11s-7m8s, from the analysis-sharing and noop-fast-path work — so the margin below is
         # now larger than it was sized for, not tighter. 20m keeps the >1.5x-the-slowest margin this cap was originally
         # sized for; only the enforcement was broken, so tightening the number too is not the fix. Runner variance is

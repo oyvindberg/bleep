@@ -1,7 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: BLEEP_LATEST_VERSION
 jvm:
-  name: graalvm-community:25.0.1
+  name: graalvm-community:25.0.2
 projects:
   lib:
     platform:

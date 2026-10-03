@@ -96,10 +96,11 @@ object FetchBleepSnapshot {
   def artifactNameFor(osArch: OsArch.HasNativeImage): Either[String, String] =
     osArch match {
       case OsArch.MacosArm64(_) => Right("bleep-arm64-apple-darwin")
-      case OsArch.MacosAmd64    => Right("bleep-x86_64-apple-darwin")
-      case OsArch.LinuxAmd64    => Right("bleep-x86_64-pc-linux")
-      case OsArch.LinuxArm64    => Right("bleep-arm64-pc-linux")
-      case OsArch.WindowsAmd64  => Right("bleep-x86_64-pc-win32")
+      // Dropped from the matrix with GraalVM 25.0.2, which has no Intel Mac distribution.
+      case OsArch.MacosAmd64   => Left("CI builds no macOS x86_64 snapshots of bleep: GraalVM has no Intel Mac distribution from 25.0.2 on")
+      case OsArch.LinuxAmd64   => Right("bleep-x86_64-pc-linux")
+      case OsArch.LinuxArm64   => Right("bleep-arm64-pc-linux")
+      case OsArch.WindowsAmd64 => Right("bleep-x86_64-pc-win32")
     }
 
   private def fetchJson(url: String, token: String, cacheLogger: CacheLogger, ec: ExecutionContext): Either[String, String] = {
