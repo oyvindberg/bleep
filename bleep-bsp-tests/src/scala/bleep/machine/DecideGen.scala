@@ -47,7 +47,8 @@ object DecideGen {
             shared = r.nextInt(4) == 0,
             state = if (r.nextBoolean()) ForkState.Starting else ForkState.Measured(footprintMb = 100L * (1 + r.nextInt(10)), atMs = now - 1500L),
             busyCpu = if (r.nextBoolean()) 0 else 1 + r.nextInt(3),
-            startedAtMs = now - r.nextInt(20000)
+            startedAtMs = now - r.nextInt(20000),
+            evicting = r.nextInt(6) == 0
           )
         }
     val inHeap = requestIds.flatMap(id => if (r.nextInt(3) == 0) Some(InHeapRunning(id, TaskId(s"${id.value}-running"), InHeapKind.Compile, 1)) else None)

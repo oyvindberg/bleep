@@ -101,6 +101,8 @@ object ForkState {
   *   the request it currently works for; a reused idle fork changes owner
   * @param busyCpu
   *   cpu slots held by the work it runs now; `0` is idle. A shared fork holds as many as the suites running on it.
+  * @param evicting
+  *   the scheduler has ordered it killed; it stays here, neither reusable nor evictable again, until `forkExited` — the process holds its memory until then.
   */
 case class RunningFork(
     id: ForkId,
@@ -112,9 +114,13 @@ case class RunningFork(
     shared: Boolean,
     state: ForkState,
     busyCpu: Int,
-    startedAtMs: Long
+    startedAtMs: Long,
+    evicting: Boolean
 ) {
   def idle: Boolean = busyCpu == 0
+
+  /** Idle and still the scheduler's to hand out or to evict. */
+  def available: Boolean = idle && !evicting
 
   /** What evicting it gives back to the machine: the whole charge while Starting, the measurement afterwards. */
   def reclaimableMb: Long = state match {

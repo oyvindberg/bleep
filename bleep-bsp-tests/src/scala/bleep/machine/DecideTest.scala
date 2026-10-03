@@ -36,7 +36,8 @@ class DecideTest extends AnyFunSuite with Matchers {
       shared = shared,
       state = state,
       busyCpu = busyCpu,
-      startedAtMs = startedAtMs
+      startedAtMs = startedAtMs,
+      evicting = false
     )
 
   private def demand(owner: Request, task: String, key: ForkKey = k, boundMb: Long = 1000L, cpu: Int = 1, shared: Boolean = false) =
@@ -100,7 +101,8 @@ class DecideTest extends AnyFunSuite with Matchers {
     val d = decide(me, view(usedMb = 8500L))
     d.evict.map(e => (e.fork.value, e.reason)) shouldBe List((2L, Decision.EvictReason.RoomShortage), (3L, Decision.EvictReason.RoomShortage))
     d.spawn.map(_.demand.taskId.value) shouldBe List("t1")
-    d.next.forks.map(_.id.value).sorted shouldBe List(1L, 4L, 101L)
+    d.next.forks.filter(_.evicting).map(_.id.value) shouldBe List(2L, 3L)
+    d.next.forks.filterNot(_.evicting).map(_.id.value).sorted shouldBe List(1L, 4L, 101L)
   }
 
   test("when even every idle fork would not make room, none is evicted and the demand waits") {

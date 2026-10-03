@@ -58,11 +58,11 @@ object Decide {
 
     /** Rule 4, free: an idle fork of the same key, this request's own before another's. */
     def idleForkFor(d: ForkDemand): Option[RunningFork] =
-      forks.filter(f => f.idle && f.key == d.key).sortBy(f => (f.owner != d.request, f.startedAtMs)).headOption
+      forks.filter(f => f.available && f.key == d.key).sortBy(f => (f.owner != d.request, f.startedAtMs)).headOption
 
     /** Rule 4, cheap: the busy per-project shared fork this request's suites already run on. */
     def joinableFor(d: ForkDemand): Option[RunningFork] =
-      if (!d.shared) None else forks.find(f => f.shared && f.key == d.key && f.owner == d.request && !f.idle)
+      if (!d.shared) None else forks.find(f => f.shared && f.key == d.key && f.owner == d.request && !f.idle && !f.evicting)
 
     def takeReuse(d: ForkDemand, fork: RunningFork, guaranteed: Boolean): Unit = {
       forks = forks.map(f => if (f.id == fork.id) f.copy(owner = d.request, busyCpu = f.busyCpu + d.cpu) else f)
@@ -84,7 +84,8 @@ object Decide {
         shared = d.shared,
         state = ForkState.Starting,
         busyCpu = d.cpu,
-        startedAtMs = now
+        startedAtMs = now,
+        evicting = false
       )
       room -= d.boundMb
       cpuInUse += d.cpu
@@ -112,12 +113,14 @@ object Decide {
     requestsInOrder.foreach(r => guaranteeCandidate(r).foreach(d => idleForkFor(d).foreach(fork => takeReuse(d, fork, guaranteed = true))))
 
     // ---- rules 2 and 3: evictions that need no demand to justify them.
+    // An evicted fork stays in the state, flagged, until its exit is reported: the process holds its memory until then, and a second order to kill it
+    // would be a bug. Its memory is counted as room from now (rule 3: evicted *before* anything new is admitted).
     def evict(fork: RunningFork, reason: EvictReason): Unit = {
-      forks = forks.filterNot(_.id == fork.id)
+      forks = forks.map(f => if (f.id == fork.id) f.copy(evicting = true) else f)
       room += fork.reclaimableMb
       evicted = evicted :+ Evict(fork.id, reason)
     }
-    forks.filter(_.idle).foreach { f =>
+    forks.filter(_.available).foreach { f =>
       if (view.pressure == Pressure.Critical) evict(f, EvictReason.CriticalPressure)
       else if (me.unstartedSuitesByKey.getOrElse(f.key, 0) <= 0) evict(f, EvictReason.NothingToReuseIt)
     }
@@ -165,7 +168,7 @@ object Decide {
                 if (d.boundMb > room) {
                   // Rule 3 under shortage: idle forks, oldest first, before anything new — but only as many as make this admission possible. Decision: when
                   // even all of them would not make it fit, none is evicted; the demand waits for room, and warm forks for keys still in use stay warm.
-                  val idle = forks.filter(_.idle).sortBy(_.startedAtMs)
+                  val idle = forks.filter(_.available).sortBy(_.startedAtMs)
                   val needed = d.boundMb - room
                   val chosen =
                     idle.scanLeft((List.empty[RunningFork], 0L)) { case ((acc, freed), f) => (acc :+ f, freed + f.reclaimableMb) }.find(_._2 >= needed)

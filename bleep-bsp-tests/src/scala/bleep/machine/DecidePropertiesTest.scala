@@ -61,7 +61,7 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
     forAll(Runs, Seed + 3) { in =>
       val d = run(in)
       val touched = d.reuse.map(_.fork).toSet ++ d.evict.map(_.fork).toSet
-      val unusedIdleKeys = in.me.forks.filter(f => f.idle && !touched.contains(f.id)).map(_.key).toSet
+      val unusedIdleKeys = in.me.forks.filter(f => f.available && !touched.contains(f.id)).map(_.key).toSet
       d.spawn.foreach(s => withClue(s"spawned $s with an idle fork of its key unused: ")(unusedIdleKeys should not contain s.demand.key))
     }
   }
@@ -71,7 +71,7 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
       val calm = in.copy(view = in.view.copy(pressure = Pressure.Normal))
       val d = run(calm)
       val reused = d.reuse.map(_.fork).toSet
-      calm.me.forks.filter(f => f.idle && !reused.contains(f.id)).foreach { f =>
+      calm.me.forks.filter(f => f.available && !reused.contains(f.id)).foreach { f =>
         val unstarted = calm.me.unstartedSuitesByKey.getOrElse(f.key, 0)
         val evictedFor = d.evict.find(_.fork == f.id).map(_.reason)
         if (unstarted == 0) withClue(s"fork $f: ")(evictedFor shouldBe Some(Decision.EvictReason.NothingToReuseIt))
@@ -114,7 +114,7 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
     forAll(Runs, Seed + 8) { in =>
       val critical = in.copy(view = in.view.copy(pressure = Pressure.Critical))
       val d = run(critical)
-      critical.me.forks.filter(_.idle).foreach { f =>
+      critical.me.forks.filter(_.available).foreach { f =>
         val reusedByGuarantee = d.reuse.exists(r => r.fork == f.id && r.guaranteed)
         val evicted = d.evict.exists(e => e.fork == f.id && e.reason == Decision.EvictReason.CriticalPressure)
         withClue(s"fork $f: ")((reusedByGuarantee || evicted) shouldBe true)
@@ -169,6 +169,8 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
         .intersect((d.reuse.map(_.demand) ++ d.spawn.map(_.demand) ++ d.admitInHeap.map(_.demand)).map(x => (x.request, x.taskId)).toSet) shouldBe empty
       d.spawn.foreach(s => d.next.forks.find(_.id == s.fork).map(_.state) shouldBe Some(ForkState.Starting))
       d.next.forks.map(_.id).distinct.size shouldBe d.next.forks.size
+      d.next.forks.map(_.id).toSet should contain allElementsOf in.me.forks.map(_.id) // nothing leaves the state in a decision; only forkExited removes
+      d.evict.foreach(e => in.me.forks.find(_.id == e.fork).get.evicting shouldBe false)
     }
   }
 }
