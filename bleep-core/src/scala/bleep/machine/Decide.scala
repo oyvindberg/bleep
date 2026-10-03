@@ -146,7 +146,10 @@ object Decide {
     val remaining: List[Demand] = interleave(
       requestsInOrder.map(r => readyByRequest.getOrElse(r.id, Nil).filterNot(d => granted.contains((d.request, d.taskId))))
     )
-    val forksAllowed = view.pressure == Pressure.Normal
+    // Pressure withholds new forks beyond guarantees, never the use of a fork that already exists: its memory is spent whether or not it works, and rule 2/3
+    // has already decided which idle forks go (an evicted one is not available here). Under Critical every available idle fork was just evicted, so what
+    // remains reusable is a busy shared fork of the request's own.
+    val spawnsAllowed = view.pressure == Pressure.Normal
     remaining.foreach {
       case d: InHeap =>
         if (cpuInUse + d.cpu <= params.parallelism) {
@@ -165,11 +168,11 @@ object Decide {
         }
 
       case d: ForkDemand =>
-        if (forksAllowed && cpuInUse + d.cpu <= params.parallelism)
+        if (cpuInUse + d.cpu <= params.parallelism)
           idleForkFor(d).orElse(joinableFor(d)) match {
             case Some(fork) => takeReuse(d, fork, guaranteed = false)
             case None       =>
-              if (lock == LockState.Held && spawnedThisTick < params.maxNewForksPerTick) {
+              if (spawnsAllowed && lock == LockState.Held && spawnedThisTick < params.maxNewForksPerTick) {
                 if (d.boundMb > room) {
                   // Rule 3 under shortage: idle forks, oldest first, before anything new — but only as many as make this admission possible. Decision: when
                   // even all of them would not make it fit, none is evicted; the demand waits for room, and warm forks for keys still in use stay warm.

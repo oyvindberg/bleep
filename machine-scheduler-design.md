@@ -148,7 +148,9 @@ In order. Every rule is a pure function of the inputs above.
 1. **Room.** `ceiling = physical − headroom`. `room = ceiling − usedMb − Σ boundMb(forks in Starting, all servers)`.
    A fork is charged its bound from admission until it has run one full second; then it is measured, its memory is in `usedMb`, and it is
    remeasured at most once a second (measurements are for display and eviction choice, never for prediction).
-2. **Pressure.** `Elevated` → no admissions beyond guarantees. `Critical` → additionally evict every idle fork of this server.
+2. **Pressure.** `Elevated` → no *new* forks beyond guarantees; a fork that already exists is reused as usual (an idle warm fork, or this request's busy
+   shared fork), subject to the cpu slot — its memory is spent whether or not it works, unless rule 3 decides to evict it, which comes first. `Critical`
+   → additionally evict every idle fork of this server, so nothing idle is left to reuse.
 3. **Idle forks.** An idle fork stays warm **iff its key still has unstarted suites**; otherwise it is evicted immediately. Under room shortage, idle
    forks are evicted (oldest first) before anything new is admitted — only as many as make that admission fit; if none would, none is evicted. Evicted
    forks stay in the state, flagged, until their exit is reported: the process holds its memory until then. Guaranteed *reuse* (rule 5) runs before

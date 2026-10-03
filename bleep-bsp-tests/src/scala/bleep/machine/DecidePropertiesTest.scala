@@ -133,12 +133,14 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
     }
   }
 
-  test("Elevated pressure admits no fork beyond guarantees; compiles are not held back by it") {
+  test("Elevated pressure spawns nothing beyond guarantees but reuses warm forks as usual; compiles are not held back by it") {
     forAll(Runs, Seed + 7) { in =>
       val elevated = in.copy(view = in.view.copy(pressure = Pressure.Elevated))
       val d = run(elevated)
-      d.reuse.foreach(_.guaranteed shouldBe true)
       d.spawn.foreach(_.guaranteed shouldBe true)
+      // With spawning out of the picture, Elevated decides exactly as Normal: reuse, joins, evictions, compiles.
+      val noSpawns = in.params.copy(maxNewForksPerTick = 0)
+      run(elevated.copy(params = noSpawns)) shouldBe run(in.copy(view = in.view.copy(pressure = Pressure.Normal), params = noSpawns))
       // Pressure governs forks only (design §3.1): with no fork to decide about, the compile decision is the same at every level.
       val noForks = in.copy(me = in.me.copy(ready = in.me.ready.filter(_.isInstanceOf[InHeap])))
       val calm = run(noForks.copy(view = in.view.copy(pressure = Pressure.Normal)))
@@ -157,6 +159,13 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
         withClue(s"fork $f: ")((reusedByGuarantee || evicted) shouldBe true)
       }
       d.spawn.foreach(_.guaranteed shouldBe true)
+      // Nothing idle survives Critical to be reused beyond guarantees; only a busy shared fork — busy before, spawned or taken by a guarantee this tick — is
+      // joined.
+      d.reuse.filter(!_.guaranteed).foreach { r =>
+        val busyBefore = critical.me.forks.find(_.id == r.fork).forall(f => !f.idle)
+        val takenByGuarantee = d.reuse.exists(g => g.guaranteed && g.fork == r.fork)
+        withClue(s"join $r: ")((busyBefore || takenByGuarantee) shouldBe true)
+      }
     }
   }
 
