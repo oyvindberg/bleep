@@ -296,6 +296,10 @@ templates:
     publish:
       groupId: org.tpolecat
     sbt-scope: main
+  template-common-strict:
+    extends: template-common
+    scala:
+      strict: true
   template-common-test:
     extends: template-common
     isTestProject: true
@@ -314,20 +318,21 @@ templates:
     cross:
       jvm213:
         extends:
-        - template-scala-2-strict
+        - template-common-strict
         - template-scala-2.13
   template-doobie-hikari-scala-2.13:
-    extends:
-    - template-scala-2.13
-    - template-scala-2.13-and-3-wnonunit-statement
+    extends: template-scala-2.13
     scala:
-      options: -Wdead-code -Wextra-implicit -Wnumeric-widen -Wunused:patvars -Xlint:-byname-implicit
-        -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select -Xlint:deprecation
-        -Xlint:doc-detached -Xlint:implicit-not-found -Xlint:implicit-recursion -Xlint:inaccessible
-        -Xlint:infer-any -Xlint:missing-interpolator -Xlint:nullary-unit -Xlint:option-implicit
-        -Xlint:package-object-classes -Xlint:poly-implicit-overload -Xlint:private-shadow
-        -Xlint:stars-align -Xlint:strict-unsealed-patmat -Xlint:type-parameter-shadow
-        -language:existentials
+      options: -Wdead-code -Wextra-implicit -Wnonunit-statement -Wnumeric-widen -Wunused:explicits
+        -Wunused:implicits -Wunused:imports -Wunused:locals -Wunused:params -Wunused:patvars
+        -Wunused:privates -Wvalue-discard -Xlint:-byname-implicit -Xlint:adapted-args
+        -Xlint:constant -Xlint:delayedinit-select -Xlint:deprecation -Xlint:doc-detached
+        -Xlint:implicit-not-found -Xlint:implicit-recursion -Xlint:inaccessible -Xlint:infer-any
+        -Xlint:missing-interpolator -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes
+        -Xlint:poly-implicit-overload -Xlint:private-shadow -Xlint:stars-align -Xlint:strict-unsealed-patmat
+        -Xlint:type-parameter-shadow -encoding utf8 -feature -language:existentials
+        -language:experimental.macros -language:higherKinds -language:implicitConversions
+        -unchecked
   template-scala-2:
     extends: template-common
     scala:
@@ -335,12 +340,10 @@ templates:
       - com.olegpy::better-monadic-for:0.3.1
       - org.typelevel:::kind-projector:0.13.3
       options: -Xsource:3
-  template-scala-2-strict:
-    extends: template-scala-2
-    scala:
-      strict: true
   template-scala-2.12:
-    extends: template-scala-2-strict
+    extends:
+    - template-common-strict
+    - template-scala-2
     scala:
       version: 2.12.20
   template-scala-2.13:
@@ -352,21 +355,14 @@ templates:
   template-scala-2.13-and-3:
     extends: template-common
     scala:
-      options: -language:higherKinds
       setup:
         addLibraryToBootClasspath: false
         filterLibraryFromClasspath: false
         manageBootClasspath: false
-  template-scala-2.13-and-3-wnonunit-statement:
-    extends: template-scala-2.13-and-3
-    scala:
-      options: -Wnonunit-statement -Wunused:explicits -Wunused:implicits -Wunused:imports
-        -Wunused:locals -Wunused:params -Wunused:privates -Wvalue-discard -encoding
-        utf8 -feature -language:experimental.macros -language:implicitConversions
-        -unchecked
   template-scala-3:
-    extends: template-scala-2.13-and-3-wnonunit-statement
+    extends:
+    - template-common-strict
+    - template-scala-2.13-and-3
     scala:
-      options: -Xmax-inlines 64 -Ykind-projector -deprecation -language:adhocExtensions
-        -source:future
+      options: -Xmax-inlines 64 -language:adhocExtensions -source:future
       version: 3.3.5
