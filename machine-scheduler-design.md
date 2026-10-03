@@ -298,15 +298,35 @@ crashes.** A dead server can never hold it. The remaining danger is a holder tha
 
 | | Linux | macOS | Windows |
 |---|---|---|---|
-| used memory | `/proc/meminfo`: `MemTotal − MemAvailable` | JNI `host_statistics64`: anonymous + wired + **compressor** pages | JNI `GlobalMemoryStatusEx`: total − available physical |
-| pressure | `/proc/pressure/memory` (PSI) | JNI `sysctlbyname("kern.memorystatus_vm_pressure_level")` | JNI `GlobalMemoryStatusEx` (load, commit vs limit) + `QueryMemoryResourceNotification` |
-| fork footprint | `/proc/<pid>/smaps_rollup` / `status` | JNI `proc_pid_rusage` → `phys_footprint` | JNI `GetProcessMemoryInfo` → private bytes |
+| used memory | cgroup v2 `memory.current` when a `memory.max` limit is set, else `/proc/meminfo`: `MemTotal − MemAvailable` | JNI `host_statistics64`: anonymous + wired + **compressor** − **purgeable** pages | JNI `GlobalMemoryStatusEx`: total − available physical |
+| physical | cgroup v2 `memory.max` when set, else `MemTotal` | `hw.memsize` | `GlobalMemoryStatusEx` |
+| pressure | cgroup v2 `memory.pressure` when limited, else `/proc/pressure/memory` (PSI); absent → `Unavailable` | JNI `sysctlbyname("kern.memorystatus_vm_pressure_level")` | JNI `GlobalMemoryStatusEx` (load, commit vs limit) + `QueryMemoryResourceNotification` |
+| fork footprint | `/proc/<pid>/status`: `RssAnon + VmSwap` (same number as `smaps_rollup`, 14 µs instead of 1.7 ms) | JNI `proc_pid_rusage` → `phys_footprint` | JNI `GetProcessMemoryInfo` → `PrivateUsage` |
 
-- Linux is pure file reads, any JDK. macOS and Windows use a small **JNI** library shipped with bleep (bleep already ships JNI), so one implementation per OS
-  works on every JDK. No FFM path (it is unavailable below JDK 22 / 21-preview, which is exactly the gap).
-- A probe that fails throws. There is no `Unavailable` implementation.
-- Check first: whether `com.sun.management.OperatingSystemMXBean.getFreeMemorySize` on Windows is `GlobalMemoryStatusEx`'s available physical (would
-  remove one JNI call); on macOS it is expected to count only free pages, which is the wrong number.
+- Linux is pure file reads, any JDK. macOS and Windows use one small C file called through plain JNI (primitives and `long[]` only, failures as status
+  codes), so one implementation per OS works on every JDK. No FFM path (it is unavailable below JDK 22 / 21-preview, which is exactly the gap).
+- **Containers:** host-wide `/proc/meminfo` cannot see a cgroup limit, so a limited container reads cgroup v2 instead (table above).
+- **Purgeable pages (macOS)** are subtracted: apps mark them as discardable caches and the kernel drops them without compressing or swapping, so they are
+  not "memory someone must pay to reclaim". The same subtraction Activity Monitor makes for "App Memory".
+- A probe call that fails throws. **A missing pressure source is not a failure**: `RawPressure.Unavailable(reason)` (e.g. a Linux kernel without PSI,
+  or RHEL's `psi=0` default) — a warning once at startup and in `top`, and the pressure brake is off; room still works (§9.1).
+- On Windows the JDK's `OperatingSystemMXBean` returns the same `GlobalMemoryStatusEx` numbers (verified in CI); JNI is still needed for the low-memory
+  notification and `PrivateUsage`.
+- **Module:** probes, the C source and the loader live in their own module `bleep-machine-probes` (depends on bleep-core for the `MachineProbe`
+  contract); bleep-bsp depends on it. bleep-core (published for scripts) carries no native code; the pure scheduler stays in bleep-core.
+- **Native binaries are checked in**, built by CI, next to a SHA-256 of the C source they were built from. Packaging copies the committed files, so no
+  developer needs a C toolchain unless they edit the C file, and `build` does not wait for native builds. A parallel CI job rebuilds them, tests the
+  probes against the fresh build on every OS, fails if the recorded source hash does not match the C file, and uploads the fresh binaries to commit.
+- **Architectures:** macOS ships one universal dylib (arm64 + x86_64, built on the arm64 runner); Windows x64, plus arm64 cross-compiled. The x86_64
+  macOS and arm64 Windows slices are built but never run in CI — bleep supports neither — and are marked untested.
+- Cost per call: macOS/Windows a few µs, Linux 14–23 µs.
+
+### 9.1 Opting out: unconstrained scheduling
+
+User config `machineScheduling: cooperative | unconstrained` (default `cooperative`). `unconstrained` runs the same tick and `decide` without the
+machine-wide parts: no `state.json`, no `machine.lock`, no memory room, no pressure brake. What remains: per-server `parallelism`, the heap gate, warm-fork
+reuse and idle eviction, one spawn per tick, and the guarantee. A server also runs `unconstrained` — with a loud warning at startup and in `top` — where
+probes cannot run (an OS/architecture without a probe library). A missing pressure source alone does not switch modes; it only disables the brake.
 
 ### Pressure, normalised
 
@@ -315,6 +335,9 @@ crashes.** A dead server can never hold it. The remaining danger is a holder tha
 | `Normal` | level 1 | PSI `some avg10` below threshold | load and commit below thresholds |
 | `Elevated` | level 2 (warning) | PSI `some avg10` > T₁ (≈10 %, to be measured) | memory load > ~90 % or commit near limit |
 | `Critical` | level 4 (critical) | PSI `full avg10` > 0 | low-memory resource notification set |
+| none | — | `RawPressure.Unavailable`: no PSI | — |
+
+`RawPressure.Unavailable` normalises to no pressure signal: rules 2 and 3's pressure clauses do not fire; room, guarantees and eviction work as usual.
 
 `usedMb` vs the ceiling predicts trouble; pressure catches the case where the prediction is fine but the machine is already reclaiming — the 44 GB cliff.
 
