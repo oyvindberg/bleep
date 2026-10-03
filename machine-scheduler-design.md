@@ -163,6 +163,33 @@ In order. Every rule is a pure function of the inputs above.
    heap, already in `usedMb`.
 8. **Publish.** New forks enter `publish` as `Starting` with their bound, so the next lock holder counts them.
 
+### 5.1 Idle servers yield their memory
+
+A server that holds memory nobody is using, while someone else needs memory, shuts itself down. Conditions — all of them:
+
+- **No connected clients.** A connected BSP client (an IDE through `bleep bsp`) or MCP server counts as in use, whether or not it has a request running.
+  Observers (`bleep server top`/`status`) do not count — the same rule as today's idle watchdog (`connectionRegistry.nonObserverCount`,
+  `BspServerDaemon.scala` ~line 403).
+- **Idle for a while**: no request for at least `idleYieldAfter` (open, §11).
+- **Someone needs the memory**: another live server's `state.json` has `wantsMore`, or `Pressure ≥ Elevated`. Low memory with nobody waiting is not a
+  reason to throw away a warm server.
+
+Mechanics:
+
+- An idle server's request tick returns immediately, so idle servers run their own slow check (every few seconds): one probe call for pressure, and the
+  other servers' `state.json` read without the lock. Only a server about to shut down takes `machine.lock`.
+- **One server yields per tick, decided under the lock**: it marks itself `shuttingDown` in its `state.json` so others do not also go; the
+  longest-idle one goes first.
+- Shutdown is the existing clean path (close the server socket; lock and pid/socket files released), so the next command simply spawns a fresh server.
+
+Prerequisites found in the code:
+
+- **`bleep bsp` does not reconnect.** When its server goes away, `BspProxy` closes its output and the IDE sees "build server disconnected". That is why
+  a connected client blocks yielding.
+- **MCP holds no connection between calls.** `bleep mcp-server` connects per tool call, so a server used only through MCP looks unconnected between
+  calls. The MCP server must hold a lightweight presence connection (non-observer, no requests) to each server it has used, for as long as it lives.
+  `bleep server top`'s "started by bleep mcp-server … keeps this server in use" is today only a label derived from the parent process.
+
 `parallelism` is per server, CPU only, read from the user config (re-read on change). Lowering it never kills running work; it is respected as work
 finishes. A fork holds cpu slots while it runs work (a batch fork as many as suites it runs at once, as today); an idle warm fork holds none.
 
@@ -308,10 +335,11 @@ deletes, then behaviour lands on top.
 ### Phase D — on top
 
 12. **`bleep server top` / `bleep/status`** show ceiling, used, pending, per-server guarantees and forks from `state.json`, plus lock holder/wait.
-13. **Metrics** — tick events (hold time, decision summary, pressure) into `metrics.jsonl`.
-14. **Docs** — rewrite `docs/usage/resource-management.mdx` and the compile-server guide; remove mentions of the fork-memory budget; `parallelism`
+13. **Idle servers yield** (§5.1) — MCP presence connection first (own commit), then the idle-yield check and the `shuttingDown` state.
+14. **Metrics** — tick events (hold time, decision summary, pressure) into `metrics.jsonl`.
+15. **Docs** — rewrite `docs/usage/resource-management.mdx` and the compile-server guide; remove mentions of the fork-memory budget; `parallelism`
     documented as CPU-only, per server.
-15. **End-to-end validation** — two servers on the owner's machine running dlab tests, watched with `bleep server top`; then one small run per OS in CI.
+16. **End-to-end validation** — two servers on the owner's machine running dlab tests, watched with `bleep server top`; then one small run per OS in CI.
 
 Optional before Phase A, only if freezes bite while this is built: two small fixes to the *current* code (count compressor pages; subtract the server's
 own footprint in the retune), deleted again at step 11. The stopgap available today without code: `bleep server config parallelism 8` and
@@ -322,5 +350,8 @@ own footprint in the retune), deleted again at step 11. The stopgap available to
 - **Headroom**: how the ceiling (`physical − headroom`) is chosen. On hold; it is the design's single tunable input.
 - **Linux PSI thresholds** for `Elevated`/`Critical` — measure on a real Linux machine.
 - **Windows thresholds** for memory load / commit.
+- **`idleYieldAfter`**: how long a server must be idle before it may yield its memory (2–5 min?).
+- **Shrink before shutdown?** An idle server could first drop its build/analysis caches and let ZGC return the heap, and shut down only if that is not
+  enough. Simpler alternative: always shut down.
 - **Two-stage test admission** (task slot, then fork, because the fork key needs the classpath computed in the handler): keep for v1, or move classpath
   computation into discovery so a test demand is a single `ForkDemand`?
