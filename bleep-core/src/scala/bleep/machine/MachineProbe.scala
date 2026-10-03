@@ -46,6 +46,11 @@ object RawPressure {
     *   the system's low-memory resource notification is signalled
     */
   case class Windows(memoryLoadPercent: Int, commitTotalMb: Long, commitLimitMb: Long, lowMemory: Boolean) extends RawPressure
+
+  /** The platform has no pressure source here — e.g. a Linux kernel built without PSI, or booted with `psi=0`. Not a failure: the scheduler still has used
+    * memory against the ceiling and only loses its pressure brake. Reported once at startup and in `bleep server top`.
+    */
+  case class Unavailable(reason: String) extends RawPressure
 }
 
 /** What one forked process currently costs the machine, read in-process. macOS: `phys_footprint` (`proc_pid_rusage`). Linux: from `/proc/<pid>/smaps_rollup`.
