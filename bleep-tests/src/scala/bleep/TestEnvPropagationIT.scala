@@ -66,6 +66,7 @@ class TestEnvPropagationIT extends IntegrationTestHarness {
         flamegraph = false,
         cancel = false,
         junitReportDir = None,
+        showOutput = false,
         diffBase = None,
         diffOutput = bleep.OutputMode.Text,
         clientEnv = clientEnv

@@ -243,7 +243,8 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         ToolFunction.Effect.Destructive(idempotent = false),
         isOpenWorld = true
       ),
-      (args, context) => bootstrapFor(args.directory).flatMap(started => executeTest(started, args.projects, args.only, args.exclude, args.diffBase, context)),
+      (args, context) =>
+        bootstrapFor(args.directory).flatMap(started => executeTest(started, args.projects, args.only, args.exclude, args.showOutput, args.diffBase, context)),
       None
     )
 
@@ -731,6 +732,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         projectNames: List[String],
         only: List[String],
         exclude: List[String],
+        showOutput: Boolean,
         diffBase: Option[String],
         context: CallContext[IO]
     ): IO[String] = {
@@ -800,7 +802,15 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         trr <- testRunResult.get
       } yield withDiff(
         withHistoryId(
-          TranscriptFormat.formatTestResult(events, trr, includeThrowables = false, query = None, limit = None, offset = None),
+          TranscriptFormat.formatTestResult(
+            events,
+            trr,
+            includeThrowables = false,
+            includePassedSuiteOutput = showOutput,
+            query = None,
+            limit = None,
+            offset = None
+          ),
           trr.flatMap(_.historyId)
         ),
         diffBaseTranscript,

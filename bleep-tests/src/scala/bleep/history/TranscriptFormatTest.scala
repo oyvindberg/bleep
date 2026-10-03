@@ -117,10 +117,26 @@ class TranscriptFormatTest extends AnyFunSuite with Matchers {
   // ran — and the run reported `success: true, "0 tests passed"`.
 
   private def formatTest(events: List[E]): io.circe.Json =
-    TranscriptFormat.formatTestResult(events, testRunResult = None, includeThrowables = false, query = None, limit = None, offset = None)
+    TranscriptFormat.formatTestResult(
+      events,
+      testRunResult = None,
+      includeThrowables = false,
+      includePassedSuiteOutput = false,
+      query = None,
+      limit = None,
+      offset = None
+    )
 
   private def formatTestWith(events: List[E], trr: BleepBspProtocol.TestRunResult): io.circe.Json =
-    TranscriptFormat.formatTestResult(events, testRunResult = Some(trr), includeThrowables = false, query = None, limit = None, offset = None)
+    TranscriptFormat.formatTestResult(
+      events,
+      testRunResult = Some(trr),
+      includeThrowables = false,
+      includePassedSuiteOutput = false,
+      query = None,
+      limit = None,
+      offset = None
+    )
 
   private def runResult(passed: Int, suitesTotal: Int, suitesCompleted: Int): BleepBspProtocol.TestRunResult =
     BleepBspProtocol.TestRunResult(

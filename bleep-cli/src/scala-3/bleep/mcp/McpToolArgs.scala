@@ -101,9 +101,9 @@ object ProjectsArgs {
 }
 
 /** Args for test (with test filtering, plus the optional inner-loop `diffBase`). */
-case class TestArgs(directory: String, projects: List[String], only: List[String], exclude: List[String], diffBase: Option[String])
+case class TestArgs(directory: String, projects: List[String], only: List[String], exclude: List[String], showOutput: Boolean, diffBase: Option[String])
 object TestArgs {
-  private val knownFields = Set("directory", "projects", "only", "exclude", "diffBase")
+  private val knownFields = Set("directory", "projects", "only", "exclude", "showOutput", "diffBase")
   given Decoder[TestArgs] = Decoder.instance { c =>
     for {
       _ <- rejectUnknownFields(c, knownFields)
@@ -111,8 +111,10 @@ object TestArgs {
       projects <- decodeList(c, "projects")
       only <- decodeList(c, "only")
       exclude <- decodeList(c, "exclude")
+      // Absent means not asked for, exactly like the CLI flag.
+      showOutput <- decodeOptional[Boolean](c, "showOutput").map(_.contains(true))
       diffBase <- decodeOptional[String](c, "diffBase")
-    } yield TestArgs(directory, projects, only, exclude, diffBase)
+    } yield TestArgs(directory, projects, only, exclude, showOutput, diffBase)
   }
   given JsonSchemaEncoder[TestArgs] = schema(
     Json.obj(
@@ -133,6 +135,12 @@ object TestArgs {
           "type" -> Json.fromString("array"),
           "items" -> Json.obj("type" -> Json.fromString("string")),
           "description" -> Json.fromString("Exclude these test class names.")
+        ),
+        "showOutput" -> Json.obj(
+          "type" -> Json.fromString("boolean"),
+          "description" -> Json.fromString(
+            "Also return what passing suites wrote to stdout/stderr, as `passedSuiteOutput`. Off by default: only failing suites' output is kept (in history)."
+          )
         ),
         diffBaseProperty
       ),

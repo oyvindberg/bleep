@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, DiagnosticSeverity, LinkPlatformName, ProcessExit, SuiteOutcome, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, DiagnosticSeverity, LinkPlatformName, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import bleep.model.{CrossProjectName, SuiteName, TestName}
 import bleep.testing.BleepConsole as SConsole
@@ -97,6 +97,8 @@ case class BuildSummary(
     skippedProjects: List[SkippedProject],
     /** Test projects whose classpath scan found no suites at all, before any filter applied. See [[toEither]]. */
     testProjectsWithoutSuites: List[CrossProjectName],
+    /** Captured output of suites that finished without a failure, in the order they finished. Printed only with `--show-output`. See [[BuildState]]. */
+    passedSuiteOutputs: List[SuiteOutput],
     durationMs: Long,
     totalTaskTimeMs: Long, // Sum of all individual task durations (compile + link + test, for parallelism stats)
     wasCancelled: Boolean,
@@ -196,13 +198,54 @@ object BuildSummary {
   private def renderStack(stackTrace: String): List[String] =
     StackTraceCycles.collapse(StackTraceElision.elide(stackTrace).mkString("\n"))
 
+  /** A suite's captured output as display lines, stdout and stderr told apart: a stdout line sits behind `stdoutBar`, a stderr line behind a red `!`.
+    *
+    * The channel is kept from the fork all the way to here, and this is the one place it is turned into presentation. Consecutive lines on one channel form a
+    * run, and with `elide` each run goes through [[renderStack]] separately — a trace a framework prints lives on one channel, and cutting across a channel
+    * change would lose which side the surviving lines came from.
+    */
+  private def renderOutput(output: List[OutputLine], stdoutBar: String, elide: Boolean): List[SummaryLine] = {
+    import BleepConsole as C
+    val runs = output.foldRight(List.empty[(OutputChannel, List[String])]) {
+      case (OutputLine(channel, text), (runChannel, texts) :: rest) if runChannel == channel => (channel, text :: texts) :: rest
+      case (OutputLine(channel, text), acc)                                                  => (channel, List(text)) :: acc
+    }
+    runs.flatMap { case (channel, texts) =>
+      val bar = if (channel.isStderr) s"${C.RED}!${C.RESET}" else stdoutBar
+      val rendered = if (elide) renderStack(texts.mkString("\n")) else texts
+      rendered.map { line =>
+        val text = s"  $bar ${C.sanitize(line)}"
+        if (channel.isStderr) SummaryLine.Warn(text) else SummaryLine.Info(text)
+      }
+    }
+  }
+
+  /** The `--show-output` section: what each suite that finished without a failure wrote to stdout/stderr, one block per suite. Printed before the summary so
+    * the summary and any failures stay at the bottom of the terminal. Empty when no passing suite wrote anything.
+    */
+  def formatPassedSuiteOutput(summary: BuildSummary): List[SummaryLine] = {
+    import BleepConsole as C
+    if (summary.passedSuiteOutputs.isEmpty) Nil
+    else {
+      val lines = new SummaryLines
+      lines += ""
+      lines += s"${C.CYAN}${C.BOLD}Output from passing suites (${summary.passedSuiteOutputs.size})${C.RESET}"
+      summary.passedSuiteOutputs.foreach { so =>
+        lines += ""
+        lines += s"${C.GREEN}✓ ${so.project.value} / ${so.suite.value}${C.RESET}"
+        lines ++= renderOutput(so.lines, stdoutBar = s"${C.CYAN}|${C.RESET}", elide = false)
+      }
+      lines.result()
+    }
+  }
+
   /** Format a complete summary for display after a build/test run. Returns lines to print. Used by both TUI and non-TUI paths.
     *
     * `failureDetails = false` stops after the counts/duration/history/filter block — see [[BuildDisplay.printSummary]].
     */
-  def formatSummary(summary: BuildSummary, mode: BuildMode, failureDetails: Boolean): List[String] = {
+  def formatSummary(summary: BuildSummary, mode: BuildMode, failureDetails: Boolean): List[SummaryLine] = {
     import BleepConsole as C
-    val lines = List.newBuilder[String]
+    val lines = new SummaryLines
 
     // Anything other than passed/skipped/ignored means failure
     val totalProblems = summary.testsFailed + summary.testsTimedOut + summary.testsCancelled
@@ -459,7 +502,7 @@ object BuildSummary {
                 // Elided too, because this is where the same plumbing arrives a second time. Most frameworks print the failure to stdout as well as reporting
                 // it, so a kotest constructor failure that has just been shown in three lines is followed by forty lines of the interceptor chain it was cut
                 // from. The cut only ever removes a trailing run of frames it recognises, so ordinary output cannot be caught by it.
-                renderStack(suiteOutput.mkString("\n")).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
+                lines ++= renderOutput(suiteOutput, stdoutBar = s"${C.YELLOW}|${C.RESET}", elide = true)
                 lines += ""
               }
             }
@@ -482,7 +525,7 @@ object BuildSummary {
               lines += s"  ${C.CYAN}Output:${C.RESET}"
               // Elided: this is what the test process printed, not bleep's own stack, and it is where a framework that dies before reporting leaves its
               // trace. TestNG's broken constructor arrives here and nowhere else — twenty-seven `org.testng` frames under one line of cause.
-              renderStack(failure.output.mkString("\n")).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
+              lines ++= renderOutput(failure.output, stdoutBar = s"${C.YELLOW}|${C.RESET}", elide = true)
             }
             lines += ""
           }
@@ -518,7 +561,7 @@ object BuildSummary {
               lines += s"  ${C.CYAN}Output:${C.RESET}"
               // Elided: this is what the test process printed, not bleep's own stack, and it is where a framework that dies before reporting leaves its
               // trace. TestNG's broken constructor arrives here and nowhere else — twenty-seven `org.testng` frames under one line of cause.
-              renderStack(failure.output.mkString("\n")).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} ${C.sanitize(line)}")
+              lines ++= renderOutput(failure.output, stdoutBar = s"${C.YELLOW}|${C.RESET}", elide = true)
             }
             lines += ""
           }
@@ -547,7 +590,7 @@ object BuildSummary {
         // machine budget are all adjustable, and how they trade off.
         val memoryRelated =
           (testFailures ++ processErrors ++ timeouts).exists { f =>
-            val text = (f.message.getOrElse("") + " " + f.output.mkString(" ")).toLowerCase
+            val text = (f.message.getOrElse("") + " " + f.output.map(_.text).mkString(" ")).toLowerCase
             text.contains("outofmemory") || text.contains("heap space") || text.contains("sigkill") || text.contains("exit 137") ||
             text.contains("terminated before sending ready")
           }
@@ -628,6 +671,7 @@ object BuildSummary {
     linkFailures = Nil,
     skippedProjects = Nil,
     testProjectsWithoutSuites = Nil,
+    passedSuiteOutputs = Nil,
     durationMs = 0L,
     totalTaskTimeMs = 0L,
     wasCancelled = false,
@@ -681,11 +725,44 @@ case class TestFailure(
     test: TestName,
     message: Option[String],
     throwable: Option[String],
-    output: List[String],
+    /** Everything the suite wrote, on both channels, in arrival order. */
+    output: List[OutputLine],
     category: FailureCategory,
     // Where in the suite it was raised, when the forked JVM runner could recover it. Absent for the JS/Native/Kotlin
     // runners, for timeouts and cancellations (no throwable), and for failures raised outside the suite class.
     location: Option[bleep.bsp.protocol.BleepBspProtocol.SourceLocation]
+)
+
+/** A line of the printed build summary, and the level it is logged at. What a test wrote to stderr goes out as a warning, everything else as info. */
+sealed trait SummaryLine {
+  def text: String
+  def logTo(logger: ryddig.Logger): Unit
+}
+object SummaryLine {
+  case class Info(text: String) extends SummaryLine {
+    override def logTo(logger: ryddig.Logger): Unit = logger.info(text)
+  }
+  case class Warn(text: String) extends SummaryLine {
+    override def logTo(logger: ryddig.Logger): Unit = logger.warn(text)
+  }
+}
+
+/** Accumulates a summary: a plain string is an info line, rendered test output brings its own levels. */
+private[testing] final class SummaryLines {
+  private val builder = List.newBuilder[SummaryLine]
+  def +=(text: String): Unit = builder += SummaryLine.Info(text)
+  def ++=(rendered: List[SummaryLine]): Unit = builder ++= rendered
+  def result(): List[SummaryLine] = builder.result()
+}
+
+/** One line a test process wrote, and which stream it wrote it to. Kept as a pair until the moment it is printed, so stdout and stderr stay distinguishable. */
+case class OutputLine(channel: OutputChannel, text: String)
+
+/** Everything a suite wrote to stdout/stderr, in arrival order. */
+case class SuiteOutput(
+    project: CrossProjectName,
+    suite: SuiteName,
+    lines: List[OutputLine]
 )
 
 case class TestSkipped(
@@ -1140,7 +1217,7 @@ object BuildDisplay {
       for {
         s <- summary
         enriched = s.copy(filterContext = filterContext)
-        _ <- BuildSummary.formatSummary(enriched, mode, failureDetails).traverse_(log)
+        _ <- BuildSummary.formatSummary(enriched, mode, failureDetails).traverse_(line => IO.delay(line.logTo(logger)))
       } yield ()
   }
 

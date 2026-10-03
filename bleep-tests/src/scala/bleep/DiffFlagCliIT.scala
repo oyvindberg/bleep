@@ -38,6 +38,7 @@ class DiffFlagCliIT extends IntegrationTestHarness {
       flamegraph = false,
       cancel = false,
       junitReportDir = None,
+      showOutput = false,
       diffBase = diffBase,
       diffOutput = bleep.OutputMode.Json,
       clientEnv = bleep.bsp.protocol.BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)

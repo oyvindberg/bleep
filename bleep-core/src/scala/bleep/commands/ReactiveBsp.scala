@@ -42,6 +42,8 @@ case class ReactiveBsp(
     flamegraph: Boolean,
     cancel: Boolean,
     junitReportDir: Option[Path],
+    /** `--show-output`: print what passing suites wrote to stdout/stderr, ahead of the summary. Without it only failing suites' output is shown. */
+    showOutput: Boolean,
     /** `--diff`: after the run, print the one-line summary and then ONLY the mechanical diff against a base history entry — the edit-run-what-changed loop as
       * one command. Resolved and validated BEFORE anything runs, so a doomed diff never costs a compile. With `--watch`, bare `--diff` rolls (each cycle diffs
       * against the previous cycle's entry) while an explicit id stays a fixed baseline for every cycle.
@@ -286,6 +288,7 @@ case class ReactiveBsp(
       _ <- eventConsumerFiber.joinWithNever
       _ <- writeJUnitReports(started, junitReportDir, junitCollector)
       summary <- signalCompletion
+      _ <- printPassedSuiteOutput(started, summary)
       _ <- display.printSummary(filterContext, failureDetails = diffCycleBase.isEmpty)
     } yield summary
 
@@ -554,6 +557,7 @@ case class ReactiveBsp(
 
       // Always signal completion to TUI (even if BSP failed or user quit)
       summary <- signalCompletion
+      _ <- printPassedSuiteOutput(started, summary)
       _ <- display.printSummary(filterContext, failureDetails = diffCycleBase.isEmpty)
       // Update previousRunState from collected events (only in DiffWatch mode)
       _ <- if (isDiffWatch) IO(previousRunState.set(PreviousRunState.fromEvents(collectedBuildEvents.get().reverse))) else IO.unit
@@ -593,6 +597,7 @@ case class ReactiveBsp(
         val durationMs = System.currentTimeMillis() - startTime
         summaryOpt match {
           case Some(summary) =>
+            printPassedSuiteOutput(started, summary).unsafeRunSync()
             printFinalSummary(started, summary.copy(filterContext = filterContext), failureDetails = diffCycleBase.isEmpty)
           case None =>
             errorOpt match {
@@ -637,10 +642,13 @@ case class ReactiveBsp(
     logger.info("")
   }
 
+  private def printPassedSuiteOutput(started: Started, summary: BuildSummary): IO[Unit] =
+    if (showOutput) IO.delay(BuildSummary.formatPassedSuiteOutput(summary).foreach(_.logTo(started.logger))) else IO.unit
+
   /** Print final summary after TUI exits - ALWAYS shows what happened */
   private def printFinalSummary(started: Started, summary: BuildSummary, failureDetails: Boolean): Unit = {
     val logger = started.logger
-    BuildSummary.formatSummary(summary, mode, failureDetails).foreach(logger.info(_))
+    BuildSummary.formatSummary(summary, mode, failureDetails).foreach(_.logTo(logger))
   }
 
   /** Create BSP client that intercepts events and forwards to display */
@@ -1013,6 +1021,7 @@ object ReactiveBsp {
     flamegraph = flamegraph,
     cancel = cancel,
     junitReportDir = None,
+    showOutput = false,
     diffBase = diffBase,
     diffOutput = diffOutput,
     clientEnv = Map.empty
@@ -1032,6 +1041,7 @@ object ReactiveBsp {
       flamegraph: Boolean,
       cancel: Boolean,
       junitReportDir: Option[Path],
+      showOutput: Boolean,
       diffBase: Option[DiffBase],
       diffOutput: OutputMode,
       clientEnv: Map[String, String]
@@ -1050,6 +1060,7 @@ object ReactiveBsp {
     flamegraph = flamegraph,
     cancel = cancel,
     junitReportDir = junitReportDir,
+    showOutput = showOutput,
     diffBase = diffBase,
     diffOutput = diffOutput,
     clientEnv = clientEnv
@@ -1078,6 +1089,7 @@ object ReactiveBsp {
     flamegraph = flamegraph,
     cancel = cancel,
     junitReportDir = None,
+    showOutput = false,
     diffBase = None,
     diffOutput = OutputMode.Text,
     clientEnv = Map.empty
