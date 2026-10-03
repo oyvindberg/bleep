@@ -84,6 +84,7 @@ object DecideGen {
         requests = r.nextInt(3),
         cpuInUse = r.nextInt(8),
         wantsMore = r.nextBoolean(),
+        shuttingDown = r.nextInt(4) == 0,
         forks = (0 until r.nextInt(3)).toList.map(j =>
           StateFork(
             id = j.toLong,
@@ -106,7 +107,8 @@ object DecideGen {
       unstartedSuitesByKey = unstarted,
       heap = HeapUsage(usedMb = r.nextLong(4096L), maxMb = 4096L),
       heapDeferredSince = Map.empty,
-      nextForkId = 100L
+      nextForkId = 100L,
+      shuttingDown = r.nextInt(4) == 0
     )
     val params = Params(headroomMb = r.nextLong(2048L), parallelism = 1 + r.nextInt(8), maxNewForksPerTick = 1)
     Inputs(view, others, me, lock(r), params)

@@ -246,6 +246,7 @@ finishes. A fork holds cpu slots while it runs work (a batch fork as many as sui
   "requests": 2,
   "cpuInUse": 6,
   "wantsMore": true,
+  "shuttingDown": false,
   "forks": [
     { "id": 17, "pid": 23456, "kind": "test-batch", "boundMb": 3840, "state": "starting", "startedAtEpochMs": 1759474812000 },
     { "id": 12, "pid": 23401, "kind": "test-suite", "boundMb": 2560, "state": "measured", "footprintMb": 1310, "startedAtEpochMs": 1759474790000 }
@@ -253,7 +254,8 @@ finishes. A fork holds cpu slots while it runs work (a batch fork as many as sui
 }
 ```
 
-`cpuInUse` is published for display (`top`) only; no other server's decision uses it (§3.1).
+`cpuInUse` is published for display (`top`) only; no other server's decision uses it (§3.1). `shuttingDown` is §5.1's mark; a server that has set it
+is still alive and its forks are still counted until it is gone.
 
 Readers use the fields they know; an entry whose `version` they do not know is read as its `forks` and `cpuInUse` (the fields every version must keep),
 and a document without those throws. Not stored because derivable: machine used memory, budgets, the server heap, anything learned.

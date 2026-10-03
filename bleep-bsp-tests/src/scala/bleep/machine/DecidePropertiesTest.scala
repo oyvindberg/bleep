@@ -162,6 +162,7 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
       d.publish.cpuInUse shouldBe d.next.cpuInUse
       d.publish.requests shouldBe in.me.requests.size
       d.publish.wantsMore shouldBe d.next.ready.nonEmpty
+      d.publish.shuttingDown shouldBe in.me.shuttingDown
       d.publish.pid shouldBe identity.pid
       d.next.ready
         .map(x => (x.request, x.taskId))

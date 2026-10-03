@@ -201,6 +201,7 @@ object Decide {
       requests = me.requests.size,
       cpuInUse = next.cpuInUse,
       wantsMore = nextReady.nonEmpty,
+      shuttingDown = me.shuttingDown,
       forks = forks.map(toStateFork)
     )
     Decision(next = next, reuse = reuses, spawn = spawns, admitInHeap = admitted, evict = evicted, heapDeferred = deferred, publish = publish)

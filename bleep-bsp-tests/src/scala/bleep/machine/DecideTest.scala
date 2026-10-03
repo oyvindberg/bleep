@@ -63,6 +63,7 @@ class DecideTest extends AnyFunSuite with Matchers {
       requests = 1,
       cpuInUse = 1,
       wantsMore = false,
+      shuttingDown = false,
       forks = forks.toList
     )
 
@@ -76,6 +77,8 @@ class DecideTest extends AnyFunSuite with Matchers {
     )
     val starting = other(StateFork(7L, Some(900L), ForkKind.TestSuite, boundMb = 2000L, StateForkState.Starting, now))
     decide(me, view(usedMb = 6000L), others = List(starting)).spawn shouldBe empty
+    // A server that is shutting down (§5.1) is still alive, so its starting fork is still charged.
+    decide(me, view(usedMb = 6000L), others = List(starting.copy(shuttingDown = true))).spawn shouldBe empty
     val measured = other(StateFork(7L, Some(900L), ForkKind.TestSuite, boundMb = 2000L, StateForkState.Measured(1800L), now))
     decide(me, view(usedMb = 6000L), others = List(measured)).spawn.map(_.demand.taskId.value) shouldBe List("t1")
     // The same for this server's own forks: a Starting one of 1000 leaves 2000 of the 3000, so a 2500 demand waits; measured, it fits.

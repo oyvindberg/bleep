@@ -110,6 +110,7 @@ object SchedulerFakes {
           requests = 1,
           cpuInUse = 1,
           wantsMore = false,
+          shuttingDown = false,
           forks = forks
         )
       )

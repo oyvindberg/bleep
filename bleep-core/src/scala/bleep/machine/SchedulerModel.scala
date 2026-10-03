@@ -145,6 +145,8 @@ case class HeapUsage(usedMb: Long, maxMb: Long)
   *   when the heap gate first deferred each still-waiting compile, so its wait is bounded across ticks (`HeapPressureGate.MaxWaitMs`)
   * @param nextForkId
   *   the id the next spawned fork gets
+  * @param shuttingDown
+  *   this server has decided to yield (design §5.1). Published; not acted on here yet.
   */
 case class MyState(
     requests: List[Request],
@@ -154,7 +156,8 @@ case class MyState(
     unstartedSuitesByKey: Map[ForkKey, Int],
     heap: HeapUsage,
     heapDeferredSince: Map[TaskId, Long],
-    nextForkId: Long
+    nextForkId: Long,
+    shuttingDown: Boolean
 ) {
   def cpuInUse: Int = inHeap.map(_.cpu).sum + forks.map(_.busyCpu).sum
   def compilesRunning: Int = inHeap.count(_.kind == InHeapKind.Compile)
@@ -169,7 +172,8 @@ object MyState {
     unstartedSuitesByKey = Map.empty,
     heap = HeapUsage(usedMb = 0L, maxMb = 0L),
     heapDeferredSince = Map.empty,
-    nextForkId = 1L
+    nextForkId = 1L,
+    shuttingDown = false
   )
 }
 
@@ -250,6 +254,9 @@ object StateForkState {
   *
   * @param wantsMore
   *   this server has ready demands it could not admit this tick
+  * @param shuttingDown
+  *   this server has decided to yield its memory and is shutting down (design §5.1); its forks still count until it is gone. Published from here on so that
+  *   readers of v1 know the field; nothing sets it yet.
   */
 case class StateJson(
     version: Int,
@@ -260,6 +267,7 @@ case class StateJson(
     requests: Int,
     cpuInUse: Int,
     wantsMore: Boolean,
+    shuttingDown: Boolean,
     forks: List[StateFork]
 ) {
 

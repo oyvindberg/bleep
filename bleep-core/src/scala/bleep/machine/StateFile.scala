@@ -136,6 +136,7 @@ object StateFile {
       "requests" -> Json.fromInt(s.requests),
       "cpuInUse" -> Json.fromInt(s.cpuInUse),
       "wantsMore" -> Json.fromBoolean(s.wantsMore),
+      "shuttingDown" -> Json.fromBoolean(s.shuttingDown),
       "forks" -> s.forks.asJson
     )
   }
@@ -161,6 +162,7 @@ object StateFile {
           requests = 0,
           cpuInUse = cpuInUse,
           wantsMore = false,
+          shuttingDown = false,
           forks = forks
         )
     }
@@ -175,6 +177,7 @@ object StateFile {
       requests <- c.get[Int]("requests")
       cpuInUse <- c.get[Int]("cpuInUse")
       wantsMore <- c.get[Boolean]("wantsMore")
+      shuttingDown <- c.get[Boolean]("shuttingDown")
       forks <- c.get[List[StateFork]]("forks")
-    } yield StateJson(StateJson.CurrentVersion, pid, startedAt, bleepVersion, updatedAt, requests, cpuInUse, wantsMore, forks)
+    } yield StateJson(StateJson.CurrentVersion, pid, startedAt, bleepVersion, updatedAt, requests, cpuInUse, wantsMore, shuttingDown, forks)
 }

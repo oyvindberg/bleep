@@ -33,6 +33,7 @@ class StateFileTest extends AnyFunSuite with Matchers {
       requests = 2,
       cpuInUse = 6,
       wantsMore = true,
+      shuttingDown = false,
       forks = forks
     )
 
@@ -46,6 +47,7 @@ class StateFileTest extends AnyFunSuite with Matchers {
       |  "requests": 2,
       |  "cpuInUse": 6,
       |  "wantsMore": true,
+      |  "shuttingDown": false,
       |  "forks": [
       |    { "id": 17, "pid": 23456, "kind": "test-batch", "boundMb": 3840, "state": "starting", "startedAtEpochMs": 1759474812000 },
       |    { "id": 12, "pid": 23401, "kind": "test-suite", "boundMb": 2560, "state": "measured", "footprintMb": 1310, "startedAtEpochMs": 1759474790000 }
@@ -77,6 +79,7 @@ class StateFileTest extends AnyFunSuite with Matchers {
       "requests",
       "cpuInUse",
       "wantsMore",
+      "shuttingDown",
       "forks"
     )
     val forks = json.hcursor.downField("forks").as[List[io.circe.Json]].toOption.get
