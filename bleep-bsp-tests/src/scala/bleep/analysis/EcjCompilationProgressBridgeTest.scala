@@ -133,13 +133,13 @@ class EcjCompilationProgressBridgeTest extends AnyFunSuite with Matchers {
       val errPrint = new java.io.PrintWriter(new java.io.ByteArrayOutputStream())
 
       val (ecjMain, hasProgress) = EcjCompiler.createMainWithProgress(
-        mainClass,
         ecjClassLoader,
         outPrint,
         errPrint,
         workedSoFar,
         totalWork,
-        cancelFlag
+        cancelFlag,
+        new EcjProblemReporter(ecjClassLoader, new CollectingReporter)
       )
 
       hasProgress shouldBe true
@@ -170,17 +170,17 @@ class EcjCompilationProgressBridgeTest extends AnyFunSuite with Matchers {
       val errPrint = new java.io.PrintWriter(new java.io.ByteArrayOutputStream())
 
       val (ecjMain, hasProgress) = EcjCompiler.createMainWithProgress(
-        mainClass,
         hidingClassLoader,
         outPrint,
         errPrint,
         workedSoFar,
         totalWork,
-        cancelFlag
+        cancelFlag,
+        new EcjProblemReporter(hidingClassLoader, new CollectingReporter)
       )
 
       hasProgress shouldBe false
-      ecjMain should not be null
+      mainClass.isInstance(ecjMain) shouldBe true
     }
   }
 }
