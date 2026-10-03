@@ -4,23 +4,105 @@ import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, NoSuchFileException, Path}
 
-/** The Linux probes: plain reads of `/proc`, so they work on every JDK with no native code.
+/** The Linux machine probe: plain reads of `/proc` and `/sys/fs/cgroup`, so it works on every JDK with no native code.
   *
-  * `procRoot` is `/proc` on a real machine; tests point it at a directory of fixtures.
+  * '''Containers.''' Host-wide `/proc/meminfo` cannot see a cgroup memory limit, and in a container with one, that limit — not the host's RAM — is what the OOM
+  * killer enforces. So when this process is in a cgroup v2 hierarchy whose tightest `memory.max` (its own cgroup's or an ancestor's) is below the host's
+  * memory, that cgroup is the machine: physical is its `memory.max`, used is its `memory.current` minus the file cache it could drop (`inactive_file` from
+  * `memory.stat`, the same subtraction `docker stats` and the kubelet's working set make), and pressure is its own `memory.pressure`. Otherwise — no limit
+  * (`max`), a limit above the host's memory, or a cgroup v1 memory controller — the host's `/proc` numbers apply. cgroup v1 is deliberately not read: its
+  * accounting files differ and it is on its way out, so a v1 container is measured as the host it runs on.
+  *
+  * Which cgroups to look at is resolved once, from `/proc/self/cgroup`, when the probe is made; their limits are read on every sample, since `memory.max` can
+  * be changed at runtime.
+  *
+  * @param procRoot
+  *   `/proc` on a real machine; tests point it at fixtures
+  * @param cgroupRoot
+  *   `/sys/fs/cgroup` on a real machine; tests point it at fixtures
   */
-final class LinuxMachineProbe(procRoot: Path) extends MachineProbe {
+final class LinuxMachineProbe(procRoot: Path, cgroupRoot: Path) extends MachineProbe {
   private val meminfo = procRoot.resolve("meminfo")
   private val psi = procRoot.resolve("pressure").resolve("memory")
+  private val cgroups: List[Path] = LinuxCgroup.memoryCgroups(LinuxProc.read(procRoot.resolve("self").resolve("cgroup")), cgroupRoot)
 
   def sample(): MachineSample = {
     val mem = LinuxProc.parseMeminfo(LinuxProc.read(meminfo))
-    val pressure = LinuxProc.readPsi(psi)
-    MachineSample(
-      physicalMb = mem.totalKb / 1024,
-      usedMb = (mem.totalKb - mem.availableKb) / 1024,
-      pressure = pressure
-    )
+    LinuxCgroup.tightestLimit(cgroups, mem.totalKb * 1024) match {
+      case Some(LinuxCgroup.Limit(dir, maxBytes)) =>
+        val currentFile = dir.resolve("memory.current")
+        val statFile = dir.resolve("memory.stat")
+        val current = LinuxCgroup.parseBytes(LinuxProc.read(currentFile), currentFile)
+        val inactiveFile = LinuxCgroup.statField(LinuxProc.read(statFile), "inactive_file", statFile)
+        MachineSample(
+          physicalMb = maxBytes / LinuxCgroup.MB,
+          usedMb = math.max(0L, current - inactiveFile) / LinuxCgroup.MB,
+          pressure = LinuxProc.readPsi(dir.resolve("memory.pressure"))
+        )
+      case None =>
+        MachineSample(
+          physicalMb = mem.totalKb / 1024,
+          usedMb = (mem.totalKb - mem.availableKb) / 1024,
+          pressure = LinuxProc.readPsi(psi)
+        )
+    }
   }
+}
+
+object LinuxCgroup {
+  final val MB = 1024L * 1024L
+
+  /** The cgroup whose limit binds, and that limit in bytes. */
+  case class Limit(dir: Path, maxBytes: Long)
+
+  /** The cgroup v2 directories whose memory limits apply to this process — its own cgroup first, then each ancestor up to and including `cgroupRoot` — or none
+    * when cgroup v2 does not govern memory here.
+    *
+    * `/proc/self/cgroup` has one `hierarchy:controllers:path` line per hierarchy. A line naming the `memory` controller means cgroup v1 governs memory (a v1 or
+    * hybrid host). Otherwise the `0::<path>` line is this process's v2 cgroup, relative to the v2 mount — which is `cgroupRoot` only if that holds a
+    * `cgroup.controllers` listing `memory`. Inside a container with its own cgroup namespace the path is `/` and `cgroupRoot` is the container's cgroup.
+    */
+  def memoryCgroups(selfCgroup: String, cgroupRoot: Path): List[Path] = {
+    val lines = selfCgroup.linesIterator.filter(_.nonEmpty).map(_.split(":", 3)).toList
+    val v1Memory = lines.exists(parts => parts.length == 3 && parts(1).split(',').contains("memory"))
+    val v2Path = lines.collectFirst { case Array("0", "", path) => path }
+    val controllers = cgroupRoot.resolve("cgroup.controllers")
+    val v2MemoryMounted = Files.isRegularFile(controllers) && LinuxProc.read(controllers).trim.split("\\s+").contains("memory")
+    (v1Memory, v2Path, v2MemoryMounted) match {
+      case (false, Some(path), true) =>
+        val leaf = path.split('/').filter(_.nonEmpty).foldLeft(cgroupRoot)(_.resolve(_))
+        if (!Files.isDirectory(leaf))
+          throw new IllegalStateException(
+            s"/proc/self/cgroup puts this process in cgroup $path, but $leaf does not exist: $cgroupRoot is not the cgroup v2 hierarchy this process is in"
+          )
+        Iterator.iterate(leaf)(_.getParent).takeWhile(_.startsWith(cgroupRoot)).toList
+      case _ => Nil
+    }
+  }
+
+  /** The tightest `memory.max` among `cgroups` that is below the host's memory, if any. The root cgroup has no `memory.max`; `max` means no limit. */
+  def tightestLimit(cgroups: List[Path], hostBytes: Long): Option[Limit] =
+    cgroups
+      .flatMap { dir =>
+        val file = dir.resolve("memory.max")
+        if (!Files.exists(file)) None
+        else {
+          val content = LinuxProc.read(file)
+          if (content.trim == "max") None else Some(Limit(dir, parseBytes(content, file)))
+        }
+      }
+      .filter(_.maxBytes < hostBytes)
+      .minByOption(_.maxBytes)
+
+  def parseBytes(content: String, file: Path): Long =
+    content.trim.toLongOption.getOrElse(throw new IllegalStateException(s"$file does not hold a byte count: '${content.trim}'"))
+
+  /** A `name value` line of `memory.stat`, in bytes. */
+  def statField(content: String, name: String, file: Path): Long =
+    content.linesIterator
+      .collectFirst { case line if line.startsWith(name + " ") => line.substring(name.length + 1).trim }
+      .flatMap(_.toLongOption)
+      .getOrElse(throw new IllegalStateException(s"$file has no `$name` line. Content:\n$content"))
 }
 
 /** What a fork costs, from `/proc/<pid>/status`: its `RssAnon` plus its `VmSwap`.
