@@ -167,9 +167,9 @@ In order. Every rule is a pure function of the inputs above.
 
 A server that holds memory nobody is using, while someone else needs memory, shuts itself down. Conditions — all of them:
 
-- **No connected clients.** A connected BSP client (an IDE through `bleep bsp`) or MCP server counts as in use, whether or not it has a request running.
-  Observers (`bleep server top`/`status`) do not count — the same rule as today's idle watchdog (`connectionRegistry.nonObserverCount`,
-  `BspServerDaemon.scala` ~line 403).
+- **No connected clients.** Any open non-observer connection counts as in use, whether or not it has a request running — in practice an IDE through
+  `bleep bsp`, or an MCP tool call in flight. Observers (`bleep server top`/`status`) do not count — the same rule as today's idle watchdog
+  (`connectionRegistry.nonObserverCount`, `BspServerDaemon.scala` ~line 403). Between MCP calls a server is unconnected and may yield (see below).
 - **Idle for a while**: no request for at least `idleYieldAfter` (open, §11).
 - **Someone needs the memory**: another live server's `state.json` has `wantsMore`, or `Pressure ≥ Elevated`. Low memory with nobody waiting is not a
   reason to throw away a warm server.
@@ -186,9 +186,10 @@ Prerequisites found in the code:
 
 - **`bleep bsp` does not reconnect.** When its server goes away, `BspProxy` closes its output and the IDE sees "build server disconnected". That is why
   a connected client blocks yielding.
-- **MCP holds no connection between calls.** `bleep mcp-server` connects per tool call, so a server used only through MCP looks unconnected between
-  calls. The MCP server must hold a lightweight presence connection (non-observer, no requests) to each server it has used, for as long as it lives.
-  `bleep server top`'s "started by bleep mcp-server … keeps this server in use" is today only a label derived from the parent process.
+- **MCP reconnects on its own.** `bleep mcp-server` runs `BspRifle.ensureRunning` + `connectWithRetry` for every tool call
+  (`BleepMcpServer.scala` ~line 117), so a yielded server is replaced on the next call at the cost of one cold start. No presence connection is needed.
+  `bleep server top`'s "started by bleep mcp-server … keeps this server in use" is only a label derived from the parent process; it should be reworded
+  once yielding exists.
 
 `parallelism` is per server, CPU only, read from the user config (re-read on change). Lowering it never kills running work; it is respected as work
 finishes. A fork holds cpu slots while it runs work (a batch fork as many as suites it runs at once, as today); an idle warm fork holds none.
@@ -335,7 +336,7 @@ deletes, then behaviour lands on top.
 ### Phase D — on top
 
 12. **`bleep server top` / `bleep/status`** show ceiling, used, pending, per-server guarantees and forks from `state.json`, plus lock holder/wait.
-13. **Idle servers yield** (§5.1) — MCP presence connection first (own commit), then the idle-yield check and the `shuttingDown` state.
+13. **Idle servers yield** (§5.1) — the idle-yield check and the `shuttingDown` state; reword `top`'s "keeps this server in use" label.
 14. **Metrics** — tick events (hold time, decision summary, pressure) into `metrics.jsonl`.
 15. **Docs** — rewrite `docs/usage/resource-management.mdx` and the compile-server guide; remove mentions of the fork-memory budget; `parallelism`
     documented as CPU-only, per server.
