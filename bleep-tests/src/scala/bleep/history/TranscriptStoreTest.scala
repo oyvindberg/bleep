@@ -57,6 +57,28 @@ class TranscriptStoreTest extends AnyFunSuite with Matchers {
     TranscriptStore.list(paths) shouldBe List(1L, 2L)
   }
 
+  /** The compile server writes a transcript per request, from as many threads as it has requests. A file lock is the JVM's, not a thread's: a second `lock()`
+    * from the same JVM threw `OverlappingFileLockException` instead of waiting, and two compiles finishing together failed the second.
+    */
+  test("writers in one JVM wait for each other, and every write gets its own id") {
+    val paths = freshPaths()
+    val writers = 16
+    val start = new java.util.concurrent.CountDownLatch(1)
+    val pool = java.util.concurrent.Executors.newFixedThreadPool(writers)
+    try {
+      val futures = (1 to writers).map { _ =>
+        pool.submit { () =>
+          start.await()
+          write(paths).id
+        }
+      }
+      start.countDown()
+      val ids = futures.map(_.get(30, java.util.concurrent.TimeUnit.SECONDS))
+      ids.sorted shouldBe (1L to writers.toLong)
+      TranscriptStore.list(paths) shouldBe (1L to writers.toLong).toList
+    } finally pool.shutdownNow(): Unit
+  }
+
   test("two workspaces do not share id sequences") {
     val a = freshPaths()
     val b = freshPaths()
