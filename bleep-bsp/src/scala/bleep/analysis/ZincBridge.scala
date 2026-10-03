@@ -1447,18 +1447,33 @@ object ZincBridge {
       listener.onDiagnostic(CompilerError(None, 0, 0, msg.get(), None, CompilerError.Severity.Warning))
   }
 
-  /** Reporter that forwards problems to DiagnosticListener */
-  private class BleepReporter(listener: DiagnosticListener, buildDir: Path) extends Reporter {
-    private var problemList = List.empty[Problem]
+  /** Reporter that forwards problems to DiagnosticListener.
+    *
+    * Problems are kept in a buffer, not appended to a `List`: a generated project can report tens of thousands of warnings, and `List :+` copies the whole list
+    * for each one. On one such project (~18k warnings) that was ~4 GB of allocation per compile, more than any part of zinc's own analysis.
+    */
+  private[analysis] class BleepReporter(listener: DiagnosticListener, buildDir: Path) extends Reporter {
+    private val problemList = scala.collection.mutable.ArrayBuffer.empty[Problem]
+    private var errors = 0
+    private var warnings = 0
 
-    def reset(): Unit = problemList = Nil
-    def hasErrors: Boolean = problemList.exists(_.severity == xsbti.Severity.Error)
-    def hasWarnings: Boolean = problemList.exists(_.severity == xsbti.Severity.Warn)
+    def reset(): Unit = {
+      problemList.clear()
+      errors = 0
+      warnings = 0
+    }
+    def hasErrors: Boolean = errors > 0
+    def hasWarnings: Boolean = warnings > 0
     def printSummary(): Unit = ()
     def problems(): Array[Problem] = problemList.toArray
 
     def log(problem: Problem): Unit = {
-      problemList = problemList :+ problem
+      problemList += problem
+      problem.severity match {
+        case xsbti.Severity.Error => errors += 1
+        case xsbti.Severity.Warn  => warnings += 1
+        case xsbti.Severity.Info  => ()
+      }
       val error = problemToError(problem, buildDir)
       listener.onDiagnostic(error)
     }
