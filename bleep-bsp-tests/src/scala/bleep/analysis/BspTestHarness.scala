@@ -134,15 +134,15 @@ object BspTestHarness {
 
   /** Run a test with the BSP server (simple version - auto-detects project) */
   def withServer[A](workspaceRoot: Path)(f: BspClient => A): A = {
-    val (analysisCache, buildCache, requests) = freshCaches()
-    val harness = new BspTestHarness(workspaceRoot, None, analysisCache, buildCache, requests)
+    val (analysisCache, buildCache, scheduling) = freshCaches()
+    val harness = new BspTestHarness(workspaceRoot, None, analysisCache, buildCache, scheduling)
     harness.use(f)
   }
 
   /** Run a test with BSP server and explicit project configuration */
   def withProject[A](workspaceRoot: Path, config: ProjectConfig)(f: BspClient => A): A = {
-    val (analysisCache, buildCache, requests) = freshCaches()
-    withProjectAndCaches(workspaceRoot, config, analysisCache, buildCache, requests)(f)
+    val (analysisCache, buildCache, scheduling) = freshCaches()
+    withProjectAndCaches(workspaceRoot, config, analysisCache, buildCache, scheduling)(f)
   }
 
   /** Like [[withProject]], with the daemon-scoped caches supplied by the test, so it can look at what the server cached and act on the cache directly. */
@@ -151,31 +151,37 @@ object BspTestHarness {
       config: ProjectConfig,
       analysisCache: bleep.analysis.AnalysisCache,
       buildCache: bleep.bsp.BuildCache,
-      requests: RequestRegistry
+      scheduling: DaemonScheduling
   )(
       f: BspClient => A
   ): A = {
-    val harness = new BspTestHarness(workspaceRoot, Some(List(config)), analysisCache, buildCache, requests)
+    val harness = new BspTestHarness(workspaceRoot, Some(List(config)), analysisCache, buildCache, scheduling)
     harness.use(f)
   }
 
   /** Run a test with BSP server and multiple project configurations */
   def withProjects[A](workspaceRoot: Path, configs: List[ProjectConfig])(f: BspClient => A): A = {
-    val (analysisCache, buildCache, requests) = freshCaches()
-    val harness = new BspTestHarness(workspaceRoot, Some(configs), analysisCache, buildCache, requests)
+    val (analysisCache, buildCache, scheduling) = freshCaches()
+    val harness = new BspTestHarness(workspaceRoot, Some(configs), analysisCache, buildCache, scheduling)
     harness.use(f)
   }
 
   /** One server per harness, so fresh daemon-scoped state — the caches, bounded the way a real daemon on this machine would bound them, and the request
     * registry the build cache consults and the server registers into.
     */
-  def freshCaches(): (bleep.analysis.AnalysisCache, bleep.bsp.BuildCache, RequestRegistry) = {
+  def freshCaches(): (bleep.analysis.AnalysisCache, bleep.bsp.BuildCache, DaemonScheduling) = {
     val analysisCache = new bleep.analysis.AnalysisCache
-    val requests = new RequestRegistry
+    // Unconstrained: a test server must not coordinate with the developer's real daemons through the real cache directory.
+    val scheduling = DaemonScheduling.unconstrained(
+      parallelism = Runtime.getRuntime.availableProcessors(),
+      reason = "test harness",
+      heapGate = bleep.machine.HeapGate.alwaysAdmit,
+      logger = ryddig.TypedLogger.DevNull
+    )
     (
       analysisCache,
-      new bleep.bsp.BuildCache(bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), analysisCache, requests),
-      requests
+      new bleep.bsp.BuildCache(bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), analysisCache, scheduling.requests),
+      scheduling
     )
   }
 
@@ -232,7 +238,7 @@ class BspTestHarness(
     projectConfigs: Option[List[BspTestHarness.ProjectConfig]],
     harnessAnalysisCache: bleep.analysis.AnalysisCache,
     harnessBuildCache: BuildCache,
-    harnessRequests: RequestRegistry
+    harnessScheduling: DaemonScheduling
 ) {
   import BspTestHarness._
   import JsonRpcCodecs.given
@@ -249,10 +255,7 @@ class BspTestHarness(
       clientToServer.source,
       serverToClient.sink,
       Loggers.stderr(LogPatterns.logFile),
-      machine = bleep.MachineResources.forThisMachine(totalCpu = Runtime.getRuntime.availableProcessors(), logger = Loggers.stderr(LogPatterns.logFile)),
-      requests = harnessRequests,
-      forks = new bleep.machine.ForkRegistry,
-      heapMonitor = HeapMonitor.system,
+      scheduling = harnessScheduling,
       // One server per harness, so fresh daemon-scoped state is the right scope here.
       kspMutexes = new KspMutexes,
       buildCache = harnessBuildCache,

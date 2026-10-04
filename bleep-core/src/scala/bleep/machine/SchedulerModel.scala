@@ -365,3 +365,20 @@ object Decision {
 
   case class HeapDeferred(demand: InHeap, delayMs: Long, firstDeferredAtMs: Long)
 }
+
+/** What the scheduler last decided from, published after every tick for `bleep/status` and metrics. Plain data, read from any thread.
+  *
+  * @param machine
+  *   the last machine reading, absent in unconstrained mode and before the first probing tick
+  * @param liveServers
+  *   other servers counted on the last claiming tick, plus this one
+  */
+case class SchedulerSnapshot(
+    mode: String,
+    state: MyState,
+    params: Params,
+    machine: Option[MachineView],
+    lock: LockState,
+    liveServers: Int,
+    ready: List[Demand]
+)

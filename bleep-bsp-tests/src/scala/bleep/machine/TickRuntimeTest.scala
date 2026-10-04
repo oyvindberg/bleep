@@ -104,7 +104,7 @@ class TickRuntimeTest extends AnyFunSuite with Matchers {
       runtime.close()
       runtime.close() // idempotent
       an[IllegalStateException] should be thrownBy runtime.registerRequest(r1, RequestKind.Test)
-      Thread.getAllStackTraces.keySet().toArray(Array.empty[Thread]).map(_.getName).toList should not contain TickRuntime.ThreadName
+      runtime.isRunning shouldBe false
     }
   }
 }

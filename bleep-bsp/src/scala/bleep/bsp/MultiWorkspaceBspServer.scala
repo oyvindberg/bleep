@@ -35,7 +35,6 @@ import bleep.bsp.protocol.{
 import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, LinkPlatformName, OutputChannel, ProcessExit, SuiteOutcome}
 import bleep.bsp.TraceCategory
 import bleep.model.{CrossProjectName, SuiteName, TestName}
-import bleep.testing.JvmPool
 import cats.effect.{Deferred, FiberIO, IO, Ref}
 import cats.effect.std.{Dispatcher, Queue}
 import cats.effect.unsafe.implicits.global
@@ -63,12 +62,8 @@ class MultiWorkspaceBspServer(
     in: InputStream,
     out: OutputStream,
     logger: Logger,
-    machine: MachineResources,
-    /** The daemon's in-flight requests, shared by every connection; see [[RequestRegistry]]. */
-    requests: RequestRegistry,
-    /** The daemon's live forked JVMs, shared by every connection; see [[bleep.machine.ForkRegistry]]. */
-    forks: bleep.machine.ForkRegistry,
-    heapMonitor: HeapMonitor,
+    /** The daemon's machine scheduler, with its registers of requests and forks and its pool of test forks, shared by every connection. */
+    scheduling: DaemonScheduling,
     kspMutexes: KspMutexes,
     buildCache: BuildCache,
     analysisCache: bleep.analysis.AnalysisCache,
@@ -86,6 +81,7 @@ class MultiWorkspaceBspServer(
   import MultiWorkspaceBspServer.DebugLogging
 
   private val transport = new JsonRpcTransport(in, out)
+  private def requests: RequestRegistry = scheduling.requests
   private val initialized = AtomicBoolean(false)
   private val shutdownRequested = AtomicBoolean(false)
 
@@ -776,15 +772,11 @@ class MultiWorkspaceBspServer(
   private def handleAdminStatus(request: StatusRequest): DaemonStatus = {
     if (request.observer) daemonInfo.connectionRegistry.markObserver(connId)
 
-    val machineSnapshot = machine.snapshot.unsafeRunSync()
     val cachedWorkspaces = buildCache.cachedWorkspaces
     val analysisStats = analysisCache.stats
     val jvm = JvmSampler.sample()
     val config = daemonInfo.bootedConfig
     val nowMs = System.currentTimeMillis()
-
-    def entry(e: MachineResources.Entry): MachineEntryDto =
-      MachineEntryDto(kind = e.kind.toString, label = e.label, cpu = e.cpu, memoryMb = e.memoryMb, ageMs = e.ageMs)
 
     // Union of two views that genuinely disagree, and a daemon serving a workspace should appear either way: `workspaces` holds what was explicitly registered
     // (daemon args, bleep/registerWorkspace), while the build cache holds whatever a client has actually shipped a build for. Listing only the former showed
@@ -811,15 +803,7 @@ class MultiWorkspaceBspServer(
       startedAtEpochMs = daemonInfo.startedAtEpochMs,
       socketDir = daemonInfo.socketDir.toString,
       jvm = jvm,
-      machine = MachineSnapshotDto(
-        totalCpu = machineSnapshot.totalCpu,
-        usedCpu = machineSnapshot.usedCpu,
-        totalMemoryMb = machineSnapshot.totalMemoryMb,
-        usedMemoryMb = machineSnapshot.usedMemoryMb,
-        activeCompiles = machineSnapshot.activeCompiles,
-        active = machineSnapshot.active.map(entry),
-        waiting = machineSnapshot.waiting.map(entry)
-      ),
+      machine = MultiWorkspaceBspServer.machineSnapshotDto(scheduling.snapshot, scheduling.parallelism(), nowMs),
       connections = daemonInfo.connectionRegistry.snapshot,
       workspaces = workspaces,
       buildCache = BuildCacheDto(cachedWorkspaces = cachedWorkspaces, bound = buildCache.bound),
@@ -867,7 +851,7 @@ class MultiWorkspaceBspServer(
       cancellation: CancellationToken,
       originId: Option[String],
       recorder: TranscriptRecorder
-  ): Unit = {
+  ): RequestChannel = {
     // Notify client about concurrent operations (informational)
     val concurrent = requests.getActiveOperations(workspace)
     concurrent.foreach { active =>
@@ -888,10 +872,18 @@ class MultiWorkspaceBspServer(
     val work = RequestRegistry.ActiveWork(operationId, operation, projects, cancellation, System.currentTimeMillis(), kill)
     requests.register(workspace, work)
     myOperationIds.add(operationId): Unit
+    // The same operation is the scheduler's request (design §3.2): one id, one start, one end.
+    val kind = operation match {
+      case "test" => bleep.machine.RequestKind.Test
+      case "link" => bleep.machine.RequestKind.Link
+      case _      => bleep.machine.RequestKind.Compile
+    }
+    scheduling.openRequest(bleep.machine.RequestId(operationId), kind, makeHeapWaitListener(originId, recorder))
   }
 
   /** Unregister an operation after it completes. */
-  private def unregisterOperation(workspace: Path, operationId: String): Unit = {
+  private def unregisterOperation(workspace: Path, operationId: String, channel: RequestChannel): Unit = {
+    channel.close()
     requests.unregister(workspace, operationId)
     myOperationIds.remove(operationId): Unit
   }
@@ -1612,8 +1604,7 @@ class MultiWorkspaceBspServer(
         }
   }
 
-  private type RunSymbolProcessorsHandler =
-    (TaskDag.RunSymbolProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, Int)]
+  private type RunSymbolProcessorsHandler = (TaskDag.RunSymbolProcessorsTask, bleep.machine.ForkId, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, Int)]
 
   /** Per-project KSP handler: resolves the runner classpath + processor jars, computes the incremental decision against a per-variant `inputs-manifest.json`,
     * forks `KSPJvmMain`. Generated `.kt`/`.java`/resources land under `.bleep/projects/<cross>/generated-sources/ksp/`; KSP caches + emitted `.class`es under
@@ -1621,7 +1612,7 @@ class MultiWorkspaceBspServer(
     */
   private def makeSymbolProcessorHandler(s: Started, originId: Option[String]): RunSymbolProcessorsHandler = {
     val _ = originId
-    (task, kill) =>
+    (task, _, kill) =>
       val cn = task.project
       // Bridge the DAG kill signal to a CancellationToken via a lifecycle-managed `background.surround` so the watcher fiber is cancelled when the work
       // completes. Using `Outcome.bridgeKillSignal` directly would leak the watcher fiber — it `.start.void`s a `kill.get` listener with no cancellation hook,
@@ -1687,15 +1678,13 @@ class MultiWorkspaceBspServer(
         setupIO.flatMap { case (ksp, decision, snap, stateFile) =>
           // Serialize KSP runs for the same cross-project across BSP server connections (e.g. a Normal-variant compile racing a BSP-variant compile of the same
           // project). The DAG already serializes within one build, but two builds for the same project share the daemon JVM + the shared sources dir.
-          // One number decides both what the fork may use and what it is charged, so the two can't
-          // drift. KspRunner only emits -Xmx when this is Some, so passing it explicitly is also what
-          // bounds the fork at all rather than letting HotSpot hand it a quarter of the machine.
+          // The scheduler admitted this task against the same heap figure (TaskDag.ForkHeaps), so what the fork may use and what it is charged cannot drift.
+          // KspRunner only emits -Xmx when this is Some, so passing it explicitly is also what bounds the fork at all rather than letting HotSpot hand it a
+          // quarter of the machine.
           val kspHeapMb = MemorySizes.forkHeapMb(s.config.bspServerConfigOrDefault.kspRunnerMaxMemory)
-          val kspForkMemMb = MemorySizes.forkFootprintMb(kspHeapMb)
           kspMutexFor(cn).flatMap(_.lock.surround {
-            machine
-              .reserve(MachineResources.ResourceKind.KspFork, s"ksp ${cn.value}", cpu = 1, memoryMb = kspForkMemMb)
-              .use(_ => bleep.analysis.KspRunner.run(ksp, decision, s.jvmCommand, Some(s"${kspHeapMb}m"), cancellation, logger))
+            bleep.analysis.KspRunner
+              .run(ksp, decision, s.jvmCommand, Some(s"${kspHeapMb}m"), cancellation, logger)
               .flatMap {
                 case bleep.analysis.KspRunner.RunResult.Success =>
                   // Save the manifest only on success; a failed run leaves the prior manifest intact so the next try sees the same deltas and can retry.
@@ -1728,7 +1717,7 @@ class MultiWorkspaceBspServer(
   private def makeSourcegenHandler(
       started: Started,
       originId: Option[String]
-  ): (TaskDag.SourcegenTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] = {
+  ): (TaskDag.SourcegenTask, bleep.machine.ForkId, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] = {
     val _ = originId
     val listener = new SourceGenRunner.SourceGenListener {
       def onScriptStarted(scriptMain: String, forProjects: List[String]): Unit =
@@ -1747,13 +1736,11 @@ class MultiWorkspaceBspServer(
       def onLog(message: String, isError: Boolean): Unit =
         if (isError) bspError(message) else bspInfo(message)
     }
-    (sgt, killSignal) =>
+    (sgt, _, killSignal) =>
       killSignal.tryGet.flatMap {
         case Some(reason) => IO.pure(TaskDag.TaskResult.Killed(reason))
         case None         =>
-          // Sourcegen forks a JVM — reserve machine resources like any other fork.
-          // No reservation here: the DAG admitted this task against its declared cost before starting
-          // it, so reserving again would charge the machine twice for one fork.
+          // The scheduler admitted this task as a fork of the declared heap; the executor reports the fork gone when this returns.
           IO.unit.flatMap { _ =>
             // Once per distinct declaration, each for the projects that declared it that way; the first failure stops the rest
             sgt.declarations.toList
@@ -1795,7 +1782,7 @@ class MultiWorkspaceBspServer(
     val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
     // Accumulates every event this request streams to the client, so completion can persist the transcript. Strictly request-scoped.
     val recorder = new TranscriptRecorder
-    registerOperation(workspace, taskId, opLabel, projectsToCompile.map(_.value), cancellation, params.originId, recorder)
+    val channel = registerOperation(workspace, taskId, opLabel, projectsToCompile.map(_.value), cancellation, params.originId, recorder)
     IO.defer {
       // Re-read user config fresh before starting (allows runtime config changes), unless a caller handed us one — see `configOverride`.
       val userPaths = UserPaths.fromAppDirs
@@ -1958,18 +1945,19 @@ class MultiWorkspaceBspServer(
         val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
         // Create link handler
-        val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] = { (linkTask, taskKillSignal) =>
-          val projectPaths = started.projectPaths(linkTask.project)
-          val project = started.build.explodedProjects(linkTask.project)
-          val resolved = started.resolvedProject(linkTask.project)
-          // What the linker gets is a runtime artifact's classpath, not the compiler's: the project's own resources and every stamp belong in it, so Scala Native
-          // can embed them. The same composition the test link path gets from `getTestClasspath`, minus the test runner.
-          val classpath = projectPaths.classes :: resolved.resources(Usage.Runtime) ::: resolved.classpath(Usage.Runtime).map(p => Path.of(p.toString)).toList
-          val linkLogger = createLinkLogger()
-          val outputDir = projectPaths.targetDir.resolve("link-output")
-          withLinkMetrics(linkTask, started.buildPaths.buildDir.toString) {
-            LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
-          }
+        val linkHandler: (TaskDag.LinkTask, bleep.machine.ForkId, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] = {
+          (linkTask, _, taskKillSignal) =>
+            val projectPaths = started.projectPaths(linkTask.project)
+            val project = started.build.explodedProjects(linkTask.project)
+            val resolved = started.resolvedProject(linkTask.project)
+            // What the linker gets is a runtime artifact's classpath, not the compiler's: the project's own resources and every stamp belong in it, so Scala Native
+            // can embed them. The same composition the test link path gets from `getTestClasspath`, minus the test runner.
+            val classpath = projectPaths.classes :: resolved.resources(Usage.Runtime) ::: resolved.classpath(Usage.Runtime).map(p => Path.of(p.toString)).toList
+            val linkLogger = createLinkLogger()
+            val outputDir = projectPaths.targetDir.resolve("link-output")
+            withLinkMetrics(linkTask, started.buildPaths.buildDir.toString) {
+              LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
+            }
         }
 
         // No-op handlers for task types absent from compile/link DAGs (no DiscoverTasks, TestSuiteTasks here).
@@ -1996,8 +1984,7 @@ class MultiWorkspaceBspServer(
             testBatch = testBatchHandler,
             sourcegen = sourcegenHandler,
             annotationProcessor = apHandler,
-            symbolProcessor = kspHandler,
-            mayAdmitCompile = makeCompileAdmission(params.originId, serverConfig.effectiveHeapPressureThreshold, recorder)
+            symbolProcessor = kspHandler
           )
         )
 
@@ -2015,7 +2002,7 @@ class MultiWorkspaceBspServer(
 
           // Run executor with guarantee to cancel consumer fiber on completion/error/cancellation
           dag <- executor
-            .execute(initialDag, machine, forkHeaps, eventQueue, killSignal)
+            .execute(initialDag, channel, forkHeaps, eventQueue, killSignal)
             .flatTap(_ => eventQueue.offer(None) >> eventConsumerFiber.joinWithNever)
             .guarantee(eventQueue.offer(None).attempt >> eventConsumerFiber.cancel)
 
@@ -2135,7 +2122,7 @@ class MultiWorkspaceBspServer(
           }
         } yield result
       }
-    }.guarantee(IO(unregisterOperation(workspace, taskId)))
+    }.guarantee(IO(unregisterOperation(workspace, taskId, channel)))
   }
 
   /** Check `--link` options against the platforms actually being linked. Returns one message per misuse, empty if the request is coherent. */
@@ -2180,94 +2167,33 @@ class MultiWorkspaceBspServer(
     validationErrors.result()
   }
 
-  /** Create a HeapPressureGate.Listener that sends BSP events and logs */
-  private def makeHeapPressureListener(originId: Option[String], recorder: TranscriptRecorder): HeapPressureGate.Listener =
-    new HeapPressureGate.Listener {
-      def onWait(project: String, used: HeapMb, max: HeapMb, delayMs: Long, now: EpochMs): Unit = {
-        val retryAt = EpochMs(now.value + delayMs)
-        sendEvent(
-          originId,
-          s"compile:$project",
-          BleepBspProtocol.Event.CompileStalled(CrossProjectName.fromString(project).get, used.value, max.value, retryAt.value, now.value),
-          recorder
-        )
-        logger
-          .withContext("project", project)
-          .warn(
-            s"waiting to ensure sufficient memory (heap: ${used.value}MB/${max.value}MB) — retrying in ${delayMs}ms"
-          )
-      }
-      def onResume(project: String, used: HeapMb, max: HeapMb, waitedFor: DurationMs, now: EpochMs): Unit = {
-        sendEvent(
-          originId,
-          s"compile:$project",
-          BleepBspProtocol.Event.CompileResumed(CrossProjectName.fromString(project).get, used.value, max.value, waitedFor.value, now.value),
-          recorder
-        )
-        logger.withContext("project", project).info(s"resuming after ${waitedFor.value}ms wait (heap: ${used.value}MB/${max.value}MB)")
-      }
-    }
-
-  /** Heap pressure as an ADMISSION decision, for [[TaskDag.Handlers.mayAdmitCompile]].
-    *
-    * This replaced an `IO.sleep` loop that ran inside the compile task. The task had already been admitted by then, so it sat on a machine-wide CPU permit
-    * while waiting — withholding capacity from tests and links that could have run. Refusing admission instead leaves the permit available, and the compile is
-    * reconsidered when its stagger is up, or sooner if a task completes: exactly when heap is most likely to have been freed.
-    *
-    * The refusal-time map is per DAG run and is what makes [[HeapPressureGate.MaxWaitMs]] enforceable at all now that there is no sleep to measure against: it
-    * remembers when each project was first deferred, across separate admission attempts.
-    *
-    * `othersCompiling` is `> 0`, not `> 1` as the old in-task gate used: this runs BEFORE the reservation, so this compile is not in the count yet.
+  /** What a client hears when the scheduler's heap gate holds one of its compiles back, and when it lets it go: the same BSP events and log lines as before the
+    * gate moved into the scheduler.
     */
-  private def makeCompileAdmission(
-      originId: Option[String],
-      threshold: Double,
-      recorder: TranscriptRecorder
-  ): TaskDag.CompileTask => IO[TaskDag.CompileAdmission] = {
-    val listener = makeHeapPressureListener(originId, recorder)
-    val firstRefusedAt = Ref.unsafe[IO, Map[String, EpochMs]](Map.empty)
+  private def makeHeapWaitListener(originId: Option[String], recorder: TranscriptRecorder): HeapWaitListener =
+    new HeapWaitListener {
+      private def projectOf(taskId: bleep.machine.TaskId): Option[CrossProjectName] =
+        TaskDag.compileProjectOf(taskId).flatMap(CrossProjectName.fromString)
 
-    compileTask => {
-      val projectName = compileTask.project.value
-      for {
-        usage <- IO(heapMonitor.heapUsage())
-        compiling <- machine.activeCompiles
-        nowMs <- IO.realTime.map(d => EpochMs(d.toMillis))
-        refusedAt <- firstRefusedAt.get.map(_.get(projectName))
-        admit <- HeapPressureGate.decide(
-          usage = usage,
-          othersCompiling = compiling > 0,
-          threshold = threshold,
-          retryMs = HeapPressureGate.DefaultRetryMs,
-          firstRefusedAt = refusedAt,
-          now = nowMs
-        ) match {
-          case HeapPressureGate.Decision.Admit =>
-            refusedAt match {
-              case None        => IO.pure(TaskDag.CompileAdmission.Admit)
-              case Some(start) =>
-                firstRefusedAt.update(_ - projectName) >>
-                  IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, DurationMs(nowMs.value - start.value), nowMs)).as(TaskDag.CompileAdmission.Admit)
-            }
-          case HeapPressureGate.Decision.Defer(delayMs) =>
-            firstRefusedAt.update(m => m.updated(projectName, m.getOrElse(projectName, nowMs))) >>
-              IO(listener.onWait(projectName, usage.usedMb, usage.maxMb, delayMs, nowMs)) >>
-              IO(
-                BspMetrics.recordAdmissionDefer(
-                  project = projectName,
-                  // The gate defers for two unrelated reasons and only one of them is memory. Recording which is the difference between reading this data and
-                  // misreading it.
-                  reason = if (usage.fraction >= threshold) "heap_pressure" else "stagger",
-                  heapUsedMb = usage.usedMb.value,
-                  heapMaxMb = usage.maxMb.value,
-                  delayMs = delayMs,
-                  othersCompiling = compiling
-                )
-              ).as(TaskDag.CompileAdmission.Defer(scala.concurrent.duration.FiniteDuration(delayMs, java.util.concurrent.TimeUnit.MILLISECONDS)))
+      def onWait(taskId: bleep.machine.TaskId, heap: bleep.machine.HeapUsage, delayMs: Long, nowMs: Long): Unit =
+        projectOf(taskId).foreach { project =>
+          sendEvent(
+            originId,
+            taskId.value,
+            BleepBspProtocol.Event.CompileStalled(project, heap.usedMb, heap.maxMb, nowMs + delayMs, nowMs),
+            recorder
+          )
+          logger
+            .withContext("project", project.value)
+            .warn(s"waiting to ensure sufficient memory (heap: ${heap.usedMb}MB/${heap.maxMb}MB) — retrying in ${delayMs}ms")
         }
-      } yield admit
+
+      def onResume(taskId: bleep.machine.TaskId, heap: bleep.machine.HeapUsage, waitedForMs: Long, nowMs: Long): Unit =
+        projectOf(taskId).foreach { project =>
+          sendEvent(originId, taskId.value, BleepBspProtocol.Event.CompileResumed(project, heap.usedMb, heap.maxMb, waitedForMs, nowMs), recorder)
+          logger.withContext("project", project.value).info(s"resuming after ${waitedForMs}ms wait (heap: ${heap.usedMb}MB/${heap.maxMb}MB)")
+        }
     }
-  }
 
   /** Persist the transcript of a completed compile/test request to `<workspace>/.bleep/builds/<variant>/history/` and return the assigned id.
     *
@@ -2350,7 +2276,7 @@ class MultiWorkspaceBspServer(
     val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
     // Accumulates every event this request streams to the client, so completion can persist the transcript. Strictly request-scoped.
     val recorder = new TranscriptRecorder
-    registerOperation(workspace, taskId, "test", testProjects.map(_.value), cancellation, params.originId, recorder)
+    val channel = registerOperation(workspace, taskId, "test", testProjects.map(_.value), cancellation, params.originId, recorder)
     IO.defer {
       // Re-read user config fresh before starting (allows runtime config changes), unless a caller handed us one — see `configOverride`.
       val userPaths = UserPaths.fromAppDirs
@@ -2518,9 +2444,8 @@ class MultiWorkspaceBspServer(
         // Create kill signal from cancellation token
         killSignal <- Outcome.fromCancellationToken(cancellation)
 
-        // Create JVM pool for test execution. The machine governor caps concurrent forks (cores +
-        // fork-memory budget) across ALL clients — the per-pool maxParallelism only bounds this run.
-        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir, machine, BspMetrics.jvmPoolListener, forks).use {
+        // The daemon's pool of test forks, acting for this request: every fork it hands out is granted by the machine scheduler.
+        testResult <- IO(scheduling.pool.forRequest(channel)).flatMap {
           jvmPool =>
             // Per-test-run map populated by the AP DAG handler and read by the compile handler. KSP runs as a separate process and emits files directly; no
             // intermediate compile-time data flow, so no equivalent map.
@@ -2737,6 +2662,8 @@ class MultiWorkspaceBspServer(
                       executor = jvmPool,
                       eventQueue = eventQueue,
                       options = TestRunner.Options(
+                        jvmCommand = started.jvmCommand,
+                        defaultWorkingDirectory = started.buildPaths.buildDir,
                         // Only what someone asked for, in precedence order: the project's own options, then this run's `--jvm-opt`. The configured heap is NOT
                         // prepended here — it goes in as the default the pool falls back to, so a fork carries exactly one `-Xmx` and it is the one that
                         // decided the heap. See MemorySizes.withHeapBound.
@@ -2785,6 +2712,8 @@ class MultiWorkspaceBspServer(
                   executor = jvmPool,
                   eventQueue = eventQueue,
                   options = TestRunner.Options(
+                    jvmCommand = started.jvmCommand,
+                    defaultWorkingDirectory = started.buildPaths.buildDir,
                     jvmOptions = declaredJvmOptions ++ sourcegenJvmOptions ++ testOptions.jvmOptions,
                     defaultHeapMb = MemorySizes.forkHeapMb(serverConfig.testRunnerHeap),
                     testArgs = testOptions.testArgs,
@@ -2805,8 +2734,8 @@ class MultiWorkspaceBspServer(
               }
 
           // Link handler for non-JVM platforms (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native)
-          val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
-            (linkTask, killSignal) =>
+          val linkHandler: (TaskDag.LinkTask, bleep.machine.ForkId, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
+            (linkTask, _, killSignal) =>
               // Same reasoning as testHandler — getTestClasspath synchronously Awaits a coursier resolve.
               IO.blocking(getTestClasspath(started, linkTask.project)).flatMap { classpath =>
                 val projectPaths = started.projectPaths(linkTask.project)
@@ -2833,8 +2762,7 @@ class MultiWorkspaceBspServer(
               testBatch = testBatchHandler,
               sourcegen = sourcegenHandler,
               annotationProcessor = apHandler,
-              symbolProcessor = kspHandler,
-              mayAdmitCompile = makeCompileAdmission(params.originId, serverConfig.effectiveHeapPressureThreshold, recorder)
+              symbolProcessor = kspHandler
             )
           )
 
@@ -2867,7 +2795,7 @@ class MultiWorkspaceBspServer(
 
             // Run executor with guarantee to cancel consumer fiber on completion/error/cancellation
             dag <- executor
-              .execute(initialDag, machine, forkHeaps, eventQueue, killSignal)
+              .execute(initialDag, channel, forkHeaps, eventQueue, killSignal)
               .flatMap { result =>
                 IO {
                   val total = result.tasks.size
@@ -3075,7 +3003,7 @@ class MultiWorkspaceBspServer(
             )
         })
       } yield testResult
-    }.guarantee(IO(unregisterOperation(workspace, taskId)))
+    }.guarantee(IO(unregisterOperation(workspace, taskId, channel)))
   }
 
   /** Compute dependency analysis file paths for a project's compile-time dependencies.
@@ -3436,8 +3364,8 @@ class MultiWorkspaceBspServer(
     *
     * Exclusive on the project, since the script writes the classes consumers read under their shared locks; shared on what the script reads.
     */
-  private def makePostCompileHandler(started: Started): (TaskDag.PostCompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
-    (task, killSignal) => {
+  private def makePostCompileHandler(started: Started): (TaskDag.PostCompileTask, bleep.machine.ForkId, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
+    (task, _, killSignal) => {
       val project = task.project
       val specs: List[(CrossProjectName, Path, ProjectLock.LockMode)] =
         (project, started.projectPaths(project).targetDir / "classes", ProjectLock.LockMode.Exclusive) ::
@@ -3794,7 +3722,7 @@ class MultiWorkspaceBspServer(
         )
     }
 
-  /** Matches `TestRunner.Options.default.idleTimeout` deliberately: a suite is a suite, and a Scala.js one has earned no more or less rope than a JVM one. */
+  /** Matches the test runner's default idle timeout deliberately: a suite is a suite, and a Scala.js one has earned no more or less rope than a JVM one. */
   private val PlatformSuiteIdleTimeout: FiniteDuration = 2.minutes
 
   /** How long a platform runner gets to shut its node process or native binary down once asked. Short on purpose — the run is already known to be stuck. */
@@ -5332,6 +5260,38 @@ class MultiWorkspaceBspServer(
 }
 
 object MultiWorkspaceBspServer {
+
+  /** `bleep/status`'s machine view from the scheduler's last tick. Minimal and honest: cpu is this server's `parallelism` and what is held of it; memory is the
+    * machine's used against the ceiling when the scheduler measures it (cooperative mode), else what this server's own forks are charged; `active` lists
+    * running in-heap tasks and forks, `waiting` the demands not yet granted. Phase D redesigns `top` around `state.json` (design §10 step 12).
+    */
+  def machineSnapshotDto(snapshot: Option[bleep.machine.SchedulerSnapshot], parallelism: Int, nowMs: Long): MachineSnapshotDto =
+    snapshot match {
+      case None =>
+        MachineSnapshotDto(totalCpu = parallelism, usedCpu = 0, totalMemoryMb = 0L, usedMemoryMb = 0L, activeCompiles = 0, active = Nil, waiting = Nil)
+      case Some(snap) =>
+        MachineSnapshotDto(
+          totalCpu = snap.params.parallelism,
+          usedCpu = snap.state.cpuInUse,
+          totalMemoryMb = snap.machine.map(v => math.max(0L, v.physicalMb - snap.params.headroomMb)).getOrElse(0L),
+          usedMemoryMb = snap.machine.map(_.usedMb).getOrElse(snap.state.forks.map(_.reclaimableMb).sum),
+          activeCompiles = snap.state.compilesRunning,
+          active = snap.state.inHeap.map(t => MachineEntryDto(kind = t.kind.toString, label = t.taskId.value, cpu = t.cpu, memoryMb = 0L, ageMs = 0L)) ++
+            snap.state.forks.map(f =>
+              MachineEntryDto(
+                kind = f.kind.json,
+                label = s"${f.owner.value} ${f.key.value}",
+                cpu = f.busyCpu,
+                memoryMb = f.reclaimableMb,
+                ageMs = nowMs - f.startedAtMs
+              )
+            ),
+          waiting = snap.ready.map {
+            case d: bleep.machine.InHeap     => MachineEntryDto(kind = d.kind.toString, label = d.taskId.value, cpu = d.cpu, memoryMb = 0L, ageMs = 0L)
+            case d: bleep.machine.ForkDemand => MachineEntryDto(kind = d.kind.json, label = d.taskId.value, cpu = d.cpu, memoryMb = d.boundMb, ageMs = 0L)
+          }
+        )
+    }
 
   /** Run the message loop to completion, treating an interrupt of this thread as the stop signal it is.
     *

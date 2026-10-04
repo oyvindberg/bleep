@@ -15,6 +15,18 @@ class MacOsProbesTest extends AnyFunSuite with Matchers {
 
   private lazy val probes = new MacOsProbes(MachineNative.load(Files.createTempDirectory("bleep-machine-native"), ProbePlatform.MacOsArm64))
 
+  /** `vm_stat`'s output as a map of page counts, with the page size under "page size". */
+  private def parseVmStat(output: String): Map[String, Long] = {
+    val pageSize = "page size of (\\d+) bytes".r.findFirstMatchIn(output).map(_.group(1).toLong)
+    val counts = output.linesIterator.flatMap { line =>
+      line.split(":", 2) match {
+        case Array(k, v) => v.trim.stripSuffix(".").toLongOption.map(k.trim -> _)
+        case _           => None
+      }
+    }.toMap
+    pageSize.fold(counts)(ps => counts.updated("page size", ps))
+  }
+
   private def run(cmd: String*): String = {
     val p = new ProcessBuilder(cmd*).redirectErrorStream(true).start()
     val out = new String(p.getInputStream.readAllBytes(), "UTF-8")
@@ -25,7 +37,7 @@ class MacOsProbesTest extends AnyFunSuite with Matchers {
   test("used memory is vm_stat's anonymous - purgeable + wired + occupied by compressor") {
     assume(onMac)
     val before = probes.sample()
-    val stats = bleep.MachineMemory.MacOs.parse(run("/usr/bin/vm_stat"))
+    val stats = parseVmStat(run("/usr/bin/vm_stat"))
     val after = probes.sample()
     val pageSize = stats("page size")
     val vmStatUsedMb =

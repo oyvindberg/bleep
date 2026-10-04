@@ -81,18 +81,15 @@ class CopyStateEndpointTest extends AnyFunSuite with Matchers {
       requestDaemonShutdown = () => new AtomicBoolean(true).set(true)
     )
 
-    private val requests = new RequestRegistry
+    private val scheduling = DaemonScheduling.unconstrained(parallelism = 4, reason = "test", heapGate = bleep.machine.HeapGate.alwaysAdmit, logger = logger)
 
     private val server = new MultiWorkspaceBspServer(
       serverInput,
       serverToClient,
       logger,
-      machine = bleep.MachineResources.forThisMachine(totalCpu = 4, logger = logger),
-      requests = requests,
-      forks = new bleep.machine.ForkRegistry,
-      heapMonitor = HeapMonitor.system,
+      scheduling = scheduling,
       kspMutexes = new KspMutexes,
-      buildCache = new BuildCache(4, analysisCache, requests),
+      buildCache = new BuildCache(4, analysisCache, scheduling.requests),
       analysisCache = analysisCache,
       daemonInfo = daemonInfo,
       connId = 17,

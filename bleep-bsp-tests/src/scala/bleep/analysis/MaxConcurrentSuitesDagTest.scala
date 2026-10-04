@@ -18,9 +18,6 @@ import org.scalatest.matchers.should.Matchers
   */
 class MaxConcurrentSuitesDagTest extends AnyFunSuite with Matchers {
 
-  private def testMachine(cpu: Int): bleep.MachineResources =
-    bleep.MachineResources.create(totalCpu = cpu, totalMemoryMb = 64 * 1024, logger = ryddig.TypedLogger.DevNull, longWaitWarnMs = 60000L)
-
   private def projectName(name: String): CrossProjectName =
     CrossProjectName(ProjectName(name), None)
 
@@ -52,10 +49,9 @@ class MaxConcurrentSuitesDagTest extends AnyFunSuite with Matchers {
       log <- Ref.of[IO, List[String]](Nil)
       executor = TaskDag.executor(
         Handlers(
-          postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-          mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+          postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
           compile = (_, _) => IO.pure(TaskResult.Success),
-          link = (_, _) => sys.error("no link on JVM"),
+          link = (_, _, _) => sys.error("no link on JVM"),
           discover = (_, _, _) =>
             IO.pure(
               (
@@ -76,14 +72,14 @@ class MaxConcurrentSuitesDagTest extends AnyFunSuite with Matchers {
               _ <- log.update(_ :+ s"finish:${task.suiteName.value}")
             } yield if (failingSuites(task.suiteName.value)) TaskResult.Failure(s"${task.suiteName.value} failed", Nil) else TaskResult.Success,
           testBatch = (_, _) => sys.error("no test batch here"),
-          sourcegen = (_, _) => sys.error("no sourcegen here"),
+          sourcegen = (_, _, _) => sys.error("no sourcegen here"),
           annotationProcessor = (_, _) => sys.error("no annotation processors here"),
-          symbolProcessor = (_, _) => sys.error("no symbol processors here")
+          symbolProcessor = (_, _, _) => sys.error("no symbol processors here")
         )
       )
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      finalDag <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
+      finalDag <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
       events <- log.get
     } yield (events, finalDag)).unsafeRunSync()
   }

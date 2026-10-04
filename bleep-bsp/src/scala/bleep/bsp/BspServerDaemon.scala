@@ -7,7 +7,6 @@ import libdaemonjvm.internal.{LockProcess, SocketHandler}
 import libdaemonjvm.server._
 import ryddig.{LogLevel, LogPatterns, Logger, Loggers}
 import ryddig.jul.RyddigJulBridge
-import bleep.{MachineMemory, MachineResources}
 
 import java.nio.file.{Files, Path, Paths}
 import java.util.concurrent.ConcurrentHashMap
@@ -31,6 +30,23 @@ import scala.jdk.CollectionConverters._
   *   - 1: Fatal error
   */
 object BspServerDaemon {
+
+  /** The user's server config, re-read from disk at most once per `ttlMs`: what the scheduler's per-tick params come from, so `parallelism` and
+    * `heapPressureThreshold` apply without a restart (design §5) without reading a file every 10 ms.
+    */
+  final class LiveConfig(userPaths: UserPaths, clock: () => Long, ttlMs: Long) {
+    private var cached: Option[(Long, bleep.model.BspServerConfig)] = None
+    def current: bleep.model.BspServerConfig = synchronized {
+      val now = clock()
+      cached match {
+        case Some((at, config)) if now - at < ttlMs => config
+        case _                                      =>
+          val config = BleepConfigOps.loadOrDefault(userPaths).orThrow.bspServerConfigOrDefault
+          cached = Some((now, config))
+          config
+      }
+    }
+  }
 
   private val ServerAlreadyRunningExitCode = 222
 
@@ -204,77 +220,17 @@ object BspServerDaemon {
     // its idle clock — see [[ConnectionRegistry]]. This replaces the bare `lastActivityMs` the watchdog used to read.
     val connectionRegistry = new ConnectionRegistry(() => System.currentTimeMillis())
 
-    // One resource governor for the whole machine. Compiles and forked JVMs (test, sourcegen, KSP)
-    // all reserve against it, so they can't collectively oversubscribe the CPU (each was previously
-    // gated by its own numCores semaphore) or, for forks, the RAM. CPU budget = cores; fork-memory
-    // budget = physical RAM minus the server's own heap minus an OS reserve.
-    //
-    // There is deliberately NO separate user knob for the fork-memory budget. Users already control
-    // both dimensions of what forks cost, at the level each belongs to: `parallelism` /
-    // `parallelismRatio` in the user config bound how many forks run at once, and
-    // `testRunnerHeap` (or a project's own jvmOptions) bounds how big each one is. A third
-    // machine-level number would overlap both and, because the daemon is shared and long-lived,
-    // could only have been delivered by environment — which the daemon inherits from whichever
-    // client happened to cold-start it and every later client silently reuses. A setting that
-    // usually does nothing is worse than no setting.
-    //
-    // The starting budget below is only a starting point; `retuneLoop` tracks what the machine can
-    // actually spare from there.
-    // Read once, here, rather than per connection: this bounds state that spans every client on
-    // this daemon, and a per-connection reading would let the newest client's config silently
-    // redefine it for the others.
+    // Read once, here, rather than per connection: this bounds state that spans every client on this daemon, and a per-connection reading would let the
+    // newest client's config silently redefine it for the others. The scheduler re-reads the file itself, at most once a second, for the knobs it honours live.
     val daemonConfig = BleepConfigOps.loadOrDefault(UserPaths.fromAppDirs).orThrow.bspServerConfigOrDefault
-
-    // `parallelism`, not the raw core count: it defaults to one per core, but when it is set it is a
-    // statement about how much of THIS MACHINE bleep may use, and the governor is what enforces that
-    // across clients. Reading cores here instead meant a user who asked for 2 got 2 per run and 2 per
-    // pool — but the governor still admitted up to one-per-core across every connected client.
-    val maxConcurrentOperations = daemonConfig.effectiveParallelism
     val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
-    val physicalMb = bleep.MemorySizes.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
-    val forkMemoryBudgetMb = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
     logger.info(
-      s"Machine: ${Runtime.getRuntime.availableProcessors()} cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB -> " +
-        s"parallelism $maxConcurrentOperations, initial fork-memory budget ${forkMemoryBudgetMb}MB"
+      s"Machine: ${Runtime.getRuntime.availableProcessors()} cores, server heap ${serverHeapMb}MB -> parallelism ${daemonConfig.effectiveParallelism}"
     )
-    val machine = MachineResources.create(
-      totalCpu = maxConcurrentOperations,
-      totalMemoryMb = forkMemoryBudgetMb,
-      logger = logger,
-      longWaitWarnMs = MachineResources.DefaultLongWaitWarnMs
-    )
-    // The daemon's in-flight requests: one register for every connection and workspace this daemon serves, handed to each connection below.
-    val requests = new RequestRegistry
-    // The daemon's live forked JVMs, likewise one register for every pool of every connection (design §10 step 10).
-    val forks = new bleep.machine.ForkRegistry
 
-    // Track what the machine can actually spare, for as long as the daemon lives.
-    //
-    // The figure computed above from physical RAM is a starting point and nothing more: the budget
-    // depends on everything else running on this machine, which changes underneath us. Left static it
-    // was wrong in both directions on a developer machine — too generous alongside an IDE, a browser
-    // and other agents, needlessly stingy once they closed. When the env override is set the operator
-    // has stated a figure, so we leave it alone.
-    //
-    // Caveat worth knowing about the env override: the daemon is shared and long-lived, and its
-    // identity (BspRifleConfig.hash) is bleepVersion:name:version:options — env is NOT part of it.
-    // A daemon inherits the environment of whichever client happened to COLD-START it, and every
-    // later client reuses it regardless of their own environment. So the pin is dependable where
-    // daemons are fresh (CI) and unreliable on a developer machine, where one has usually been up
-    // for hours. That is why it is logged: what is in force must be checkable, not assumed.
-    // Track what the machine can actually spare, for as long as the daemon lives. The figure above is
-    // derived from physical RAM alone, which is wrong the moment anything else is running — too
-    // generous alongside an IDE and a browser, needlessly stingy once they close.
-    locally {
-      import cats.effect.unsafe.implicits.global
-      val retuner = new Thread("bleep-machine-budget") {
-        override def run(): Unit =
-          try MachineResources.retuneLoop(machine, MachineMemory.system, logger).unsafeRunSync()
-          catch { case _: InterruptedException => () }
-      }
-      retuner.setDaemon(true)
-      retuner.start()
-    }
+    // The daemon's in-flight requests: one register for every connection and workspace this daemon serves, handed to each connection below, and to the
+    // scheduler, whose request list it is.
+    val requests = new RequestRegistry
 
     // Daemon-wide, passed structurally into every connection: KSP writes to a variant-shared
     // generated-sources directory, so serializing per project must span connections.
@@ -291,6 +247,78 @@ object BspServerDaemon {
     // when it started us.
     val buildCache = new BuildCache(daemonConfig.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), analysisCache, requests)
 
+    // Create server socket using libdaemonjvm
+    val serverChannel = SocketHandler.server(socketPaths)
+    val serverSocket = libdaemonjvm.Util.serverSocketFromChannel(serverChannel)
+
+    logger.info(s"BSP server listening on ${socketPaths.path}")
+
+    // Idle self-shutdown. Read once at startup (changing it takes effect on the next daemon). The watchdog wakes periodically and, if the server has had no
+    // connected client for the whole timeout, closes the server socket — that unblocks the accept() below, which the loop's catch clauses already treat as a
+    // shutdown. Closing the socket (rather than System.exit) lets the normal cleanup path run: the lock releases and the shutdown hook removes the pid/socket files, so the
+    // next client's connect gets a clean refusal and simply spawns a fresh daemon.
+    val idleTimeoutMs: Long =
+      try BleepConfigOps.loadOrDefault(UserPaths.fromAppDirs).orThrow.bspServerConfigOrDefault.effectiveCompileServerIdleTimeoutMillis
+      catch { case _: Throwable => bleep.model.BspServerConfig.DefaultCompileServerIdleTimeoutMinutes.toLong * 60L * 1000L }
+    if (idleTimeoutMs > 0) {
+      val pollMs = math.min(idleTimeoutMs, 60000L)
+      val watchdog = new Thread(
+        () =>
+          while (!shutdownRequested.get()) {
+            try Thread.sleep(pollMs)
+            catch { case _: InterruptedException => () }
+            val idleFor = connectionRegistry.idleForMs(System.currentTimeMillis())
+            if (!shutdownRequested.get() && connectionRegistry.nonObserverCount == 0 && idleFor >= idleTimeoutMs) {
+              logger.info(s"Idle for ${idleFor / 1000}s with no connected client (timeout ${idleTimeoutMs / 60000}m) — shutting down")
+              shutdownRequested.set(true)
+              try serverSocket.close() // unblocks the accept() below
+              catch { case _: Throwable => () }
+            }
+          },
+        "bsp-idle-watchdog"
+      )
+      watchdog.setDaemon(true)
+      watchdog.start()
+    }
+
+    // Everything a connection needs to answer questions about the daemon as a whole. Built once, passed down — none of this becomes a global.
+    val daemonInfo = DaemonInfo(
+      startedAtEpochMs = startedAtEpochMs,
+      pid = ProcessHandle.current().pid(),
+      socketDir = socketPaths.path.getParent,
+      bleepVersion = bleep.model.BleepVersion.current.value,
+      bootedConfig = daemonConfig,
+      connectionRegistry = connectionRegistry,
+      requestDaemonShutdown = () => {
+        // Same mechanism the idle watchdog uses: close the socket so accept() unblocks and the normal cleanup path runs, rather than System.exit skipping it.
+        shutdownRequested.set(true)
+        try serverSocket.close()
+        catch { case _: Throwable => () }
+      }
+    )
+
+    // The machine scheduler (design §3): mode from the user config and from whether bleep can measure this machine, params re-read from the config at most
+    // once a second so an edited `parallelism` applies to the next tick, and a death that takes the daemon down with it — a server that quietly stopped
+    // deciding would hold every request forever.
+    val liveConfig = new BspServerDaemon.LiveConfig(UserPaths.fromAppDirs, () => System.currentTimeMillis(), ttlMs = 1000L)
+    val identity = bleep.machine.StateFile.selfIdentity(bleep.model.BleepVersion.current.value)
+    val selected = MachineSchedulingSetup.select(daemonConfig, UserPaths.fromAppDirs, socketPaths.path.getParent, identity, logger)
+    val scheduling = DaemonScheduling.start(
+      selected = selected,
+      identity = identity,
+      config = () => liveConfig.current,
+      requests = requests,
+      heapUsage = () => {
+        val heap = HeapMonitor.system.heapUsage()
+        bleep.machine.HeapUsage(usedMb = heap.usedMb.value, maxMb = heap.maxMb.value)
+      },
+      logger = logger,
+      onDeath = t => {
+        logger.error("The machine scheduler died; shutting the daemon down", t)
+        daemonInfo.requestDaemonShutdown()
+      }
+    )
+
     // Background reporter. Two jobs, one thread:
     //
     //   - log the machine load when work is queued, so a stalled build has a legible cause;
@@ -301,30 +329,30 @@ object BspServerDaemon {
     // a history of when a heap event lands, and a history with gaps in the uncontended stretches is
     // exactly the history that cannot tell you when the floor started climbing.
     locally {
-      import cats.effect.unsafe.implicits.global
       val reporter = new Thread("bleep-machine-reporter") {
-        // Constant for the life of the process, so read once rather than per sample. Both are recorded on every machine event anyway: without them the
-        // machine's RAM has to be inferred by inverting the fork-budget formula, which does not work once the budget has been retuned.
-        private val serverHeapMb: Long = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
+        // Constant for the life of the process, so read once rather than per sample; recorded on every machine event so each sample is self-describing.
         private val physicalMemoryMb: Long = bleep.MemorySizes.physicalMemoryMb(fallbackMb = serverHeapMb * 4)
 
         override def run(): Unit =
           try
             while (!shutdownRequested.get()) {
               Thread.sleep(15000)
-              val snapshot = machine.snapshot.unsafeRunSync()
-              if (snapshot.waiting.nonEmpty) logger.info(snapshot.render)
-              BspMetrics.recordMachine(
-                usedCpu = snapshot.usedCpu,
-                totalCpu = snapshot.totalCpu,
-                usedMemoryMb = snapshot.usedMemoryMb,
-                totalMemoryMb = snapshot.totalMemoryMb,
-                physicalMemoryMb = physicalMemoryMb,
-                serverHeapMb = serverHeapMb,
-                activeCompiles = snapshot.activeCompiles,
-                running = snapshot.active.size,
-                waiting = snapshot.waiting.size
-              )
+              scheduling.snapshot.foreach { snap =>
+                val view = MultiWorkspaceBspServer.machineSnapshotDto(Some(snap), snap.params.parallelism, System.currentTimeMillis())
+                if (view.waiting.nonEmpty)
+                  logger.info(s"machine: cpu ${view.usedCpu}/${view.totalCpu}, ${view.waiting.size} waiting: ${view.waiting.map(_.label).mkString(", ")}")
+                BspMetrics.recordMachine(
+                  usedCpu = view.usedCpu,
+                  totalCpu = view.totalCpu,
+                  usedMemoryMb = view.usedMemoryMb,
+                  totalMemoryMb = view.totalMemoryMb,
+                  physicalMemoryMb = physicalMemoryMb,
+                  serverHeapMb = serverHeapMb,
+                  activeCompiles = view.activeCompiles,
+                  running = view.active.size,
+                  waiting = view.waiting.size
+                )
+              }
               // Before recording, so the metric shows what is held after the sweep. This loop already reads the cached workspaces every 15s, which makes it
               // the natural place to notice that some of them have been deleted.
               buildCache.evictMissing(logger)
@@ -398,56 +426,6 @@ object BspServerDaemon {
     logger.info(s"Initial workspaces: ${config.initialWorkspaces.mkString(", ")}")
     logger.info(s"Metrics: ${config.socketDir.resolve("metrics.jsonl")}")
 
-    // Create server socket using libdaemonjvm
-    val serverChannel = SocketHandler.server(socketPaths)
-    val serverSocket = libdaemonjvm.Util.serverSocketFromChannel(serverChannel)
-
-    logger.info(s"BSP server listening on ${socketPaths.path}")
-
-    // Idle self-shutdown. Read once at startup (changing it takes effect on the next daemon). The watchdog wakes periodically and, if the server has had no
-    // connected client for the whole timeout, closes the server socket — that unblocks the accept() below, which the loop's catch clauses already treat as a
-    // shutdown. Closing the socket (rather than System.exit) lets the normal cleanup path run: the lock releases and the shutdown hook removes the pid/socket files, so the
-    // next client's connect gets a clean refusal and simply spawns a fresh daemon.
-    val idleTimeoutMs: Long =
-      try BleepConfigOps.loadOrDefault(UserPaths.fromAppDirs).orThrow.bspServerConfigOrDefault.effectiveCompileServerIdleTimeoutMillis
-      catch { case _: Throwable => bleep.model.BspServerConfig.DefaultCompileServerIdleTimeoutMinutes.toLong * 60L * 1000L }
-    if (idleTimeoutMs > 0) {
-      val pollMs = math.min(idleTimeoutMs, 60000L)
-      val watchdog = new Thread(
-        () =>
-          while (!shutdownRequested.get()) {
-            try Thread.sleep(pollMs)
-            catch { case _: InterruptedException => () }
-            val idleFor = connectionRegistry.idleForMs(System.currentTimeMillis())
-            if (!shutdownRequested.get() && connectionRegistry.nonObserverCount == 0 && idleFor >= idleTimeoutMs) {
-              logger.info(s"Idle for ${idleFor / 1000}s with no connected client (timeout ${idleTimeoutMs / 60000}m) — shutting down")
-              shutdownRequested.set(true)
-              try serverSocket.close() // unblocks the accept() below
-              catch { case _: Throwable => () }
-            }
-          },
-        "bsp-idle-watchdog"
-      )
-      watchdog.setDaemon(true)
-      watchdog.start()
-    }
-
-    // Everything a connection needs to answer questions about the daemon as a whole. Built once, passed down — none of this becomes a global.
-    val daemonInfo = DaemonInfo(
-      startedAtEpochMs = startedAtEpochMs,
-      pid = ProcessHandle.current().pid(),
-      socketDir = socketPaths.path.getParent,
-      bleepVersion = bleep.model.BleepVersion.current.value,
-      bootedConfig = daemonConfig,
-      connectionRegistry = connectionRegistry,
-      requestDaemonShutdown = () => {
-        // Same mechanism the idle watchdog uses: close the socket so accept() unblocks and the normal cleanup path runs, rather than System.exit skipping it.
-        shutdownRequested.set(true)
-        try serverSocket.close()
-        catch { case _: Throwable => () }
-      }
-    )
-
     try
       // Accept connections concurrently — each client gets its own thread.
       // Client threads are non-daemon so the JVM stays alive even if the
@@ -482,9 +460,7 @@ object BspServerDaemon {
                   clientSocket.getInputStream,
                   clientSocket.getOutputStream,
                   logger.withContext("client", connId),
-                  machine,
-                  requests,
-                  forks,
+                  scheduling,
                   kspMutexes,
                   buildCache,
                   analysisCache,
@@ -504,9 +480,7 @@ object BspServerDaemon {
                       clientSocket.getInputStream,
                       clientSocket.getOutputStream,
                       logger.withContext("client", connId),
-                      machine,
-                      requests,
-                      forks,
+                      scheduling,
                       kspMutexes,
                       buildCache,
                       analysisCache,
@@ -550,6 +524,8 @@ object BspServerDaemon {
       logger.info(s"Accept loop exited (shutdownRequested=${shutdownRequested.get()}, activeClients=${activeClientThreads.size()})")
       try serverSocket.close()
       catch { case _: Exception => () }
+      try scheduling.close()
+      catch { case e: Exception => logger.warn(s"closing the machine scheduler: ${e.getMessage}") }
       // Don't join client threads — they're non-daemon and keep the JVM alive
       // on their own. This allows the main thread to continue accepting new
       // connections (if we loop back) or exit without blocking.
@@ -561,9 +537,7 @@ object BspServerDaemon {
       input: java.io.InputStream,
       output: java.io.OutputStream,
       logger: Logger,
-      machine: MachineResources,
-      requests: RequestRegistry,
-      forks: bleep.machine.ForkRegistry,
+      scheduling: DaemonScheduling,
       kspMutexes: KspMutexes,
       buildCache: BuildCache,
       analysisCache: bleep.analysis.AnalysisCache,
@@ -576,10 +550,7 @@ object BspServerDaemon {
         input,
         output,
         logger,
-        machine = machine,
-        requests = requests,
-        forks = forks,
-        heapMonitor = HeapMonitor.system,
+        scheduling = scheduling,
         kspMutexes = kspMutexes,
         buildCache = buildCache,
         analysisCache = analysisCache,

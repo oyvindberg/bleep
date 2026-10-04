@@ -29,13 +29,17 @@ class InProcessTestExecutorTest extends AnyFunSuite {
     val executor = new InProcessTestExecutor(maxConcurrentSuites = 2)
     val request = TestSessionRequest(
       label = suite,
+      group = "fixture",
+      jvmCommand = Paths.get(System.getProperty("java.home"), "bin", "java"),
       classpath = currentClasspath,
       jvmOptions = Nil,
       defaultHeapMb = 0L,
       runnerClass = "bleep.testing.runner.ForkedTestRunner",
       environment = Map.empty,
+      defaultWorkingDirectory = Paths.get("."),
       workingDirectory = None,
-      sharing = bleep.testing.SessionSharing.Exclusive
+      sharing = bleep.testing.SessionSharing.Exclusive,
+      cpu = 1
     )
     try
       executor
@@ -80,13 +84,17 @@ class InProcessTestExecutorTest extends AnyFunSuite {
     val executor = new InProcessTestExecutor(maxConcurrentSuites = 1)
     val withOptions = TestSessionRequest(
       label = "some-suite",
+      group = "fixture",
+      jvmCommand = Paths.get(System.getProperty("java.home"), "bin", "java"),
       classpath = currentClasspath,
       jvmOptions = List("-Xmx4g"),
       defaultHeapMb = 0L,
       runnerClass = "bleep.testing.runner.ForkedTestRunner",
       environment = Map.empty,
+      defaultWorkingDirectory = Paths.get("."),
       workingDirectory = None,
-      sharing = bleep.testing.SessionSharing.Exclusive
+      sharing = bleep.testing.SessionSharing.Exclusive,
+      cpu = 1
     )
     val thrown = intercept[RuntimeException](executor.acquire(withOptions).use(_ => cats.effect.IO.unit).unsafeRunSync())
     assert(thrown.getMessage.contains("-Xmx4g"), s"the refusal should name what it could not honour: ${thrown.getMessage}")

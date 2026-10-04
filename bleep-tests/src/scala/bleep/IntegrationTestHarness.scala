@@ -111,21 +111,22 @@ abstract class IntegrationTestHarness extends AnyFunSuite {
 
 object IntegrationTestHarness {
 
-  /** One governor for every in-process server this test JVM starts, sized for a tenant rather than for the machine.
+  /** One scheduler for every in-process server this test JVM starts, sized for a tenant rather than for the machine, and unconstrained: a test server must not
+    * coordinate with the developer's real daemons through the real cache directory.
     *
-    * Each connection used to build its own `MachineResources.forThisMachine` — all the cores, most of the RAM — so a suite running integration tests
-    * concurrently had one governor per connection, each admitting forks as though nothing else were running. The governor exists to bound forks *across*
-    * clients, and that is only true if there is one of it.
+    * Each connection used to build its own governor — all the cores, most of the RAM — so a suite running integration tests concurrently had one per
+    * connection, each admitting forks as though nothing else were running. A scheduler exists to bound forks *across* requests, and that is only true if there
+    * is one of it.
     *
-    * Small on purpose, and small in two directions: this JVM is itself one of several the outer `bleep test` forked, and those outer forks are governed by a
-    * daemon that cannot see anything started in here. Two cores and 2GB lets an integration test fork a test JVM or a linker without pretending it is alone.
+    * Small on purpose: this JVM is itself one of several the outer `bleep test` forked, and those outer forks are governed by a daemon that cannot see anything
+    * started in here. Two slots lets an integration test fork a test JVM or a linker without pretending it is alone.
     */
-  lazy val sharedMachine: MachineResources =
-    MachineResources.create(
-      totalCpu = 2,
-      totalMemoryMb = 2048L,
-      logger = bleepLoggers.silent,
-      longWaitWarnMs = MachineResources.DefaultLongWaitWarnMs
+  lazy val sharedScheduling: bleep.bsp.DaemonScheduling =
+    bleep.bsp.DaemonScheduling.unconstrained(
+      parallelism = 2,
+      reason = "in-process test server",
+      heapGate = bleep.bsp.HeapPressureGate.asHeapGate(() => model.BspServerConfig.DefaultHeapPressureThreshold),
+      logger = bleepLoggers.silent
     )
 }
 
@@ -219,7 +220,7 @@ class Workspace(
             Prebootstrapped(storingLogger.zipWith(stdLogger), userPaths, buildPaths, existingBuild, ec),
             ResolveProjects.ReplaceBleepDependencies(
               lazyBleepBuild,
-              BspServerClasspathSource.InProcess(InProcessBspServer.connect(effectiveConfig, IntegrationTestHarness.sharedMachine))
+              BspServerClasspathSource.InProcess(InProcessBspServer.connect(effectiveConfig, IntegrationTestHarness.sharedScheduling))
             ),
             Nil,
             effectiveConfig,

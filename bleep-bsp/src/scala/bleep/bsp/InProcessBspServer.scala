@@ -21,7 +21,7 @@ object InProcessBspServer {
     *
     * Callers now supply both, so a suite can share one governor across everything it runs and mean what it says about heaps and parallelism.
     */
-  def connect(config: bleep.model.BleepConfig, machine: bleep.MachineResources)(logger: Logger): Resource[IO, BspConnection] =
+  def connect(config: bleep.model.BleepConfig, scheduling: DaemonScheduling)(logger: Logger): Resource[IO, BspConnection] =
     Resource.make(
       IO.blocking {
         // Two pipes carry the two directions. A megabyte of slack keeps a sourcegen run that logs faster than the
@@ -42,21 +42,17 @@ object InProcessBspServer {
             try {
               val inProcessAnalysisCache = new bleep.analysis.AnalysisCache
               // One server per in-process run, so fresh daemon-scoped state is correct here.
-              val requests = new RequestRegistry
               val server =
                 new MultiWorkspaceBspServer(
                   clientToServer.source,
                   serverToClient.sink,
                   logger,
-                  machine = machine,
-                  requests = requests,
-                  forks = new bleep.machine.ForkRegistry,
-                  heapMonitor = HeapMonitor.system,
+                  scheduling = scheduling,
                   kspMutexes = new KspMutexes,
                   buildCache = new BuildCache(
                     bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()),
                     inProcessAnalysisCache,
-                    requests
+                    scheduling.requests
                   ),
                   analysisCache = inProcessAnalysisCache,
                   daemonInfo = DaemonInfo.inProcess(config.bspServerConfigOrDefault),

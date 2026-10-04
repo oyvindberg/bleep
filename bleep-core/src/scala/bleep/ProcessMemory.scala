@@ -1,6 +1,5 @@
 package bleep
 
-import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 /** What a process actually costs the machine, measured rather than predicted.
@@ -63,7 +62,7 @@ object ProcessMemory {
 
   /** `phys_footprint`, read from the kernel via `proc_pid_rusage` — the same source `/usr/bin/footprint` reads.
     *
-    * This used to shell out to `/usr/bin/footprint -p <pid>`, one process per pid. [[ourTreeFootprintMb]] sweeps the daemon's whole process tree every
+    * This used to shell out to `/usr/bin/footprint -p <pid>`, one process per pid. `bleep server top` samples the daemon's whole process tree every
     * [[MachineResources.BudgetRetuneInterval]], so on a busy server that was tens of spawns per sweep, each costing ~35ms of address-space survey (measured
     * against a 6GB-heap JVM), plus parsing the output — which showed up as 2% of the daemon's total heap allocation in a profile. The syscall answers in
     * microseconds and touches one 296-byte buffer.
@@ -220,20 +219,4 @@ object ProcessMemory {
     if (Properties.isMac && Runtime.version().feature() >= 21) MacOs
     else if (Properties.isLinux) Linux
     else Unavailable
-
-  /** What this process and everything it has spawned currently cost the machine, in MB.
-    *
-    * The tree, not just this process: the forks are the expensive part, and they are exactly the descendants of the daemon. `ProcessHandle.descendants` gives
-    * them without the daemon having to track pids, and it covers test runners, sourcegen and KSP alike.
-    *
-    * Summed with the proportional metric, so pages shared between forks — the identical mapped classpath, above all — are not counted once per fork. `None` if
-    * the platform can't measure at all; a single unreadable pid (one that exited mid-sweep) is skipped rather than failing the sweep.
-    */
-  def ourTreeFootprintMb(self: ProcessHandle): Option[Long] =
-    if (system eq Unavailable) None
-    else {
-      val descendants = self.descendants().iterator().asScala.map(_.pid()).toList
-      val measured = (self.pid() :: descendants).flatMap(system.footprintMb)
-      if (measured.isEmpty) None else Some(measured.sum)
-    }
 }

@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.MachineResources
+import bleep.machine.{Demand, ForkDemand, ForkId, ForkKey, ForkKind, InHeap, InHeapKind, RequestId}
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, LinkPlatformName, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
@@ -102,39 +102,33 @@ object TaskDag {
     def runAfter: Set[TaskId] = Set.empty
   }
 
-  /** A task's claim on the machine. `cpu` is in cores; `memoryMb` is off-heap memory for a forked process. */
-  case class Cost(kind: MachineResources.ResourceKind, cpu: Int, memoryMb: Long)
-
-  /** What running `task` costs, given what this machine gives each kind of fork.
+  /** What `task` asks the machine scheduler for, given what this machine gives each kind of fork — or nothing, for a test task.
+    *
+    * Compiles, discovery and annotation-processor resolution run in the server's heap: in-heap demands, a cpu slot each (and, for a compile, the heap gate's
+    * consent). Sourcegen, KSP, link and post-compile each fork a JVM: fork demands, charged the heap they are started with plus the non-heap a JVM also
+    * commits. Test suites and batches ask for their fork themselves, from inside their handler, once the classpath — and so the fork's key — is known (design
+    * §11, two-stage test admission); the executor starts them as soon as they are ready and submits nothing for them.
     *
     * A function rather than a field on the task: cost is a property of (what kind of work this is, how this machine is configured), not of the task's identity.
-    * Putting it on the case class would also make two otherwise-identical tasks unequal because a config value differed.
-    *
-    * Admission is done with this by the scheduler loop, in priority order, instead of inside each task's body. Reserving inside meant the loop dispatched blind
-    * and the governor queued FIFO — so the DAG's dependents-first ordering stopped mattering the moment anything had to wait.
     */
-  def costOf(task: Task, forkHeaps: ForkHeaps): Cost =
+  def demandFor(task: Task, forkHeaps: ForkHeaps, request: RequestId): Option[Demand] = {
+    val id = bleep.machine.TaskId(task.id.value)
+    def fork(kind: ForkKind, boundMb: Long) = Some(ForkDemand(request, id, kind, ForkKey(task.id.value), boundMb, cpu = 1, shared = false))
     task match {
-      // In-server work: a core, and no fork memory. Compile heap is watched separately by HeapPressureGate.
-      case _: CompileTask => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
-      // A post-compile script is a fork like a sourcegen script.
-      case _: PostCompileTask                 => Cost(MachineResources.ResourceKind.SourcegenFork, cpu = 1, memoryMb = forkHeaps.sourcegenMb)
-      case _: DiscoverTask                    => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
-      case _: ResolveAnnotationProcessorsTask => Cost(MachineResources.ResourceKind.Compile, cpu = 1, memoryMb = 0L)
-      // Forks: charged the heap they are started with plus the non-heap a JVM also commits.
-      case _: SourcegenTask           => Cost(MachineResources.ResourceKind.SourcegenFork, cpu = 1, memoryMb = forkHeaps.sourcegenMb)
-      case _: RunSymbolProcessorsTask => Cost(MachineResources.ResourceKind.KspFork, cpu = 1, memoryMb = forkHeaps.kspMb)
-      // Scala.js, Scala Native, Kotlin/JS and Kotlin/Native each fork a linker (and node, for JS).
-      // These reserved nothing at all until now — counted as one task while being a whole JVM plus a
-      // toolchain, which is the accounting hole the governor exists to close.
-      case _: LinkTask => Cost(MachineResources.ResourceKind.SourcegenFork, cpu = 1, memoryMb = forkHeaps.linkMb)
-      // A core, but no fork memory HERE: acquiring a JVM may reuse a warm one (free) or spawn one
-      // (measured RSS), and only the pool knows which. It holds that reservation itself, for a
-      // lifetime this task does not share — one JVM serves many suites.
-      case _: TestSuiteTask => Cost(MachineResources.ResourceKind.TestFork, cpu = 1, memoryMb = 0L)
-      // One fork running `parallelism` classes at once, so it claims that many cores (never more than it has suites to run). Fork memory is the pool's, as above.
-      case bt: TestBatchTask => Cost(MachineResources.ResourceKind.TestFork, cpu = math.max(1, math.min(bt.parallelism, bt.suites.size)), memoryMb = 0L)
+      case _: CompileTask                      => Some(InHeap(request, id, InHeapKind.Compile, cpu = 1))
+      case _: DiscoverTask                     => Some(InHeap(request, id, InHeapKind.Discover, cpu = 1))
+      case _: ResolveAnnotationProcessorsTask  => Some(InHeap(request, id, InHeapKind.ResolveAnnotationProcessors, cpu = 1))
+      case _: PostCompileTask                  => fork(ForkKind.PostCompile, forkHeaps.sourcegenMb)
+      case _: SourcegenTask                    => fork(ForkKind.Sourcegen, forkHeaps.sourcegenMb)
+      case _: RunSymbolProcessorsTask          => fork(ForkKind.Ksp, forkHeaps.kspMb)
+      case _: LinkTask                         => fork(ForkKind.Link, forkHeaps.linkMb)
+      case _: TestSuiteTask | _: TestBatchTask => None
     }
+  }
+
+  /** The project a compile's scheduler task id names, for the heap-wait events; `None` for any other task. */
+  def compileProjectOf(taskId: bleep.machine.TaskId): Option[String] =
+    if (taskId.value.startsWith("compile:")) Some(taskId.value.stripPrefix("compile:")) else None
 
   /** Compile a project.
     *
@@ -981,9 +975,8 @@ object TaskDag {
       *
       * @param dag
       *   The DAG to execute
-      * @param machine
-      *   The machine's resources. Admission happens against this, in priority order, so how much runs at once is what the machine can currently afford rather
-      *   than a number carried alongside it.
+      * @param channel
+      *   This request's line to the machine scheduler: the executor submits what is ready, in priority order, and starts what it is granted.
       * @param eventQueue
       *   Queue for emitting events
       * @param killSignal
@@ -993,7 +986,7 @@ object TaskDag {
       */
     def execute(
         dag: Dag,
-        machine: MachineResources,
+        channel: RequestChannel,
         forkHeaps: ForkHeaps,
         eventQueue: Queue[IO, Option[DagEvent]],
         killSignal: Deferred[IO, KillReason]
@@ -1006,8 +999,9 @@ object TaskDag {
     */
   case class Handlers(
       compile: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
-      postCompile: (PostCompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
-      link: (LinkTask, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
+      /** Forks a JVM, under the [[ForkId]] the scheduler allotted it; the executor reports the fork gone when the handler returns. */
+      postCompile: (PostCompileTask, ForkId, Deferred[IO, KillReason]) => IO[TaskResult],
+      link: (LinkTask, ForkId, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
       /** Discovery reads the linked artifact on JS and Native — it asks the binary to enumerate its own suites — so it needs the same link output the run does.
         */
       discover: (DiscoverTask, Option[LinkResult], Deferred[IO, KillReason]) => IO[(TaskResult, DiscoveryResult)],
@@ -1019,105 +1013,31 @@ object TaskDag {
       test: (TestSuiteTask, Option[LinkResult], Deferred[IO, KillReason]) => IO[TaskResult],
       /** Run a whole project's JUnit suites as one batched execution. JVM-only (JUnit Platform has no non-JVM linked form), so no LinkResult. */
       testBatch: (TestBatchTask, Deferred[IO, KillReason]) => IO[TaskResult],
-      sourcegen: (SourcegenTask, Deferred[IO, KillReason]) => IO[TaskResult],
+      sourcegen: (SourcegenTask, ForkId, Deferred[IO, KillReason]) => IO[TaskResult],
       annotationProcessor: (ResolveAnnotationProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)],
-      symbolProcessor: (RunSymbolProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)],
-
-      /** Consulted at ADMISSION, before a compile is given a reservation: false means "not now, reconsider on the next wakeup".
-        *
-        * This is the one resource question the machine governor cannot answer for itself. CPU and fork memory are known before a task starts; heap pressure is
-        * a property of the daemon's own heap right now, and the thing that relieves it is another task finishing. It belongs here rather than inside the
-        * compile handler because a gate below admission holds a machine-wide CPU permit while it waits — starving tests and links that could have run.
-        *
-        * Callers with no opinion pass `_ => IO.pure(CompileAdmission.Admit)`. Explicitly, not by default: a no-op default is a default parameter in disguise.
-        */
-      mayAdmitCompile: CompileTask => IO[CompileAdmission]
+      symbolProcessor: (RunSymbolProcessorsTask, ForkId, Deferred[IO, KillReason]) => IO[(TaskResult, Int)]
   )
-
-  /** Whether a compile may start now. */
-  sealed trait CompileAdmission
-  object CompileAdmission {
-    case object Admit extends CompileAdmission
-
-    /** Not now; ask again after `retryAfter`. The executor schedules that second look itself: a compile deferred while nothing else finishes would otherwise
-      * wait for whatever finishes next, however long that takes.
-      */
-    case class Defer(retryAfter: scala.concurrent.duration.FiniteDuration) extends CompileAdmission
-  }
 
   /** Create a DAG executor with the given handlers. */
   def executor(handlers: Handlers): DagExecutor = new DagExecutor {
 
     override def execute(
         initialDag: Dag,
-        machine: MachineResources,
+        channel: RequestChannel,
         forkHeaps: ForkHeaps,
         eventQueue: Queue[IO, Option[DagEvent]],
         killSignal: Deferred[IO, KillReason]
     ): IO[Dag] = {
       def now: IO[Long] = IO.realTime.map(_.toMillis)
 
-      /** Take as many of `candidates` as the machine can currently afford, in the order given.
-        *
-        * `tryReserve` rather than `reserve`: a scheduler with a priority order wants "does this fit now", not "queue me". Anything refused stays ready and gets
-        * another chance on the next wakeup, which fires whenever a task completes — precisely when resources free.
-        *
-        * `idle` is the forward-progress guarantee. With nothing running, nothing will ever complete to wake this loop, so a task that does not fit would hang
-        * the build rather than merely wait. When the machine is idle the first candidate is admitted by blocking reservation instead, which clamps its request
-        * to the machine's totals — so a task larger than the whole machine waits for the whole machine and then runs, rather than never running.
-        */
-      /** Ask whether a compile may start, BEFORE spending a reservation on it.
-        *
-        * Heap pressure used to be handled below admission: the compile was admitted, took a machine-wide CPU permit, and only then slept on the gate. That
-        * withholds capacity from every other kind of work — a test or a link that could have run right now waits behind a permit held by something doing
-        * nothing. Deferring here instead leaves the permit available, and the compile is reconsidered on the next wakeup, which fires when a task completes:
-        * exactly when heap is most likely to have been freed.
-        *
-        * `idle` bypasses the gate for the same reason it bypasses `tryReserve` below — with nothing running, nothing will complete to reconsider this, so
-        * deferring would stall the build rather than delay a start.
-        */
-      def mayAdmit(task: Task, idle: Boolean): IO[CompileAdmission] =
-        task match {
-          case c: CompileTask if !idle => handlers.mayAdmitCompile(c)
-          case _                       => IO.pure(CompileAdmission.Admit)
-        }
-
-      def reserveFor(task: Task): IO[Option[(Task, IO[Unit])]] = {
-        val c = costOf(task, forkHeaps)
-        machine.tryReserve(c.kind, task.id.toString, c.cpu, c.memoryMb).map(_.map(release => (task, release)))
+      def isTest(task: Task): Boolean = task match {
+        case _: TestSuiteTask | _: TestBatchTask => true
+        case _                                   => false
       }
 
-      /** What one admission pass decided: the tasks to start, and when to look again at any compile the heap gate deferred. */
-      case class Admitted(started: List[(Task, IO[Unit])], retryAfter: Option[scala.concurrent.duration.FiniteDuration])
-
-      def admit(candidates: List[Task], idle: Boolean): IO[Admitted] = {
-        // One candidate: started, deferred until a given time, or not started for want of resources (reconsidered when a task completes and frees them).
-        def tryOne(task: Task, idle: Boolean): IO[Either[scala.concurrent.duration.FiniteDuration, Option[(Task, IO[Unit])]]] =
-          mayAdmit(task, idle).flatMap {
-            case CompileAdmission.Admit             => reserveFor(task).map(Right(_))
-            case CompileAdmission.Defer(retryAfter) => IO.pure(Left(retryAfter))
-          }
-
-        candidates match {
-          case Nil           => IO.pure(Admitted(Nil, None))
-          case first :: rest =>
-            val firstCost = costOf(first, forkHeaps)
-            val firstAdmission: IO[Either[scala.concurrent.duration.FiniteDuration, Option[(Task, IO[Unit])]]] =
-              if (idle)
-                machine
-                  .reserveUntilReleased(firstCost.kind, first.id.toString, firstCost.cpu, firstCost.memoryMb)
-                  .map(release => Right(Some((first, release))))
-              else tryOne(first, idle)
-
-            firstAdmission.flatMap { headResult =>
-              // Never `idle` for the rest: if the head was admitted, something is running by definition.
-              rest.traverse(tryOne(_, idle = false)).map { tail =>
-                val all = headResult :: tail
-                Admitted(all.collect { case Right(Some(started)) => started }, all.collect { case Left(retryAfter) => retryAfter }.minOption)
-              }
-            }
-        }
-      }
+      /** Test tasks not finished, per project: what keeps a warm fork alive between a project's suites (design §5 rule 3). */
+      def pendingTestsByProject(dag: Dag): Map[String, Int] =
+        (dag.tasks.keySet -- dag.finished).toList.map(dag.tasks).filter(isTest).groupBy(_.project.value).map { case (p, ts) => p -> ts.size }
 
       def emit(event: DagEvent): IO[Unit] = eventQueue.offer(Some(event))
 
@@ -1136,8 +1056,9 @@ object TaskDag {
         case TaskResult.TimedOut(_)        => (false, Some("timed out"))
       }
 
-      def executeTask(task: Task, dagRef: Ref[IO, Dag], taskKillSignals: Ref[IO, Map[TaskId, Deferred[IO, KillReason]]]): IO[Unit] = {
+      def executeTask(task: Task, fork: Option[ForkId], dagRef: Ref[IO, Dag], taskKillSignals: Ref[IO, Map[TaskId, Deferred[IO, KillReason]]]): IO[Unit] = {
         val startTime = System.currentTimeMillis()
+        def forkIdOrThrow: ForkId = fork.getOrElse(throw new IllegalStateException(s"${task.id} forks a JVM but was started without a fork grant"))
 
         // Per-task kill signal as a Resource so the propagation fiber + registration are both scoped to the task's lifetime. On release: the `.background`
         // cancels the propagation fiber (no leaked listener), and `taskKillSignals` is deregistered.
@@ -1219,14 +1140,14 @@ object TaskDag {
                     withRecovery(s"Compile ${ct.project.value}", taskKill)(handlers.compile(ct, taskKill))
 
                   case pct: PostCompileTask =>
-                    withRecovery(s"Post-compile ${pct.project.value}", taskKill)(handlers.postCompile(pct, taskKill))
+                    withRecovery(s"Post-compile ${pct.project.value}", taskKill)(handlers.postCompile(pct, forkIdOrThrow, taskKill))
 
                   case lt: LinkTask =>
                     withRecovery(s"Link ${lt.project.value}", taskKill) {
                       for {
                         linkStartTs <- now
                         _ <- emit(DagEvent.LinkStarted(lt.project, lt.platform.name, linkStartTs))
-                        (result, linkResult) <- handlers.link(lt, taskKill)
+                        (result, linkResult) <- handlers.link(lt, forkIdOrThrow, taskKill)
                         linkEndTs <- now
                         _ <- emit(DagEvent.LinkFinished(lt.project, linkResult, linkEndTs - linkStartTs, linkEndTs, lt.platform.name))
                         _ <- dagRef.update(_.recordLinkResult(lt.id, lt.project, linkResult))
@@ -1305,7 +1226,7 @@ object TaskDag {
                       sourcegenStartTs <- now
                       forProjectsList = sgt.forProjects.toList.sortBy(_.value)
                       _ <- emit(DagEvent.SourcegenStarted(sgt.scriptProject, sgt.main, forProjectsList, sourcegenStartTs))
-                      result <- withRecovery(s"Sourcegen ${sgt.main}", taskKill)(handlers.sourcegen(sgt, taskKill))
+                      result <- withRecovery(s"Sourcegen ${sgt.main}", taskKill)(handlers.sourcegen(sgt, forkIdOrThrow, taskKill))
                       sourcegenEndTs <- now
                       (success, errorMsg) = resultSummary(result)
                       _ <- emit(
@@ -1332,7 +1253,9 @@ object TaskDag {
                     for {
                       kspStartTs <- now
                       _ <- emit(DagEvent.RunSymbolProcessorsStarted(kspt.project, kspStartTs))
-                      resultAndCount <- withRecoveryCounted(s"RunSymbolProcessors ${kspt.project.value}", taskKill)(handlers.symbolProcessor(kspt, taskKill))
+                      resultAndCount <- withRecoveryCounted(s"RunSymbolProcessors ${kspt.project.value}", taskKill)(
+                        handlers.symbolProcessor(kspt, forkIdOrThrow, taskKill)
+                      )
                       (result, discoveredJarCount) = resultAndCount
                       kspEndTs <- now
                       (success, errorMsg) = resultSummary(result)
@@ -1344,6 +1267,15 @@ object TaskDag {
           endTimestamp <- now
           durationMs = endTimestamp - startTime
           _ <- emit(DagEvent.TaskFinished(task, result, durationMs, endTimestamp))
+          // What the task held goes back: an in-heap slot, or a fork whose process is gone now that its handler has returned. A test task reports nothing
+          // here — its fork is the pool's, and the pool told the scheduler when the suite let go of it.
+          _ <- IO {
+            demandFor(task, forkHeaps, channel.id) match {
+              case Some(_: InHeap)     => channel.inHeapFinished(bleep.machine.TaskId(task.id.value))
+              case Some(_: ForkDemand) => fork.foreach(channel.forkExited)
+              case None                => channel.testFinished(task.project.value)
+            }
+          }
           _ <- result match {
             case TaskResult.Success       => dagRef.update(_.complete(task.id))
             case TaskResult.Failure(_, _) => dagRef.update(_.fail(task.id))
@@ -1424,37 +1356,53 @@ object TaskDag {
                 _ <- toSkip.toList.traverse_ { case (task, failedDep) =>
                   skipTask(task, failedDep, dagRef)
                 }
-                // Get ready tasks (not already running), prioritized by dependents count
+                // Ready tasks not already running, most-unblocking first. Test tasks start now and ask the scheduler for their fork from inside; everything
+                // else is submitted to the scheduler as this request's ready set, in this order, and starts when granted.
                 readyTasks = dag.ready.filterNot(t => running.contains(t.id))
                 depCounts = dag.dependentsCount
-                // Most-unblocking first. Admission then happens HERE, against the machine, instead of
-                // inside each task — so the ordering survives contention. Dispatching first and
-                // reserving inside meant everything queued FIFO in the governor and this sort was
-                // decoration.
                 prioritized = readyTasks.toList.sortBy(t => -depCounts.getOrElse(t.id, 0))
-                admission <- admit(prioritized, idle = running.isEmpty)
-                admitted = admission.started
-                // A deferred compile is looked at again when its stagger is up, not only when some task happens to complete — a long compile in flight
-                // would otherwise hold back one that was only asked to wait a moment.
-                _ <- admission.retryAfter.traverse_(delay => supervisor.supervise(IO.sleep(delay) >> wakeup.tryOffer(()).void).void)
-                // Start tasks. The guarantee releases the reservation, cleans up runningRef and wakes
-                // the loop — and the wakeup is what re-runs admission, so a completion is exactly when
-                // the next task gets its chance.
-                _ <- admitted.parTraverse_ { case (task, release) =>
+                (tests, scheduled) = prioritized.partition(isTest)
+                // Grants first, then the ready set: a task granted since the last look starts now and is not submitted again. The channel drops anything
+                // whose grant lands between these two steps, so a demand is never in front of the scheduler twice.
+                granted <- IO(channel.takeGrants())
+                // A grant for a task that is no longer ready (killed, skipped) gives its resource straight back.
+                byId = dag.tasks.map { case (id, t) => (t.id.value, t) }
+                startable = granted.flatMap { g =>
+                  byId.get(g.taskId.value).filter(t => readyTasks.contains(t)) match {
+                    case Some(t) => List((t, g))
+                    case None    =>
+                      g.grant match {
+                        case Grant.Fork(fg) => channel.forkExited(fg.fork)
+                        case Grant.InHeap   => channel.inHeapFinished(g.taskId)
+                      }
+                      Nil
+                  }
+                }
+                starting = startable.map(_._1.id).toSet
+                demands = scheduled.filterNot(t => starting.contains(t.id)).flatMap(t => demandFor(t, forkHeaps, channel.id))
+                _ <- IO(channel.setDagReady(demands, pendingTestsByProject(dag)))
+                toStart = tests.map(t => (t, Option.empty[ForkId])) ++ startable.map { case (t, g) =>
+                  (
+                    t,
+                    g.grant match {
+                      case Grant.Fork(fg) => Some(fg.fork)
+                      case Grant.InHeap   => None
+                    }
+                  )
+                }
+                // Start tasks. The guarantee cleans up runningRef and wakes the loop — and the wakeup is what re-runs this, so a completion is exactly when
+                // the ready set is resubmitted.
+                _ <- toStart.traverse_ { case (task, fork) =>
                   runningRef.update(_ + task.id) >>
                     supervisor
                       .supervise(
-                        executeTask(task, dagRef, taskKillSignals)
-                          .guarantee(
-                            release >> runningRef.update(_ - task.id) >> wakeup.tryOffer(()).void
-                          )
+                        executeTask(task, fork, dagRef, taskKillSignals)
+                          .guarantee(runningRef.update(_ - task.id) >> wakeup.tryOffer(()).void)
                       )
                       .void
                 }
-                // Re-read state. If nothing is running, the DAG is either complete, in a
-                // transient gap (skips just opened up new ready tasks), or genuinely stuck.
-                // Same read order as the loop top: running before dag, so a task finishing
-                // between the reads is seen by at least one of them.
+                // Re-read state. If nothing is running, the DAG is either complete, in a transient gap (skips just opened up new ready tasks), genuinely
+                // stuck, or waiting for the scheduler's grant — which wakes this loop when it arrives.
                 newRunning <- runningRef.get
                 newDag <- dagRef.get
                 _ <-
@@ -1471,8 +1419,8 @@ object TaskDag {
                         s"DAG deadlock: ${remaining.size} tasks stuck:\n${stuckDetails.mkString("\n")}"
                       )
                     )
-                  } else if (newRunning.isEmpty) {
-                    // No tasks running but progress still possible — re-evaluate without waiting.
+                  } else if (newRunning.isEmpty && newDag.toSkip.nonEmpty) {
+                    // No tasks running but skips opened up new ready tasks — re-evaluate without waiting.
                     loop(dagRef, runningRef, taskKillSignals, wakeup, supervisor)
                   } else {
                     wakeup.take >> loop(dagRef, runningRef, taskKillSignals, wakeup, supervisor)
@@ -1490,6 +1438,11 @@ object TaskDag {
           runningRef <- Ref.of[IO, Set[TaskId]](Set.empty)
           taskKillSignals <- Ref.of[IO, Map[TaskId, Deferred[IO, KillReason]]](Map.empty)
           wakeup <- Queue.bounded[IO, Unit](1)
+          // A grant from the scheduler wakes the loop exactly as a task completion does; both mean "look at the ready set again".
+          _ <- IO {
+            import cats.effect.unsafe.implicits.global
+            channel.onGrant(() => wakeup.tryOffer(()).void.unsafeRunAndForget())
+          }
           _ <- loop(dagRef, runningRef, taskKillSignals, wakeup, supervisor)
           finalDag <- dagRef.get
         } yield finalDag

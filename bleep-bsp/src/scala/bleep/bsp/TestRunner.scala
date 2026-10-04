@@ -1,6 +1,5 @@
 package bleep.bsp
 
-import bleep.MemorySizes
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, SuiteName, TestName}
@@ -35,6 +34,9 @@ object TestRunner {
 
   /** Options for the test runner */
   case class Options(
+      /** The `java` to fork, and where it runs when nothing says otherwise. */
+      jvmCommand: Path,
+      defaultWorkingDirectory: Path,
       jvmOptions: List[String],
       /** Heap for a fork whose `jvmOptions` state no `-Xmx` — the `testRunnerHeap` user setting, or bleep's default when it is unset. A project that states its
         * own `-Xmx` runs with that instead; this number is a default, not a ceiling over it.
@@ -47,18 +49,6 @@ object TestRunner {
       /** Shared (the default — this suite's project runs all its suites in one fork) or Exclusive (a fork per suite). Set from the project's `testFork`. */
       sharing: SessionSharing
   )
-
-  object Options {
-    val default: Options = Options(
-      jvmOptions = Nil,
-      defaultHeapMb = MemorySizes.DefaultForkHeapMb,
-      testArgs = Nil,
-      idleTimeout = 2.minutes,
-      environment = Map.empty,
-      workingDirectory = None,
-      sharing = SessionSharing.Exclusive
-    )
-  }
 
   /** Run a test suite and emit events to the queue.
     *
@@ -99,13 +89,17 @@ object TestRunner {
 
     val request = TestSessionRequest(
       label = suiteName,
+      group = project.value,
+      jvmCommand = options.jvmCommand,
       classpath = classpath,
       jvmOptions = options.jvmOptions,
       defaultHeapMb = options.defaultHeapMb,
       runnerClass = runnerClass,
       environment = options.environment,
+      defaultWorkingDirectory = options.defaultWorkingDirectory,
       workingDirectory = options.workingDirectory,
-      sharing = options.sharing
+      sharing = options.sharing,
+      cpu = 1
     )
 
     executor.acquire(request).use { jvm =>
@@ -157,14 +151,19 @@ object TestRunner {
     val selection = suites.head._2 // all JUnit-Platform (the batch is only formed for JUnit)
     val request = TestSessionRequest(
       label = s"${project.value} (batch of ${suites.size})",
+      group = project.value,
+      jvmCommand = options.jvmCommand,
       classpath = classpath,
       jvmOptions = options.jvmOptions,
       defaultHeapMb = options.defaultHeapMb,
       runnerClass = runnerClass,
       environment = options.environment,
+      defaultWorkingDirectory = options.defaultWorkingDirectory,
       workingDirectory = options.workingDirectory,
       // One execute, one fork: exclusive. (A shared session multiplexes independent suites — the opposite model.)
-      sharing = SessionSharing.Exclusive
+      sharing = SessionSharing.Exclusive,
+      // One fork running `parallelism` classes at once claims that many cpu slots, never more than it has suites to run.
+      cpu = math.max(1, math.min(parallelism, suites.size))
     )
     executor
       .acquire(request)

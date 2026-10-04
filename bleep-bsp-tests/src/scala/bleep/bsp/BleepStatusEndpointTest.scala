@@ -42,18 +42,15 @@ class BleepStatusEndpointTest extends AnyFunSuite with Matchers {
       requestDaemonShutdown = () => shutdownRequested.set(true)
     )
 
-    private val requests = new RequestRegistry
+    private val scheduling = DaemonScheduling.unconstrained(parallelism = 4, reason = "test", heapGate = bleep.machine.HeapGate.alwaysAdmit, logger = logger)
 
     private val server = new MultiWorkspaceBspServer(
       clientToServer.source,
       serverToClient.sink,
       logger,
-      machine = bleep.MachineResources.forThisMachine(totalCpu = 4, logger = logger),
-      requests = requests,
-      forks = new bleep.machine.ForkRegistry,
-      heapMonitor = HeapMonitor.system,
+      scheduling = scheduling,
       kspMutexes = new KspMutexes,
-      buildCache = new BuildCache(4, analysisCache, requests),
+      buildCache = new BuildCache(4, analysisCache, scheduling.requests),
       analysisCache = analysisCache,
       daemonInfo = daemonInfo,
       connId = 17,
@@ -133,7 +130,7 @@ class BleepStatusEndpointTest extends AnyFunSuite with Matchers {
     jvm.gc should not be empty
   }
 
-  test("the governor's view comes through, including its capacity") {
+  test("the scheduler's view comes through, including its capacity") {
     val f = new Fixture
     val machine = f.status(observer = true).machine
 

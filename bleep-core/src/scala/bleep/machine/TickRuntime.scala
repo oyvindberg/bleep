@@ -26,6 +26,7 @@ final class TickRuntime(deps: Ticker.Deps, logger: Logger, onDeath: Throwable =>
   private val events = new ConcurrentLinkedQueue[Event]()
   private val closed = new AtomicBoolean(false)
   private val failure = new AtomicReference[Throwable](null)
+  private val published = new AtomicReference[Option[SchedulerSnapshot]](None)
 
   private val thread: Thread = new Thread(() => loop(), TickRuntime.ThreadName)
   thread.setDaemon(true)
@@ -47,6 +48,7 @@ final class TickRuntime(deps: Ticker.Deps, logger: Logger, onDeath: Throwable =>
           event = events.poll()
         }
         ticker.tick()
+        published.set(Some(ticker.snapshot(deps.params())))
         if (closed.get()) ()
         else if (ticker.idle) LockSupport.park(this)
         else LockSupport.parkNanos(this, ticker.cadenceMs * 1_000_000L)
@@ -75,6 +77,12 @@ final class TickRuntime(deps: Ticker.Deps, logger: Logger, onDeath: Throwable =>
   override def forkSpawned(fork: ForkId, pid: Long): Unit = submit(Event.ForkSpawned(fork, pid))
   override def forkWorkFinished(fork: ForkId, cpu: Int): Unit = submit(Event.ForkWorkFinished(fork, cpu))
   override def forkExited(fork: ForkId): Unit = submit(Event.ForkExited(fork))
+
+  /** The scheduler's view after its last tick, for `bleep/status` and metrics; `None` before the first. */
+  def snapshot: Option[SchedulerSnapshot] = published.get()
+
+  /** Whether the tick thread is alive. */
+  def isRunning: Boolean = thread.isAlive
 
   /** Why the runtime stopped, if it has. */
   def failed: Option[Throwable] = Option(failure.get())

@@ -70,12 +70,12 @@ class BuildCacheEvictionTest extends AnyFunSuite with Matchers {
     val alive = java.nio.file.Files.createDirectories(root.resolve("alive"))
     val deleted = java.nio.file.Files.createDirectories(root.resolve("deleted"))
     val classpath = bleep.analysis.CompilerResolver.resolveScalaLibrary("3.7.4").toList
-    val (analysisCache, buildCache, requests) = bleep.analysis.BspTestHarness.freshCaches()
+    val (analysisCache, buildCache, scheduling) = bleep.analysis.BspTestHarness.freshCaches()
 
     List(alive, deleted).foreach { workspace =>
       java.nio.file.Files.createDirectories(workspace.resolve("src"))
       val config = bleep.analysis.BspTestHarness.ProjectConfig.scala("p", Set(workspace.resolve("src")), "3.7.4", classpath, isTest = false)
-      bleep.analysis.BspTestHarness.withProjectAndCaches(workspace, config, analysisCache, buildCache, requests) { client =>
+      bleep.analysis.BspTestHarness.withProjectAndCaches(workspace, config, analysisCache, buildCache, scheduling) { client =>
         client.initialize(): Unit
         client.buildTargets(): Unit
       }

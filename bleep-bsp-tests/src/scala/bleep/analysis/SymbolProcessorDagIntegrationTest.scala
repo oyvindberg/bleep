@@ -30,10 +30,6 @@ import scala.jdk.CollectionConverters.*
   */
 class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
 
-  /** A machine for tests: enough CPU for the parallelism a case asks for, ample fork memory so admission never turns on it. */
-  private def testMachine(cpu: Int): bleep.MachineResources =
-    bleep.MachineResources.create(totalCpu = cpu, totalMemoryMb = 64 * 1024, logger = ryddig.TypedLogger.DevNull, longWaitWarnMs = 60000L)
-
   private def projectName(name: String): CrossProjectName =
     CrossProjectName(ProjectName(name), None)
 
@@ -108,19 +104,18 @@ class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
       eventQueue <- Queue.bounded[IO, Option[TaskDag.DagEvent]](1024)
       killSignal <- Deferred[IO, KillReason]
       handlers = Handlers(
-        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+        postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (ct, _) => IO { timeline.add(s"compile:${ct.project.value}"); TaskResult.Success },
-        link = (_, _) => sys.error("LinkTask should not appear here"),
+        link = (_, _, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
+        sourcegen = (_, _, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-        symbolProcessor = (kspt, _) => IO { timeline.add(s"ksp:${kspt.project.value}"); (TaskResult.Success, 2) }
+        symbolProcessor = (kspt, _, _) => IO { timeline.add(s"ksp:${kspt.project.value}"); (TaskResult.Success, 2) }
       )
       executor = TaskDag.executor(handlers)
-      _ <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal).flatTap(_ => eventQueue.offer(None))
+      _ <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal).flatTap(_ => eventQueue.offer(None))
     } yield ()
 
     program.unsafeRunSync()
@@ -143,19 +138,18 @@ class SymbolProcessorDagIntegrationTest extends AnyFunSuite with Matchers {
       eventQueue <- Queue.bounded[IO, Option[TaskDag.DagEvent]](1024)
       killSignal <- Deferred[IO, KillReason]
       handlers = Handlers(
-        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+        postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (ct, _) => IO { compileInvoked.set(true); finishedTasks.add(ct.project.value -> TaskResult.Success); TaskResult.Success },
-        link = (_, _) => sys.error("LinkTask should not appear here"),
+        link = (_, _, _) => sys.error("LinkTask should not appear here"),
         discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
+        sourcegen = (_, _, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-        symbolProcessor = (_, _) => IO((TaskResult.Failure("simulated KSP misconfig", Nil), 0))
+        symbolProcessor = (_, _, _) => IO((TaskResult.Failure("simulated KSP misconfig", Nil), 0))
       )
       executor = TaskDag.executor(handlers)
-      finalDag <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal).flatTap(_ => eventQueue.offer(None))
+      finalDag <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal).flatTap(_ => eventQueue.offer(None))
     } yield finalDag
 
     val finalDag = program.unsafeRunSync()

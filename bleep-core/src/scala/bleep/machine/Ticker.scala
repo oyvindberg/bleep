@@ -22,6 +22,8 @@ final class Ticker(deps: Ticker.Deps) {
   private var lastPublished: Option[StateJson] = None
   private var liveServersSeen: Int = 1
   private var pressureSignalWarned: Boolean = false
+  private var lastMachine: Option[MachineView] = None
+  private var lastLock: LockState = LockState.NotNeeded
 
   /** This server's view of itself, for tests and `top`. */
   def current: MyState = state
@@ -32,6 +34,21 @@ final class Ticker(deps: Ticker.Deps) {
   def cadenceMs: Long = deps.tickIntervalPerServerMs * liveServersSeen.toLong
 
   def idle: Boolean = state.requests.isEmpty && state.forks.isEmpty && state.inHeap.isEmpty
+
+  /** The state after the last tick, as plain data. Only the tick thread calls this; [[TickRuntime]] publishes the result for everyone else. */
+  def snapshot(params: Params): SchedulerSnapshot =
+    SchedulerSnapshot(
+      mode = deps.mode match {
+        case SchedulingMode.Unconstrained(_) => "unconstrained"
+        case _: SchedulingMode.Cooperative   => "cooperative"
+      },
+      state = state,
+      params = params,
+      machine = lastMachine,
+      lock = lastLock,
+      liveServers = liveServersSeen,
+      ready = state.ready
+    )
 
   def apply(event: Event): Unit = event match {
     case Event.RegisterRequest(id, kind) =>
@@ -56,8 +73,9 @@ final class Ticker(deps: Ticker.Deps) {
       state = state.copy(ready = state.ready.filterNot(_.request == request) ++ ready, unstartedSuitesByKey = aggregateUnstarted())
 
     case Event.InHeapFinished(request, taskId) =>
-      require(state.inHeap.exists(t => t.request == request && t.taskId == taskId), s"in-heap task ${taskId.value} of ${request.value} is not running")
-      state = state.copy(inHeap = state.inHeap.filterNot(t => t.request == request && t.taskId == taskId))
+      val i = state.inHeap.indexWhere(t => t.request == request && t.taskId == taskId)
+      require(i >= 0, s"in-heap task ${taskId.value} of ${request.value} is not running")
+      state = state.copy(inHeap = state.inHeap.patch(i, Nil, 1))
 
     case Event.ForkSpawned(fork, pid) =>
       val f = forkOrThrow(fork)
@@ -80,10 +98,10 @@ final class Ticker(deps: Ticker.Deps) {
       state = state.copy(heap = deps.heapUsage())
       val params = deps.params()
 
-      val (decision, lockState, pressure) = deps.mode match {
+      val (decision, lockState, view) = deps.mode match {
         case SchedulingMode.Unconstrained(_) =>
           // Nothing machine-wide exists in this mode (design §9.1): no probe, no lock, no file, by construction — the mode carries none of them.
-          (Decide.decide(Machine.Unconstrained(now), state, params, deps.heapGate, deps.identity), LockState.NotNeeded, Option.empty[Pressure])
+          (Decide.decide(Machine.Unconstrained(now), state, params, deps.heapGate, deps.identity), LockState.NotNeeded, Option.empty[MachineView])
 
         case coop: SchedulingMode.Cooperative =>
           state = measure(coop.forkProbe, state, now)
@@ -98,17 +116,19 @@ final class Ticker(deps: Ticker.Deps) {
               val view = machineView(coop, sample, now)
               val decision = timer.step("decide")(Decide.decide(Machine.Cooperative(view, others, lockState), state, params, deps.heapGate, deps.identity))
               timer.step("write")(publishIfChanged(coop.ownSocketDir, decision.publish))
-              (decision, lockState, Some(view.pressure))
+              (decision, lockState, Some(view))
             }
           else {
             val view = machineView(coop, coop.machineProbe.sample(), now)
             val decision = Decide.decide(Machine.Cooperative(view, Nil, LockState.NotNeeded), state, params, deps.heapGate, deps.identity)
             publishIfChanged(coop.ownSocketDir, decision.publish)
-            (decision, LockState.NotNeeded, Some(view.pressure))
+            (decision, LockState.NotNeeded, Some(view))
           }
       }
 
       state = decision.next
+      lastMachine = view.orElse(lastMachine)
+      lastLock = lockState
 
       // Effects strictly after the lock is released (design §7, §8 point 1).
       decision.evict.foreach(e => deps.effects.evict(e.fork, e.reason))
@@ -120,7 +140,7 @@ final class Ticker(deps: Ticker.Deps) {
         case LockState.Unavailable(holder)        => deps.effects.lockUnavailable(holder)
         case LockState.Held | LockState.NotNeeded => ()
       }
-      pressure match {
+      view.map(_.pressure) match {
         case Some(Pressure.NoSignal(reason)) if !pressureSignalWarned =>
           pressureSignalWarned = true
           deps.effects.pressureSignalMissing(reason)
