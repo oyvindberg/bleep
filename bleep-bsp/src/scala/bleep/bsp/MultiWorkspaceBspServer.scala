@@ -308,9 +308,9 @@ class MultiWorkspaceBspServer(
       transport.sendResponse(JsonRpcResponse(jsonrpc = "2.0", id = id, result = result, error = error))
     catch {
       case e: java.io.IOException =>
-        logger.withContext("error", e.getMessage).error("Failed to send response (client disconnected)")
+        logger.error("Failed to send response (client disconnected)", e)
       case e: Exception =>
-        logger.withContext("error", e.getMessage).error("Failed to send response", e)
+        logger.error("Failed to send response", e)
     }
 
   /** Dispatch a method call to the appropriate handler.
@@ -599,7 +599,7 @@ class MultiWorkspaceBspServer(
       case Left(err) =>
         val msg = s"Failed to load build: ${err.getMessage}"
         buildLoadError.set(Some(msg))
-        logger.withContext("workspace", buildRoot).withContext("error", err.getMessage).error("Failed to load build")
+        logger.withContext("workspace", buildRoot).error("Failed to load build", err)
         bspError(msg)
     }
 
@@ -2004,7 +2004,7 @@ class MultiWorkspaceBspServer(
           consumerErrorRef <- Ref.of[IO, Option[Throwable]](None)
           eventConsumerFiber <- consumeCompileEvents(eventQueue, params.originId, killSignal, traceRecorder, recorder).compile.drain.handleErrorWith { e =>
             // Capture consumer error for later inspection
-            IO(logger.withContext("error", e.getMessage).error("Compile event consumer error")) >>
+            IO(logger.error("Compile event consumer error", e)) >>
               consumerErrorRef.set(Some(e))
           }.start
 
@@ -2019,7 +2019,7 @@ class MultiWorkspaceBspServer(
           consumerError <- consumerErrorRef.get
           _ <- consumerError match {
             case Some(e) =>
-              IO(logger.withContext("error", e.getMessage).warn("Event consumer failed (build results still valid)"))
+              IO(logger.warn("Event consumer failed (build results still valid)", e))
             case None => IO.unit
           }
         } yield dag
@@ -2295,7 +2295,7 @@ class MultiWorkspaceBspServer(
       Some(transcript.id)
     } catch {
       case scala.util.control.NonFatal(e) =>
-        logger.withContext("error", e.getMessage).withContext("mode", mode).warn("Failed to write request transcript (build result unaffected)")
+        logger.withContext("mode", mode).warn("Failed to write request transcript (build result unaffected)", e)
         None
     }
 
@@ -2472,7 +2472,7 @@ class MultiWorkspaceBspServer(
           BleepBspProtocol.TestOptions.decode(json) match {
             case Right(opts) => opts
             case Left(err)   =>
-              logger.withContext("error", err.getMessage).withContext("raw", raw.take(200)).warn("Failed to decode TestOptions")
+              logger.withContext("raw", raw.take(200)).warn("Failed to decode TestOptions", err)
               BleepBspProtocol.TestOptions.empty
           }
         case _ =>
@@ -2856,7 +2856,7 @@ class MultiWorkspaceBspServer(
               recorder
             ).compile.drain.handleErrorWith { e =>
               // Capture consumer error for later inspection
-              IO(logger.withContext("error", e.getMessage).error("Test event consumer error")) >>
+              IO(logger.error("Test event consumer error", e)) >>
                 consumerErrorRef.set(Some(e))
             }.start
 
@@ -2912,7 +2912,7 @@ class MultiWorkspaceBspServer(
             consumerError <- consumerErrorRef.get
             _ <- consumerError match {
               case Some(e) =>
-                IO(logger.withContext("error", e.getMessage).warn("Event consumer failed (build results still valid)"))
+                IO(logger.warn("Event consumer failed (build results still valid)", e))
               case None => IO.unit
             }
           } yield dag
@@ -4473,11 +4473,11 @@ class MultiWorkspaceBspServer(
     }).handleErrorWith {
       case error: java.io.IOException =>
         IO.uncancelable { _ =>
-          IO(logger.withContext("error", error.getMessage).error(s"$contextLabel event send failed (connection dead)")) >>
+          IO(logger.error(s"$contextLabel event send failed (connection dead)", error)) >>
             killSignal.complete(KillReason.DeadClient).attempt.void
         } >> IO.raiseError(error)
       case error =>
-        IO(logger.withContext("error", error.getMessage).error(s"$contextLabel event processing failed")) >>
+        IO(logger.error(s"$contextLabel event processing failed", error)) >>
           IO.raiseError(error)
     }
 
@@ -4864,9 +4864,9 @@ class MultiWorkspaceBspServer(
     catch {
       case e: java.io.IOException =>
         clientDisconnected.set(true)
-        logger.withContext("method", method).withContext("error", e.getMessage).error("Failed to send notification (client disconnected)")
+        logger.withContext("method", method).error("Failed to send notification (client disconnected)", e)
       case e: Exception =>
-        logger.withContext("method", method).withContext("error", e.getMessage).error("Failed to send notification", e)
+        logger.withContext("method", method).error("Failed to send notification", e)
     }
   }
 

@@ -9,6 +9,8 @@ import io.circe.syntax.EncoderOps
 import java.nio.channels.FileChannel
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path, StandardCopyOption, StandardOpenOption}
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
 import scala.jdk.CollectionConverters.*
 
 /** The record of one completed compile/test request: everything the daemon streamed while running it, plus enough header to interpret it anywhere.
@@ -136,13 +138,25 @@ object TranscriptStore {
     }
   }
 
-  /** Exclusive advisory lock on `<history>/.lock`, held only while assigning an id + renaming. Readers never take it. */
+  /** Exclusive advisory lock on `<history>/.lock`, held only while assigning an id + renaming. Readers never take it.
+    *
+    * A file lock belongs to the whole JVM, not to a thread: a second `lock()` on the same file from the same JVM does not wait, it throws
+    * `OverlappingFileLockException`. The compile server writes a transcript per request, and two requests in one workspace can finish together, so writers in
+    * this JVM first take a lock of their own for the directory. The file lock then only has other processes left to exclude.
+    */
   private def withLock[A](d: Path)(body: => A): A = {
-    val channel = FileChannel.open(d.resolve(".lock"), StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+    val inJvm = jvmLocks.computeIfAbsent(d.toAbsolutePath.normalize, _ => new ReentrantLock())
+    inJvm.lock()
     try {
-      val lock = channel.lock()
-      try body
-      finally lock.release()
-    } finally channel.close()
+      val channel = FileChannel.open(d.resolve(".lock"), StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+      try {
+        val lock = channel.lock()
+        try body
+        finally lock.release()
+      } finally channel.close()
+    } finally inJvm.unlock()
   }
+
+  /** One lock per history directory, for the writers in this JVM. It is JVM-wide because the file lock it complements is: it carries no data. */
+  private val jvmLocks = new ConcurrentHashMap[Path, ReentrantLock]()
 }
