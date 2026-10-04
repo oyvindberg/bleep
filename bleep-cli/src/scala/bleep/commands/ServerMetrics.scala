@@ -97,6 +97,13 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     val forkEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val suiteScheduled: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val suiteFinished: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+
+    /** The machine scheduler's lines (design §10 step 15): one `scheduler` per busy second, and the transitions as they happen. */
+    val scheduler: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val pressure: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val lockUnavailable: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val cacheShed: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val yields: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     // Non-JVM linking. The server forks a whole linker toolchain here — for Scala Native, clang — and used to say nothing about it at all.
     val linkStart: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val linkEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
@@ -139,6 +146,11 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
           case "suite_finished"      => events.suiteFinished += obj
           case "link_start"          => events.linkStart += obj
           case "link_end"            => events.linkEnd += obj
+          case "scheduler"           => events.scheduler += obj
+          case "pressure"            => events.pressure += obj
+          case "lock_unavailable"    => events.lockUnavailable += obj
+          case "cache_shed"          => events.cacheShed += obj
+          case "yield"               => events.yields += obj
           // compile_phase is deliberately not charted: it fires per phase per project and says more about zinc's internals than about this build.
           case _ => ()
         }
@@ -440,19 +452,36 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       addChart("machine-cpu", "Scheduling — CPU and queue", t, baseLayout("Time (s)", "count"), false, 280)
     }
 
-    // ---- Fork memory budget ----
-    // `total_memory_mb` is the budget for forked processes, not the machine's RAM: the server's own footprint and an OS reserve are already subtracted, and it
-    // is retuned as other processes come and go. Charting it against physical RAM is the only way to see how little of the machine forks may actually use.
+    // ---- Machine memory against the fork ceiling ----
+    // `used_memory_mb` is the machine's used memory as the scheduler's probe reads it — every process, bleep's or not — and `total_memory_mb` the ceiling forks
+    // may fill: physical memory less the scheduler's headroom (design §5 rule 1). Neither is a budget bleep sets aside; the gap between them is the room.
     if (events.machine.nonEmpty) {
       val t = ArrayBuffer.empty[String]
       val xArr = fmtDoubles(events.machine.map(e => relS(e.get("ts").getAsLong)))
-      t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("used_memory_mb").getAsLong)), "Forks using", "#8b5cf6", "solid", "tozeroy", "lines")
-      t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("total_memory_mb").getAsLong)), "Fork budget", "#f59e0b", "dash", "none", "lines")
+      t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("used_memory_mb").getAsLong)), "Machine used", "#8b5cf6", "solid", "tozeroy", "lines")
+      t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("total_memory_mb").getAsLong)), "Fork ceiling", "#f59e0b", "dash", "none", "lines")
       if (events.machine.head.has("physical_memory_mb"))
         t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("physical_memory_mb").getAsLong)), "Machine RAM", "#9ca3af", "dot", "none", "lines")
       if (events.machine.head.has("server_heap_mb"))
         t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("server_heap_mb").getAsLong)), "Server heap cap", "#ef4444", "dot", "none", "lines")
-      addChart("machine-mem", "Fork memory budget (MB)", t, baseLayout("Time (s)", "MB"), false, 280)
+      addChart("machine-mem", "Machine memory vs fork ceiling (MB)", t, baseLayout("Time (s)", "MB"), false, 280)
+    }
+
+    // ---- What the scheduler decided, per second ----
+    // Spawns are new forks (memory claimed under the lock); reuse is a warm fork taken instead; evictions are forks killed for room, for being unwanted, or
+    // under critical pressure. A second with claims but no spawns and a lock that was unavailable is the one shape that means another server held the machine.
+    if (events.scheduler.nonEmpty) {
+      val t = ArrayBuffer.empty[String]
+      val xArr = fmtDoubles(events.scheduler.map(e => relS(e.get("ts").getAsLong)))
+      def evicted(e: JsonObject): Long = {
+        val ev = e.getAsJsonObject("evicted")
+        ev.get("nothing_to_reuse").getAsLong + ev.get("room_shortage").getAsLong + ev.get("critical_pressure").getAsLong
+      }
+      t += scatterTrace(xArr, fmtLongs(events.scheduler.map(_.get("spawns").getAsLong)), "Spawned", "#3b82f6", "solid", "none", "lines")
+      t += scatterTrace(xArr, fmtLongs(events.scheduler.map(_.get("reuses").getAsLong)), "Reused warm", "#22c55e", "solid", "none", "lines")
+      t += scatterTrace(xArr, fmtLongs(events.scheduler.map(evicted)), "Evicted", "#ef4444", "solid", "none", "lines")
+      t += scatterTrace(xArr, fmtLongs(events.scheduler.map(_.get("lock_unavailable").getAsLong)), "Ticks locked out", "#f59e0b", "dot", "none", "lines")
+      addChart("scheduler-decisions", "Machine scheduler — decisions per second", t, baseLayout("Time (s)", "count"), false, 280)
     }
 
     // ---- Why a compile did not start ----
@@ -575,6 +604,30 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
         cards += stat("Test JVMs", s"${events.forkStart.size} started, ${events.forkReused.size} reused", "#0ea5e9")
         val failed = events.suiteFinished.count(e => getStr(e, "outcome") != "Success")
         cards += stat("Suites run", s"${events.suiteFinished.size}" + (if (failed > 0) s" ($failed not ok)" else ""), if (failed > 0) "#ef4444" else "#22c55e")
+      }
+
+      if (events.scheduler.nonEmpty) {
+        // The lock is held for microseconds by design (design §8); a hold worth seeing is one that reached the 50 ms the holder warns at.
+        val longestHold = events.scheduler.map(_.get("hold_max_ms").getAsLong).max
+        val lockedOut = events.scheduler.count(_.get("lock_unavailable").getAsLong > 0)
+        cards += stat("Longest lock hold", s"$longestHold ms", if (longestHold >= 50L) "#f59e0b" else "#22c55e")
+        cards += stat("Locked out", s"$lockedOut second(s)", if (lockedOut > 0) "#f59e0b" else "#22c55e")
+        val spawns = events.scheduler.map(_.get("spawns").getAsLong).sum
+        val reuses = events.scheduler.map(_.get("reuses").getAsLong).sum
+        cards += stat("Forks", s"$spawns spawned, $reuses reused warm", "#3b82f6")
+      }
+      if (events.pressure.nonEmpty) {
+        val worst = events.pressure.map(e => getStr(e, "to")).find(_ == "critical").orElse(events.pressure.map(e => getStr(e, "to")).find(_ == "elevated"))
+        cards += stat(
+          "Pressure changes",
+          s"${events.pressure.size}" + worst.map(w => s", reached $w").getOrElse(""),
+          if (worst.isDefined) "#ef4444" else "#22c55e"
+        )
+      }
+      if (events.cacheShed.nonEmpty || events.yields.nonEmpty) {
+        val builds = events.cacheShed.map(_.get("builds").getAsLong).sum
+        val yielded = if (events.yields.nonEmpty) ", then yielded" else ""
+        cards += stat("Memory given back", s"$builds cached build(s) shed$yielded", "#8b5cf6")
       }
 
       if (events.linkEnd.nonEmpty) {

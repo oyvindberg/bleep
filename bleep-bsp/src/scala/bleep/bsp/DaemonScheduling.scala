@@ -77,6 +77,7 @@ object DaemonScheduling {
       requests = requests,
       relief = relief,
       idleness = idleness,
+      observer = SchedulerMetrics.toMetricsFile,
       reason = selected.reason,
       logger = logger,
       onDeath = onDeath
@@ -100,6 +101,7 @@ object DaemonScheduling {
       relief = MemoryRelief.unreachable(reason),
       // Never read: an unconstrained scheduler runs no slow check. Loud if that ever changes.
       idleness = () => throw new IllegalStateException(s"an unconstrained scheduler ($reason) asked about idleness, which only the slow check needs"),
+      observer = TickObserver.none,
       reason = Some(reason),
       logger = logger,
       onDeath = t => throw new IllegalStateException("the in-process machine scheduler died", t)
@@ -118,6 +120,7 @@ object DaemonScheduling {
       requests: RequestRegistry,
       relief: MemoryRelief,
       idleness: () => Yield.Idleness,
+      observer: TickObserver,
       reason: Option[String],
       logger: Logger,
       onDeath: Throwable => Unit
@@ -136,7 +139,8 @@ object DaemonScheduling {
         tickIntervalPerServerMs = 10L,
         slowCheckIntervalMs = Ticker.SlowCheckIntervalMs,
         idleness = idleness,
-        idleYieldAfterMs = Yield.IdleYieldAfterMs
+        idleYieldAfterMs = Yield.IdleYieldAfterMs,
+        observer = observer
       ),
       logger,
       onDeath

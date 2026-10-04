@@ -136,6 +136,36 @@ class TickerTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("every deciding tick is reported to the observer: what it decided, whether it claimed, and how long each step held the lock") {
+    withWorld { w =>
+      val t = ticker(w)
+      t(Event.RegisterRequest(r1, RequestKind.Test))
+      t(Event.SubmitReady(r1, List(forkDemand(r1, "t1", boundMb = 1000L, shared = false)), Map(k -> 1)))
+      t.tick()
+      val reports = w.reports.toArray(Array.empty[TickReport]).toList
+      reports should have size 1
+      val r = reports.head
+      r.claimed shouldBe true
+      r.lock shouldBe LockState.Held
+      r.holdBreakdownMs.map(_._1) shouldBe List("probe", "read", "decide", "write")
+      r.spawns shouldBe 1
+      r.spawnsGuaranteed shouldBe 1
+      r.pressure shouldBe Some(Pressure.Normal)
+      r.liveServers shouldBe 1
+      r.forks shouldBe 1
+      w.quiets.get() shouldBe 0 // not idle: nothing to flush for
+    }
+  }
+
+  test("an idle slow check tells the observer it is quiet, and reports no tick") {
+    withWorld { w =>
+      val t = ticker(w)
+      t.tick()
+      w.reports.isEmpty shouldBe true
+      w.quiets.get() shouldBe 1
+    }
+  }
+
   test("an unconstrained server never probes, never reads anyone and never sheds") {
     withWorld { w =>
       w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 14_000L, pressure = RawPressure.MacOs(4)))

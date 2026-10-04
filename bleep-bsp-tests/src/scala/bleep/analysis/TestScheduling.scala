@@ -54,6 +54,7 @@ object TestScheduling {
       },
       // A client is always connected here, so these schedulers never yield; the pressure of the developer's machine must not end a test.
       idleness = () => Yield.Idleness(nonObserverConnections = 1, lastActivityEpochMs = System.currentTimeMillis()),
+      observer = TickObserver.none,
       reason = None,
       logger = TypedLogger.DevNull,
       onDeath = t => throw new IllegalStateException("the test scheduler died", t)

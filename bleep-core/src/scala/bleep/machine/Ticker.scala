@@ -127,6 +127,7 @@ final class Ticker(deps: Ticker.Deps) {
     lastSlowCheckMs = Some(now)
     if (!lastMachine.exists(_.nowMs == now)) lastMachine = Some(machineView(coop, coop.machineProbe.sample(), now))
     lastOthers = coop.discovery.others()
+    if (idle) deps.observer.quiet(now)
     if (idle && !state.shuttingDown) {
       val idleness = deps.idleness()
       val idleSince = Option.when(idleness.nonObserverConnections == 0)(idleness.lastActivityEpochMs)
@@ -198,6 +199,8 @@ final class Ticker(deps: Ticker.Deps) {
     state = state.copy(heap = deps.heapUsage())
     val params = deps.params()
 
+    var claimed = false
+    var holdBreakdownMs: List[(String, Long)] = Nil
     val (decision, lockState, view) = deps.mode match {
       case SchedulingMode.Unconstrained(_) =>
         // Nothing machine-wide exists in this mode (design §9.1): no probe, no lock, no file, by construction — the mode carries none of them.
@@ -205,7 +208,8 @@ final class Ticker(deps: Ticker.Deps) {
 
       case coop: SchedulingMode.Cooperative =>
         state = measure(coop.forkProbe, state, now)
-        if (claimsPossible(state))
+        if (claimsPossible(state)) {
+          claimed = true
           coop.lock.locked(coop.lockWaitMs) { (lockState, timer) =>
             val sample = timer.step("probe")(coop.machineProbe.sample())
             val others = lockState match {
@@ -220,9 +224,10 @@ final class Ticker(deps: Ticker.Deps) {
             val view = machineView(coop, sample, now)
             val decision = timer.step("decide")(Decide.decide(Machine.Cooperative(view, others, lockState), state, params, deps.heapGate, deps.identity))
             timer.step("write")(publishIfChanged(coop.ownSocketDir, decision.publish))
+            if (lockState == LockState.Held) holdBreakdownMs = timer.breakdown.map { case (name, nanos) => name -> nanos / 1_000_000L }
             (decision, lockState, Some(view))
           }
-        else {
+        } else {
           val view = machineView(coop, coop.machineProbe.sample(), now)
           val decision = Decide.decide(Machine.Cooperative(view, Nil, LockState.NotNeeded), state, params, deps.heapGate, deps.identity)
           publishIfChanged(coop.ownSocketDir, decision.publish)
@@ -233,6 +238,7 @@ final class Ticker(deps: Ticker.Deps) {
     state = decision.next
     lastMachine = view.orElse(lastMachine)
     lastLock = lockState
+    deps.observer.tick(TickReport.of(decision, now, claimed, lockState, holdBreakdownMs, view.map(_.pressure), liveServersSeen))
 
     // Effects strictly after the lock is released (design §7, §8 point 1).
     decision.evict.foreach(e => deps.effects.evict(e.fork, e.reason))
@@ -379,6 +385,8 @@ object Ticker {
     *   the connection registry's account of clients and last activity, read on each slow check
     * @param idleYieldAfterMs
     *   how long idle before yielding is considered; [[Yield.IdleYieldAfterMs]] in the daemon
+    * @param observer
+    *   told what every deciding tick did, for metrics
     */
   case class Deps(
       mode: SchedulingMode,
@@ -391,7 +399,8 @@ object Ticker {
       tickIntervalPerServerMs: Long,
       slowCheckIntervalMs: Long,
       idleness: () => Yield.Idleness,
-      idleYieldAfterMs: Long
+      idleYieldAfterMs: Long,
+      observer: TickObserver
   ) {
     require(slowCheckIntervalMs > 0L, s"slowCheckIntervalMs $slowCheckIntervalMs must be positive")
     require(idleYieldAfterMs > 0L, s"idleYieldAfterMs $idleYieldAfterMs must be positive")

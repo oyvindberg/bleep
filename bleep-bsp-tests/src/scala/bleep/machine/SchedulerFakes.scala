@@ -89,6 +89,14 @@ object SchedulerFakes {
     /** Idle for yielding after this long, against the fake clock. */
     val idleYieldAfterMs: Long = 60_000L
 
+    /** Every tick report, in order. */
+    val reports = new java.util.concurrent.ConcurrentLinkedQueue[TickReport]()
+    val quiets = new AtomicInteger(0)
+    val observer: TickObserver = new TickObserver {
+      def tick(report: TickReport): Unit = reports.add(report): Unit
+      def quiet(nowMs: Long): Unit = quiets.incrementAndGet(): Unit
+    }
+
     /** What the connection registry would say: by default one client connected, active now — a server that never yields. */
     val idleness = new AtomicReference[Yield.Idleness](Yield.Idleness(nonObserverConnections = 1, lastActivityEpochMs = 1_000_000L))
 
@@ -124,7 +132,8 @@ object SchedulerFakes {
       tickIntervalPerServerMs = tickIntervalPerServerMs,
       slowCheckIntervalMs = slowCheckIntervalMs,
       idleness = () => idleness.get(),
-      idleYieldAfterMs = idleYieldAfterMs
+      idleYieldAfterMs = idleYieldAfterMs,
+      observer = observer
     )
 
     /** Another live server's state file, in its own socket dir, naming this JVM so liveness holds. */

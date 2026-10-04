@@ -402,6 +402,20 @@ object BspMetrics {
   /** Every bleep-initiated kill, so a fork's death can be attributed after the fact: a `fork_end` for a pid with no preceding `fork_kill` was not bleep's
     * doing. `was_alive=false` marks a redundant escalation over an already-dead fork.
     */
+  /** A line the machine scheduler's metrics built (`SchedulerMetrics`): already JSON, already rate-limited. */
+  def recordSchedulerLine(json: String): Unit = writeEvent(json)
+
+  /** A server shed the caches of its idle workspaces for a memory need elsewhere (design §5.2). */
+  def recordCacheShed(reason: String, builds: Int, analyses: Int, analysisMb: Long): Unit =
+    writeEvent(s"""{"type":"cache_shed","ts":${now()},"reason":"${esc(reason)}","builds":$builds,"analyses":$analyses,"analysis_mb":$analysisMb}""")
+
+  /** This server yielded its memory to another (design §5.1): the last thing it writes before the clean shutdown. */
+  def recordYield(reason: String, idleForMs: Long): Unit =
+    writeEvent(s"""{"type":"yield","ts":${now()},"reason":"${esc(reason)}","idle_for_ms":$idleForMs}""")
+
+  /** `esc`, for the one writer outside this object that spells its own JSON. */
+  def escape(s: String): String = esc(s)
+
   def recordForkKill(pid: Long, reason: String, wasAlive: Boolean, graceMillis: Long): Unit =
     writeEvent(
       s"""{"type":"fork_kill","ts":${now()},"pid":$pid,"reason":"${esc(reason)}","was_alive":$wasAlive,"grace_ms":$graceMillis}"""
