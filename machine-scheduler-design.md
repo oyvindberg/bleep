@@ -311,7 +311,7 @@ crashes.** A dead server can never hold it. The remaining danger is a holder tha
 
 | | Linux | macOS | Windows |
 |---|---|---|---|
-| used memory | cgroup v2 `memory.current` when a `memory.max` limit is set, else `/proc/meminfo`: `MemTotal − MemAvailable` | JNI `host_statistics64`: anonymous + wired + **compressor** − **purgeable** pages | JNI `GlobalMemoryStatusEx`: total − available physical |
+| used memory | cgroup v2 `memory.current − inactive_file` (working set) when a `memory.max` limit is set, else `/proc/meminfo`: `MemTotal − MemAvailable` | JNI `host_statistics64`: anonymous + wired + **compressor** − **purgeable** pages | JNI `GlobalMemoryStatusEx`: total − available physical |
 | physical | cgroup v2 `memory.max` when set, else `MemTotal` | `hw.memsize` | `GlobalMemoryStatusEx` |
 | pressure | cgroup v2 `memory.pressure` when limited, else `/proc/pressure/memory` (PSI); absent → `Unavailable` | JNI `sysctlbyname("kern.memorystatus_vm_pressure_level")` | JNI `GlobalMemoryStatusEx` (load, commit vs limit) + `QueryMemoryResourceNotification` |
 | fork footprint | `/proc/<pid>/status`: `RssAnon + VmSwap` (same number as `smaps_rollup`, 14 µs instead of 1.7 ms) | JNI `proc_pid_rusage` → `phys_footprint` | JNI `GetProcessMemoryInfo` → `PrivateUsage` |
@@ -319,6 +319,9 @@ crashes.** A dead server can never hold it. The remaining danger is a holder tha
 - Linux is pure file reads, any JDK. macOS and Windows use one small C file called through plain JNI (primitives and `long[]` only, failures as status
   codes), so one implementation per OS works on every JDK. No FFM path (it is unavailable below JDK 22 / 21-preview, which is exactly the gap).
 - **Containers:** host-wide `/proc/meminfo` cannot see a cgroup limit, so a limited container reads cgroup v2 instead (table above).
+  Used is the cgroup's working set, `memory.current − inactive_file` (from `memory.stat`): inactive page cache is what the kernel drops first at no
+  cost, so counting it would make every container doing builds look full. The same figure `docker stats` and the kubelet report, and the cgroup
+  counterpart of the host's `MemTotal − MemAvailable`.
 - **Purgeable pages (macOS)** are subtracted: apps mark them as discardable caches and the kernel drops them without compressing or swapping, so they are
   not "memory someone must pay to reclaim". The same subtraction Activity Monitor makes for "App Memory".
 - A probe call that fails throws. **A missing pressure source is not a failure**: `RawPressure.Unavailable(reason)` (e.g. a Linux kernel without PSI,
