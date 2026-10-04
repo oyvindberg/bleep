@@ -266,13 +266,13 @@ If the script exits non-zero, crashes (signal), or is killed, bleep:
 
 1. Recursively deletes the real `generated-sources/<project>/<script>/` and `generated-resources/<project>/<script>/` directories
 2. Deletes any `.sourcegen-stamp` file (so the next build will re-run the script rather than trust stale state)
-3. Reports the error back through the BSP pipeline
+3. Reports the error back through the BSP pipeline: the exit code or signal, followed by the last 40 lines the script wrote to stdout (where a script's logging goes) and to stderr. The build summary lists each failed script with that error, and so does the run's [history entry](/docs/reference/cli/history/)
 
 The rationale: a half-generated directory is worse than no directory at all. It can produce baffling compile errors. Empty state is recoverable; stale state isn't.
 
 ## Running sourcegen explicitly
 
-Sourcegen normally runs implicitly as part of [`bleep compile`](/docs/reference/cli/compile/) / [`bleep test`](/docs/reference/cli/test/), but you can invoke it directly:
+Sourcegen normally runs implicitly as part of [`bleep compile`](/docs/reference/cli/compile/) / [`bleep test`](/docs/reference/cli/test/), but you can invoke it directly. `bleep sourcegen` runs through the same compile-server task graph as a compile: the script project and any projects listed under `inputs` are built first, and the projects you name are not compiled. Unlike a compile, the named projects' generators run even when their outputs look up to date — that is how you rerun a generator whose real inputs bleep cannot see.
 
 ```bash
 # Run sourcegen for specific projects

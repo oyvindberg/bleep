@@ -126,6 +126,28 @@ class BuildSummaryVerdictTest extends AnyFunSuite with Matchers {
     ) should include("Source generation failed")
   }
 
+  // Reported building scala3: with the TUI the summary said "1 sourcegen script(s) failed. Check output above for details." — and there was no output above.
+  // The summary is the one place that is always shown, so the failed script and its reason must be in it, the way compile failures are.
+  test("the summary names each failed sourcegen script with its reason, not just a count") {
+    val error = "Sourcegen scripts.Gen failed: exit code 1\nstdout:\n[error] vendor schema missing"
+    val events = List(
+      E.SourcegenFinished(scriptMain = "scripts.Ok", success = true, durationMs = 1L, error = None, timestamp = 1L),
+      E.SourcegenFinished(scriptMain = "scripts.Gen", success = false, durationMs = 1L, error = Some(error), timestamp = 2L)
+    )
+    val summary = events.flatMap(BuildEvent.fromProtocol).foldLeft(BuildState.empty)(BuildStateReducer.reduce).toSummary(durationMs = 0L, wasCancelled = false)
+    summary.sourcegenFailures shouldBe List(bleep.testing.SourcegenFailure("scripts.Gen", Some(error)))
+
+    val ansi = "\u001b\\[[0-9;]*m".r
+    val lines = bleep.testing.BuildSummary
+      .formatSummary(summary, BleepBspProtocol.BuildMode.Compile, failureDetails = true)
+      .map(l => ansi.replaceAllIn(l.text, ""))
+    lines should contain("Sourcegen Failures (1)")
+    lines should contain("x scripts.Gen")
+    lines should contain("  | Sourcegen scripts.Gen failed: exit code 1")
+    lines should contain("  | [error] vendor schema missing")
+    lines.mkString("\n") should not include "Check output above"
+  }
+
   test("an annotation-processor resolution failure fails the run") {
     leftMessage(
       List(
