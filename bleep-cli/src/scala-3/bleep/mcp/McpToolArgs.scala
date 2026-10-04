@@ -100,10 +100,19 @@ object ProjectsArgs {
   ).asInstanceOf[JsonSchemaEncoder[ProjectsArgs]]
 }
 
-/** Args for test (with test filtering, plus the optional inner-loop `diffBase`). */
-case class TestArgs(directory: String, projects: List[String], only: List[String], exclude: List[String], showOutput: Boolean, diffBase: Option[String])
+/** Args for test (with test filtering, JVM options and environment for the forked test JVMs, plus the optional inner-loop `diffBase`). */
+case class TestArgs(
+    directory: String,
+    projects: List[String],
+    only: List[String],
+    exclude: List[String],
+    jvmOptions: List[String],
+    env: Map[String, String],
+    showOutput: Boolean,
+    diffBase: Option[String]
+)
 object TestArgs {
-  private val knownFields = Set("directory", "projects", "only", "exclude", "showOutput", "diffBase")
+  private val knownFields = Set("directory", "projects", "only", "exclude", "jvmOptions", "env", "showOutput", "diffBase")
   given Decoder[TestArgs] = Decoder.instance { c =>
     for {
       _ <- rejectUnknownFields(c, knownFields)
@@ -111,10 +120,17 @@ object TestArgs {
       projects <- decodeList(c, "projects")
       only <- decodeList(c, "only")
       exclude <- decodeList(c, "exclude")
+      jvmOptions <- decodeList(c, "jvmOptions")
+      env <- decodeOptional[Map[String, String]](c, "env").map(_.getOrElse(Map.empty))
+      // These belong to the fork's launcher, which is why the client never forwards them either. Setting one would corrupt the fork, so say so.
+      _ <- env.keySet.intersect(bleep.bsp.protocol.BleepBspProtocol.ClientEnv.denied).toList.sorted match {
+        case Nil    => Right(())
+        case denied => Left(DecodingFailure(s"env cannot set ${denied.mkString(", ")}: the forked test JVM's launcher owns these", c.history))
+      }
       // Absent means not asked for, exactly like the CLI flag.
       showOutput <- decodeOptional[Boolean](c, "showOutput").map(_.contains(true))
       diffBase <- decodeOptional[String](c, "diffBase")
-    } yield TestArgs(directory, projects, only, exclude, showOutput, diffBase)
+    } yield TestArgs(directory, projects, only, exclude, jvmOptions, env, showOutput, diffBase)
   }
   given JsonSchemaEncoder[TestArgs] = schema(
     Json.obj(
@@ -135,6 +151,20 @@ object TestArgs {
           "type" -> Json.fromString("array"),
           "items" -> Json.obj("type" -> Json.fromString("string")),
           "description" -> Json.fromString("Exclude these test class names.")
+        ),
+        "jvmOptions" -> Json.obj(
+          "type" -> Json.fromString("array"),
+          "items" -> Json.obj("type" -> Json.fromString("string")),
+          "description" -> Json.fromString(
+            "JVM options for the forked test JVMs, e.g. [\"-Dmy.prop=value\", \"-Xmx2g\"] — the same as the CLI's --jvm-opt, appended after the project's own platform.jvmOptions (so a later -Xmx wins). To set environment variables, use `env`."
+          )
+        ),
+        "env" -> Json.obj(
+          "type" -> Json.fromString("object"),
+          "additionalProperties" -> Json.obj("type" -> Json.fromString("string")),
+          "description" -> Json.fromString(
+            "Environment variables for the forked test JVMs, e.g. {\"MY_VAR\": \"value\"}. Without this, tests see the MCP server's own environment, captured when it started — not your shell's. These override that; a project's platform.jvmEnvironment still wins over both. CLASSPATH, PWD, OLDPWD and _ are rejected."
+          )
         ),
         "showOutput" -> Json.obj(
           "type" -> Json.fromString("boolean"),

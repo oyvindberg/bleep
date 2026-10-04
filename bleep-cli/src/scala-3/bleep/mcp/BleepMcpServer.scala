@@ -244,7 +244,16 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         isOpenWorld = true
       ),
       (args, context) =>
-        bootstrapFor(args.directory).flatMap(started => executeTest(started, args.projects, args.only, args.exclude, args.showOutput, args.diffBase, context)),
+        bootstrapFor(args.directory).flatMap(started =>
+          executeTest(
+            started,
+            args.projects,
+            BleepMcpServer.testOptions(args, BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)),
+            args.showOutput,
+            args.diffBase,
+            context
+          )
+        ),
       None
     )
 
@@ -730,8 +739,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
     private def executeTest(
         started: Started,
         projectNames: List[String],
-        only: List[String],
-        exclude: List[String],
+        testOptions: BleepBspProtocol.TestOptions,
         showOutput: Boolean,
         diffBase: Option[String],
         context: CallContext[IO]
@@ -762,16 +770,6 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
                 {
                   val params = new bsp4j.TestParams(targets)
                   params.setOriginId(UUID.randomUUID().toString)
-                  val testOptions = BleepBspProtocol.TestOptions(
-                    Nil,
-                    Nil,
-                    only,
-                    exclude,
-                    Nil,
-                    Nil,
-                    false,
-                    BleepBspProtocol.ClientEnv.current(noColor = bleep.PreBootstrapOpts.noColorRequested)
-                  )
                   params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
                   params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
                   lifecycle.server.buildTargetTest(params)
@@ -1265,6 +1263,21 @@ object BleepMcpServer {
       |the build starts, so a bad id fails without costing a build.""".stripMargin
 
   val MaxCompileFailureDiagnostics = 5
+
+  /** What a `bleep.test` call asks the daemon for. The caller's `env` goes over the MCP server's own environment: that one is whatever the server was started
+    * with, often hours ago and from another shell, so the caller has no other way to set a variable for one run.
+    */
+  def testOptions(args: TestArgs, clientEnv: Map[String, String]): BleepBspProtocol.TestOptions =
+    BleepBspProtocol.TestOptions(
+      jvmOptions = args.jvmOptions,
+      testArgs = Nil,
+      only = args.only,
+      exclude = args.exclude,
+      includeTags = Nil,
+      excludeTags = Nil,
+      flamegraph = false,
+      env = clientEnv ++ args.env
+    )
 
   /** Why the compile that precedes a `bleep.run` failed, in the failure itself.
     *
