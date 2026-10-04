@@ -266,7 +266,7 @@ If the script exits non-zero, crashes (signal), or is killed, bleep:
 
 1. Recursively deletes the real `generated-sources/<project>/<script>/` and `generated-resources/<project>/<script>/` directories
 2. Deletes any `.sourcegen-stamp` file (so the next build will re-run the script rather than trust stale state)
-3. Reports the error back through the BSP pipeline
+3. Reports the error back through the BSP pipeline: the exit code or signal, followed by the last 40 lines the script wrote to stdout (where a script's logging goes) and to stderr. The build summary lists each failed script with that error, and so does the run's [history entry](/docs/reference/cli/history/)
 
 The rationale: a half-generated directory is worse than no directory at all. It can produce baffling compile errors. Empty state is recoverable; stale state isn't.
 

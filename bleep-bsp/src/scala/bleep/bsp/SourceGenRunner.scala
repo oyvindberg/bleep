@@ -35,6 +35,25 @@ object SourceGenRunner {
     if (kept.isEmpty) None else Some(kept.mkString("\n"))
   }
 
+  /** How many trailing lines of each stream a failure message carries.
+    *
+    * Why a script died is in the last things it said: its final log lines, or the deepest `Caused by:` of a stack trace, which the JVM prints last. Forty lines
+    * holds a typical exception with its root cause and a few frames, while keeping the message — which goes into the build summary, the run's history and the
+    * server log — bounded for a generator that logs thousands of lines before failing.
+    */
+  private[bsp] val TailLines = 40
+
+  /** The last [[TailLines]] non-blank lines of `text`, labelled with how much was dropped. None when there is nothing to show. */
+  private[bsp] def tail(label: String, text: String): Option[String] = {
+    val all = text.linesIterator.map(_.stripTrailing).filter(_.nonEmpty).toVector
+    if (all.isEmpty) None
+    else {
+      val kept = all.takeRight(TailLines)
+      val header = if (kept.size < all.size) s"$label (last ${kept.size} of ${all.size} lines):" else s"$label:"
+      Some((header +: kept).mkString("\n"))
+    }
+  }
+
   /** Describe a signal death WITHOUT claiming to know who sent it.
     *
     * This used to assert "sent by the OS, not by the script or by bleep ... almost always the kernel reclaiming memory under pressure". That was wrong, and
@@ -56,19 +75,20 @@ object SourceGenRunner {
 
   /** How a failed sourcegen is reported.
     *
-    * The *cause* leads — exit code or signal — because that is the one thing we always know and, for a signal death, the only thing that explains anything.
-    * stderr follows as clearly-labelled context with the JVM's routine preamble stripped, rather than being substituted for the cause. Previously stderr was
-    * preferred whenever it was non-empty, so a script that always prints warnings could never report why it actually died.
+    * The *cause* leads — exit code or signal — because that is the one thing we always know and, for a signal death, the only thing that explains anything. The
+    * script's own output follows as clearly-labelled context: the tail of stdout, where bleep scripts log, and the tail of stderr with the JVM's routine
+    * preamble stripped. Previously only stderr was kept, so a script that logged its reason and exited 1 was reported as failing with no explanation at all;
+    * and before that, stderr was preferred over the cause whenever it was non-empty.
     */
-  private[bsp] def failureMessage(scriptMain: String, cause: String, stderr: String): String =
-    forkFailureMessage(s"Sourcegen $scriptMain", cause, stderr)
+  private[bsp] def failureMessage(scriptMain: String, cause: String, stdout: String, stderr: String): String =
+    forkFailureMessage(s"Sourcegen $scriptMain", cause, stdout, stderr)
 
   /** [[failureMessage]] for any forked script, `what` naming it (`Sourcegen x.Main`, `Post-compile x.Main for p`). */
-  private[bsp] def forkFailureMessage(what: String, cause: String, stderr: String): String =
-    meaningfulStderr(stderr) match {
-      case Some(detail) => s"$what failed: $cause\nstderr:\n$detail"
-      case None         => s"$what failed: $cause (no stderr beyond routine JVM warnings)"
-    }
+  private[bsp] def forkFailureMessage(what: String, cause: String, stdout: String, stderr: String): String = {
+    val sections = List(tail("stdout", stdout), meaningfulStderr(stderr).flatMap(tail("stderr", _))).flatten
+    if (sections.isEmpty) s"$what failed: $cause (no output beyond routine JVM warnings)"
+    else (s"$what failed: $cause" :: sections).mkString("\n")
+  }
 
   /** Listener for sourcegen progress events */
   trait SourceGenListener {
@@ -496,7 +516,7 @@ object SourceGenRunner {
               if (stdout.nonEmpty) {
                 stdout.split("\n").foreach(line => listener.onLog(line, false))
               }
-              val error = SourceGenRunner.failureMessage(script.main, s"exit code $exitCode", stderr)
+              val error = SourceGenRunner.failureMessage(script.main, s"exit code $exitCode", stdout, stderr)
               listener.onLog(error, true)
               listener.onScriptFinished(script.main, success = false, durationMs, Some(error))
               Some(error)
@@ -507,7 +527,7 @@ object SourceGenRunner {
               if (stdout.nonEmpty) {
                 stdout.split("\n").foreach(line => listener.onLog(line, false))
               }
-              val error = SourceGenRunner.failureMessage(script.main, SourceGenRunner.describeSignal(signal), stderr)
+              val error = SourceGenRunner.failureMessage(script.main, SourceGenRunner.describeSignal(signal), stdout, stderr)
               listener.onLog(error, true)
               listener.onScriptFinished(script.main, success = false, durationMs, Some(error))
               Some(error)
