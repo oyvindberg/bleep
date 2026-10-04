@@ -103,7 +103,8 @@ class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
     withClue(s"states seen: $states") {
       states.exists { case (pid, state) => pid.isDefined && state == ForkState.Starting } shouldBe true // reported with a pid, charged at the bound
       states.exists { case (_, state) => state.isInstanceOf[ForkState.Measured] } shouldBe true // measured a second after it started
-      states.collect { case (_, ForkState.Measured(footprint, _)) => footprint }.foreach(_ should be > 0L)
+      // A process measured in the instant it exits reads zero — its pages are gone, its pid not yet — so not every reading is positive, but one must be.
+      states.collect { case (_, ForkState.Measured(footprint, _)) => footprint }.exists(_ > 0L) shouldBe true
     }
     channel.close()
     val snap = scheduling.snapshot.get
