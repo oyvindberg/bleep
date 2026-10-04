@@ -11,7 +11,10 @@ import bleep.model.{CrossProjectName, SuiteName, TestName}
 case class BuildState(
     sourcegenRunning: Set[String], // Currently running sourcegen scripts
     sourcegenCompleted: Int,
-    sourcegenFailed: Int,
+    /** Each failed sourcegen script with the reason the server gave, newest first during accumulation. Kept as a list rather than a count so the summary can
+      * say which script failed and why — with the TUI there is no scrolled-past log line to point at.
+      */
+    sourcegenFailures: List[SourcegenFailure],
     apResolutionFailed: Int, // Number of projects whose annotation-processor resolution DAG task failed
     kspResolutionFailed: Int, // Number of projects whose KSP processor resolution DAG task failed
     compilesCompleted: Int,
@@ -86,7 +89,7 @@ case class BuildState(
       KilledTask(TaskKind.Test, key.toString, nowMs - startedAt)
     }
     BuildSummary(
-      sourcegenFailed = sourcegenFailed,
+      sourcegenFailures = sourcegenFailures.reverse,
       apResolutionFailed = apResolutionFailed,
       kspResolutionFailed = kspResolutionFailed,
       compilesCompleted = compilesCompleted,
@@ -130,7 +133,7 @@ object BuildState {
   val empty: BuildState = BuildState(
     sourcegenRunning = Set.empty,
     sourcegenCompleted = 0,
-    sourcegenFailed = 0,
+    sourcegenFailures = Nil,
     apResolutionFailed = 0,
     kspResolutionFailed = 0,
     compilesCompleted = 0,
@@ -192,11 +195,11 @@ object BuildStateReducer {
     case BuildEvent.SourcegenStarted(scriptMain, _, _) =>
       state.copy(sourcegenRunning = state.sourcegenRunning + scriptMain)
 
-    case BuildEvent.SourcegenFinished(scriptMain, success, _, _, _) =>
+    case BuildEvent.SourcegenFinished(scriptMain, success, _, error, _) =>
       state.copy(
         sourcegenRunning = state.sourcegenRunning - scriptMain,
         sourcegenCompleted = state.sourcegenCompleted + 1,
-        sourcegenFailed = if (success) state.sourcegenFailed else state.sourcegenFailed + 1
+        sourcegenFailures = if (success) state.sourcegenFailures else SourcegenFailure(scriptMain, error) :: state.sourcegenFailures
       )
 
     case BuildEvent.ResolveAnnotationProcessorsFinished(_, success, _, _, _) =>
