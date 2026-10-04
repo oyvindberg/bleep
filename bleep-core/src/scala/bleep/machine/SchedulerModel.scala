@@ -119,13 +119,17 @@ object ForkState {
   *   cpu slots held by the work it runs now; `0` is idle. A shared fork holds as many as the suites running on it.
   * @param evicting
   *   the scheduler has ordered it killed; it stays here, neither reusable nor evictable again, until `forkExited` — the process holds its memory until then.
+  * @param pids
+  *   the live processes under this grant, as reported: one for a test JVM or a sourcegen script, several for a Scala Native link whose toolchain spawns clang
+  *   and lld as children of the server (attributed to the grant and reported by the daemon). Empty until the first is reported, and again when the last is gone
+  *   while the grant lives — charged at the bound both times, never undercounted.
   * @param pidSinceMs
   *   when the process now running under this fork started. A fork is one grant and one charge; the process under it may be succeeded by another (a sourcegen
   *   task runs its scripts one after the other), and each successor is charged at the bound again until it has run a full second and been measured.
   */
 case class RunningFork(
     id: ForkId,
-    pid: Option[Long],
+    pids: Set[Long],
     owner: RequestId,
     key: ForkKey,
     kind: ForkKind,
@@ -307,7 +311,7 @@ object HeapGate {
 /** A fork as published in `state.json` (design §6.2). `pid` is absent while the process has not been spawned yet. */
 case class StateFork(
     id: Long,
-    pid: Option[Long],
+    pids: List[Long],
     kind: ForkKind,
     boundMb: Long,
     state: StateForkState,

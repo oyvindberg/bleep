@@ -59,7 +59,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   /** A test fork of the pool's key, 2560 MB bound. */
   private def fork(id: Long, pid: Option[Long], measuredMb: Option[Long], busyCpu: Int): SchedulerForkDto = SchedulerForkDto(
     id = id,
-    pid = pid,
+    pids = pid.toList,
     request = "op-1",
     kind = "test-suite",
     key = "jvm ce91585a08d64aec:shared",
@@ -483,7 +483,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val row = running("aaaa1111", isCurrent = true, scheduler = working(Nil, List(starting)))
     val screen = draw(stateWith(List(row)).copy(tab = Tab.Activity))
     screen should include("starting, charged 2560 MB bound")
-    screen should include("no pid yet")
+    screen should include("no process yet")
     screen should not include "holding"
 
     val measured = withScheduler(row, _.copy(forks = List(fork(id = 1L, pid = Some(5001L), measuredMb = Some(1200L), busyCpu = 0))))
@@ -551,7 +551,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       wantsMore = false,
       shuttingDown = false,
       idleSinceEpochMs = None,
-      forks = List(bleep.machine.StateFork(7L, None, bleep.machine.ForkKind.TestSuite, 2560L, bleep.machine.StateForkState.Starting, NowMs - 1000L))
+      forks = List(bleep.machine.StateFork(7L, Nil, bleep.machine.ForkKind.TestSuite, 2560L, bleep.machine.StateForkState.Starting, NowMs - 1000L))
     )
     val row = running("aaaa1111", isCurrent = true, scheduler = working(Nil, List(starting))).copy(published = Some(published))
 
@@ -605,7 +605,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       shuttingDown = false,
       idleSinceEpochMs = None,
       forks =
-        List(bleep.machine.StateFork(1L, Some(5001L), bleep.machine.ForkKind.TestSuite, 2560L, bleep.machine.StateForkState.Measured(3072L), NowMs - 1000L))
+        List(bleep.machine.StateFork(1L, List(5001L), bleep.machine.ForkKind.TestSuite, 2560L, bleep.machine.StateForkState.Measured(3072L), NowMs - 1000L))
     )
     val wedged = running("aaaa1111", isCurrent = true).copy(status = None, published = Some(published))
     draw(stateWith(List(wedged))) should include("its state.json holds 1 fork(s), 3 slot(s) busy")

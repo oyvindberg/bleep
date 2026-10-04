@@ -120,8 +120,13 @@ object ForkState {
   case object Starting extends ForkState                    // charged at boundMb
   case class Measured(footprintMb: Long, atMs: Long)        // in machine usedMb; remeasured at most every 1 s
 }
-case class RunningFork(id: ForkId, pid: Option[Long], owner: RequestId, key: ForkKey, kind: ForkKind, boundMb: Long,
-                       state: ForkState, busy: Boolean, startedAtMs: Long)
+case class RunningFork(id: ForkId, pids: Set[Long], owner: RequestId, key: ForkKey, kind: ForkKind, boundMb: Long,
+                       state: ForkState, busy: Boolean, startedAtMs: Long, pidSinceMs: Long)
+// pids: the live processes under one grant — one for a test JVM, several for a Scala Native link whose toolchain spawns clang
+// and lld as children of the server (attributed to the grant by the daemon, §5.3). Empty until the first is reported. A process
+// joining puts the fork back to Starting (the bound) until the whole set has run a second and been measured; the measurement is
+// every live tree summed, gone processes leave the set, and a set that empties while the grant lives is Starting again. Never an
+// undercount: an unmeasured process costs at most a second at the bound.
 
 case class MyState(requests: List[Request], forks: List[RunningFork], cpuInUse: Int, ready: List[Demand],
                    unstartedSuitesByKey: Map[ForkKey, Int], heap: HeapUsage, compilesRunning: Int)
@@ -256,14 +261,16 @@ finishes. A fork holds cpu slots while it runs work (a batch fork as many as sui
   "wantsMore": true,
   "shuttingDown": false,
   "forks": [
-    { "id": 17, "pid": 23456, "kind": "test-batch", "boundMb": 3840, "state": "starting", "startedAtEpochMs": 1759474812000 },
-    { "id": 12, "pid": 23401, "kind": "test-suite", "boundMb": 2560, "state": "measured", "footprintMb": 1310, "startedAtEpochMs": 1759474790000 }
+    { "id": 17, "pids": [23456], "kind": "test-batch", "boundMb": 3840, "state": "starting", "startedAtEpochMs": 1759474812000 },
+    { "id": 12, "pids": [23401, 23477], "kind": "link", "boundMb": 2560, "state": "measured", "footprintMb": 1310, "startedAtEpochMs": 1759474790000 }
   ]
 }
 ```
 
 `cpuInUse` is published for display (`top`) only; no other server's decision uses it (§3.1). `shuttingDown` is §5.1's mark; a server that has set it
-is still alive and its forks are still counted until it is gone.
+is still alive and its forks are still counted until it is gone. `pids` are the live processes under one grant — one for a test JVM, several for a Scala
+Native link whose toolchain spawns clang and lld (§4, process set) — empty until the first is reported; `footprintMb` is their trees summed.
+`idleSinceEpochMs` (optional, §5.1) is written only while the server is idle.
 
 Readers use the fields they know; an entry whose `version` they do not know is read as its `forks` and `cpuInUse` (the fields every version must keep),
 and a document without those throws. Not stored because derivable: machine used memory, budgets, the server heap, anything learned.

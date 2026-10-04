@@ -285,7 +285,13 @@ object ServerTopView {
   private def workingOf(scheduler: SchedulerDto): List[(String, String)] =
     scheduler.inHeap.map(task => (task.kind, task.taskId)) ++ scheduler.forks.filter(_.busyCpu > 0).map(fork => (fork.kind, s"on ${forkName(fork)}"))
 
-  private def forkName(fork: SchedulerForkDto): String = s"fork #${fork.id}" + fork.pid.map(pid => s" (pid $pid)").getOrElse("")
+  private def forkName(fork: SchedulerForkDto): String = s"fork #${fork.id}" + pidsText(fork.pids).map(p => s" ($p)").getOrElse("")
+
+  private def pidsText(pids: List[Long]): Option[String] = pids match {
+    case Nil       => None
+    case List(one) => Some(s"pid $one")
+    case many      => Some(s"pids ${many.mkString(", ")}")
+  }
 
   /** The scheduler's kind names (`InHeapKind.json`, `ForkKind.json`) as a verb, for "what is it doing". */
   private def verb(kind: String): String = kind match {
@@ -910,7 +916,7 @@ object ServerTopView {
           ),
           lineOf("  and what it measures from then on. The charge is what the other servers see in this server's state.json.", Palette.textDim)
         ) ++ scheduler.forks.map { fork =>
-          val pid = fork.pid.map(p => s"pid $p").getOrElse("no pid yet")
+          val pid = pidsText(fork.pids).getOrElse("no process yet")
           val charge = fork.measuredMb match {
             case Some(measured) => s"measured ${measured} MB (bound ${fork.boundMb} MB)"
             case None           => s"starting, charged ${fork.boundMb} MB bound"

@@ -50,8 +50,8 @@ class StateFileTest extends AnyFunSuite with Matchers {
       |  "wantsMore": true,
       |  "shuttingDown": false,
       |  "forks": [
-      |    { "id": 17, "pid": 23456, "kind": "test-batch", "boundMb": 3840, "state": "starting", "startedAtEpochMs": 1759474812000 },
-      |    { "id": 12, "pid": 23401, "kind": "test-suite", "boundMb": 2560, "state": "measured", "footprintMb": 1310, "startedAtEpochMs": 1759474790000 }
+      |    { "id": 17, "pids": [23456], "kind": "test-batch", "boundMb": 3840, "state": "starting", "startedAtEpochMs": 1759474812000 },
+      |    { "id": 12, "pids": [23401], "kind": "test-suite", "boundMb": 2560, "state": "measured", "footprintMb": 1310, "startedAtEpochMs": 1759474790000 }
       |  ]
       |}""".stripMargin
 
@@ -59,8 +59,8 @@ class StateFileTest extends AnyFunSuite with Matchers {
     pid = 12345L,
     startedAt = 1759474800000L,
     forks = List(
-      StateFork(17L, Some(23456L), ForkKind.TestBatch, 3840L, StateForkState.Starting, 1759474812000L),
-      StateFork(12L, Some(23401L), ForkKind.TestSuite, 2560L, StateForkState.Measured(1310L), 1759474790000L)
+      StateFork(17L, List(23456L), ForkKind.TestBatch, 3840L, StateForkState.Starting, 1759474812000L),
+      StateFork(12L, List(23401L), ForkKind.TestSuite, 2560L, StateForkState.Measured(1310L), 1759474790000L)
     )
   )
 
@@ -84,10 +84,10 @@ class StateFileTest extends AnyFunSuite with Matchers {
       "forks"
     )
     val forks = json.hcursor.downField("forks").as[List[io.circe.Json]].toOption.get
-    forks(0).asObject.get.keys.toList shouldBe List("id", "kind", "boundMb", "startedAtEpochMs", "pid", "state")
-    forks(1).asObject.get.keys.toList shouldBe List("id", "kind", "boundMb", "startedAtEpochMs", "pid", "state", "footprintMb")
-    val unspawned = StateFork(1L, None, ForkKind.Ksp, 100L, StateForkState.Starting, 5L).asJson
-    unspawned.asObject.get.keys.toList should not contain "pid"
+    forks(0).asObject.get.keys.toList shouldBe List("id", "kind", "boundMb", "startedAtEpochMs", "pids", "state")
+    forks(1).asObject.get.keys.toList shouldBe List("id", "kind", "boundMb", "startedAtEpochMs", "pids", "state", "footprintMb")
+    val unspawned = StateFork(1L, Nil, ForkKind.Ksp, 100L, StateForkState.Starting, 5L).asJson
+    unspawned.hcursor.downField("pids").as[List[Long]] shouldBe Right(Nil)
     io.circe.parser.decode[StateJson](json.noSpaces) shouldBe Right(designValue)
   }
 
@@ -131,7 +131,7 @@ class StateFileTest extends AnyFunSuite with Matchers {
   test("a reader racing a writer sees whole documents only") {
     withTempDir { dir =>
       val a = state(1L, 1L, Nil)
-      val b = state(2L, 2L, (1 to 40).toList.map(i => StateFork(i.toLong, Some(i.toLong), ForkKind.TestSuite, 1024L, StateForkState.Measured(900L), 0L)))
+      val b = state(2L, 2L, (1 to 40).toList.map(i => StateFork(i.toLong, List(i.toLong), ForkKind.TestSuite, 1024L, StateForkState.Measured(900L), 0L)))
       StateFile.write(dir, a)
       val stop = new AtomicBoolean(false)
       val failure = new java.util.concurrent.atomic.AtomicReference[Throwable](null)
@@ -174,7 +174,7 @@ class StateFileTest extends AnyFunSuite with Matchers {
       Files.createDirectories(socketRoot)
       val dirs = List("aaaa", "bbbb", "cccc", "dddd", "eeee").map(h => Files.createDirectories(socketRoot.resolve(h)))
       val live1 =
-        state(self.pid, self.startedAtEpochMs, List(StateFork(1L, None, ForkKind.Link, 512L, StateForkState.Starting, 1L))).copy(bleepVersion = "writer-1")
+        state(self.pid, self.startedAtEpochMs, List(StateFork(1L, Nil, ForkKind.Link, 512L, StateForkState.Starting, 1L))).copy(bleepVersion = "writer-1")
       val live2 = live1.copy(bleepVersion = "writer-2", cpuInUse = 9)
       val dead = state(self.pid, self.startedAtEpochMs + 1L, Nil).copy(bleepVersion = "dead")
       // Two servers write their own files at the same time; neither touches the other's.

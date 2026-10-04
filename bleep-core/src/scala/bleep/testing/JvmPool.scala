@@ -860,7 +860,7 @@ object JvmPool {
     private def liveFork(jvm: ManagedJvm, label: String): ForkRegistry.LiveFork =
       ForkRegistry.LiveFork(
         id = jvm.forkId,
-        pid = jvm.process.pid(),
+        pids = () => Set(jvm.process.pid()),
         label = label,
         key = forkKey(jvm.key, shared = false),
         startedAtEpochMs = jvm.startedAtMs,

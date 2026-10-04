@@ -106,9 +106,10 @@ object StateFile {
       "id" -> Json.fromLong(f.id),
       "kind" -> Json.fromString(f.kind.json),
       "boundMb" -> Json.fromLong(f.boundMb),
-      "startedAtEpochMs" -> Json.fromLong(f.startedAtEpochMs)
+      "startedAtEpochMs" -> Json.fromLong(f.startedAtEpochMs),
+      "pids" -> Json.arr(f.pids.map(Json.fromLong)*)
     )
-    val pid = f.pid.map(p => "pid" -> Json.fromLong(p)).toList
+    val pid = Nil
     val state = f.state match {
       case StateForkState.Starting            => List("state" -> Json.fromString("starting"))
       case StateForkState.Measured(footprint) => List("state" -> Json.fromString("measured"), "footprintMb" -> Json.fromLong(footprint))
@@ -119,7 +120,7 @@ object StateFile {
   implicit val forkDecoder: Decoder[StateFork] = Decoder.instance { c =>
     for {
       id <- c.get[Long]("id")
-      pid <- c.get[Option[Long]]("pid")
+      pids <- c.get[List[Long]]("pids")
       kind <- c.get[String]("kind").flatMap(s => ForkKind.all.find(_.json == s).toRight(io.circe.DecodingFailure(s"unknown fork kind '$s'", c.history)))
       boundMb <- c.get[Long]("boundMb")
       startedAt <- c.get[Long]("startedAtEpochMs")
@@ -128,7 +129,7 @@ object StateFile {
         case "measured" => c.get[Long]("footprintMb").map(footprint => StateForkState.Measured(footprint): StateForkState)
         case other      => Left(io.circe.DecodingFailure(s"unknown fork state '$other'", c.history))
       }
-    } yield StateFork(id, pid, kind, boundMb, state, startedAt)
+    } yield StateFork(id, pids, kind, boundMb, state, startedAt)
   }
 
   implicit val stateEncoder: Encoder[StateJson] = Encoder.instance { s =>

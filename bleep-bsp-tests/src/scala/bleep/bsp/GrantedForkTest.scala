@@ -37,7 +37,7 @@ class GrantedForkTest extends AnyFunSuite with Matchers {
       .redirectErrorStream(true)
       .start()
 
-  test("successive processes under one grant are each reported, the registry follows the current one, and kill reaches it") {
+  test("successive processes under one grant are each reported, the registry knows what is alive under it, and kill reaches it") {
     val scheduler = new RecordingScheduler
     val forks = new ForkRegistry
     val grant = new GrantedFork(ForkId(7L), "sourcegen:gen", ForkKey("sourcegen:gen"), scheduler, forks)
@@ -45,7 +45,7 @@ class GrantedForkTest extends AnyFunSuite with Matchers {
     try {
       grant.started(first)
       scheduler.spawned.asScala.toList shouldBe List((ForkId(7L), first.pid()))
-      forks.get(ForkId(7L)).map(_.pid) shouldBe Some(first.pid())
+      forks.get(ForkId(7L)).map(_.pids()) shouldBe Some(Set(first.pid()))
 
       // The first script's JVM is done; the next starts under the same grant.
       first.destroyForcibly(): Unit
@@ -54,7 +54,7 @@ class GrantedForkTest extends AnyFunSuite with Matchers {
       try {
         grant.started(second)
         scheduler.spawned.asScala.toList shouldBe List((ForkId(7L), first.pid()), (ForkId(7L), second.pid()))
-        forks.live.map(_.pid) shouldBe List(second.pid()) // one entry, the current process
+        forks.live.map(_.pids()) shouldBe List(Set(second.pid())) // one entry; the first process is dead and no longer counted
         forks.size shouldBe 1
 
         // An eviction or a cancel kills what runs now.
@@ -68,6 +68,28 @@ class GrantedForkTest extends AnyFunSuite with Matchers {
       // The executor, not the handle, tells the scheduler the fork exited: nothing here does.
       scheduler.exited.asScala.toList shouldBe Nil
     } finally first.destroyForcibly(): Unit
+  }
+
+  test("processes a toolchain started are observed by handle, once each however often they are seen, and kill reaches every one alive") {
+    val scheduler = new RecordingScheduler
+    val forks = new ForkRegistry
+    val grant = new GrantedFork(ForkId(9L), "link:native", ForkKey("link:native"), scheduler, forks)
+    val a = sleeper(20_000L)
+    val b = sleeper(20_000L)
+    try {
+      grant.observed(a.toHandle)
+      grant.observed(b.toHandle)
+      grant.observed(a.toHandle) // a watcher scanning on a cadence sees the same process again
+      scheduler.spawned.asScala.toList shouldBe List((ForkId(9L), a.pid()), (ForkId(9L), b.pid()))
+      forks.get(ForkId(9L)).map(_.pids()) shouldBe Some(Set(a.pid(), b.pid()))
+      forks.get(ForkId(9L)).get.kill("bleep: test")
+      a.waitFor(5, TimeUnit.SECONDS) shouldBe true
+      b.waitFor(5, TimeUnit.SECONDS) shouldBe true
+      grant.livePids shouldBe Set.empty
+    } finally {
+      a.destroyForcibly(): Unit
+      b.destroyForcibly(): Unit
+    }
   }
 
   test("a process runner's start hook is the grant's reporter") {

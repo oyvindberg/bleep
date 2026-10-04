@@ -28,7 +28,7 @@ class DecideTest extends AnyFunSuite with Matchers {
   ) =
     RunningFork(
       ForkId(id),
-      Some(100L + id),
+      Set(100L + id),
       owner.id,
       key,
       ForkKind.TestSuite,
@@ -77,11 +77,11 @@ class DecideTest extends AnyFunSuite with Matchers {
       ready = List(demand(r1, "t1", boundMb = 1500L)),
       unstartedSuitesByKey = Map(k -> 1)
     )
-    val starting = other(StateFork(7L, Some(900L), ForkKind.TestSuite, boundMb = 2000L, StateForkState.Starting, now))
+    val starting = other(StateFork(7L, List(900L), ForkKind.TestSuite, boundMb = 2000L, StateForkState.Starting, now))
     decide(me, view(usedMb = 6000L), others = List(starting)).spawn shouldBe empty
     // A server that is shutting down (§5.1) is still alive, so its starting fork is still charged.
     decide(me, view(usedMb = 6000L), others = List(starting.copy(shuttingDown = true))).spawn shouldBe empty
-    val measured = other(StateFork(7L, Some(900L), ForkKind.TestSuite, boundMb = 2000L, StateForkState.Measured(1800L), now))
+    val measured = other(StateFork(7L, List(900L), ForkKind.TestSuite, boundMb = 2000L, StateForkState.Measured(1800L), now))
     decide(me, view(usedMb = 6000L), others = List(measured)).spawn.map(_.demand.taskId.value) shouldBe List("t1")
     // The same for this server's own forks: a Starting one of 1000 leaves 2000 of the 3000, so a 2500 demand waits; measured, it fits.
     val mine = me.copy(forks = me.forks :+ fork(2, r1, busyCpu = 1, state = ForkState.Starting), ready = List(demand(r1, "t1", boundMb = 2500L)))
@@ -263,7 +263,7 @@ class DecideTest extends AnyFunSuite with Matchers {
   test("new forks are published Starting at their bound; nothing is published that is not in the next state") {
     val me = blank.copy(requests = List(r1), ready = List(demand(r1, "t1", boundMb = 1234L)))
     val d = decide(me)
-    d.publish.forks shouldBe List(StateFork(101L, None, ForkKind.TestSuite, 1234L, StateForkState.Starting, now))
+    d.publish.forks shouldBe List(StateFork(101L, Nil, ForkKind.TestSuite, 1234L, StateForkState.Starting, now))
     d.publish.startingBoundMb shouldBe 1234L
     d.next.nextForkId shouldBe 102L
   }

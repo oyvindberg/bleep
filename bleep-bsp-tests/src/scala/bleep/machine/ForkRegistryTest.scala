@@ -6,7 +6,7 @@ import org.scalatest.matchers.should.Matchers
 /** The daemon-wide register of live forks, by the scheduler's fork id (design §10 step 10). */
 class ForkRegistryTest extends AnyFunSuite with Matchers {
   private def fork(id: Long, label: String, startedAt: Long): ForkRegistry.LiveFork =
-    ForkRegistry.LiveFork(id = ForkId(id), pid = 1000L + id, label = label, key = ForkKey("k"), startedAtEpochMs = startedAt, kill = _ => ())
+    ForkRegistry.LiveFork(id = ForkId(id), pids = () => Set(1000L + id), label = label, key = ForkKey("k"), startedAtEpochMs = startedAt, kill = _ => ())
 
   test("forks are listed oldest first while registered, found by id, and gone once unregistered") {
     val r = new ForkRegistry
@@ -33,7 +33,7 @@ class ForkRegistryTest extends AnyFunSuite with Matchers {
   test("a registered fork can be killed through its entry") {
     val r = new ForkRegistry
     var killedFor: Option[String] = None
-    r.register(ForkRegistry.LiveFork(ForkId(3L), 3000L, "x", ForkKey("k"), 0L, reason => killedFor = Some(reason)))
+    r.register(ForkRegistry.LiveFork(ForkId(3L), () => Set(3000L), "x", ForkKey("k"), 0L, reason => killedFor = Some(reason)))
     r.get(ForkId(3L)).get.kill("bleep: test")
     killedFor shouldBe Some("bleep: test")
   }

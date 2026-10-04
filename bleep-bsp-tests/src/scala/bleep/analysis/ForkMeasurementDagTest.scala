@@ -83,12 +83,12 @@ class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
   /** Runs the DAG while sampling the scheduler every 50 ms; returns the fork states seen, in order, and the final snapshot. */
   private def observe(dag: Dag, handlers: Handlers): (List[ForkState], SchedulerSnapshot) = {
     val (scheduling, channel) = TestScheduling.openCooperative(parallelism = 2)
-    val seen = new AtomicReference[List[(Option[Long], ForkState)]](Nil)
+    val seen = new AtomicReference[List[(Set[Long], ForkState)]](Nil)
     val program = for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
       sampler <- (IO.sleep(scala.concurrent.duration.DurationInt(50).millis) >> IO {
-        scheduling.snapshot.foreach(snap => snap.state.forks.foreach(f => seen.updateAndGet(acc => acc :+ (f.pid, f.state)): Unit))
+        scheduling.snapshot.foreach(snap => snap.state.forks.foreach(f => seen.updateAndGet(acc => acc :+ (f.pids, f.state)): Unit))
       }).foreverM.start
       finalDag <- TaskDag.executor(handlers).execute(dag, channel, ForkHeaps.default, eventQueue, killSignal)
       _ <- sampler.cancel
@@ -101,7 +101,7 @@ class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
     after shouldBe true
     val states = seen.get()
     withClue(s"states seen: $states") {
-      states.exists { case (pid, state) => pid.isDefined && state == ForkState.Starting } shouldBe true // reported with a pid, charged at the bound
+      states.exists { case (pids, state) => pids.nonEmpty && state == ForkState.Starting } shouldBe true // reported with a pid, charged at the bound
       states.exists { case (_, state) => state.isInstanceOf[ForkState.Measured] } shouldBe true // measured a second after it started
       // A process measured in the instant it exits reads zero — its pages are gone, its pid not yet — so not every reading is positive, but one must be.
       states.collect { case (_, ForkState.Measured(footprint, _)) => footprint }.exists(_ > 0L) shouldBe true

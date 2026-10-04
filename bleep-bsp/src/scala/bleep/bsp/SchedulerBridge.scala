@@ -324,38 +324,44 @@ object RequestChannel {
   val ClosedRetentionMs: Long = 60_000L
 }
 
-/** A fork the scheduler granted to a DAG task — sourcegen, KSP, link, post-compile — and how its handler reports the process running under it.
+/** A fork the scheduler granted to a DAG task — sourcegen, KSP, a native link, post-compile, a Kotlin discovery — and the processes that run under it.
   *
-  * One grant is one fork and one charge, whichever process is alive under it. A task may run several processes in a row (a sourcegen task runs its scripts one
-  * after another; a Kotlin/Native link runs `konanc`), and each is reported as it starts: the scheduler charges the bound again until the newcomer has run a
-  * second and been measured, and the registry's entry points at it, so an eviction or a cancel kills the process that exists now. Processes a toolchain starts
-  * on its own (clang under a Scala Native link) are not reported, but they are children of the reported one where there is one, and the scheduler measures the
-  * live tree; where the link runs in the server's own heap, nothing is reported and the fork stays charged at its bound — the server's heap is in the machine's
-  * used memory already, so that only overstates.
+  * One grant, one charge, over whatever is alive under it (design §5 rule 1). A process is reported the moment it exists, through [[started]] when bleep
+  * started it or [[observed]] when a toolchain did (a Scala Native link's clang and lld, attributed to this grant by [[ChildWatch]]); the scheduler charges the
+  * fork its bound until the set has been measured, and the registry's entry knows every process so an eviction or a cancel reaches all of them.
   *
-  * `kill` destroys the current process forcibly; the task's own cancellation path then sees it exit. Only idle forks are evicted and these are never idle, so
-  * this is for cancellation and `top`.
+  * `kill` destroys every live process forcibly. For a toolchain's children that is secondary — the task's own cancellation stops the toolchain, whose next
+  * `Process.!` then fails — but it is what makes `bleep server kill` and the registry's cleanup reach a clang that would otherwise outlive its server. Only
+  * idle forks are evicted and these are never idle, so eviction does not reach here.
   */
 final class GrantedFork(val id: ForkId, label: String, key: ForkKey, scheduler: MachineScheduler, forks: ForkRegistry) {
-  private val current = new java.util.concurrent.atomic.AtomicReference[Process](null)
+  private val owned = new java.util.concurrent.ConcurrentHashMap[Long, ProcessHandle]()
+  private val registered = new java.util.concurrent.atomic.AtomicBoolean(false)
 
-  /** A process now runs under this grant. Reported for measurement and registered for eviction, cancellation and `top`; a previous process's entry is replaced.
+  /** A process bleep started now runs under this grant. */
+  def started(process: Process): Unit = observed(process.toHandle)
+
+  /** A process that exists now runs under this grant: registered for cancellation and `top`, reported to the scheduler for measurement. Reporting the same
+    * process twice is a no-op, so a watcher that scans on a cadence can report what it sees without bookkeeping of its own.
     */
-  def started(process: Process): Unit = {
-    current.set(process)
-    forks.unregister(id): Unit
-    forks.register(
-      ForkRegistry.LiveFork(
-        id = id,
-        pid = process.pid(),
-        label = label,
-        key = key,
-        startedAtEpochMs = System.currentTimeMillis(),
-        kill = _ => Option(current.get()).foreach(p => p.destroyForcibly(): Unit)
-      )
-    )
-    scheduler.forkSpawned(id, process.pid())
-  }
+  def observed(handle: ProcessHandle): Unit =
+    if (owned.putIfAbsent(handle.pid(), handle) == null) {
+      if (registered.compareAndSet(false, true))
+        forks.register(
+          ForkRegistry.LiveFork(
+            id = id,
+            pids = () => livePids,
+            label = label,
+            key = key,
+            startedAtEpochMs = System.currentTimeMillis(),
+            kill = _ => owned.values().forEach(h => if (h.isAlive) h.destroyForcibly(): Unit)
+          )
+        )
+      scheduler.forkSpawned(id, handle.pid())
+    }
+
+  /** The processes under this grant that are still alive. */
+  def livePids: Set[Long] = owned.values().asScala.filter(_.isAlive).map(_.pid()).toSet
 
   /** `started` as the hook a process runner takes. */
   val onStarted: Process => Unit = started

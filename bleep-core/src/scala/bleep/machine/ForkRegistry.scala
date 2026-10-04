@@ -18,7 +18,9 @@ final class ForkRegistry {
   def register(fork: LiveFork): Unit = {
     val previous = byId.putIfAbsent(fork.id, fork)
     if (previous != null)
-      throw new IllegalStateException(s"fork ${fork.id.value} ('${fork.label}', pid ${fork.pid}) is already registered as '${previous.label}'")
+      throw new IllegalStateException(
+        s"fork ${fork.id.value} ('${fork.label}', pids ${fork.pids().mkString(", ")}) is already registered as '${previous.label}'"
+      )
   }
 
   /** A fork that is gone. `false` when it was not registered — a pool's shutdown and its `destroy` can both reach the same fork, and the second to arrive is
@@ -35,10 +37,12 @@ final class ForkRegistry {
 
 object ForkRegistry {
 
-  /** @param key
+  /** @param pids
+    *   the processes under it right now; a function, because a grant may gain processes while it lives (a Scala Native link's clangs)
+    * @param key
     *   what a warm fork must match to be reused, as the scheduler sees it
     * @param kill
     *   terminate it with the reason its exit is attributed to, synchronously: the process is gone and reported gone when this returns
     */
-  case class LiveFork(id: ForkId, pid: Long, label: String, key: ForkKey, startedAtEpochMs: Long, kill: String => Unit)
+  case class LiveFork(id: ForkId, pids: () => Set[Long], label: String, key: ForkKey, startedAtEpochMs: Long, kill: String => Unit)
 }

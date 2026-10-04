@@ -40,7 +40,7 @@ object DecideGen {
         (0 until r.nextInt(6)).toList.map { i =>
           RunningFork(
             id = ForkId(i.toLong + 1),
-            pid = if (r.nextBoolean()) Some(10000L + i) else None,
+            pids = if (r.nextBoolean()) Set(10000L + i) else Set.empty,
             owner = pick(r, requestIds),
             key = pick(r, keys),
             kind = forkKind(r),
@@ -91,7 +91,7 @@ object DecideGen {
         forks = (0 until r.nextInt(3)).toList.map(j =>
           StateFork(
             id = j.toLong,
-            pid = Some(20000L + j),
+            pids = List(20000L + j),
             kind = forkKind(r),
             boundMb = 512L * (1 + r.nextInt(4)),
             state = if (r.nextBoolean()) StateForkState.Starting else StateForkState.Measured(300L),

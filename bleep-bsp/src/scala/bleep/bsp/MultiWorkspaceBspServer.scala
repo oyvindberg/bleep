@@ -5362,7 +5362,7 @@ object MultiWorkspaceBspServer {
           forks = snap.state.forks.map { f =>
             SchedulerForkDto(
               id = f.id.value,
-              pid = f.pid,
+              pids = f.pids.toList.sorted,
               request = f.owner.value,
               kind = f.kind.json,
               key = f.key.value,

@@ -75,7 +75,7 @@ object Decide {
       nextForkId += 1
       forks = forks :+ RunningFork(
         id = id,
-        pid = None,
+        pids = Set.empty,
         owner = d.request,
         key = d.key,
         kind = d.kind,
@@ -218,7 +218,7 @@ object Decide {
   def toStateFork(f: RunningFork): StateFork =
     StateFork(
       id = f.id.value,
-      pid = f.pid,
+      pids = f.pids.toList.sorted,
       kind = f.kind,
       boundMb = f.boundMb,
       state = f.state match {

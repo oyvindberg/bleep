@@ -93,10 +93,12 @@ final class Ticker(deps: Ticker.Deps) {
       state = state.copy(inHeap = state.inHeap.patch(i, Nil, 1))
 
     case Event.ForkSpawned(fork, pid) =>
-      // A first process, or a successor under the same grant (one fork, one charge, whichever process is alive). Either way it is charged at the bound again
-      // until it has run a full second and been measured.
+      // A process joins the grant: the first, a successor, or one more alongside the others (a Scala Native link's clangs). One fork, one charge, over whatever
+      // is alive under it. A process just started has no measurement, and its share of the fork is unknown, so the fork is charged its bound again until it
+      // has run a full second and the whole set has been measured — the over-charge is at most a second per new process, and never an undercount. A grant
+      // whose toolchain spawns a new process every few hundred milliseconds stays at its bound for that phase, which is the safe direction.
       val f = forkOrThrow(fork)
-      update(f.copy(pid = Some(pid), state = ForkState.Starting, pidSinceMs = deps.clock()))
+      update(f.copy(pids = f.pids + pid, state = ForkState.Starting, pidSinceMs = deps.clock()))
 
     case Event.ForkWorkFinished(fork, cpu) =>
       val f = forkOrThrow(fork)
@@ -285,13 +287,13 @@ final class Ticker(deps: Ticker.Deps) {
         case ForkState.Starting          => now - f.pidSinceMs >= MeasureAfterMs
         case ForkState.Measured(_, atMs) => now - atMs >= MeasureAfterMs
       }
-      f.pid match {
-        case Some(pid) if due =>
-          Ticker.footprintOfTree(forkProbe, pid) match {
-            case Some(footprint) => f.copy(state = ForkState.Measured(footprint, now))
-            case None            => f // exited between the decision to measure and the measurement; its exit event is on its way
-          }
-        case _ => f
+      if (f.pids.isEmpty || !due) f
+      else {
+        // Every live process's tree, summed; a process that is gone leaves the set. With nothing left alive the grant is still open (its task has not
+        // reported it gone), so it goes back to Starting and is charged its bound — never undercounted while something could still start under it.
+        val measured = f.pids.toList.flatMap(pid => Ticker.footprintOfTree(forkProbe, pid).map(pid -> _))
+        if (measured.isEmpty) f.copy(pids = Set.empty, state = ForkState.Starting, pidSinceMs = now)
+        else f.copy(pids = measured.map(_._1).toSet, state = ForkState.Measured(measured.map(_._2).sum, now))
       }
     })
 }

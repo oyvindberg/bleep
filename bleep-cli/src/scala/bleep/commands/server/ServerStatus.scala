@@ -69,7 +69,10 @@ case class ServerStatus(logger: Logger, userPaths: UserPaths, id: Option[String]
     }
     scheduler.inHeap.foreach(t => logger.info(s"    running  ${t.kind} ${t.taskId} (cpu ${t.cpu}, in the server's heap)"))
     scheduler.forks.foreach { f =>
-      val pid = f.pid.map(p => s"pid $p").getOrElse("no pid yet")
+      val pid = f.pids match {
+        case Nil  => "no process yet"
+        case pids => s"pid${if (pids.size == 1) "" else "s"} ${pids.mkString(", ")}"
+      }
       val charge = f.measuredMb.fold(s"bound ${f.boundMb}MB")(measured => s"measured ${measured}MB (bound ${f.boundMb}MB)")
       val busy = if (f.busyCpu > 0) s"cpu ${f.busyCpu}" else "warm"
       val shared = if (f.shared) ", shared" else ""

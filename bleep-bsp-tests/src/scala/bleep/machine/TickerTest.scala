@@ -166,6 +166,40 @@ class TickerTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("a grant with several processes is charged their trees summed; a gone process leaves the set; an empty set is charged the bound again") {
+    withWorld { w =>
+      val t = ticker(w)
+      t(Event.RegisterRequest(r1, RequestKind.Link))
+      t(Event.SubmitReady(r1, List(ForkDemand(r1, TaskId("link:n"), ForkKind.Link, ForkKey("link:n"), 2000L, cpu = 1, shared = false)), Map.empty))
+      t.tick()
+      t(Event.ForkSpawned(ForkId(1), pid = 500L))
+      t(Event.ForkSpawned(ForkId(1), pid = 501L))
+      w.forkProbe.footprints.set(Map(500L -> 300L, 501L -> 120L))
+      w.clock.addAndGet(Ticker.MeasureAfterMs): Unit
+      t.tick()
+      t.current.forks.head.state shouldBe ForkState.Measured(420L, w.clock.get())
+      t.current.forks.head.pids shouldBe Set(500L, 501L)
+
+      // A new process joining resets to the bound until the whole set is measured again.
+      t(Event.ForkSpawned(ForkId(1), pid = 502L))
+      t.current.forks.head.state shouldBe ForkState.Starting
+      w.forkProbe.footprints.set(Map(500L -> 300L, 502L -> 50L)) // 501 is gone
+      w.clock.addAndGet(Ticker.MeasureAfterMs): Unit
+      t.tick()
+      t.current.forks.head.state shouldBe ForkState.Measured(350L, w.clock.get())
+      t.current.forks.head.pids shouldBe Set(500L, 502L)
+      w.ownState.get.forks.head.pids shouldBe List(500L, 502L)
+
+      // Everything gone while the grant still lives: back to the bound, never undercounted.
+      w.forkProbe.footprints.set(Map.empty)
+      w.clock.addAndGet(Ticker.MeasureAfterMs): Unit
+      t.tick()
+      t.current.forks.head.state shouldBe ForkState.Starting
+      t.current.forks.head.pids shouldBe Set.empty
+      t.current.forks.head.reclaimableMb shouldBe 2000L
+    }
+  }
+
   test("an unconstrained server never probes, never reads anyone and never sheds") {
     withWorld { w =>
       w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 14_000L, pressure = RawPressure.MacOs(4)))
@@ -199,7 +233,7 @@ class TickerTest extends AnyFunSuite with Matchers {
   test("a fork demand nothing warm can absorb takes the lock, probes under it, reads every live server and counts their starting forks") {
     withWorld { w =>
       // Ceiling 16384 − 2048 = 14336; used 4096 → 10240 of room; the other server's Starting 9000 leaves 1240.
-      w.otherServer("bbbb", forks = List(StateFork(3L, Some(77L), ForkKind.TestBatch, 9000L, StateForkState.Starting, 0L)))
+      w.otherServer("bbbb", forks = List(StateFork(3L, List(77L), ForkKind.TestBatch, 9000L, StateForkState.Starting, 0L)))
       w.otherServer("cccc", forks = Nil)
       val t = ticker(w)
       t(Event.RegisterRequest(r1, RequestKind.Test))
@@ -208,7 +242,7 @@ class TickerTest extends AnyFunSuite with Matchers {
       w.lock.calls.get() shouldBe 1
       // t1 is the guarantee; t2 (2000) does not fit in the 1240 the other server left.
       w.effects.all shouldBe List(Effect.Spawn(forkDemand(r1, "t1", 1000L, shared = false), ForkId(1), guaranteed = true))
-      w.ownState.get.forks shouldBe List(StateFork(1L, None, ForkKind.TestSuite, 1000L, StateForkState.Starting, w.clock.get()))
+      w.ownState.get.forks shouldBe List(StateFork(1L, Nil, ForkKind.TestSuite, 1000L, StateForkState.Starting, w.clock.get()))
       w.ownState.get.wantsMore shouldBe true
       t.cadenceMs shouldBe 30L // three live servers
     }
@@ -265,11 +299,13 @@ class TickerTest extends AnyFunSuite with Matchers {
       t.tick()
       w.forkProbe.calls.get() shouldBe 2
       t.current.forks.head.state shouldBe ForkState.Measured(700L, started + 2000L)
-      // A fork that exited under the probe keeps its last state; its exit event follows.
+      // A process that exited under the probe leaves the set; with nothing alive the grant is charged its bound again until its exit event follows.
       w.forkProbe.footprints.set(Map.empty)
       w.clock.set(started + 3000L)
       t.tick()
-      t.current.forks.head.state shouldBe ForkState.Measured(700L, started + 2000L)
+      t.current.forks.head.state shouldBe ForkState.Starting
+      t.current.forks.head.pids shouldBe Set.empty
+      t.current.forks.head.reclaimableMb shouldBe 1000L
     }
   }
 
@@ -285,10 +321,12 @@ class TickerTest extends AnyFunSuite with Matchers {
       w.clock.set(started + 1000L)
       t.tick()
       t.current.forks.head.state shouldBe ForkState.Measured(640L, started + 1000L)
-      // The first script's JVM ends and the next one starts under the same fork: back to Starting, measured a second after *its* start, not the fork's.
+      // The first script's JVM ends and the next one starts under the same fork: back to Starting, measured a second after *its* start, not the fork's. The
+      // dead predecessor is dropped from the set at that measurement, so the charge is the successor's alone.
       w.clock.set(started + 1500L)
       t(Event.ForkSpawned(ForkId(1), pid = 501L))
-      t.current.forks.head.pid shouldBe Some(501L)
+      w.forkProbe.footprints.set(Map(501L -> 300L))
+      t.current.forks.head.pids shouldBe Set(500L, 501L)
       t.current.forks.head.state shouldBe ForkState.Starting
       t.current.forks.head.startedAtMs shouldBe started
       w.clock.set(started + 2400L)
@@ -297,7 +335,8 @@ class TickerTest extends AnyFunSuite with Matchers {
       w.clock.set(started + 2500L)
       t.tick()
       t.current.forks.head.state shouldBe ForkState.Measured(300L, started + 2500L)
-      w.ownState.get.forks.head.pid shouldBe Some(501L)
+      t.current.forks.head.pids shouldBe Set(501L)
+      w.ownState.get.forks.head.pids shouldBe List(501L)
     }
   }
 
@@ -479,7 +518,7 @@ class TickerTest extends AnyFunSuite with Matchers {
 
   test("a claiming tick with fakes costs microseconds") {
     withWorld { w =>
-      w.otherServer("bbbb", forks = List(StateFork(3L, Some(77L), ForkKind.TestBatch, 100L, StateForkState.Starting, 0L)))
+      w.otherServer("bbbb", forks = List(StateFork(3L, List(77L), ForkKind.TestBatch, 100L, StateForkState.Starting, 0L)))
       w.otherServer("cccc", forks = Nil)
       val t = ticker(w)
       t(Event.RegisterRequest(r1, RequestKind.Test))

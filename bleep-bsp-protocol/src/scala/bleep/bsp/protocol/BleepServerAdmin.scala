@@ -90,8 +90,10 @@ object LockDto {
   implicit val codec: Codec[LockDto] = deriveCodec
 }
 
-/** A process the scheduler charges the machine for — a test JVM, a sourcegen script, a linker — as the scheduler sees it.
+/** A fork the scheduler charges the machine for — a test JVM, a sourcegen script, a linker and the processes its toolchain spawns — as the scheduler sees it.
   *
+  * @param pids
+  *   the live processes under the grant as last reported; empty until the first exists
   * @param boundMb
   *   what it is charged while `measuredMb` is absent: its heap bound plus overhead
   * @param measuredMb
@@ -103,7 +105,7 @@ object LockDto {
   */
 case class SchedulerForkDto(
     id: Long,
-    pid: Option[Long],
+    pids: List[Long],
     request: String,
     kind: String,
     key: String,
