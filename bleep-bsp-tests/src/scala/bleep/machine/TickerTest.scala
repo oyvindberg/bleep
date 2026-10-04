@@ -200,6 +200,37 @@ class TickerTest extends AnyFunSuite with Matchers {
     }
   }
 
+  /** The leak seen live: a batch's fork demand was granted a Spawn; a ready set built by the request's thread while that tick ran still listed the demand and
+    * landed after it; when the fork went idle the stale demand was granted a Reuse of it, which nothing ever released — the fork stayed busy, with a live
+    * process, after its request had ended.
+    */
+  test("a demand already granted is not granted again when a ready set built before the grant arrives late") {
+    withWorld { w =>
+      val t = ticker(w)
+      val batch = forkDemand(r1, "bleep-bsp-tests (batch of 4)#7", boundMb = 1000L, shared = false)
+      t(Event.RegisterRequest(r1, RequestKind.Test))
+      t(Event.SubmitReady(r1, List(batch), Map(k -> 1)))
+      t.tick()
+      w.effects.all shouldBe List(Effect.Spawn(batch, ForkId(1), guaranteed = true))
+      t(Event.ForkSpawned(ForkId(1), pid = 500L))
+      // The stale ready set: built while the tick above was granting, delivered after it.
+      t(Event.SubmitReady(r1, List(batch), Map(k -> 1)))
+      w.effects.clear()
+      t.tick()
+      w.effects.all shouldBe Nil
+      t.current.ready shouldBe Nil
+      // The batch finishes and its fork goes idle: still nothing is granted to the stale demand, and the fork is evicted as nothing left wants it.
+      t(Event.ForkWorkFinished(ForkId(1), cpu = 1))
+      t(Event.SubmitReady(r1, Nil, Map.empty))
+      t.tick()
+      w.effects.all shouldBe List(Effect.Evict(ForkId(1), Decision.EvictReason.NothingToReuseIt))
+      t(Event.ForkExited(ForkId(1)))
+      t(Event.UnregisterRequest(r1))
+      t.current.forks shouldBe Nil
+      t.current.cpuInUse shouldBe 0
+    }
+  }
+
   test("an unconstrained server never probes, never reads anyone and never sheds") {
     withWorld { w =>
       w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 14_000L, pressure = RawPressure.MacOs(4)))

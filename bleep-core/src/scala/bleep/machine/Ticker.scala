@@ -23,6 +23,13 @@ final class Ticker(deps: Ticker.Deps) {
 
   private var state: MyState = MyState.empty
   private var unstartedByRequest: Map[RequestId, Map[ForkKey, Int]] = Map.empty
+
+  /** Every (request, task) ever granted — a slot, a spawn or a reuse — until the request ends. A ready set is built by the request's thread from what it still
+    * waits for, and reaches this thread as an event; one built while a tick was granting one of its demands still lists that demand, and lands after the tick.
+    * Without this a demand already running would be granted a second time: a second fork for a suite that has one, and nothing to ever release it. Task ids are
+    * unique per request (a DAG task runs once; a test demand's id carries a counter), so "granted once" is exact, not a heuristic.
+    */
+  private var grantedTasks: Set[(RequestId, TaskId)] = Set.empty
   private var lastPublished: Option[StateJson] = None
   private var liveServersSeen: Int = 1
   private var pressureSignalWarned: Boolean = false
@@ -79,13 +86,16 @@ final class Ticker(deps: Ticker.Deps) {
         heapDeferredSince = state.heapDeferredSince -- state.ready.filter(_.request == id).map(_.taskId)
       )
       unstartedByRequest -= id
+      grantedTasks = grantedTasks.filterNot(_._1 == id)
       state = state.copy(unstartedSuitesByKey = aggregateUnstarted())
 
     case Event.SubmitReady(request, ready, unstarted) =>
       require(state.requests.exists(_.id == request), s"ready set submitted for unregistered request ${request.value}")
       ready.foreach(d => require(d.request == request, s"demand ${d.taskId.value} of request ${d.request.value} submitted under ${request.value}"))
       unstartedByRequest += (request -> unstarted)
-      state = state.copy(ready = state.ready.filterNot(_.request == request) ++ ready, unstartedSuitesByKey = aggregateUnstarted())
+      // A demand this scheduler has already granted is not ready, whatever a ready set built before that grant says.
+      val fresh = ready.filterNot(d => grantedTasks.contains((d.request, d.taskId)))
+      state = state.copy(ready = state.ready.filterNot(_.request == request) ++ fresh, unstartedSuitesByKey = aggregateUnstarted())
 
     case Event.InHeapFinished(request, taskId) =>
       val i = state.inHeap.indexWhere(t => t.request == request && t.taskId == taskId)
@@ -238,6 +248,9 @@ final class Ticker(deps: Ticker.Deps) {
     }
 
     state = decision.next
+    grantedTasks ++= decision.spawn.map(s => (s.demand.request, s.demand.taskId)) ++
+      decision.reuse.map(r => (r.demand.request, r.demand.taskId)) ++
+      decision.admitInHeap.map(a => (a.demand.request, a.demand.taskId))
     lastMachine = view.orElse(lastMachine)
     lastLock = lockState
     deps.observer.tick(TickReport.of(decision, now, claimed, lockState, holdBreakdownMs, view.map(_.pressure), liveServersSeen))
