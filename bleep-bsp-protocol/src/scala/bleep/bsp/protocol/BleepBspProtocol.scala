@@ -64,6 +64,13 @@ object BleepBspProtocol {
     */
   val HistoryIdDataKind: String = "bleep-history-id"
 
+  /** `buildTarget/compile` argument: run the targets' sourcegen scripts and what they need — their script projects and `inputs`, built first — but do not
+    * compile the targets themselves. The targets' generators run even when their outputs look up to date: asking for sourcegen is how a generator whose real
+    * inputs the timestamps cannot see (git state, the network) is rerun. What `bleep sourcegen` sends, so it orders sourcegen the way a compile does instead of
+    * re-deriving that in the client.
+    */
+  val SourcegenOnlyArgument: String = "--sourcegen-only"
+
   // ==========================================================================
   // Response Extensions (server -> client, in TestResult.data)
   // ==========================================================================

@@ -432,18 +432,22 @@ object SourceGenRunner {
     * Guarded by a per-script semaphore so two concurrent DAG executions that happen to share a script don't fork it twice. When the second waiter gets the
     * semaphore it re-checks timestamps — if the first caller already produced fresh outputs, the second skips.
     *
+    * `regardless` are consumers to regenerate even when up to date — those `bleep sourcegen` named, since asking for it is the way to rerun a generator whose
+    * real inputs (git state, the network) the timestamps cannot see. The rest of `forProjects` regenerate only when stale. A compile passes none.
+    *
     * Returns `None` on success, `Some(error)` on failure. Never throws.
     */
   def runOne(
       started: Started,
       script: ScriptDef.Main,
       forProjects: Set[CrossProjectName],
+      regardless: Set[CrossProjectName],
       killSignal: Deferred[IO, KillReason],
       listener: SourceGenListener
   ): IO[Option[String]] =
     getScriptSemaphore(ScriptKey(script.project, script.main)).flatMap { sem =>
       sem.permit.use { _ =>
-        val stillNeeded = projectsNeedingRegeneration(started, script, forProjects)
+        val stillNeeded = projectsNeedingRegeneration(started, script, forProjects) ++ forProjects.intersect(regardless)
         if (stillNeeded.isEmpty) {
           listener.onLog(s"Sourcegen ${script.main} already up to date", false)
           IO.pure(None)
@@ -460,7 +464,7 @@ object SourceGenRunner {
       killSignal: Deferred[IO, KillReason],
       listener: SourceGenListener
   ): IO[Option[String]] =
-    runOne(started, scriptToRun.script, scriptToRun.forProjects, killSignal, listener)
+    runOne(started, scriptToRun.script, scriptToRun.forProjects, regardless = Set.empty, killSignal, listener)
 
   /** Run a single sourcegen script by forking a separate JVM. Caller must hold the script lock.
     *

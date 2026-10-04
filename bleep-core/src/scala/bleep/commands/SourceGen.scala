@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.{traverseish, TransitiveProjects}
+import bleep.internal.TransitiveProjects
 
 case class SourceGen(watch: Boolean, projectNames: Array[model.CrossProjectName]) extends BleepBuildCommand {
   override def run(started: Started): Either[BleepException, Unit] =
@@ -26,10 +26,12 @@ case class SourceGen(watch: Boolean, projectNames: Array[model.CrossProjectName]
     TransitiveProjects(started.build, projectNames ++ scriptProjects)
   }
 
+  /** Through the compile server's task graph, the same as the sourcegen a compile runs: each script after its script project and its `inputs` are built. Unlike
+    * a compile, the named projects' generators run even when up to date. Running the scripts here with `Run` instead built only the script project, so a script
+    * declaring `inputs` ran before the projects it reads existed — and `Script.run` refused it outright, its `inputs` check being meant for `bleep run`.
+    */
   private def runOnce(started: Started): Either[BleepException, Unit] =
-    traverseish.runAll(SourceGen.plan(started.build, projectNames)) { invocation =>
-      Script.run(started, List(invocation.script), args = invocation.args, watch = false)
-    }
+    ReactiveBsp.sourcegen(projectNames, DisplayMode.NoTui).run(started)
 }
 
 object SourceGen {
@@ -39,8 +41,8 @@ object SourceGen {
     def args: List[String] = forProjects.flatMap(pn => List("--project", pn.value))
   }
 
-  /** Which scripts `bleep sourcegen` runs for `projectNames`, and with which arguments. Shared by the CLI, which runs them attached to the terminal, and
-    * `bleep.sourcegen` over MCP, which records their output instead: the MCP server's own stdin and stdout are its protocol channel.
+  /** Which scripts `bleep.sourcegen` over MCP runs for `projectNames`, and with which arguments. The MCP tool forks each one itself so it can record its
+    * output: the MCP server's own stdin and stdout are its protocol channel. The CLI does not use this; it runs sourcegen through the compile server.
     */
   def plan(build: model.Build, projectNames: Array[model.CrossProjectName]): List[Invocation] =
     projectNames.toList
