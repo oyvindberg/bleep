@@ -39,7 +39,12 @@ object ForkKind {
   case object Link extends ForkKind("link")
   case object PostCompile extends ForkKind("post-compile")
 
-  val all: List[ForkKind] = List(TestSuite, TestBatch, Sourcegen, AnnotationProcessor, Ksp, Link, PostCompile)
+  /** A linked artifact asked to list its own test suites: node for Kotlin/JS, the binary for Kotlin/Native. Scala.js and Scala Native discover by reflection in
+    * the server's heap and never fork for it.
+    */
+  case object Discover extends ForkKind("discover")
+
+  val all: List[ForkKind] = List(TestSuite, TestBatch, Sourcegen, AnnotationProcessor, Ksp, Link, PostCompile, Discover)
 
   def fromJson(s: String): ForkKind =
     all.find(_.json == s).getOrElse(throw new IllegalArgumentException(s"unknown fork kind '$s'; known: ${all.map(_.json).mkString(", ")}"))
@@ -51,6 +56,17 @@ object InHeapKind {
   case object Compile extends InHeapKind("compile")
   case object Discover extends InHeapKind("discover")
   case object ResolveAnnotationProcessors extends InHeapKind("annotation-processors")
+
+  /** A linker that runs in the server's own heap — Scala.js, Kotlin/JS. It counts like a compile: a cpu slot and the heap gate's consent, never machine room or
+    * the lock (owner's rule: in-process work counts like a compile; real processes are forks).
+    */
+  case object Link extends InHeapKind("link")
+
+  /** The kinds that allocate heavily in the server's heap, and so answer to the heap gate: Zinc, and the linkers' IR and optimizer. */
+  def heapHeavy(kind: InHeapKind): Boolean = kind match {
+    case Compile | Link                         => true
+    case Discover | ResolveAnnotationProcessors => false
+  }
 }
 
 /** Something a request's DAG could start now. A request's demands are submitted in the DAG's priority order. */

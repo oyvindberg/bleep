@@ -36,7 +36,9 @@ object KotlinTestRunner {
     def discoverSuites(
         jsOutput: Path,
         nodeBinary: String,
-        killSignal: Deferred[IO, KillReason]
+        killSignal: Deferred[IO, KillReason],
+        /** Told of the node process the moment it exists: discovery here is a fork the scheduler granted and measures. */
+        onStarted: Process => Unit
     ): IO[ProcessRunner.DiscoveryResult[List[TestSuite]]] =
       killSignal.tryGet.flatMap {
         case Some(reason) => IO.pure(ProcessRunner.DiscoveryResult.Killed(reason))
@@ -51,7 +53,7 @@ object KotlinTestRunner {
               .directory(jsOutput.getParent.toFile)
               .redirectErrorStream(true)
 
-            val work = ProcessRunner.start(pb).use { process =>
+            val work = ProcessRunner.start(pb).evalTap(process => IO(onStarted(process))).use { process =>
               ProcessRunner.lines(process.getInputStream).compile.toList.flatMap { outputLines =>
                 IO.blocking(process.waitFor()).map { exitCode =>
                   val output = outputLines.mkString("\n")
@@ -353,7 +355,9 @@ object KotlinTestRunner {
       */
     def discoverSuites(
         binary: Path,
-        killSignal: Deferred[IO, KillReason]
+        killSignal: Deferred[IO, KillReason],
+        /** Told of the binary's process the moment it exists: discovery here is a fork the scheduler granted and measures. */
+        onStarted: Process => Unit
     ): IO[ProcessRunner.DiscoveryResult[List[TestSuite]]] =
       killSignal.tryGet.flatMap {
         case Some(reason)                        => IO.pure(ProcessRunner.DiscoveryResult.Killed(reason))
@@ -366,6 +370,7 @@ object KotlinTestRunner {
           // --ktest_list_tests is not supported by all binaries; non-zero exit = run all
           val work = ProcessRunner
             .start(pb)
+            .evalTap(process => IO(onStarted(process)))
             .use { process =>
               ProcessRunner.lines(process.getInputStream).compile.toList.flatMap { outputLines =>
                 IO.blocking(process.waitFor()).map { exitCode =>

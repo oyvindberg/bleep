@@ -14,9 +14,10 @@ import org.scalatest.matchers.should.Matchers
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
 
-/** Every fork the scheduler grants to a DAG task — sourcegen, link, KSP, post-compile — reports the process it starts, so the scheduler sees it `Starting` with
-  * a pid, measures it a second later, and sees it gone when the task ends. Through a cooperative scheduler with this machine's real probes, against temp
-  * directories. Annotation-processor resolution forks nothing: it runs in the server's heap and the scheduler counts it there.
+/** Every fork the scheduler grants to a DAG task — sourcegen, a Kotlin/Native link, KSP, post-compile, Kotlin/JS and Kotlin/Native test discovery — reports the
+  * process it starts, so the scheduler sees it `Starting` with a pid, measures it a second later, and sees it gone when the task ends. Through a cooperative
+  * scheduler with this machine's real probes, against temp directories. What runs in the server's own heap — annotation-processor resolution, the Scala.js
+  * linker, discovery by reflection — forks nothing: the scheduler counts it as an in-heap task.
   */
 class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
   private def projectName(name: String): CrossProjectName = CrossProjectName(ProjectName(name), None)
@@ -37,6 +38,26 @@ class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
       testProjects = Set.empty,
       postCompile = postCompile
     )
+
+  /** A test DAG's context: one suite-bearing project on `platform` (`None` for the JVM), nothing else. */
+  private def testCtx(project: CrossProjectName, platform: Option[LinkPlatform]) =
+    BuildContext(
+      allProjectDeps = Map(project -> Set.empty),
+      platforms = platform.map(project -> _).toMap,
+      sourcegen = SourcegenPlan.empty,
+      apPlan = AnnotationProcessorPlan.empty,
+      kspPlan = SymbolProcessorPlan.empty,
+      testProjects = Set(project),
+      postCompile = Map.empty
+    )
+
+  private val kotlinJs =
+    LinkPlatform.KotlinJs(
+      "2.0.0",
+      KotlinJsConfig(bleep.model.KotlinJsModuleKind.CommonJS, None, true, None, bleep.model.KotlinJsSourceMapEmbedSources.Never, false, false)
+    )
+  private val kotlinNative = LinkPlatform.KotlinNative("2.0.0", KotlinNativeConfig("linux-x64", true, false, false))
+  private val noSuites = DiscoveryResult(Nil, 0, suiteParallelism = None, batches = Nil)
 
   private def sleeper(ms: Long): Process =
     new ProcessBuilder(
@@ -102,7 +123,7 @@ class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
         compile = quiet,
         postCompile = (_, _, _) => absent("PostCompileTask"),
         link = (_, _, _) => absent("LinkTask"),
-        discover = (_, _, _) => absent("DiscoverTask"),
+        discover = (_, _, _, _) => absent("DiscoverTask"),
         test = (_, _, _) => absent("TestSuiteTask"),
         testBatch = (_, _) => absent("TestBatchTask"),
         sourcegen = (_, grant, _) => runUnder(grant, 2500L).as(TaskResult.Success),
@@ -124,7 +145,7 @@ class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
         compile = quiet,
         postCompile = (_, _, _) => absent("PostCompileTask"),
         link = (_, _, _) => absent("LinkTask"),
-        discover = (_, _, _) => absent("DiscoverTask"),
+        discover = (_, _, _, _) => absent("DiscoverTask"),
         test = (_, _, _) => absent("TestSuiteTask"),
         testBatch = (_, _) => absent("TestBatchTask"),
         sourcegen = (_, _, _) => absent("SourcegenTask"),
@@ -134,12 +155,11 @@ class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
     ): Unit
   }
 
-  test("a link fork is reported, measured and gone") {
-    val project = projectName("myapp-js")
-    val platform = LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Debug)
+  test("a Kotlin/Native link fork is reported, measured and gone") {
+    val project = projectName("myapp-native")
     val dag = TaskDag.buildLinkDag(
       Set(project),
-      ctx(Map(project -> platform), SourcegenPlan.empty, SymbolProcessorPlan.empty, AnnotationProcessorPlan.empty, Map.empty, Map.empty),
+      ctx(Map(project -> kotlinNative), SourcegenPlan.empty, SymbolProcessorPlan.empty, AnnotationProcessorPlan.empty, Map.empty, Map.empty),
       releaseMode = false
     )
     observe(
@@ -147,8 +167,9 @@ class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
       Handlers(
         compile = quiet,
         postCompile = (_, _, _) => absent("PostCompileTask"),
-        link = (_, grant, _) => runUnder(grant, 2500L).as((TaskResult.Success, LinkResult.NotApplicable)),
-        discover = (_, _, _) => absent("DiscoverTask"),
+        link = (lt, grant, _) =>
+          runUnder(TaskGrant.forkFor(grant, s"the Kotlin/Native link of ${lt.project.value}"), 2500L).as((TaskResult.Success, LinkResult.NotApplicable)),
+        discover = (_, _, _, _) => absent("DiscoverTask"),
         test = (_, _, _) => absent("TestSuiteTask"),
         testBatch = (_, _) => absent("TestBatchTask"),
         sourcegen = (_, _, _) => absent("SourcegenTask"),
@@ -179,7 +200,7 @@ class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
         compile = quiet,
         postCompile = (_, grant, _) => runUnder(grant, 2500L).as(TaskResult.Success),
         link = (_, _, _) => absent("LinkTask"),
-        discover = (_, _, _) => absent("DiscoverTask"),
+        discover = (_, _, _, _) => absent("DiscoverTask"),
         test = (_, _, _) => absent("TestSuiteTask"),
         testBatch = (_, _) => absent("TestBatchTask"),
         sourcegen = (_, _, _) => absent("SourcegenTask"),
@@ -187,6 +208,142 @@ class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
         symbolProcessor = (_, _, _) => absent("RunSymbolProcessorsTask")
       )
     ): Unit
+  }
+
+  test("Kotlin/JS test discovery runs node: a fork, reported, measured and gone") {
+    val project = projectName("myapp-kjs")
+    val dag = TaskDag.buildTestDag(Set(project), testCtx(project, Some(kotlinJs)))
+    observe(
+      dag,
+      Handlers(
+        compile = quiet,
+        postCompile = (_, _, _) => absent("PostCompileTask"),
+        // The Kotlin/JS linker runs in the server's heap; the executor hands it an in-heap grant.
+        link =
+          (lt, grant, _) => IO(TaskGrant.requireInHeap(grant, s"the Kotlin/JS link of ${lt.project.value}")).as((TaskResult.Success, LinkResult.NotApplicable)),
+        discover =
+          (dt, _, grant, _) => runUnder(TaskGrant.forkFor(grant, s"Kotlin/JS discovery of ${dt.project.value}"), 2500L).as((TaskResult.Success, noSuites)),
+        test = (_, _, _) => absent("TestSuiteTask"),
+        testBatch = (_, _) => absent("TestBatchTask"),
+        sourcegen = (_, _, _) => absent("SourcegenTask"),
+        annotationProcessor = (_, _) => absent("ResolveAnnotationProcessorsTask"),
+        symbolProcessor = (_, _, _) => absent("RunSymbolProcessorsTask")
+      )
+    ): Unit
+  }
+
+  test("Kotlin/Native test discovery runs the binary: a fork, reported, measured and gone") {
+    val project = projectName("myapp-knative")
+    val dag = TaskDag.buildTestDag(Set(project), testCtx(project, Some(kotlinNative)))
+    observe(
+      dag,
+      Handlers(
+        compile = quiet,
+        postCompile = (_, _, _) => absent("PostCompileTask"),
+        // Two forks in sequence, each its own grant: the link's konanc, then the binary listing its suites.
+        link = (lt, grant, _) =>
+          runUnder(TaskGrant.forkFor(grant, s"the Kotlin/Native link of ${lt.project.value}"), 1500L).as((TaskResult.Success, LinkResult.NotApplicable)),
+        discover =
+          (dt, _, grant, _) => runUnder(TaskGrant.forkFor(grant, s"Kotlin/Native discovery of ${dt.project.value}"), 2500L).as((TaskResult.Success, noSuites)),
+        test = (_, _, _) => absent("TestSuiteTask"),
+        testBatch = (_, _) => absent("TestBatchTask"),
+        sourcegen = (_, _, _) => absent("SourcegenTask"),
+        annotationProcessor = (_, _) => absent("ResolveAnnotationProcessorsTask"),
+        symbolProcessor = (_, _, _) => absent("RunSymbolProcessorsTask")
+      )
+    ): Unit
+  }
+
+  /** Watches the scheduler while `taskPrefix` runs: whether it was counted in the heap, and whether any fork existed meanwhile. */
+  private def watchInHeap(
+      scheduling: bleep.bsp.DaemonScheduling,
+      taskPrefix: String,
+      inHeapSeen: AtomicReference[Boolean],
+      forksSeen: AtomicReference[Boolean]
+  ): Unit = {
+    val deadline = System.nanoTime() + 3_000_000_000L
+    while (System.nanoTime() < deadline && !inHeapSeen.get()) {
+      scheduling.snapshot.foreach { snap =>
+        if (snap.state.inHeap.exists(_.taskId.value.startsWith(taskPrefix))) inHeapSeen.set(true)
+        if (snap.state.forks.nonEmpty) forksSeen.set(true)
+      }
+      Thread.sleep(20L)
+    }
+  }
+
+  test("a Scala.js link is in-heap work: no fork, an in-heap slot while it runs") {
+    val project = projectName("myapp-js")
+    val platform = LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Debug)
+    val dag = TaskDag.buildLinkDag(
+      Set(project),
+      ctx(Map(project -> platform), SourcegenPlan.empty, SymbolProcessorPlan.empty, AnnotationProcessorPlan.empty, Map.empty, Map.empty),
+      releaseMode = false
+    )
+    val (scheduling, channel) = TestScheduling.openCooperative(parallelism = 2)
+    val inHeapSeen = new AtomicReference[Boolean](false)
+    val forksSeen = new AtomicReference[Boolean](false)
+    val handlers = Handlers(
+      compile = quiet,
+      postCompile = (_, _, _) => absent("PostCompileTask"),
+      link = (lt, grant, _) =>
+        IO.blocking {
+          TaskGrant.requireInHeap(grant, s"the Scala.js link of ${lt.project.value}")
+          watchInHeap(scheduling, "link:", inHeapSeen, forksSeen)
+          (TaskResult.Success, LinkResult.NotApplicable)
+        },
+      discover = (_, _, _, _) => absent("DiscoverTask"),
+      test = (_, _, _) => absent("TestSuiteTask"),
+      testBatch = (_, _) => absent("TestBatchTask"),
+      sourcegen = (_, _, _) => absent("SourcegenTask"),
+      annotationProcessor = (_, _) => absent("ResolveAnnotationProcessorsTask"),
+      symbolProcessor = (_, _, _) => absent("RunSymbolProcessorsTask")
+    )
+    val program = for {
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
+      killSignal <- Outcome.neverKillSignal
+      finalDag <- TaskDag.executor(handlers).execute(dag, channel, ForkHeaps.default, eventQueue, killSignal)
+    } yield finalDag
+    val finalDag = program.timeout(scala.concurrent.duration.DurationInt(60).seconds).unsafeRunSync()
+    finalDag.completed should contain(TaskId.Link(project))
+    inHeapSeen.get() shouldBe true
+    forksSeen.get() shouldBe false
+    channel.close()
+    scheduling.close()
+  }
+
+  test("JVM test discovery is in-heap work: no fork, an in-heap slot while it runs") {
+    val project = projectName("myapp")
+    val dag = TaskDag.buildTestDag(Set(project), testCtx(project, None))
+    val (scheduling, channel) = TestScheduling.openCooperative(parallelism = 2)
+    val inHeapSeen = new AtomicReference[Boolean](false)
+    val forksSeen = new AtomicReference[Boolean](false)
+    val handlers = Handlers(
+      compile = quiet,
+      postCompile = (_, _, _) => absent("PostCompileTask"),
+      link = (_, _, _) => absent("LinkTask"),
+      discover = (dt, _, grant, _) =>
+        IO.blocking {
+          TaskGrant.requireInHeap(grant, s"JVM discovery of ${dt.project.value}")
+          watchInHeap(scheduling, "discover:", inHeapSeen, forksSeen)
+          (TaskResult.Success, noSuites)
+        },
+      test = (_, _, _) => absent("TestSuiteTask"),
+      testBatch = (_, _) => absent("TestBatchTask"),
+      sourcegen = (_, _, _) => absent("SourcegenTask"),
+      annotationProcessor = (_, _) => absent("ResolveAnnotationProcessorsTask"),
+      symbolProcessor = (_, _, _) => absent("RunSymbolProcessorsTask")
+    )
+    val program = for {
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
+      killSignal <- Outcome.neverKillSignal
+      finalDag <- TaskDag.executor(handlers).execute(dag, channel, ForkHeaps.default, eventQueue, killSignal)
+    } yield finalDag
+    val finalDag = program.timeout(scala.concurrent.duration.DurationInt(60).seconds).unsafeRunSync()
+    finalDag.completed should contain(TaskId.Discover(project))
+    inHeapSeen.get() shouldBe true
+    forksSeen.get() shouldBe false
+    channel.close()
+    scheduling.close()
   }
 
   test("annotation-processor resolution is in-heap work: no fork, an in-heap slot while it runs") {
@@ -202,7 +359,7 @@ class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
       compile = quiet,
       postCompile = (_, _, _) => absent("PostCompileTask"),
       link = (_, _, _) => absent("LinkTask"),
-      discover = (_, _, _) => absent("DiscoverTask"),
+      discover = (_, _, _, _) => absent("DiscoverTask"),
       test = (_, _, _) => absent("TestSuiteTask"),
       testBatch = (_, _) => absent("TestBatchTask"),
       sourcegen = (_, _, _) => absent("SourcegenTask"),

@@ -52,7 +52,7 @@ class MaxConcurrentSuitesDagTest extends AnyFunSuite with Matchers {
           postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
           compile = (_, _) => IO.pure(TaskResult.Success),
           link = (_, _, _) => sys.error("no link on JVM"),
-          discover = (_, _, _) =>
+          discover = (_, _, _, _) =>
             IO.pure(
               (
                 TaskResult.Success,

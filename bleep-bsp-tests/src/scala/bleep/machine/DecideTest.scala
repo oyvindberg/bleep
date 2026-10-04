@@ -217,6 +217,23 @@ class DecideTest extends AnyFunSuite with Matchers {
     second.next.heapDeferredSince shouldBe empty
   }
 
+  test("an in-heap link answers to the heap gate like a compile, and counts as a compile for others") {
+    val neverAdmit: HeapGate = (_, _, _, _) => HeapVerdict.Defer(500L)
+    val link = InHeap(r1.id, TaskId("link:app-js"), InHeapKind.Link, cpu = 1)
+    val busy = blank.copy(requests = List(r1), inHeap = List(InHeapRunning(r1.id, TaskId("x"), InHeapKind.Compile, 1)), ready = List(link))
+    withClue("a second heap-heavy task is held like a second compile would be: ") {
+      decide(busy, gate = neverAdmit).heapDeferred.map(_.demand) shouldBe List(link)
+    }
+    val seen = new java.util.concurrent.atomic.AtomicReference[Option[Boolean]](None)
+    val recording: HeapGate = (_, others, _, _) => { seen.set(Some(others)); HeapVerdict.Admit }
+    val compile = InHeap(r1.id, TaskId("c1"), InHeapKind.Compile, cpu = 1)
+    val linking = blank.copy(requests = List(r1), inHeap = List(InHeapRunning(r1.id, TaskId("l"), InHeapKind.Link, 1)), ready = List(compile))
+    decide(linking, gate = recording).admitInHeap shouldBe List(Decision.AdmitInHeap(compile, guaranteed = false))
+    withClue("a running in-heap link is 'others compiling' to the gate: ") {
+      seen.get() shouldBe Some(true)
+    }
+  }
+
   test("discovery and processor resolution bypass the heap gate") {
     val neverAdmit: HeapGate = (_, _, _, _) => HeapVerdict.Defer(500L)
     val disc = InHeap(r1.id, TaskId("d"), InHeapKind.Discover, cpu = 1)

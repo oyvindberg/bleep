@@ -272,7 +272,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
             )
           )
         },
-        discover = (_, _, _) => sys.error("DiscoverTask should not appear in a link DAG"),
+        discover = (_, _, _, _) => sys.error("DiscoverTask should not appear in a link DAG"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear in a link DAG"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear in a link DAG"),
         sourcegen = (_, _, _) => sys.error("SourcegenTask should not appear here"),
@@ -321,7 +321,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
               LinkResult.JsSuccess(java.nio.file.Path.of("out.js"), None, Seq.empty, wasUpToDate = false)
             )
           ),
-        discover = (_, _, _) => sys.error("DiscoverTask should not appear in a link DAG"),
+        discover = (_, _, _, _) => sys.error("DiscoverTask should not appear in a link DAG"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear in a link DAG"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear in a link DAG"),
         sourcegen = (_, _, _) => sys.error("SourcegenTask should not appear here"),
@@ -370,7 +370,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
         postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (_, _) => IO.pure(TaskResult.Success),
         link = (_, _, _) => IO.pure((TaskResult.Failure("Link error", List.empty), LinkResult.Failure("Link error", List.empty))),
-        discover = (_, _, _) => IO.pure((TaskResult.Success, TaskDag.DiscoveryResult(Nil, 0, suiteParallelism = None, batches = Nil))),
+        discover = (_, _, _, _) => IO.pure((TaskResult.Success, TaskDag.DiscoveryResult(Nil, 0, suiteParallelism = None, batches = Nil))),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear in this DAG"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear in this DAG"),
         sourcegen = (_, _, _) => sys.error("SourcegenTask should not appear here"),

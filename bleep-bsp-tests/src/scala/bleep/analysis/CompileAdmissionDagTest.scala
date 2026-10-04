@@ -52,7 +52,7 @@ class CompileAdmissionDagTest extends AnyFunSuite with Matchers {
             else staggeredStarted.complete(()).as(TaskResult.Success),
           postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
           link = (_, _, _) => sys.error("LinkTask should not appear here"),
-          discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
+          discover = (_, _, _, _) => sys.error("DiscoverTask should not appear here"),
           test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
           testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
           sourcegen = (_, _, _) => sys.error("SourcegenTask should not appear here"),

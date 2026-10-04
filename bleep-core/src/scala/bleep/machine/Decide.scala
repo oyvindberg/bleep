@@ -152,11 +152,11 @@ object Decide {
     remaining.foreach {
       case d: InHeap =>
         if (cpuInUse + d.cpu <= params.parallelism) {
-          val verdict = d.kind match {
-            case InHeapKind.Compile =>
-              heapGate.verdict(me.heap, othersCompiling = inHeap.exists(_.kind == InHeapKind.Compile), deferredSince.get(d.taskId), now)
-            case InHeapKind.Discover | InHeapKind.ResolveAnnotationProcessors => HeapVerdict.Admit
-          }
+          // The gate staggers heap-heavy work — compiles and in-heap linkers — against each other; discovery and annotation-processor resolution are light.
+          val verdict =
+            if (InHeapKind.heapHeavy(d.kind))
+              heapGate.verdict(me.heap, othersCompiling = inHeap.exists(t => InHeapKind.heapHeavy(t.kind)), deferredSince.get(d.taskId), now)
+            else HeapVerdict.Admit
           verdict match {
             case HeapVerdict.Admit          => takeInHeap(d, guaranteed = false)
             case HeapVerdict.Defer(delayMs) =>

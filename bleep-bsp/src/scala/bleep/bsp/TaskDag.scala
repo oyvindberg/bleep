@@ -102,26 +102,46 @@ object TaskDag {
     def runAfter: Set[TaskId] = Set.empty
   }
 
+  /** What a linked artifact asked to list its own suites is charged until the scheduler has measured it, a second after it starts: node loading a Kotlin/JS
+    * bundle, or a Kotlin/Native test binary. Neither is a JVM, so no `-Xmx` sizes it. PROVISIONAL — a round number above what either has been seen to need; the
+    * measurement replaces it almost at once, so what it costs is one second of over-charge, not a wrong steady state.
+    */
+  val ListingProcessBoundMb: Long = 256L
+
   /** What `task` asks the machine scheduler for, given what this machine gives each kind of fork — or nothing, for a test task.
     *
-    * Compiles, discovery and annotation-processor resolution run in the server's heap: in-heap demands, a cpu slot each (and, for a compile, the heap gate's
-    * consent). Sourcegen, KSP, link and post-compile each fork a JVM: fork demands, charged the heap they are started with plus the non-heap a JVM also
-    * commits. Test suites and batches ask for their fork themselves, from inside their handler, once the classpath — and so the fork's key — is known (design
-    * §11, two-stage test admission); the executor starts them as soon as they are ready and submits nothing for them.
+    * The rule (owner's): work in the server's own process counts like a compile — a cpu slot and, when it allocates heavily, the heap gate's consent; never
+    * machine room, never the lock. Real processes are forks that report their pid and are measured. So:
+    *   - compiles, annotation-processor resolution, and discovery by reflection are in-heap;
+    *   - the Scala.js and Kotlin/JS linkers run in this JVM and are in-heap `Link`s;
+    *   - Kotlin/Native links fork `konanc`, and Scala Native's linker spawns clang — both fork demands;
+    *   - Kotlin/JS and Kotlin/Native discovery run the linked artifact (node, the binary) — fork demands;
+    *   - sourcegen, KSP and post-compile each fork a JVM, charged the heap they are started with plus the non-heap a JVM also commits.
+    * Test suites and batches ask for their fork themselves, from inside their handler, once the classpath — and so the fork's key — is known (design §11,
+    * two-stage test admission); the executor starts them as soon as they are ready and submits nothing for them.
     *
     * A function rather than a field on the task: cost is a property of (what kind of work this is, how this machine is configured), not of the task's identity.
     */
   def demandFor(task: Task, forkHeaps: ForkHeaps, request: RequestId): Option[Demand] = {
     val id = bleep.machine.TaskId(task.id.value)
+    def inHeap(kind: InHeapKind) = Some(InHeap(request, id, kind, cpu = 1))
     def fork(kind: ForkKind, boundMb: Long) = Some(ForkDemand(request, id, kind, ForkKey(task.id.value), boundMb, cpu = 1, shared = false))
     task match {
-      case _: CompileTask                      => Some(InHeap(request, id, InHeapKind.Compile, cpu = 1))
-      case _: DiscoverTask                     => Some(InHeap(request, id, InHeapKind.Discover, cpu = 1))
-      case _: ResolveAnnotationProcessorsTask  => Some(InHeap(request, id, InHeapKind.ResolveAnnotationProcessors, cpu = 1))
+      case _: CompileTask                     => inHeap(InHeapKind.Compile)
+      case _: ResolveAnnotationProcessorsTask => inHeap(InHeapKind.ResolveAnnotationProcessors)
+      case dt: DiscoverTask                   =>
+        dt.platform match {
+          case Some(_: LinkPlatform.KotlinJs) | Some(_: LinkPlatform.KotlinNative) => fork(ForkKind.Discover, ListingProcessBoundMb)
+          case Some(_: LinkPlatform.ScalaJs) | Some(_: LinkPlatform.ScalaNative) | Some(LinkPlatform.Jvm) | None => inHeap(InHeapKind.Discover)
+        }
+      case lt: LinkTask =>
+        lt.platform match {
+          case _: LinkPlatform.ScalaJs | _: LinkPlatform.KotlinJs | LinkPlatform.Jvm => inHeap(InHeapKind.Link)
+          case _: LinkPlatform.ScalaNative | _: LinkPlatform.KotlinNative            => fork(ForkKind.Link, forkHeaps.linkMb)
+        }
       case _: PostCompileTask                  => fork(ForkKind.PostCompile, forkHeaps.sourcegenMb)
       case _: SourcegenTask                    => fork(ForkKind.Sourcegen, forkHeaps.sourcegenMb)
       case _: RunSymbolProcessorsTask          => fork(ForkKind.Ksp, forkHeaps.kspMb)
-      case _: LinkTask                         => fork(ForkKind.Link, forkHeaps.linkMb)
       case _: TestSuiteTask | _: TestBatchTask => None
     }
   }
@@ -129,6 +149,10 @@ object TaskDag {
   /** The project a compile's scheduler task id names, for the heap-wait events; `None` for any other task. */
   def compileProjectOf(taskId: bleep.machine.TaskId): Option[String] =
     if (taskId.value.startsWith("compile:")) Some(taskId.value.stripPrefix("compile:")) else None
+
+  /** The project an in-heap link's scheduler task id names — the heap gate holds those back too; `None` for any other task. */
+  def linkProjectOf(taskId: bleep.machine.TaskId): Option[String] =
+    if (taskId.value.startsWith("link:")) Some(taskId.value.stripPrefix("link:")) else None
 
   /** Compile a project.
     *
@@ -224,8 +248,6 @@ object TaskDag {
   ) extends Task {
     val id: TaskId = TaskId.Link(project)
     val dependencies: Set[TaskId] = Set(TaskId.Compile(project))
-    // Scala.js, Scala Native, Kotlin/JS and Kotlin/Native all fork a linker (and node, for JS). Those
-    // forks reserved nothing until now — counted as one task while actually being a whole JVM plus a
   }
 
   /** Platform for linking non-JVM targets. */
@@ -997,16 +1019,42 @@ object TaskDag {
     * through the callsites. Every field is required — there are no default no-op handlers (a no-op default is just a default parameter in disguise; the call
     * site should know which task types it expects to see).
     */
+  /** What the scheduler granted a task, for the handlers whose shape depends on the platform: a fork to run a process under, or a slot in the server's heap.
+    * The handler checks it got the shape its platform needs and throws otherwise — a Kotlin/Native link handed an in-heap slot is a bug in `demandFor`, not a
+    * case to work around.
+    */
+  sealed trait TaskGrant
+  object TaskGrant {
+    case class Fork(fork: GrantedFork) extends TaskGrant
+    case object InHeap extends TaskGrant
+
+    /** The fork, for a platform that runs a process; loud when the grant is in-heap. */
+    def forkFor(grant: TaskGrant, what: String): GrantedFork = grant match {
+      case Fork(fork) => fork
+      case InHeap     => throw new IllegalStateException(s"$what runs a process but was granted an in-heap slot — demandFor and the handler disagree")
+    }
+
+    /** Checks that a platform working in the server's heap was not handed a fork it would leave unused and charged. */
+    def requireInHeap(grant: TaskGrant, what: String): Unit = grant match {
+      case InHeap  => ()
+      case Fork(f) =>
+        throw new IllegalStateException(s"$what runs in the server's heap but was granted fork #${f.id.value} — demandFor and the handler disagree")
+    }
+  }
+
   case class Handlers(
       compile: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
       /** Forks a JVM under the grant the scheduler allotted it, reporting each process it starts through the [[GrantedFork]]; the executor reports the fork
         * gone when the handler returns.
         */
       postCompile: (PostCompileTask, GrantedFork, Deferred[IO, KillReason]) => IO[TaskResult],
-      link: (LinkTask, GrantedFork, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
+      /** In the server's heap for Scala.js and Kotlin/JS; under a fork for Kotlin/Native (`konanc`) and Scala Native — see [[demandFor]]. */
+      link: (LinkTask, TaskGrant, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
       /** Discovery reads the linked artifact on JS and Native — it asks the binary to enumerate its own suites — so it needs the same link output the run does.
+        * Where that means running the artifact (Kotlin/JS, Kotlin/Native) the grant is a fork and the process is reported through it; by reflection (JVM,
+        * Scala.js, Scala Native) it is in-heap.
         */
-      discover: (DiscoverTask, Option[LinkResult], Deferred[IO, KillReason]) => IO[(TaskResult, DiscoveryResult)],
+      discover: (DiscoverTask, Option[LinkResult], TaskGrant, Deferred[IO, KillReason]) => IO[(TaskResult, DiscoveryResult)],
       /** Given the suite to run and what its project's link produced, run it.
         *
         * The `LinkResult` is `None` on the JVM, where nothing links, and `Some` for every platform that does. Passing it beats letting the handler rebuild the
@@ -1062,6 +1110,10 @@ object TaskDag {
         val startTime = System.currentTimeMillis()
         val grant: Option[GrantedFork] = fork.map(id => channel.grantedFork(id, task.id.value, ForkKey(task.id.value)))
         def forkIdOrThrow: GrantedFork = grant.getOrElse(throw new IllegalStateException(s"${task.id} forks a JVM but was started without a fork grant"))
+        val taskGrant: TaskGrant = grant match {
+          case Some(f) => TaskGrant.Fork(f)
+          case None    => TaskGrant.InHeap
+        }
 
         // Per-task kill signal as a Resource so the propagation fiber + registration are both scoped to the task's lifetime. On release: the `.background`
         // cancels the propagation fiber (no leaked listener), and `taskKillSignals` is deregistered.
@@ -1150,7 +1202,7 @@ object TaskDag {
                       for {
                         linkStartTs <- now
                         _ <- emit(DagEvent.LinkStarted(lt.project, lt.platform.name, linkStartTs))
-                        (result, linkResult) <- handlers.link(lt, forkIdOrThrow, taskKill)
+                        (result, linkResult) <- handlers.link(lt, taskGrant, taskKill)
                         linkEndTs <- now
                         _ <- emit(DagEvent.LinkFinished(lt.project, linkResult, linkEndTs - linkStartTs, linkEndTs, lt.platform.name))
                         _ <- dagRef.update(_.recordLinkResult(lt.id, lt.project, linkResult))
@@ -1161,7 +1213,7 @@ object TaskDag {
                     withRecovery(s"Discover ${dt.project.value}", taskKill) {
                       for {
                         linkOutput <- dagRef.get.map(_.linkResults.get(TaskId.Link(dt.project)))
-                        (result, discovery) <- handlers.discover(dt, linkOutput, taskKill)
+                        (result, discovery) <- handlers.discover(dt, linkOutput, taskGrant, taskKill)
                         _ <- result match {
                           case TaskResult.Success =>
                             // One batched execution per framework group (per-project mode) — an execution-scoped fixture / a framework's Runner is built once for

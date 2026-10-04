@@ -1949,7 +1949,7 @@ class MultiWorkspaceBspServer(
         val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
         // Create link handler
-        val linkHandler: (TaskDag.LinkTask, GrantedFork, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] = {
+        val linkHandler: (TaskDag.LinkTask, TaskDag.TaskGrant, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] = {
           (linkTask, grant, taskKillSignal) =>
             val projectPaths = started.projectPaths(linkTask.project)
             val project = started.build.explodedProjects(linkTask.project)
@@ -1967,14 +1967,16 @@ class MultiWorkspaceBspServer(
                 outputDir,
                 linkLogger,
                 taskKillSignal,
-                grant.onStarted
+                grant
               )
             }
         }
 
         // No-op handlers for task types absent from compile/link DAGs (no DiscoverTasks, TestSuiteTasks here).
-        val discoverHandler: (TaskDag.DiscoverTask, Option[TaskDag.LinkResult], Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.DiscoveryResult)] =
-          (_, _, _) => sys.error("DiscoverTask should not appear in compile/link DAG")
+        val discoverHandler: (TaskDag.DiscoverTask, Option[TaskDag.LinkResult], TaskDag.TaskGrant, Deferred[IO, KillReason]) => IO[
+          (TaskDag.TaskResult, TaskDag.DiscoveryResult)
+        ] =
+          (_, _, _, _) => sys.error("DiscoverTask should not appear in compile/link DAG")
 
         val testHandler: (TaskDag.TestSuiteTask, Option[TaskDag.LinkResult], Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
           (_, _, _) => sys.error("TestSuiteTask should not appear in compile/link DAG")
@@ -2187,7 +2189,12 @@ class MultiWorkspaceBspServer(
       private def projectOf(taskId: bleep.machine.TaskId): Option[CrossProjectName] =
         TaskDag.compileProjectOf(taskId).flatMap(CrossProjectName.fromString)
 
-      def onWait(taskId: bleep.machine.TaskId, heap: bleep.machine.HeapUsage, delayMs: Long, nowMs: Long): Unit =
+      // An in-heap linker answers to the same gate (owner's rule: in-process work counts like a compile). The client protocol has stalled/resumed events for
+      // compiles only, so a held-back link is said in the log and not as a compile event it is not.
+      private def linkProjectOf(taskId: bleep.machine.TaskId): Option[CrossProjectName] =
+        TaskDag.linkProjectOf(taskId).flatMap(CrossProjectName.fromString)
+
+      def onWait(taskId: bleep.machine.TaskId, heap: bleep.machine.HeapUsage, delayMs: Long, nowMs: Long): Unit = {
         projectOf(taskId).foreach { project =>
           sendEvent(
             originId,
@@ -2199,12 +2206,22 @@ class MultiWorkspaceBspServer(
             .withContext("project", project.value)
             .warn(s"waiting to ensure sufficient memory (heap: ${heap.usedMb}MB/${heap.maxMb}MB) — retrying in ${delayMs}ms")
         }
+        linkProjectOf(taskId).foreach { project =>
+          logger
+            .withContext("project", project.value)
+            .warn(s"link waiting to ensure sufficient memory (heap: ${heap.usedMb}MB/${heap.maxMb}MB) — retrying in ${delayMs}ms")
+        }
+      }
 
-      def onResume(taskId: bleep.machine.TaskId, heap: bleep.machine.HeapUsage, waitedForMs: Long, nowMs: Long): Unit =
+      def onResume(taskId: bleep.machine.TaskId, heap: bleep.machine.HeapUsage, waitedForMs: Long, nowMs: Long): Unit = {
         projectOf(taskId).foreach { project =>
           sendEvent(originId, taskId.value, BleepBspProtocol.Event.CompileResumed(project, heap.usedMb, heap.maxMb, waitedForMs, nowMs), recorder)
           logger.withContext("project", project.value).info(s"resuming after ${waitedForMs}ms wait (heap: ${heap.usedMb}MB/${heap.maxMb}MB)")
         }
+        linkProjectOf(taskId).foreach { project =>
+          logger.withContext("project", project.value).info(s"link resuming after ${waitedForMs}ms wait (heap: ${heap.usedMb}MB/${heap.maxMb}MB)")
+        }
+      }
     }
 
   /** Persist the transcript of a completed compile/test request to `<workspace>/.bleep/builds/<variant>/history/` and return the assigned id.
@@ -2472,10 +2489,14 @@ class MultiWorkspaceBspServer(
           val tagsActive = includeTagsSet.nonEmpty || excludeTagsSet.nonEmpty
           val regexActive = testOptions.only.nonEmpty || testOptions.exclude.nonEmpty
 
-          val discoverHandler
-              : (TaskDag.DiscoverTask, Option[TaskDag.LinkResult], Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.DiscoveryResult)] =
-            (discoverTask, linkOutput, discoverKill) =>
-              discoverTestSuites(started, discoverTask.project, linkOutput, discoverKill).map { case (result, suites) =>
+          val discoverHandler: (
+              TaskDag.DiscoverTask,
+              Option[TaskDag.LinkResult],
+              TaskDag.TaskGrant,
+              Deferred[IO, KillReason]
+          ) => IO[(TaskDag.TaskResult, TaskDag.DiscoveryResult)] =
+            (discoverTask, linkOutput, grant, discoverKill) =>
+              discoverTestSuites(started, discoverTask.project, linkOutput, grant, discoverKill).map { case (result, suites) =>
                 val projectName = discoverTask.project.value
                 // The build's own exclusions first: a suite the project declares under `testExclude` is not run whatever the command line selects
                 val notExcludedByBuild = {
@@ -2746,7 +2767,7 @@ class MultiWorkspaceBspServer(
               }
 
           // Link handler for non-JVM platforms (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native)
-          val linkHandler: (TaskDag.LinkTask, GrantedFork, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
+          val linkHandler: (TaskDag.LinkTask, TaskDag.TaskGrant, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
             (linkTask, grant, killSignal) =>
               // Same reasoning as testHandler — getTestClasspath synchronously Awaits a coursier resolve.
               IO.blocking(getTestClasspath(started, linkTask.project)).flatMap { classpath =>
@@ -2756,7 +2777,7 @@ class MultiWorkspaceBspServer(
                 // test mytest` linked the same project into two trees, each with its own up-to-date check that could not see the other's output.
                 val outputDir = projectPaths.targetDir.resolve("link-output")
                 withLinkMetrics(linkTask, started.buildPaths.buildDir.toString) {
-                  LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal, grant.onStarted)
+                  LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal, grant)
                 }
               }
 
@@ -3454,30 +3475,39 @@ class MultiWorkspaceBspServer(
       started: Started,
       project: CrossProjectName,
       linkOutput: Option[TaskDag.LinkResult],
+      grant: TaskDag.TaskGrant,
       killSignal: Deferred[IO, KillReason]
   ): IO[(TaskDag.TaskResult, List[(String, bleep.testing.FrameworkSelection)])] = IO.defer {
     val projectConfig = started.build.explodedProjects(project)
     val platformOpt = projectConfig.platform.flatMap(_.name)
     val isKotlin = projectConfig.kotlin.flatMap(_.version).isDefined
 
-    // For Kotlin/JS and Kotlin/Native, use synthetic test suite (runtime discovery)
-    // For JVM, use classpath scanning
+    // Kotlin/JS and Kotlin/Native discovery run the linked artifact: a process, so a fork the scheduler granted, reported the moment it starts. Everything else
+    // discovers by reflection in this heap. `TaskDag.demandFor` says which is which; the grant's shape is checked here so the two cannot drift apart.
     (platformOpt, isKotlin) match {
       // Kotlin/JS and Kotlin/Native ask the linked artifact what is in it, rather than scanning classes: there are no class files to scan. Both runners have
       // always been able to do this — `KotlinTestRunner.Js.discoverSuites` and `.Native.discoverSuites` — and neither was called, so every project got one
       // synthetic suite named after itself. The per-test events then arrived under the real suite name, matched nothing, and the reducer synthesised an extra
       // failure for a suite it thought had reported none. Real names make the two agree.
       case (Some(model.PlatformId.Js), true) =>
-        kotlinDiscovered(kotlinJsSuites(started, project, linkedArtifactOf(project, linkOutput), killSignal), "kotlin-test-js", project, "KotlinJsTests")
-      case (Some(model.PlatformId.Native), true) =>
+        val fork = TaskDag.TaskGrant.forkFor(grant, s"Kotlin/JS test discovery for ${project.value}")
         kotlinDiscovered(
-          KotlinTestRunner.Native.discoverSuites(linkedArtifactOf(project, linkOutput), killSignal),
+          kotlinJsSuites(started, project, linkedArtifactOf(project, linkOutput), killSignal, fork.onStarted),
+          "kotlin-test-js",
+          project,
+          "KotlinJsTests"
+        )
+      case (Some(model.PlatformId.Native), true) =>
+        val fork = TaskDag.TaskGrant.forkFor(grant, s"Kotlin/Native test discovery for ${project.value}")
+        kotlinDiscovered(
+          KotlinTestRunner.Native.discoverSuites(linkedArtifactOf(project, linkOutput), killSignal, fork.onStarted),
           "kotlin-test-native",
           project,
           "KotlinNativeTests"
         )
 
       case _ =>
+        TaskDag.TaskGrant.requireInHeap(grant, s"test discovery by reflection for ${project.value}")
         IO {
           // JVM: use classpath scanning
           val projectPaths = started.projectPaths(project)
@@ -3519,12 +3549,14 @@ class MultiWorkspaceBspServer(
       started: Started,
       project: CrossProjectName,
       jsOutput: Path,
-      killSignal: Deferred[IO, KillReason]
+      killSignal: Deferred[IO, KillReason],
+      onStarted: Process => Unit
   ): IO[ProcessRunner.DiscoveryResult[List[TestRunnerTypes.TestSuite]]] =
     KotlinTestRunner.Js.discoverSuites(
       jsOutput,
       nodeBinaryFor(started, started.build.explodedProjects(project)),
-      killSignal
+      killSignal,
+      onStarted
     )
 
   /** Turn a Kotlin platform's runtime discovery into suites for the DAG.

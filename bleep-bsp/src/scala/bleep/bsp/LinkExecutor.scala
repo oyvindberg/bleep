@@ -149,10 +149,12 @@ object LinkExecutor {
       baseOutputDir: Path,
       logger: LinkLogger,
       killSignal: Deferred[IO, KillReason],
-      /** Told of a linker process the moment it exists — the scheduler's fork reporting. Only Kotlin/Native forks one (`konanc`); the other linkers run in the
-        * server's own heap, and whatever they shell out to (clang, node) is a child of the server, not of a reported process.
+      /** What the scheduler granted this link (see `TaskDag.demandFor`): an in-heap slot for the linkers that run in this JVM (Scala.js, Kotlin/JS), a fork for
+        * those that run a process. Kotlin/Native reports its `konanc` through the fork the moment it exists. Scala Native's toolchain spawns clang and lld
+        * itself, through `scala.sys.process`, many at once and with no hook to hand them out — so its fork stays charged at its bound and reports no process
+        * (open question for the owner, see the design's §11).
         */
-      onStarted: Process => Unit
+      grant: TaskDag.TaskGrant
   ): IO[(TaskResult, LinkResult)] =
     killSignal.tryGet.flatMap {
       case Some(reason) => IO.pure((TaskResult.Killed(reason), LinkResult.Cancelled))
@@ -162,9 +164,11 @@ object LinkExecutor {
 
         task.platform match {
           case platform: LinkPlatform.ScalaJs =>
+            TaskDag.TaskGrant.requireInHeap(grant, s"the Scala.js linker for ${task.project.value}")
             executeScalaJs(task.project.value, platform, classpath, mainClass, outputDir, logger, killSignal, task.isTest)
 
           case platform: LinkPlatform.ScalaNative =>
+            TaskDag.TaskGrant.forkFor(grant, s"the Scala Native linker for ${task.project.value}"): Unit
             val resolvedMainClass = mainClass.getOrElse {
               if (task.isTest) ScalaNativeTestRunner.TestMainClass
               else throw new IllegalArgumentException("Scala Native requires a main class")
@@ -180,13 +184,16 @@ object LinkExecutor {
             )
 
           case platform: LinkPlatform.KotlinJs =>
+            TaskDag.TaskGrant.requireInHeap(grant, s"the Kotlin/JS linker for ${task.project.value}")
             executeKotlinJs(task.project.value, platform, classpath, outputDir, logger, killSignal)
 
           case platform: LinkPlatform.KotlinNative =>
-            executeKotlinNative(task.project.value, platform, classpath, mainClass, outputDir, logger, killSignal, onStarted)
+            val fork = TaskDag.TaskGrant.forkFor(grant, s"the Kotlin/Native linker for ${task.project.value}")
+            executeKotlinNative(task.project.value, platform, classpath, mainClass, outputDir, logger, killSignal, fork.onStarted)
 
           case LinkPlatform.Jvm =>
             // JVM doesn't need linking
+            TaskDag.TaskGrant.requireInHeap(grant, s"the JVM no-op link for ${task.project.value}")
             IO.pure((TaskResult.Success, LinkResult.NotApplicable))
         }
     }
