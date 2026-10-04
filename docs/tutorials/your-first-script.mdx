@@ -47,7 +47,9 @@ Key points:
   fallback when no explicit groupId is passed.
 - The top-level `scripts:` section maps a CLI name (`proguard-publish`)
   to a fully qualified class name (`scripts.ProguardPublish`) plus the
-  project that contains it.
+  project that contains it. An optional `description:` says what the
+  script does; `bleep script` lists every script with its description,
+  and `bleep --help` shows them in a section of their own.
 
 ## Step 2: A tiny library to publish
 

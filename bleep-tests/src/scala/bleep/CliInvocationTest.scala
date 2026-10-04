@@ -40,6 +40,14 @@ class CliInvocationTest extends AnyFunSuite {
     )
   }
 
+  test("'--help' lists the build's scripts in their own section, after bleep's subcommands") {
+    // this repo's own build: `native-image` is one of its scripts
+    val lines = callMainSlurpingStdIo(Array("--help")).stdOutBuffer.toString.linesIterator.toList
+    val (beforeScripts, scriptsSection) = lines.span(line => !line.startsWith("Scripts"))
+    assert(scriptsSection.exists(_.trim.startsWith("native-image ")))
+    assert(!beforeScripts.exists(_.trim == "native-image"))
+  }
+
   test("script descriptions line up, and a script without one shows what it runs") {
     def main(project: String, cls: String, description: Option[String]): model.JsonList[model.ScriptDef] =
       model.JsonList(

@@ -38,6 +38,8 @@ object Main {
   val stringArgs: Opts[List[String]] =
     Opts.arguments[String]().orNone.map(args => args.fold(List.empty[String])(_.toList))
 
+  val watch: Opts[Boolean] = Opts.flag("watch", "start in watch mode", "w").orFalse
+
   val possibleScalaVersions: Map[String, model.VersionScala] =
     List(model.VersionScala.Scala3, model.VersionScala.Scala213, model.VersionScala.Scala212).map(v => (v.binVersion.replace("\\.", ""), v)).toMap
 
@@ -283,7 +285,23 @@ object Main {
   def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
     Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
 
-  def hasBuildOpts(started: Started): Opts[BleepBuildCommand] = {
+  /** Every command a build offers: bleep's own, then one per script. */
+  def hasBuildOpts(started: Started): Opts[BleepBuildCommand] =
+    builtinBuildOpts(started).orElse(scriptOpts(started))
+
+  /** One subcommand per script in the build, so `bleep <script>` runs it. Kept apart from [[builtinBuildOpts]] so `bleep --help` can list them separately. */
+  def scriptOpts(started: Started): Opts[BleepBuildCommand] =
+    started.build.scripts.toList
+      .sortBy { case (scriptName, _) => scriptName.value }
+      .map { case (scriptName, scriptDefs) =>
+        val help = model.ScriptDef.description(scriptDefs.values).getOrElse(s"run script ${scriptName.value}")
+        Opts.subcommand(scriptName.value, help)(
+          (watch, stringArgs).mapN { case (watch, args) => commands.Script(scriptName, args, watch) }
+        )
+      }
+      .foldK
+
+  def builtinBuildOpts(started: Started): Opts[BleepBuildCommand] = {
     val projectNamesNoCross: Opts[NonEmptyList[model.ProjectName]] =
       Opts
         .arguments(metavars.projectNameNoCross)(using argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
@@ -379,8 +397,6 @@ object Main {
         "explicitly override main class. If not set, bleep will first look in the build file, then fall back to looking into compiled class files"
       )
       .orNone
-
-    val watch = Opts.flag("watch", "start in watch mode", "w").orFalse
 
     val cancel = Opts.flag("cancel", "cancel any running build before starting").orFalse
 
@@ -1084,12 +1100,7 @@ object Main {
               new commands.SetupDevScript(started, projectNames, main)
             }
           )
-        ),
-        started.build.scripts.map { case (scriptName, _) =>
-          Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(
-            (watch, stringArgs).mapN { case (watch, args) => commands.Script(scriptName, args, watch) }
-          )
-        }
+        )
       )
 
       allCommands.flatten.foldK
@@ -1716,6 +1727,20 @@ object Main {
       }
   }
 
+  private def bleepHeader: String = s"Bleeping fast build! (version ${model.BleepVersion.current.value})"
+
+  /** Top-level help for a build lists the scripts in their own section after bleep's own subcommands, one line each, instead of mixed in among them. Help for a
+    * subcommand is decline's, unchanged.
+    */
+  private def buildHelp(help: Help, started: Started): String =
+    if (help.prefix.tail.nonEmpty || started.build.scripts.isEmpty) help.toString
+    else {
+      val builtinHelp = Help.fromCommand(Command("bleep", bleepHeader)(builtinBuildOpts(started))).withErrors(help.errors)
+      val scripts = started.build.scripts.toList.sortBy { case (scriptName, _) => scriptName.value }
+      val scriptsSection = "Scripts (run with `bleep <script>`, list with `bleep script`):" :: commands.ListScripts.render(scripts).map("    " + _)
+      (builtinHelp.toString :: "" :: scriptsSection).mkString(System.lineSeparator())
+    }
+
   /** Parse a build command with decline, create the real logger from LoggingOpts, replay stored bootstrap messages, then run. */
   private def runBuildCommand(
       opts: Opts[BleepBuildCommand],
@@ -1727,14 +1752,14 @@ object Main {
       started: Started
   ): ExitCode = {
     val parseArgs = insertScriptArgSeparator(restArgs, started.build.scripts.keys.map(_.value).toSet)
-    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(parseArgs, sys.env) match {
+    Command("bleep", bleepHeader)(opts).parse(parseArgs, sys.env) match {
       case Left(help) =>
         help.errors match {
           case List() =>
-            System.out.println(help)
+            System.out.println(buildHelp(help, started))
             ExitCode.Success
           case _ =>
-            System.err.println(help)
+            System.err.println(buildHelp(help, started))
             ExitCode.Failure
         }
       case Right(cmd) =>
