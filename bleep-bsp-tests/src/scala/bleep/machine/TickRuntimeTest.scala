@@ -40,8 +40,9 @@ class TickRuntimeTest extends AnyFunSuite with Matchers {
         runtime.submitReady(r1, List(InHeap(r1, TaskId("c1"), InHeapKind.Compile, 1)), Map.empty)
         Thread.sleep(200L)
         val ticks = w.machineProbe.samples.get()
-        // ~10 ms cadence over 200 ms: well above one, well below one per millisecond.
-        ticks should be > 5
+        // ~10 ms cadence over 200 ms: several, and well below one per millisecond. The lower bound is loose on purpose — a loaded CI runner has been seen to
+        // schedule only a handful of parks in that window — while the upper bound is what the test is for: an idle-wait that spins would tick thousands of times.
+        ticks should be >= 2
         ticks should be < 200
         w.lock.calls.get() shouldBe 0 // a compile never takes the lock, however often it ticks
       } finally runtime.close()
