@@ -98,7 +98,8 @@ object generateBuildFromMaven {
                 GeneratedFilesScript.projectName,
                 "bleep.plugin.quarkus.QuarkusTestModelGen",
                 model.JsonSet.empty[bleep.RelPath],
-                model.JsonSet.empty[model.CrossProjectName]
+                model.JsonSet.empty[model.CrossProjectName],
+                None
               )
             )
           )
@@ -110,7 +111,7 @@ object generateBuildFromMaven {
           // bleep-plugin-quarkus also carries the dev-mode and packaging entry points. Register them as scripts so a Quarkus app can be run or packaged out of
           // the box: `bleep quarkus-dev <app>` (live-reload dev mode) and `bleep quarkus-package <app>` (fast-jar). Both take the app project as their argument.
           def quarkusScript(main: String): model.JsonList[model.ScriptDef] =
-            model.JsonList(List[model.ScriptDef](model.ScriptDef.Main(GeneratedFilesScript.projectName, main, model.JsonSet.empty, model.JsonSet.empty)))
+            model.JsonList(List[model.ScriptDef](model.ScriptDef.Main(GeneratedFilesScript.projectName, main, model.JsonSet.empty, model.JsonSet.empty, None)))
 
           buildWithScript.copy(
             templates = buildWithScript.templates.updated(templateId, quarkusTemplate),

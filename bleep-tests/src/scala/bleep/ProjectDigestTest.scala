@@ -557,7 +557,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
     // not know about into a cache miss, instead of a cache hit serving classes compiled from a stale value.
     val workspace = createTempWorkspace()
     try {
-      val gen: model.ScriptDef = model.ScriptDef.Main(cpn("scripts"), "my.Gen", model.JsonSet.empty, model.JsonSet.empty)
+      val gen: model.ScriptDef = model.ScriptDef.Main(cpn("scripts"), "my.Gen", model.JsonSet.empty, model.JsonSet.empty, None)
       val p = model.Project.empty.copy(sourcegen = model.JsonSet(SortedSet(gen)))
       val build = makeBuild("scripts" -> model.Project.empty, "a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)

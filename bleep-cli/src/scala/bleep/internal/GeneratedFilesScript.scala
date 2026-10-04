@@ -109,7 +109,7 @@ object GeneratedFilesScript {
       scriptsProject = scriptsProject,
       files = keptFiles.updated(sourcesDir / s"scripts/$className.java", script),
       projects = kept.keySet.map(_.name),
-      scriptDef = model.ScriptDef.Main(projectName, s"scripts.$className", model.JsonSet.empty, model.JsonSet.empty)
+      scriptDef = model.ScriptDef.Main(projectName, s"scripts.$className", model.JsonSet.empty, model.JsonSet.empty, None)
     )
   }
 }

@@ -40,6 +40,13 @@ class CliInvocationTest extends AnyFunSuite {
     )
   }
 
+  test("a script's `description` survives a YAML round trip") {
+    val yaml = "main: s.A\nproject: scripts\ndescription: does a\n"
+    val parsed = bleep.yaml.parse(yaml).flatMap(_.as[model.ScriptDef]).toTry.get
+    assert(parsed.asInstanceOf[model.ScriptDef.Main].description == Some("does a"))
+    assert(parsed.asJson.as[model.ScriptDef].toTry.get == parsed)
+  }
+
   private val scriptNames = Set("myscript", "native-image")
 
   test("script invocation forwards plain trailing args unchanged") {

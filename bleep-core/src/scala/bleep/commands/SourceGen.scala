@@ -20,7 +20,7 @@ case class SourceGen(watch: Boolean, projectNames: Array[model.CrossProjectName]
       p = started.build.explodedProjects(projectName)
       sourceGen <- p.sourcegen.values.iterator
       scriptProject <- sourceGen match {
-        case model.ScriptDef.Main(scriptProject, _, _, inputs) => scriptProject :: inputs.values.toList
+        case model.ScriptDef.Main(scriptProject, _, _, inputs, _) => scriptProject :: inputs.values.toList
       }
     } yield scriptProject
     TransitiveProjects(started.build, projectNames ++ scriptProjects)

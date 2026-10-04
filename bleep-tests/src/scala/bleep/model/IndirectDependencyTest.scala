@@ -35,7 +35,7 @@ class IndirectDependencyTest extends AnyFunSuite with Matchers {
   private val usesAllKinds: Project =
     Project.empty.copy(
       dependsOn = JsonSet(ProjectRef(ProjectName("lib"))),
-      sourcegen = JsonSet(SortedSet[ScriptDef](ScriptDef.Main(name("gen"), "gen.Main", JsonSet.empty, JsonSet(name("genInput"))))),
+      sourcegen = JsonSet(SortedSet[ScriptDef](ScriptDef.Main(name("gen"), "gen.Main", JsonSet.empty, JsonSet(name("genInput")), None))),
       scala = Some(scala3.copy(compilerProject = Some(name("compiler")))),
       postCompile = Some(PostCompile(name("post"), "post.Main", JsonSet(name("input"))))
     )
