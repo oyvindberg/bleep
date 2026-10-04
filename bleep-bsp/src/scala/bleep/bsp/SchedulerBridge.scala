@@ -37,7 +37,7 @@ final class SchedulerBridge(forks: ForkRegistry, heapUsage: () => HeapUsage, rel
     // to return the resource through, and is not dropped on the floor.
     val now = System.currentTimeMillis()
     channels.values().asScala.filter(ch => ch.closedAtMs.exists(at => now - at > RequestChannel.ClosedRetentionMs)).foreach(ch => channels.remove(ch.id))
-    val channel = new RequestChannel(id, kind, scheduler, forks, children, heapWaits, heapUsage)
+    val channel = new RequestChannel(id, kind, scheduler, forks, children, heapWaits, heapUsage, logger)
     if (channels.putIfAbsent(id, channel) != null) throw new IllegalStateException(s"request ${id.value} is already open")
     scheduler.registerRequest(id, kind)
     channel
@@ -50,13 +50,13 @@ final class SchedulerBridge(forks: ForkRegistry, heapUsage: () => HeapUsage, rel
     }
 
   override def spawn(demand: ForkDemand, fork: ForkId, guaranteed: Boolean): Unit =
-    route(demand.request, s"ordered a spawn of fork ${fork.value}")(_.granted(demand.taskId, Grant.Fork(ForkGrant.Spawn(fork)), guaranteed))
+    route(demand.request, s"ordered a spawn of fork ${fork.value}")(_.granted(demand.taskId, demand.cpu, Grant.Fork(ForkGrant.Spawn(fork)), guaranteed))
 
   override def reuse(demand: ForkDemand, fork: ForkId, guaranteed: Boolean): Unit =
-    route(demand.request, s"ordered reuse of fork ${fork.value}")(_.granted(demand.taskId, Grant.Fork(ForkGrant.Reuse(fork)), guaranteed))
+    route(demand.request, s"ordered reuse of fork ${fork.value}")(_.granted(demand.taskId, demand.cpu, Grant.Fork(ForkGrant.Reuse(fork)), guaranteed))
 
   override def startInHeap(demand: InHeap, guaranteed: Boolean): Unit =
-    route(demand.request, s"admitted ${demand.taskId.value}")(_.granted(demand.taskId, Grant.InHeap, guaranteed))
+    route(demand.request, s"admitted ${demand.taskId.value}")(_.granted(demand.taskId, demand.cpu, Grant.InHeap, guaranteed))
 
   override def evict(fork: ForkId, reason: Decision.EvictReason): Unit =
     forks.get(fork) match {
@@ -124,8 +124,8 @@ object Grant {
   case class Fork(grant: ForkGrant) extends Grant
 }
 
-/** A granted demand, by the scheduler task id the DAG submitted it under. */
-case class Granted(taskId: TaskId, grant: Grant, guaranteed: Boolean)
+/** A granted demand, by the scheduler task id the DAG submitted it under; `cpu` is what the demand asked for, so a grant given back returns exactly that. */
+case class Granted(taskId: TaskId, cpu: Int, grant: Grant, guaranteed: Boolean)
 
 /** What a deferred compile's client hears: that it waits for heap, and that it resumed. The server sends these as BSP events. */
 trait HeapWaitListener {
@@ -149,7 +149,8 @@ final class RequestChannel(
     forks: ForkRegistry,
     children: ChildWatch,
     heapWaits: HeapWaitListener,
-    heapUsage: () => HeapUsage
+    heapUsage: () => HeapUsage,
+    logger: Logger
 ) extends ForkAcquirer {
   import RequestChannel.ForkWait
 
@@ -205,6 +206,9 @@ final class RequestChannel(
   /** A DAG-level fork task (sourcegen, KSP, link, post-compile) is done: its process is gone. */
   def forkExited(fork: ForkId): Unit = scheduler.forkExited(fork)
 
+  /** A fork granted for reuse by a task that will not run: the cpu the demand asked for goes back; the fork runs on. */
+  def forkWorkFinished(fork: ForkId, cpu: Int): Unit = scheduler.forkWorkFinished(fork, cpu)
+
   /** The handle a fork task's handler reports its process(es) through; see [[GrantedFork]]. */
   def grantedFork(id: ForkId, label: String, key: ForkKey): GrantedFork = new GrantedFork(id, label, key, scheduler, forks, children)
 
@@ -233,18 +237,25 @@ final class RequestChannel(
 
   // ---- effects, on the tick thread
 
-  def granted(taskId: TaskId, grant: Grant, guaranteed: Boolean): Unit = {
+  def granted(taskId: TaskId, cpu: Int, grant: Grant, guaranteed: Boolean): Unit = {
     val now = System.currentTimeMillis()
+    // A grant nobody here asked for goes straight back — a spawned fork as exited (nothing will start it), a reused one with its cpu (it runs on), a slot as
+    // finished. Said with the reason, since every such grant is a scheduler decision about a demand this request no longer has.
+    def giveBack(why: String): () => Unit = {
+      val returning = grant match {
+        case Grant.Fork(ForkGrant.Spawn(fork)) => () => scheduler.forkExited(fork)
+        case Grant.Fork(ForkGrant.Reuse(fork)) => () => scheduler.forkWorkFinished(fork, cpu)
+        case Grant.InHeap                      => () => scheduler.inHeapFinished(id, taskId)
+      }
+      () => {
+        logger.warn(s"request ${id.value}: the scheduler granted $grant for ${taskId.value}, $why; giving it back")
+        returning()
+      }
+    }
     val action: () => Unit = synchronized {
       closed match {
-        case Some(_) =>
-          // The request ended between the scheduler's decision and this effect: give the resource straight back.
-          grant match {
-            case Grant.Fork(ForkGrant.Spawn(fork)) => () => scheduler.forkExited(fork)
-            case Grant.Fork(ForkGrant.Reuse(fork)) => () => scheduler.forkWorkFinished(fork, cpuOf(taskId))
-            case Grant.InHeap                      => () => scheduler.inHeapFinished(id, taskId)
-          }
-        case None =>
+        case Some(_) => giveBack("but the request has ended")
+        case None    =>
           forkWaits.get(taskId) match {
             case Some(wait) =>
               forkWaits -= taskId
@@ -254,10 +265,14 @@ final class RequestChannel(
                   () => wait.deferred.complete(Right(forkGrant)).unsafeRunAndForget()
                 case Grant.InHeap => throw new IllegalStateException(s"fork demand ${taskId.value} was answered as in-heap work")
               }
+            case None if !dagReady.exists(_.taskId == taskId) =>
+              // Neither a handler waiting for a fork nor a DAG demand on the table: a demand this channel once had and no longer wants — the executor would
+              // never take it, and a fork reused for it would stay busy forever.
+              giveBack("which nothing here is waiting for")
             case None =>
               val resumed = deferredSince.get(taskId).map(now - _)
               deferredSince -= taskId
-              dagGrants.add(Granted(taskId, grant, guaranteed)): Unit
+              dagGrants.add(Granted(taskId, cpu, grant, guaranteed)): Unit
               val wakeNow = wake
               () => {
                 resumed.foreach(waited => heapWaits.onResume(taskId, heapUsage(), waited, now))
@@ -307,9 +322,6 @@ final class RequestChannel(
     )
     scheduler.unregisterRequest(id)
   }
-
-  private def cpuOf(taskId: TaskId): Int =
-    dagReady.collectFirst { case d: ForkDemand if d.taskId == taskId => d.cpu }.getOrElse(1)
 
   /** Everything this request wants, as one ready set: the DAG's demands first (its priority order), then the test forks handlers are waiting for. */
   private def publish(): Unit = {

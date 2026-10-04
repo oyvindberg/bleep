@@ -5,26 +5,13 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.nio.file.Path
-import java.util.concurrent.{ConcurrentLinkedQueue, TimeUnit}
+import java.util.concurrent.TimeUnit
 import scala.jdk.CollectionConverters.*
 
 /** One grant, several processes in a row: each is reported to the scheduler as it starts, the registry points at the one that exists now, and its `kill` kills
   * that one.
   */
 class GrantedForkTest extends AnyFunSuite with Matchers {
-
-  /** Records what a fork handle tells the scheduler. */
-  private final class RecordingScheduler extends MachineScheduler {
-    val spawned = new ConcurrentLinkedQueue[(ForkId, Long)]()
-    val exited = new ConcurrentLinkedQueue[ForkId]()
-    def registerRequest(id: RequestId, kind: RequestKind): Unit = ()
-    def unregisterRequest(id: RequestId): Unit = ()
-    def submitReady(request: RequestId, ready: List[Demand], unstartedSuitesByKey: Map[ForkKey, Int]): Unit = ()
-    def inHeapFinished(request: RequestId, taskId: TaskId): Unit = ()
-    def forkSpawned(fork: ForkId, pid: Long): Unit = spawned.add((fork, pid)): Unit
-    def forkWorkFinished(fork: ForkId, cpu: Int): Unit = ()
-    def forkExited(fork: ForkId): Unit = exited.add(fork): Unit
-  }
 
   private def sleeper(ms: Long): Process =
     new ProcessBuilder(

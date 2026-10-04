@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.machine.{Demand, ForkDemand, ForkId, ForkKey, ForkKind, InHeap, InHeapKind, RequestId}
+import bleep.machine.{Demand, ForkDemand, ForkGrant, ForkId, ForkKey, ForkKind, InHeap, InHeapKind, RequestId}
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, LinkPlatformName, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
@@ -1422,15 +1422,17 @@ object TaskDag {
                 // Grants first, then the ready set: a task granted since the last look starts now and is not submitted again. The channel drops anything
                 // whose grant lands between these two steps, so a demand is never in front of the scheduler twice.
                 granted <- IO(channel.takeGrants())
-                // A grant for a task that is no longer ready (killed, skipped) gives its resource straight back.
+                // A grant for a task that is no longer ready (killed, skipped) gives its resource straight back: a spawned fork as exited — nothing will start
+                // it — and a reused one with the cpu the demand asked for, since the fork itself runs on for whoever else holds it.
                 byId = dag.tasks.map { case (id, t) => (t.id.value, t) }
                 startable = granted.flatMap { g =>
                   byId.get(g.taskId.value).filter(t => readyTasks.contains(t)) match {
                     case Some(t) => List((t, g))
                     case None    =>
                       g.grant match {
-                        case Grant.Fork(fg) => channel.forkExited(fg.fork)
-                        case Grant.InHeap   => channel.inHeapFinished(g.taskId)
+                        case Grant.Fork(ForkGrant.Spawn(fork)) => channel.forkExited(fork)
+                        case Grant.Fork(ForkGrant.Reuse(fork)) => channel.forkWorkFinished(fork, g.cpu)
+                        case Grant.InHeap                      => channel.inHeapFinished(g.taskId)
                       }
                       Nil
                   }
