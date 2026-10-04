@@ -46,6 +46,8 @@ object TestScheduling {
       heapGate = HeapGate.alwaysAdmit,
       heapUsage = () => HeapUsage(usedMb = 0L, maxMb = 1024L),
       requests = new RequestRegistry,
+      // These schedulers run against the developer's real machine, whose pressure is whatever it is; they hold no build cache, so there is nothing to shed.
+      relief = new bleep.bsp.MemoryRelief { def shedIdleCaches(need: bleep.machine.MemoryNeed): Unit = () },
       reason = None,
       logger = TypedLogger.DevNull,
       onDeath = t => throw new IllegalStateException("the test scheduler died", t)

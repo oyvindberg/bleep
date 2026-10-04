@@ -29,13 +29,17 @@ class TickRuntimeTest extends AnyFunSuite with Matchers {
     }
   }
 
-  test("with nothing to schedule the thread does not tick at all; with a request it ticks at the cadence") {
+  test("with nothing to schedule the thread runs only the slow check — one probe, no lock, no decision; with a request it ticks at the cadence") {
     withWorld { w =>
       val runtime = new TickRuntime(w.deps(lockWaitMs = 100L, tickIntervalPerServerMs = 10L), TypedLogger.DevNull, t => fail(s"scheduler died: $t"))
       runtime.start()
       try {
         Thread.sleep(100L)
-        w.machineProbe.samples.get() shouldBe 0
+        // The fake clock stands still, so the slow check (design §5.1) is due exactly once however long the thread waits.
+        w.machineProbe.samples.get() shouldBe 1
+        w.lock.calls.get() shouldBe 0
+        w.ownState shouldBe None
+        w.machineProbe.samples.set(0)
         runtime.registerRequest(r1, RequestKind.Compile)
         runtime.submitReady(r1, List(InHeap(r1, TaskId("c1"), InHeapKind.Compile, 1)), Map.empty)
         Thread.sleep(200L)

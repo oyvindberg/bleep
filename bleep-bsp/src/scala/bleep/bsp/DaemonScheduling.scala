@@ -62,6 +62,7 @@ object DaemonScheduling {
       config: () => BspServerConfig,
       requests: RequestRegistry,
       heapUsage: () => HeapUsage,
+      relief: MemoryRelief,
       logger: Logger,
       onDeath: Throwable => Unit
   ): DaemonScheduling =
@@ -73,6 +74,7 @@ object DaemonScheduling {
       heapGate = HeapPressureGate.asHeapGate(() => config().effectiveHeapPressureThreshold),
       heapUsage = heapUsage,
       requests = requests,
+      relief = relief,
       reason = selected.reason,
       logger = logger,
       onDeath = onDeath
@@ -93,6 +95,7 @@ object DaemonScheduling {
         HeapUsage(usedMb = heap.usedMb.value, maxMb = heap.maxMb.value)
       },
       requests = new RequestRegistry,
+      relief = MemoryRelief.unreachable(reason),
       reason = Some(reason),
       logger = logger,
       onDeath = t => throw new IllegalStateException("the in-process machine scheduler died", t)
@@ -109,12 +112,13 @@ object DaemonScheduling {
       heapGate: HeapGate,
       heapUsage: () => HeapUsage,
       requests: RequestRegistry,
+      relief: MemoryRelief,
       reason: Option[String],
       logger: Logger,
       onDeath: Throwable => Unit
   ): DaemonScheduling = {
     val forks = new ForkRegistry
-    val bridge = new SchedulerBridge(forks, heapUsage, logger)
+    val bridge = new SchedulerBridge(forks, heapUsage, relief, logger)
     val runtime = new TickRuntime(
       Ticker.Deps(
         mode = mode,
@@ -124,7 +128,8 @@ object DaemonScheduling {
         heapUsage = heapUsage,
         clock = () => System.currentTimeMillis(),
         effects = bridge,
-        tickIntervalPerServerMs = 10L
+        tickIntervalPerServerMs = 10L,
+        slowCheckIntervalMs = Ticker.SlowCheckIntervalMs
       ),
       logger,
       onDeath

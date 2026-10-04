@@ -18,15 +18,79 @@ class TickerTest extends AnyFunSuite with Matchers {
 
   private def compile(request: RequestId, task: String): InHeap = InHeap(request, TaskId(task), InHeapKind.Compile, cpu = 1)
 
-  test("with nothing registered a tick touches nothing: no probe, no lock, no file") {
+  test("with nothing registered a tick decides nothing — no lock, no file — and runs only the slow check: one probe per interval, no lock") {
     withWorld { w =>
       val t = ticker(w)
       t.tick()
       t.tick()
-      w.machineProbe.samples.get() shouldBe 0
+      w.machineProbe.samples.get() shouldBe 1 // the slow check (design §5.1), once per interval however many ticks
       w.lock.calls.get() shouldBe 0
       w.ownState shouldBe None
       w.effects.all shouldBe Nil
+      w.clock.addAndGet(w.slowCheckIntervalMs): Unit
+      t.tick()
+      w.machineProbe.samples.get() shouldBe 2
+      w.lock.calls.get() shouldBe 0
+    }
+  }
+
+  test("under elevated pressure an idle server sheds its idle workspaces' caches, once per slow-check interval while it lasts") {
+    withWorld { w =>
+      w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 14_000L, pressure = RawPressure.MacOs(2)))
+      val t = ticker(w)
+      t.tick()
+      t.tick()
+      w.effects.all shouldBe List(Effect.ShedIdleCaches(MemoryNeed.UnderPressure(Pressure.Elevated)))
+      w.clock.addAndGet(w.slowCheckIntervalMs): Unit
+      t.tick()
+      w.effects.all.size shouldBe 2
+      // Pressure gone, nobody waiting: nothing more is shed.
+      w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 4_096L, pressure = RawPressure.MacOs(1)))
+      w.clock.addAndGet(w.slowCheckIntervalMs): Unit
+      t.tick()
+      w.effects.all.size shouldBe 2
+    }
+  }
+
+  test("another server's wantsMore, read without the lock, makes a server shed; low memory with nobody waiting does not") {
+    withWorld { w =>
+      w.otherServer("bbbb", forks = Nil, wantsMore = false)
+      val t = ticker(w)
+      t.tick()
+      w.effects.all shouldBe Nil
+      w.lock.calls.get() shouldBe 0
+      w.otherServer("bbbb", forks = Nil, wantsMore = true)
+      w.clock.addAndGet(w.slowCheckIntervalMs): Unit
+      t.tick()
+      w.lock.calls.get() shouldBe 0 // read without the lock: shedding releases memory, it never claims it
+      w.effects.all shouldBe List(Effect.ShedIdleCaches(MemoryNeed.OthersWantMore(List(StateFile.selfIdentity("other").pid))))
+    }
+  }
+
+  test("a busy server sheds on the same trigger, from the others it read under the lock") {
+    withWorld { w =>
+      w.otherServer("bbbb", forks = Nil, wantsMore = true)
+      val t = ticker(w)
+      t(Event.RegisterRequest(r1, RequestKind.Test))
+      t(Event.SubmitReady(r1, List(forkDemand(r1, "t1", boundMb = 1000L, shared = false)), Map(k -> 1)))
+      t.tick()
+      w.lock.calls.get() shouldBe 1
+      w.effects.all should contain(Effect.ShedIdleCaches(MemoryNeed.OthersWantMore(List(StateFile.selfIdentity("other").pid))))
+    }
+  }
+
+  test("an unconstrained server never probes, never reads anyone and never sheds") {
+    withWorld { w =>
+      w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 14_000L, pressure = RawPressure.MacOs(4)))
+      w.otherServer("bbbb", forks = Nil, wantsMore = true)
+      val t = new Ticker(w.depsUnconstrained("test", tickIntervalPerServerMs = 10L))
+      t.tick()
+      w.clock.addAndGet(w.slowCheckIntervalMs): Unit
+      t.tick()
+      w.machineProbe.samples.get() shouldBe 0
+      w.effects.all shouldBe Nil
+      t.idleParkMs shouldBe None
+      ticker(w).idleParkMs shouldBe Some(w.slowCheckIntervalMs)
     }
   }
 
@@ -181,7 +245,11 @@ class TickerTest extends AnyFunSuite with Matchers {
       w.effects.all shouldBe Nil // warm: four suites still to come
       w.machineProbe.current.set(MachineSample(16_384L, 15_000L, RawPressure.MacOs(4)))
       t.tick()
-      w.effects.all shouldBe List(Effect.Evict(ForkId(1), Decision.EvictReason.CriticalPressure))
+      // Eviction is the decision's; the shed is §5.2's answer to the same pressure, for whatever this server caches for nobody.
+      w.effects.all shouldBe List(
+        Effect.Evict(ForkId(1), Decision.EvictReason.CriticalPressure),
+        Effect.ShedIdleCaches(MemoryNeed.UnderPressure(Pressure.Critical))
+      )
       // Still registered, flagged, until the process is gone; not evicted twice meanwhile.
       t.current.forks.map(_.evicting) shouldBe List(true)
       w.effects.clear()

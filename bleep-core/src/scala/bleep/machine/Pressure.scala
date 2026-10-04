@@ -22,6 +22,14 @@ object Pressure {
     */
   case class NoSignal(reason: String) extends Pressure
 
+  /** The level as `top`, the log and `state.json` readers spell it. */
+  def name(p: Pressure): String = p match {
+    case Normal      => "normal"
+    case Elevated    => "elevated"
+    case Critical    => "critical"
+    case NoSignal(_) => "no signal"
+  }
+
   /** Whether the brake is on at all: `Elevated` and `Critical` withhold new forks beyond guarantees. */
   def withholdsNewForks(p: Pressure): Boolean = p match {
     case Normal | NoSignal(_) => false

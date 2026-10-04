@@ -52,6 +52,13 @@ class BuildCacheEvictionTest extends AnyFunSuite with Matchers {
     select(present, keep = "keep", bound = 3, busy = Set("busy1", "busy2", "busy3")) shouldBe Vector("idle1")
   }
 
+  // ── memory needed elsewhere ────────────────────────────────────
+
+  test("a shed drops every idle entry and keeps every busy one, whatever the bound") {
+    BuildCache.selectIdle[String](Vector("idle1", "busy", "idle2"), isBusy = _ == "busy") shouldBe Vector("idle1", "idle2")
+    BuildCache.selectIdle[String](Vector.empty, isBusy = _ => false) shouldBe empty
+  }
+
   // ── workspaces that no longer exist ────────────────────────────
 
   test("a cached build whose workspace directory is gone is evicted, whatever the bound") {

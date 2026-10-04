@@ -50,6 +50,7 @@ object SchedulerFakes {
     case class LockUnavailable(holder: LockHolder) extends Effect
     case class PressureSignalMissing(reason: String) extends Effect
     case class SchedulingUnconstrained(reason: String) extends Effect
+    case class ShedIdleCaches(need: MemoryNeed) extends Effect
   }
 
   final class RecordingEffects extends SchedulerEffects {
@@ -65,6 +66,7 @@ object SchedulerFakes {
     override def lockUnavailable(holder: LockHolder): Unit = recorded.add(Effect.LockUnavailable(holder)): Unit
     override def pressureSignalMissing(reason: String): Unit = recorded.add(Effect.PressureSignalMissing(reason)): Unit
     override def schedulingUnconstrained(reason: String): Unit = recorded.add(Effect.SchedulingUnconstrained(reason)): Unit
+    override def shedIdleCaches(need: MemoryNeed): Unit = recorded.add(Effect.ShedIdleCaches(need)): Unit
   }
 
   /** A whole fake world in a temp directory: `socket/<own>` for this server, `socket/` for discovery. */
@@ -78,6 +80,9 @@ object SchedulerFakes {
     val clock = new AtomicLong(1_000_000L)
     val params = new AtomicReference[Params](Params(headroomMb = 2_048L, parallelism = 4, maxNewForksPerTick = 1))
     val heap = new AtomicReference[HeapUsage](HeapUsage(usedMb = 100L, maxMb = 1_000L))
+
+    /** The slow check's cadence against the fake clock. */
+    val slowCheckIntervalMs: Long = 3000L
 
     /** Not this JVM, so that a state file written by this JVM's pid counts as another live server. */
     val identity: ServerIdentity = ServerIdentity(pid = 1L, startedAtEpochMs = 1L, bleepVersion = "test")
@@ -108,11 +113,14 @@ object SchedulerFakes {
       heapUsage = () => heap.get(),
       clock = () => clock.get(),
       effects = effects,
-      tickIntervalPerServerMs = tickIntervalPerServerMs
+      tickIntervalPerServerMs = tickIntervalPerServerMs,
+      slowCheckIntervalMs = slowCheckIntervalMs
     )
 
     /** Another live server's state file, in its own socket dir, naming this JVM so liveness holds. */
-    def otherServer(hash: String, forks: List[StateFork]): Unit = {
+    def otherServer(hash: String, forks: List[StateFork]): Unit = otherServer(hash, forks, wantsMore = false)
+
+    def otherServer(hash: String, forks: List[StateFork], wantsMore: Boolean): Unit = {
       val self = StateFile.selfIdentity("other")
       val dir = Files.createDirectories(bspSocketDir.resolve(hash))
       StateFile.write(
@@ -125,7 +133,7 @@ object SchedulerFakes {
           updatedAtEpochMs = 0L,
           requests = 1,
           cpuInUse = 1,
-          wantsMore = false,
+          wantsMore = wantsMore,
           shuttingDown = false,
           forks = forks
         )

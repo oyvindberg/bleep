@@ -17,7 +17,7 @@ import scala.jdk.CollectionConverters.*
   *
   * One per daemon, passed structurally; nothing here is global.
   */
-final class SchedulerBridge(forks: ForkRegistry, heapUsage: () => HeapUsage, logger: Logger) extends SchedulerEffects {
+final class SchedulerBridge(forks: ForkRegistry, heapUsage: () => HeapUsage, relief: MemoryRelief, logger: Logger) extends SchedulerEffects {
   private val channels = new ConcurrentHashMap[RequestId, RequestChannel]()
   private val lastLockWarningMs = new AtomicLong(0L)
 
@@ -81,7 +81,29 @@ final class SchedulerBridge(forks: ForkRegistry, heapUsage: () => HeapUsage, log
   override def schedulingUnconstrained(reason: String): Unit =
     logger.warn(s"Machine scheduling is UNCONSTRAINED: $reason")
 
+  /** Off the tick thread: a shed walks the build cache under its monitor and releases analyses, which is not a tick's business to wait for. */
+  override def shedIdleCaches(need: MemoryNeed): Unit =
+    evictions.execute(() => relief.shedIdleCaches(need))
+
   def close(): Unit = evictions.shutdownNow(): Unit
+}
+
+/** What a daemon does when the scheduler finds memory is needed elsewhere (design §5.1, §5.2). The caches and the shutdown path belong to the daemon, not the
+  * scheduler, so they arrive here as actions it hands in — structurally, one per daemon.
+  */
+trait MemoryRelief {
+
+  /** Drop the cached build and analyses of every workspace with no request in flight. */
+  def shedIdleCaches(need: MemoryNeed): Unit
+}
+
+object MemoryRelief {
+
+  /** For an unconstrained scheduler, which has no probe and reads no other server, so can never find a need: being asked is a bug, said loudly. */
+  def unreachable(reason: String): MemoryRelief = new MemoryRelief {
+    def shedIdleCaches(need: MemoryNeed): Unit =
+      throw new IllegalStateException(s"an unconstrained scheduler ($reason) asked to shed caches for '${need.describe}', which it has no way of knowing")
+  }
 }
 
 /** The scheduler's instruction to one request's DAG. */

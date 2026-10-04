@@ -50,7 +50,11 @@ final class TickRuntime(deps: Ticker.Deps, logger: Logger, onDeath: Throwable =>
         ticker.tick()
         published.set(Some(ticker.snapshot(deps.params())))
         if (closed.get()) ()
-        else if (ticker.idle) LockSupport.park(this)
+        else if (ticker.idle)
+          ticker.idleParkMs match {
+            case Some(ms) => LockSupport.parkNanos(this, ms * 1_000_000L) // until the next slow check (design §5.1)
+            case None     => LockSupport.park(this)
+          }
         else LockSupport.parkNanos(this, ticker.cadenceMs * 1_000_000L)
       }
     catch {

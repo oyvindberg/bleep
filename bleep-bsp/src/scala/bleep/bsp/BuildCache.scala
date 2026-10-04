@@ -134,6 +134,35 @@ class BuildCache(maxWorkspaces: Int, analysisCache: bleep.analysis.AnalysisCache
       }
     }
 
+  /** Memory is needed elsewhere (design §5.2): drop every cached build with no request in flight against its workspace, and its analyses with it. The idle
+    * workspaces are exactly what this server holds for nobody; a busy one keeps its state, since evicting mid-build only means reloading it moments later.
+    *
+    * The cost is a cold load the next time such a workspace is used — a build resolve and analyses read from disk — never a wrong result. Freed heap reaches
+    * the machine when the GC returns it (ZGC: within ~30 s). Logged per workspace and summed, but only when something was shed: the scheduler asks on a cadence
+    * while the need lasts, and an empty answer is not news.
+    */
+  def shedIdle(reason: String, logger: Logger): BuildCache.Shed =
+    entries.synchronized {
+      val doomed = BuildCache.selectIdle(
+        present = entries.keySet().iterator().asScala.toVector,
+        isBusy = (key: model.WorkspaceKey) => requests.getActiveOperations(key.workspace).nonEmpty
+      )
+      val shed = doomed.foldLeft(BuildCache.Shed(builds = 0, analyses = 0, analysisBytes = 0L)) { (acc, key) =>
+        val freed = dropAll(key)
+        logger
+          .withContext("workspace", key.workspace.toString)
+          .withContext("variant", key.variant.toString)
+          .withContext("analysesFreed", freed.entries)
+          .withContext("analysisMbFreed", freed.fileBytes / (1024 * 1024))
+          .info(s"Shedding a cached build: $reason, and nothing here is using it")
+        BspMetrics.recordCacheEvict("buildCache", key.workspace.toString)
+        BuildCache.Shed(acc.builds + 1, acc.analyses + freed.entries, acc.analysisBytes + freed.fileBytes)
+      }
+      if (shed.builds > 0)
+        logger.info(s"Shed ${shed.builds} cached build(s) with ${shed.analyses} analyses (${shed.analysisBytes / (1024 * 1024)} MB on disk): $reason")
+      shed
+    }
+
   /** The workspaces currently held, for telemetry. Distinct: one workspace can hold several variants, but the interesting quantity is how many builds' worth of
     * state is resident.
     */
@@ -181,6 +210,15 @@ class BuildCache(maxWorkspaces: Int, analysisCache: bleep.analysis.AnalysisCache
 }
 
 object BuildCache {
+
+  /** What one [[BuildCache.shedIdle]] gave back: builds dropped, analyses released with them, and the analyses' size on disk (the in-heap figure is not
+    * measured; the on-disk size is the honest proxy the analysis cache has).
+    */
+  case class Shed(builds: Int, analyses: Int, analysisBytes: Long)
+
+  /** Which entries to shed when memory is needed elsewhere: every one with no work in flight. Pure, for the same reason as [[selectEvictions]]. */
+  private[bsp] def selectIdle[K](present: Vector[K], isBusy: K => Boolean): Vector[K] =
+    present.filterNot(isBusy)
 
   /** Which entries belong to workspaces that no longer exist, leaving out any with work in flight. Pure, for the same reason as [[selectEvictions]]. */
   private[bsp] def selectMissing[K](present: Vector[K], exists: K => Boolean, isBusy: K => Boolean): Vector[K] =

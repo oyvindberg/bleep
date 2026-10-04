@@ -12,7 +12,10 @@ import java.nio.file.Path
   *   1. otherwise: probe → decide with `LockState.NotNeeded` and nobody else's state → write own state if it changed
   *   1. carries the decision out through [[SchedulerEffects]], after the lock is released
   *
-  * With no request, no fork and no in-heap task registered it returns at once: no probe, no file, no lock.
+  * With no request, no fork and no in-heap task registered a tick decides nothing. What remains is the slow check (design §5.1, §5.2): every
+  * `slowCheckIntervalMs`, one probe call and every other live server's `state.json` read without the lock, so a server with nothing to claim still learns that
+  * memory is needed elsewhere — and sheds the caches of its idle workspaces for it. A busy server whose ticks take no lock does the same on the same cadence; a
+  * claiming tick has read the others under the lock already.
   */
 final class Ticker(deps: Ticker.Deps) {
   import Ticker._
@@ -24,6 +27,9 @@ final class Ticker(deps: Ticker.Deps) {
   private var pressureSignalWarned: Boolean = false
   private var lastMachine: Option[MachineView] = None
   private var lastLock: LockState = LockState.NotNeeded
+  private var lastOthers: List[StateJson] = Nil
+  private var lastSlowCheckMs: Option[Long] = None
+  private var lastShedMs: Option[Long] = None
 
   /** This server's view of itself, for tests and `top`. */
   def current: MyState = state
@@ -34,6 +40,14 @@ final class Ticker(deps: Ticker.Deps) {
   def cadenceMs: Long = deps.tickIntervalPerServerMs * liveServersSeen.toLong
 
   def idle: Boolean = state.requests.isEmpty && state.forks.isEmpty && state.inHeap.isEmpty
+
+  /** How long the runtime may sleep with nothing to schedule: until the next slow check in cooperative mode; indefinitely in unconstrained, which has nothing
+    * to check (no probe, no other servers).
+    */
+  def idleParkMs: Option[Long] = deps.mode match {
+    case _: SchedulingMode.Cooperative   => Some(deps.slowCheckIntervalMs)
+    case SchedulingMode.Unconstrained(_) => None
+  }
 
   /** The state after the last tick, as plain data. Only the tick thread calls this; [[TickRuntime]] publishes the result for everyone else. */
   def snapshot(params: Params): SchedulerSnapshot =
@@ -93,61 +107,94 @@ final class Ticker(deps: Ticker.Deps) {
       state = state.copy(forks = state.forks.filterNot(_.id == fork))
   }
 
-  def tick(): Unit =
-    if (!idle) {
-      val now = deps.clock()
-      state = state.copy(heap = deps.heapUsage())
-      val params = deps.params()
+  def tick(): Unit = {
+    val now = deps.clock()
+    if (!idle) decideTick(now)
+    deps.mode match {
+      case coop: SchedulingMode.Cooperative =>
+        // A claiming tick read the others under the lock just now; otherwise the slow check keeps the picture fresh enough for relief.
+        if (lastSlowCheckMs.forall(last => now - last >= deps.slowCheckIntervalMs)) slowCheck(coop, now)
+        relief(now)
+      case SchedulingMode.Unconstrained(_) => ()
+    }
+  }
 
-      val (decision, lockState, view) = deps.mode match {
-        case SchedulingMode.Unconstrained(_) =>
-          // Nothing machine-wide exists in this mode (design §9.1): no probe, no lock, no file, by construction — the mode carries none of them.
-          (Decide.decide(Machine.Unconstrained(now), state, params, deps.heapGate, deps.identity), LockState.NotNeeded, Option.empty[MachineView])
+  /** The slow check (design §5.1): one probe call and the other servers' `state.json` without the lock. The probe is skipped when this tick already took one.
+    */
+  private def slowCheck(coop: SchedulingMode.Cooperative, now: Long): Unit = {
+    lastSlowCheckMs = Some(now)
+    if (!lastMachine.exists(_.nowMs == now)) lastMachine = Some(machineView(coop, coop.machineProbe.sample(), now))
+    lastOthers = coop.discovery.others()
+  }
 
-        case coop: SchedulingMode.Cooperative =>
-          state = measure(coop.forkProbe, state, now)
-          if (claimsPossible(state))
-            coop.lock.locked(coop.lockWaitMs) { (lockState, timer) =>
-              val sample = timer.step("probe")(coop.machineProbe.sample())
-              val others = lockState match {
-                case LockState.Held                                 => timer.step("read")(coop.discovery.others())
-                case LockState.Unavailable(_) | LockState.NotNeeded => Nil
-              }
-              if (lockState == LockState.Held) liveServersSeen = others.size + 1
-              val view = machineView(coop, sample, now)
-              val decision = timer.step("decide")(Decide.decide(Machine.Cooperative(view, others, lockState), state, params, deps.heapGate, deps.identity))
-              timer.step("write")(publishIfChanged(coop.ownSocketDir, decision.publish))
-              (decision, lockState, Some(view))
-            }
-          else {
-            val view = machineView(coop, coop.machineProbe.sample(), now)
-            val decision = Decide.decide(Machine.Cooperative(view, Nil, LockState.NotNeeded), state, params, deps.heapGate, deps.identity)
-            publishIfChanged(coop.ownSocketDir, decision.publish)
-            (decision, LockState.NotNeeded, Some(view))
-          }
-      }
-
-      state = decision.next
-      lastMachine = view.orElse(lastMachine)
-      lastLock = lockState
-
-      // Effects strictly after the lock is released (design §7, §8 point 1).
-      decision.evict.foreach(e => deps.effects.evict(e.fork, e.reason))
-      decision.reuse.foreach(r => deps.effects.reuse(r.demand, r.fork, r.guaranteed))
-      decision.spawn.foreach(s => deps.effects.spawn(s.demand, s.fork, s.guaranteed))
-      decision.admitInHeap.foreach(a => deps.effects.startInHeap(a.demand, a.guaranteed))
-      decision.heapDeferred.foreach(h => deps.effects.heapDeferred(h.demand, h.delayMs, h.firstDeferredAtMs))
-      lockState match {
-        case LockState.Unavailable(holder)        => deps.effects.lockUnavailable(holder)
-        case LockState.Held | LockState.NotNeeded => ()
-      }
-      view.map(_.pressure) match {
-        case Some(Pressure.NoSignal(reason)) if !pressureSignalWarned =>
-          pressureSignalWarned = true
-          deps.effects.pressureSignalMissing(reason)
-        case _ => ()
+  /** Memory needed elsewhere, as of the last reading (design §5.2): shed what this server holds for nobody. Once per slow-check interval while it lasts — the
+    * caches refill only when a workspace is used again, and a shed with nothing to shed is cheap but its log line is not.
+    */
+  private def relief(now: Long): Unit =
+    lastMachine.flatMap(view => MemoryNeed.of(view.pressure, lastOthers)).foreach { need =>
+      if (lastShedMs.forall(last => now - last >= deps.slowCheckIntervalMs)) {
+        lastShedMs = Some(now)
+        deps.effects.shedIdleCaches(need)
       }
     }
+
+  private def decideTick(now: Long): Unit = {
+    state = state.copy(heap = deps.heapUsage())
+    val params = deps.params()
+
+    val (decision, lockState, view) = deps.mode match {
+      case SchedulingMode.Unconstrained(_) =>
+        // Nothing machine-wide exists in this mode (design §9.1): no probe, no lock, no file, by construction — the mode carries none of them.
+        (Decide.decide(Machine.Unconstrained(now), state, params, deps.heapGate, deps.identity), LockState.NotNeeded, Option.empty[MachineView])
+
+      case coop: SchedulingMode.Cooperative =>
+        state = measure(coop.forkProbe, state, now)
+        if (claimsPossible(state))
+          coop.lock.locked(coop.lockWaitMs) { (lockState, timer) =>
+            val sample = timer.step("probe")(coop.machineProbe.sample())
+            val others = lockState match {
+              case LockState.Held                                 => timer.step("read")(coop.discovery.others())
+              case LockState.Unavailable(_) | LockState.NotNeeded => Nil
+            }
+            if (lockState == LockState.Held) {
+              liveServersSeen = others.size + 1
+              lastOthers = others
+              lastSlowCheckMs = Some(now)
+            }
+            val view = machineView(coop, sample, now)
+            val decision = timer.step("decide")(Decide.decide(Machine.Cooperative(view, others, lockState), state, params, deps.heapGate, deps.identity))
+            timer.step("write")(publishIfChanged(coop.ownSocketDir, decision.publish))
+            (decision, lockState, Some(view))
+          }
+        else {
+          val view = machineView(coop, coop.machineProbe.sample(), now)
+          val decision = Decide.decide(Machine.Cooperative(view, Nil, LockState.NotNeeded), state, params, deps.heapGate, deps.identity)
+          publishIfChanged(coop.ownSocketDir, decision.publish)
+          (decision, LockState.NotNeeded, Some(view))
+        }
+    }
+
+    state = decision.next
+    lastMachine = view.orElse(lastMachine)
+    lastLock = lockState
+
+    // Effects strictly after the lock is released (design §7, §8 point 1).
+    decision.evict.foreach(e => deps.effects.evict(e.fork, e.reason))
+    decision.reuse.foreach(r => deps.effects.reuse(r.demand, r.fork, r.guaranteed))
+    decision.spawn.foreach(s => deps.effects.spawn(s.demand, s.fork, s.guaranteed))
+    decision.admitInHeap.foreach(a => deps.effects.startInHeap(a.demand, a.guaranteed))
+    decision.heapDeferred.foreach(h => deps.effects.heapDeferred(h.demand, h.delayMs, h.firstDeferredAtMs))
+    lockState match {
+      case LockState.Unavailable(holder)        => deps.effects.lockUnavailable(holder)
+      case LockState.Held | LockState.NotNeeded => ()
+    }
+    view.map(_.pressure) match {
+      case Some(Pressure.NoSignal(reason)) if !pressureSignalWarned =>
+        pressureSignalWarned = true
+        deps.effects.pressureSignalMissing(reason)
+      case _ => ()
+    }
+  }
 
   private def machineView(coop: SchedulingMode.Cooperative, sample: MachineSample, now: Long): MachineView =
     MachineView(physicalMb = sample.physicalMb, usedMb = sample.usedMb, pressure = Pressure.normalise(sample.pressure, coop.thresholds), nowMs = now)
@@ -270,6 +317,8 @@ object Ticker {
     *   re-read every tick, so a `parallelism` change in the user config applies to the next decision
     * @param clock
     *   epoch milliseconds
+    * @param slowCheckIntervalMs
+    *   how often a server with nothing to claim probes and reads the others (design §5.1); [[Ticker.SlowCheckIntervalMs]] in the daemon
     */
   case class Deps(
       mode: SchedulingMode,
@@ -279,6 +328,14 @@ object Ticker {
       heapUsage: () => HeapUsage,
       clock: () => Long,
       effects: SchedulerEffects,
-      tickIntervalPerServerMs: Long
-  )
+      tickIntervalPerServerMs: Long,
+      slowCheckIntervalMs: Long
+  ) {
+    require(slowCheckIntervalMs > 0L, s"slowCheckIntervalMs $slowCheckIntervalMs must be positive")
+  }
+
+  /** The slow check's cadence (design §5.1, "every few seconds"). PROVISIONAL: a probe call and a few small file reads every three seconds cost nothing
+    * measurable, and three seconds is well inside the ~30 s it takes ZGC to hand freed heap back to the machine, so no finer cadence would show.
+    */
+  val SlowCheckIntervalMs: Long = 3000L
 }

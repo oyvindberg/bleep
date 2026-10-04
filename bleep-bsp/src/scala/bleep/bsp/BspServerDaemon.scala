@@ -312,6 +312,10 @@ object BspServerDaemon {
         val heap = HeapMonitor.system.heapUsage()
         bleep.machine.HeapUsage(usedMb = heap.usedMb.value, maxMb = heap.maxMb.value)
       },
+      relief = new MemoryRelief {
+        // Design §5.2: a busy server sheds idle workspaces' caches; an idle one has only idle workspaces and sheds them all.
+        def shedIdleCaches(need: bleep.machine.MemoryNeed): Unit = buildCache.shedIdle(need.describe, logger): Unit
+      },
       logger = logger,
       onDeath = t => {
         logger.error("The machine scheduler died; shutting the daemon down", t)

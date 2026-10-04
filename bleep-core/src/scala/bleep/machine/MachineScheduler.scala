@@ -47,6 +47,11 @@ trait SchedulerEffects {
   /** The tick wanted the lock and did not get it within the deadline. For the log, metrics and `top` (design §8 point 5). */
   def lockUnavailable(holder: LockHolder): Unit
 
+  /** Memory is needed elsewhere (design §5.2): drop the cached build and analyses of every workspace this server has no request for. Decided from tick data
+    * without the lock; it releases memory, it never claims it. Issued at most once per slow-check interval while the need lasts.
+    */
+  def shedIdleCaches(need: MemoryNeed): Unit
+
   /** The platform reports no memory pressure, so the pressure brake is off (design §9.1). Once per server, on the first tick that sees it: a loud warning. */
   def pressureSignalMissing(reason: String): Unit
 
