@@ -47,7 +47,10 @@ baked=$(strings "$image" | grep -oE '1\.0\.0-M[0-9]+\+[0-9]+-[a-f0-9]+(-SNAPSHOT
 step "install (mv, never cp: cp breaks the macOS signature and the binary dies with exit 137)"
 bin="$HOME/.local/bin/bleep"
 if [ -e "$bin" ]; then
-  prev="$bin.prev-$version"
+  # Named for the version it holds, so it can be found again. A release binary has no snapshot stamp; use the date then.
+  old_version=$(strings "$bin" | grep -oE '1\.0\.0-M[0-9]+\+[0-9]+-[a-f0-9]+(-SNAPSHOT)?' | sort -u)
+  [ "$(printf '%s\n' "$old_version" | grep -c .)" = 1 ] || old_version="$(date +%Y%m%d-%H%M%S)"
+  prev="$bin.prev-$old_version"
   [ -e "$prev" ] && prev="$prev-$(date +%Y%m%d-%H%M%S)"
   mv "$bin" "$prev"
   echo "previous binary kept as $prev"
