@@ -839,7 +839,8 @@ class MultiWorkspaceBspServer(
         bspReadTimeoutMillis = config.effectiveBspReadTimeoutMillis.toLong,
         compileServerIdleTimeoutMillis = config.effectiveCompileServerIdleTimeoutMillis,
         testIdleTimeoutMinutes = config.effectiveTestIdleTimeoutMinutes,
-        heapPressureThreshold = config.effectiveHeapPressureThreshold
+        heapPressureThreshold = config.effectiveHeapPressureThreshold,
+        machineScheduling = Some(config.effectiveMachineScheduling.value)
       ),
       idleMs = Some(daemonInfo.connectionRegistry.idleMs)
     )

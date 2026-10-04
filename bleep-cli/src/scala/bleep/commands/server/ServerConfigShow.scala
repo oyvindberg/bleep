@@ -96,7 +96,8 @@ case class ServerConfigShow(
       row("test-runner-heap", config.testRunnerHeap, status.flatMap(_.config.testRunnerHeap)),
       row("test-idle-timeout", config.testIdleTimeoutMinutes, status.map(_.config.testIdleTimeoutMinutes)),
       row("sourcegen-max-memory", config.sourcegenMaxMemory, None),
-      row("ksp-runner-max-memory", config.kspRunnerMaxMemory, None)
+      row("ksp-runner-max-memory", config.kspRunnerMaxMemory, None),
+      row("machine-scheduling", config.machineScheduling.map(_.value), status.flatMap(_.config.machineScheduling))
     )
   }
 }

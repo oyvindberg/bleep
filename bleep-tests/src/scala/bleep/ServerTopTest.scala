@@ -64,7 +64,8 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       bspReadTimeoutMillis = 30 * 60000L,
       compileServerIdleTimeoutMillis = 60 * 60000L,
       testIdleTimeoutMinutes = 2,
-      heapPressureThreshold = 0.8
+      heapPressureThreshold = 0.8,
+      machineScheduling = Some("cooperative")
     ),
     idleMs = Some(0L)
   )

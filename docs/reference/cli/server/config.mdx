@@ -288,3 +288,23 @@ bleep server config ksp-runner-max-memory <size>
 
 <p>remove the KSP runner max heap setting (back to the JVM default)</p>
 
+## `bleep server config machine-scheduling`
+
+<p>cooperative (default): coordinate fork memory with every bleep server on this machine; unconstrained: schedule on this server's own parallelism only</p>
+
+### Synopsis
+
+```bash
+bleep server config machine-scheduling <mode>
+```
+
+### Arguments
+
+| Argument | Type |
+|----------|------|
+| `mode` | one |
+
+## `bleep server config machine-scheduling-clear`
+
+<p>remove the setting (back to default: cooperative)</p>
+

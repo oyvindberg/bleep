@@ -81,8 +81,14 @@ case class BspServerConfig(
       *
       * Only idle workspaces are evicted, so this is a cache size, not a limit on how many workspaces a daemon can serve. Default: 4. None = default.
       */
-    maxCachedWorkspaces: Option[Int]
+    maxCachedWorkspaces: Option[Int],
+    /** Whether this server coordinates its forks' memory with every other bleep server on the machine, or schedules on its own. See [[MachineScheduling]].
+      * Default: cooperative.
+      */
+    machineScheduling: Option[MachineScheduling]
 ) {
+  def effectiveMachineScheduling: MachineScheduling = machineScheduling.getOrElse(MachineScheduling.Cooperative)
+
   def effectiveParallelism: Int = {
     val cores = Runtime.getRuntime.availableProcessors
     parallelism
@@ -173,7 +179,8 @@ object BspServerConfig {
     heapPressureThreshold = None,
     bspReadTimeoutMinutes = None,
     compileServerIdleTimeoutMinutes = None,
-    maxCachedWorkspaces = None
+    maxCachedWorkspaces = None,
+    machineScheduling = None
   )
 
   /** `testRunnerHeap` was called `testRunnerMaxMemory` until it was renamed to say what it does. Config files on disk outlive a rename, so the old key is read

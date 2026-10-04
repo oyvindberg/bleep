@@ -148,7 +148,9 @@ case class ServerConfigDto(
     bspReadTimeoutMillis: Long,
     compileServerIdleTimeoutMillis: Long,
     testIdleTimeoutMinutes: Int,
-    heapPressureThreshold: Double
+    heapPressureThreshold: Double,
+    /** `cooperative` or `unconstrained` (see `bleep.model.MachineScheduling`). `Option` so a status from a server without the field still decodes. */
+    machineScheduling: Option[String]
 )
 
 object ServerConfigDto {
