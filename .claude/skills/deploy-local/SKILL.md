@@ -27,6 +27,27 @@ If you must deploy dirty: build the binary, read the version out of it with `str
 and pin the publish to exactly that string with `--version` — the one case where
 `--version` is correct.
 
+## Run the script
+
+```
+.claude/skills/deploy-local/deploy.sh
+```
+
+It does every step below in order and stops at the first one that fails: it refuses a dirty tree, checks that the
+image carries exactly the published version, installs with `mv`, kills stale processes, and smoke-tests the new daemon.
+Read its output; the steps below explain what each part guards against, and are the manual fallback.
+
+Killing stale processes is also a script of its own, usable without a deploy:
+
+```
+.claude/skills/deploy-local/stale-processes.sh          # list
+.claude/skills/deploy-local/stale-processes.sh --kill   # back up metrics, then kill
+```
+
+A `bleep mcp-server` is stale when its executable is not the current `~/.local/bin/bleep`, compared by inode,
+since the old binary lives on renamed as `bleep.prev-*`. A daemon is stale when its `bleep-bsp_3` jar version differs
+from the binary's. Every deploy kills both kinds; the MCP hosts respawn their server from the new binary.
+
 ## Steps
 
 All from the workspace root. Always `--no-color` (and `--no-tui` where accepted).
@@ -102,9 +123,10 @@ All from the workspace root. Always `--no-color` (and `--no-tui` where accepted)
    ```
    The daemon's classpath version must equal step 1's version.
 
-9. **Restart long-lived processes that pin jars at startup**: any `bleep mcp-server`
-   (use the `bleep.restart` MCP tool from a live session, or kill the process — the
-   host respawns it). IDE BSP sessions reconnect on their own next action.
+9. **Kill every `bleep mcp-server` running an old binary** — they pin config and jars at
+   startup and keep spawning old daemons. `stale-processes.sh --kill` finds them by
+   executable inode; the host respawns each from the new binary. IDE BSP sessions
+   reconnect on their own next action.
 
    **Expected side effect:** `bleep.restart` drops the CALLING session's MCP
    connection — the bleep tools are delisted the moment the process exits, and the
