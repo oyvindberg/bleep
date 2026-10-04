@@ -29,7 +29,7 @@ final class MachineNative private () {
 object MachineNative {
 
   /** Must equal `BLEEP_MACHINE_ABI_VERSION` in the C source. */
-  val AbiVersion: Int = 1
+  val AbiVersion: Int = 2
 
   /** Where the library for `platform` lives on the classpath (inside the bleep-machine-probes jar), as `(directory, file name)`. */
   def resourceFor(platform: ProbePlatform): (String, String) = platform match {

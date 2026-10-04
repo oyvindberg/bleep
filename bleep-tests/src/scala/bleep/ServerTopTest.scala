@@ -42,7 +42,17 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     unconstrainedReason = None,
     parallelism = 18,
     headroomMb = 8192L,
-    machine = Some(MachineViewDto(physicalMb = 49152L, usedMb = 12288L, pressure = "normal", pressureReason = None, sampledAgoMs = 500L)),
+    machine = Some(
+      MachineViewDto(
+        physicalMb = 49152L,
+        usedMb = 12288L,
+        pressure = "normal",
+        pressureReason = None,
+        sampledAgoMs = 500L,
+        churnPagesPerSecond = None,
+        pressureLevel = None
+      )
+    ),
     lock = LockDto(state = "held", holderPid = None, holderStartedAtEpochMs = None, holderHeldForMs = None),
     liveServers = 2,
     requests = 0,

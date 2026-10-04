@@ -51,7 +51,26 @@ class MacOsProbesTest extends AnyFunSuite with Matchers {
     assume(onMac)
     val s = probes.sample()
     s.physicalMb shouldBe run("/usr/sbin/sysctl", "-n", "hw.memsize").trim.toLong / (1024 * 1024)
-    s.pressure shouldBe RawPressure.MacOs(run("/usr/sbin/sysctl", "-n", "kern.memorystatus_vm_pressure_level").trim.toInt)
+    s.pressure match {
+      case RawPressure.MacOs(level, _, _, _, _) => level shouldBe run("/usr/sbin/sysctl", "-n", "kern.memorystatus_vm_pressure_level").trim.toInt
+      case other                                => fail(s"not a macOS reading: $other")
+    }
+  }
+
+  test("the compressor and swap counters are vm_stat's, cumulative and monotonic") {
+    assume(onMac)
+    val RawPressure.MacOs(_, c1, d1, si1, so1) = probes.sample().pressure: @unchecked
+    val stats = parseVmStat(run("/usr/bin/vm_stat"))
+    val RawPressure.MacOs(_, c2, d2, si2, so2) = probes.sample().pressure: @unchecked
+    // Counters since boot only ever grow; vm_stat read between the two probes lies between them.
+    c2 should be >= c1
+    d2 should be >= d1
+    si2 should be >= si1
+    so2 should be >= so1
+    stats("Compressions") should (be >= c1 and be <= c2)
+    stats("Decompressions") should (be >= d1 and be <= d2)
+    stats("Swapins") should (be >= si1 and be <= si2)
+    stats("Swapouts") should (be >= so1 and be <= so2)
   }
 
   test("footprint is the same phys_footprint the FFM reading saw") {

@@ -24,8 +24,8 @@ object MemoryNeed {
   /** Pressure first, since it is the stronger signal; then whoever is waiting. `others` is every other live server as last read. */
   def of(pressure: Pressure, others: List[StateJson]): Option[MemoryNeed] =
     pressure match {
-      case Pressure.Elevated | Pressure.Critical  => Some(UnderPressure(pressure))
-      case Pressure.Normal | Pressure.NoSignal(_) =>
+      case Pressure.Elevated | Pressure.Critical                        => Some(UnderPressure(pressure))
+      case Pressure.Normal | Pressure.NoSignal(_) | Pressure.Warming(_) =>
         val wanting = others.filter(_.wantsMore).map(_.pid).sorted
         if (wanting.isEmpty) None else Some(OthersWantMore(wanting))
     }

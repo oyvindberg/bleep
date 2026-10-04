@@ -28,6 +28,7 @@ class SchedulerMetricsTest extends AnyFunSuite with Matchers {
       evictedOwnerGone = 0,
       heapDeferred = 0,
       pressure = Some(pressure),
+      churnPagesPerSecond = None,
       liveServers = 2,
       requests = 1,
       forks = spawns,
@@ -69,7 +70,7 @@ class SchedulerMetricsTest extends AnyFunSuite with Matchers {
       m.tick(report(10_200L, claimed = false, LockState.NotNeeded, Nil, spawns = 0, Pressure.Elevated))
       m.tick(report(10_300L, claimed = false, LockState.NotNeeded, Nil, spawns = 0, Pressure.Elevated))
     }
-    lines shouldBe List(Line.PressureChanged(10_200L, Pressure.Normal, Pressure.Elevated))
+    lines shouldBe List(Line.PressureChanged(10_200L, Pressure.Normal, Pressure.Elevated, None))
     lines.head.json shouldBe """{"type":"pressure","ts":10200,"from":"normal","to":"elevated"}"""
   }
 

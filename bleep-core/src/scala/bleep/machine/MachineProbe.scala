@@ -28,8 +28,15 @@ case class MachineSample(physicalMb: Long, usedMb: Long, pressure: RawPressure)
 sealed trait RawPressure
 object RawPressure {
 
-  /** `sysctl kern.memorystatus_vm_pressure_level`: 1 normal, 2 warning, 4 critical. */
-  case class MacOs(level: Int) extends RawPressure
+  /** macOS: the kernel's `kern.memorystatus_vm_pressure_level` (1 normal, 2 warning, 4 critical) and the cumulative page counters of `vm_statistics64` —
+    * compressions, decompressions, swapins, swapouts — since boot. The counters are reported raw; [[Churn]] rates them, since a rate needs two samples and the
+    * probe has one. The level alone lags an overload by tens of seconds (design §9); the churn is what moves first.
+    */
+  case class MacOs(level: Int, compressions: Long, decompressions: Long, swapins: Long, swapouts: Long) extends RawPressure {
+
+    /** Pages the compressor moved, in or out: the one counter that climbs with kernel_task's CPU on an overloaded Mac. */
+    def churnPages: Long = compressions + decompressions
+  }
 
   /** `/proc/pressure/memory` (PSI): share of the last 10 s in which some / all non-idle tasks were stalled on memory, in percent. */
   case class LinuxPsi(someAvg10: Double, fullAvg10: Double) extends RawPressure

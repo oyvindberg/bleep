@@ -27,6 +27,7 @@ case class TickReport(
     evictedOwnerGone: Int,
     heapDeferred: Int,
     pressure: Option[Pressure],
+    churnPagesPerSecond: Option[Long],
     liveServers: Int,
     requests: Int,
     forks: Int,
@@ -45,7 +46,7 @@ object TickReport {
       claimed: Boolean,
       lock: LockState,
       holdBreakdownMs: List[(String, Long)],
-      pressure: Option[Pressure],
+      view: Option[MachineView],
       liveServers: Int
   ): TickReport =
     TickReport(
@@ -64,7 +65,8 @@ object TickReport {
       evictedCriticalPressure = decision.evict.count(_.reason == Decision.EvictReason.CriticalPressure),
       evictedOwnerGone = decision.evict.count(_.reason == Decision.EvictReason.OwnerGone),
       heapDeferred = decision.heapDeferred.size,
-      pressure = pressure,
+      pressure = view.map(_.pressure),
+      churnPagesPerSecond = view.flatMap(_.churnPagesPerSecond),
       liveServers = liveServers,
       requests = decision.next.requests.size,
       forks = decision.next.forks.size,

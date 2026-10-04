@@ -36,6 +36,7 @@ final class Ticker(deps: Ticker.Deps) {
   private var lastMachine: Option[MachineView] = None
   private var lastLock: LockState = LockState.NotNeeded
   private var lastOthers: List[StateJson] = Nil
+  private var churn: Option[Churn.State] = None
   private var lastSlowCheckMs: Option[Long] = None
   private var lastShedMs: Option[Long] = None
 
@@ -253,7 +254,7 @@ final class Ticker(deps: Ticker.Deps) {
       decision.admitInHeap.map(a => (a.demand.request, a.demand.taskId))
     lastMachine = view.orElse(lastMachine)
     lastLock = lockState
-    deps.observer.tick(TickReport.of(decision, now, claimed, lockState, holdBreakdownMs, view.map(_.pressure), liveServersSeen))
+    deps.observer.tick(TickReport.of(decision, now, claimed, lockState, holdBreakdownMs, view, liveServersSeen))
 
     // Effects strictly after the lock is released (design §7, §8 point 1).
     decision.evict.foreach(e => deps.effects.evict(e.fork, e.reason))
@@ -273,8 +274,29 @@ final class Ticker(deps: Ticker.Deps) {
     }
   }
 
-  private def machineView(coop: SchedulingMode.Cooperative, sample: MachineSample, now: Long): MachineView =
-    MachineView(physicalMb = sample.physicalMb, usedMb = sample.usedMb, pressure = Pressure.normalise(sample.pressure, coop.thresholds), nowMs = now)
+  /** The sample normalised. On macOS the compressor counters are folded into the churn average first (design §9), which is the one piece of state a reading
+    * keeps between ticks: a rate needs two samples.
+    */
+  private def machineView(coop: SchedulingMode.Cooperative, sample: MachineSample, now: Long): MachineView = {
+    val (rate, level) = sample.pressure match {
+      case mac: RawPressure.MacOs =>
+        val next = Churn.update(churn, now, mac.churnPages)
+        churn = Some(next)
+        (next.rate, Some(mac.level))
+      case _ => (Churn.Rate.Unknown, None)
+    }
+    MachineView(
+      physicalMb = sample.physicalMb,
+      usedMb = sample.usedMb,
+      pressure = Pressure.normalise(sample.pressure, coop.thresholds, rate),
+      nowMs = now,
+      churnPagesPerSecond = rate match {
+        case Churn.Rate.PagesPerSecond(v) => Some(math.round(v))
+        case Churn.Rate.Unknown           => None
+      },
+      pressureLevel = level
+    )
+  }
 
   /** The file is rewritten only when this server's entry changed (design §7); `updatedAtEpochMs` alone is not a change. */
   private def publishIfChanged(ownSocketDir: Path, publish: StateJson): Unit = {

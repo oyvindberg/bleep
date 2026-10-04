@@ -101,7 +101,14 @@ object DecideGen {
       )
     }
     val physical = 8192L
-    val view = MachineView(physicalMb = physical, usedMb = r.nextLong(physical + 2048L), pressure = pressure(r), nowMs = now)
+    val view = MachineView(
+      physicalMb = physical,
+      usedMb = r.nextLong(physical + 2048L),
+      pressure = pressure(r),
+      nowMs = now,
+      churnPagesPerSecond = None,
+      pressureLevel = None
+    )
     val me = MyState(
       requests = requests,
       forks = forks,

@@ -71,11 +71,23 @@ object StatusRequest {
   * @param pressure
   *   `normal`, `elevated`, `critical` or `no-signal` — the OS's memory pressure, normalised (design §9)
   * @param pressureReason
-  *   why there is no pressure signal, when `pressure` is `no-signal`
+  *   why there is no pressure signal, when `pressure` is `no-signal` or `warming-up`
   * @param sampledAgoMs
   *   how old this reading is: a server that has had nothing to claim has not probed since
+  * @param churnPagesPerSecond
+  *   macOS: the compressor's churn (compressions + decompressions per second, smoothed) — what the pressure is judged from (design §9)
+  * @param pressureLevel
+  *   the kernel's own level where it reports one (macOS: 1, 2, 4)
   */
-case class MachineViewDto(physicalMb: Long, usedMb: Long, pressure: String, pressureReason: Option[String], sampledAgoMs: Long)
+case class MachineViewDto(
+    physicalMb: Long,
+    usedMb: Long,
+    pressure: String,
+    pressureReason: Option[String],
+    sampledAgoMs: Long,
+    churnPagesPerSecond: Option[Long],
+    pressureLevel: Option[Int]
+)
 
 object MachineViewDto {
   implicit val codec: Codec[MachineViewDto] = deriveCodec

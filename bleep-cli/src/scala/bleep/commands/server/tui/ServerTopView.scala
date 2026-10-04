@@ -4,7 +4,7 @@ package server
 package tui
 
 import bleep.bsp.ServerState
-import bleep.bsp.protocol.{DaemonStatus, SchedulerDto, SchedulerForkDto}
+import bleep.bsp.protocol.{DaemonStatus, MachineViewDto, SchedulerDto, SchedulerForkDto}
 import bleep.testing.FancyBuildDisplay.Palette
 import jatatui.core.layout.Flex
 import jatatui.core.style.Style
@@ -184,7 +184,7 @@ object ServerTopView {
             Span.styled(s"  ${"Machine".padTo(8, ' ')}", bold(Palette.text)),
             Span.styled(
               s"${mb(view.usedMb)} used of ${mb(ceiling)} fork ceiling (${mb(view.physicalMb)} − ${mb(headroomMb)} headroom)$pending — " +
-                s"${pressureText(view.pressure, view.pressureReason)}$age",
+                s"${pressureText(view)}$age",
               style(Palette.text)
             )
           )
@@ -216,9 +216,14 @@ object ServerTopView {
     machine ++ unconstrained ++ lockedOut ++ yielding
   }
 
-  private def pressureText(pressure: String, reason: Option[String]): String = pressure match {
-    case "no-signal" => s"no pressure signal (${reason.getOrElse("no reason given")})"
-    case level       => s"pressure $level"
+  private def pressureText(view: MachineViewDto): String = {
+    val detail = List(view.churnPagesPerSecond.map(c => s"churn ${c / 1000}k pages/s"), view.pressureLevel.map(l => s"level $l")).flatten
+    val suffix = if (detail.isEmpty) "" else s" (${detail.mkString(", ")})"
+    view.pressure match {
+      case "no-signal"  => s"no pressure signal (${view.pressureReason.getOrElse("no reason given")})"
+      case "warming-up" => s"pressure warming up (${view.pressureReason.getOrElse("no reason given")})$suffix"
+      case level        => s"pressure $level$suffix"
+    }
   }
 
   private def barLine(label: String, value: Double, caption: String): Line = {
@@ -806,7 +811,7 @@ object ServerTopView {
           gaugeLine(
             "Machine memory",
             ratio(view.usedMb, ceiling),
-            s"${view.usedMb} MB of ${ceiling} MB ceiling in use, ${pressureText(view.pressure, view.pressureReason)}$age"
+            s"${view.usedMb} MB of ${ceiling} MB ceiling in use, ${pressureText(view)}$age"
           ),
           fieldOf("Ceiling", s"${view.physicalMb} MB physical − ${scheduler.headroomMb} MB headroom, shared by ${scheduler.liveServers} live server(s)")
         )

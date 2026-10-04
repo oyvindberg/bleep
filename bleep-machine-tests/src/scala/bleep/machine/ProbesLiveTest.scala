@@ -32,8 +32,9 @@ class ProbesLiveTest extends AnyFunSuite with Matchers {
 
   test("machine: pressure fields are in range") {
     probes.machine.sample().pressure match {
-      case RawPressure.MacOs(level) =>
+      case RawPressure.MacOs(level, compressions, decompressions, swapins, swapouts) =>
         Set(1, 2, 4) should contain(level)
+        List(compressions, decompressions, swapins, swapouts).foreach(_ should be >= 0L)
       case RawPressure.LinuxPsi(some, full) =>
         some should (be >= 0.0 and be <= 100.0)
         full should (be >= 0.0 and be <= 100.0)

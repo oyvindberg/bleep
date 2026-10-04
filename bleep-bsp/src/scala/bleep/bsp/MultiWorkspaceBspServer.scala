@@ -5343,13 +5343,16 @@ object MultiWorkspaceBspServer {
               case bleep.machine.Pressure.Elevated         => ("elevated", None)
               case bleep.machine.Pressure.Critical         => ("critical", None)
               case bleep.machine.Pressure.NoSignal(reason) => ("no-signal", Some(reason))
+              case bleep.machine.Pressure.Warming(reason)  => ("warming-up", Some(reason))
             }
             MachineViewDto(
               physicalMb = view.physicalMb,
               usedMb = view.usedMb,
               pressure = pressure,
               pressureReason = pressureReason,
-              sampledAgoMs = math.max(0L, nowMs - view.nowMs)
+              sampledAgoMs = math.max(0L, nowMs - view.nowMs),
+              churnPagesPerSecond = view.churnPagesPerSecond,
+              pressureLevel = view.pressureLevel
             )
           },
           lock = lockDto(snap.lock),

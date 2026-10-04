@@ -28,7 +28,7 @@ final class SchedulerMetrics(write: SchedulerMetrics.Line => Unit) extends TickO
     }
     report.pressure.foreach { pressure =>
       if (!lastPressure.contains(pressure)) {
-        lastPressure.foreach(from => write(Line.PressureChanged(report.nowMs, from, pressure)))
+        lastPressure.foreach(from => write(Line.PressureChanged(report.nowMs, from, pressure, report.churnPagesPerSecond)))
         lastPressure = Some(pressure)
       }
     }
@@ -51,8 +51,11 @@ object SchedulerMetrics {
     def json: String
   }
   object Line {
-    case class PressureChanged(ts: Long, from: Pressure, to: Pressure) extends Line {
-      def json: String = s"""{"type":"pressure","ts":$ts,"from":"${Pressure.name(from)}","to":"${Pressure.name(to)}"}"""
+    case class PressureChanged(ts: Long, from: Pressure, to: Pressure, churnPagesPerSecond: Option[Long]) extends Line {
+      def json: String = {
+        val churn = churnPagesPerSecond.map(c => s""","churn_pages_per_s":$c""").getOrElse("")
+        s"""{"type":"pressure","ts":$ts,"from":"${Pressure.name(from)}","to":"${Pressure.name(to)}"$churn}"""
+      }
     }
     case class LockUnavailable(ts: Long, holder: String) extends Line {
       def json: String = s"""{"type":"lock_unavailable","ts":$ts,"holder":"${BspMetrics.escape(holder)}"}"""

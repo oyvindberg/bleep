@@ -343,7 +343,7 @@ crashes.** A dead server can never hold it. The remaining danger is a holder tha
 |---|---|---|---|
 | used memory | cgroup v2 `memory.current − inactive_file` (working set) when a `memory.max` limit is set, else `/proc/meminfo`: `MemTotal − MemAvailable` | JNI `host_statistics64`: anonymous + wired + **compressor** − **purgeable** pages | JNI `GlobalMemoryStatusEx`: total − available physical |
 | physical | cgroup v2 `memory.max` when set, else `MemTotal` | `hw.memsize` | `GlobalMemoryStatusEx` |
-| pressure | cgroup v2 `memory.pressure` when limited, else `/proc/pressure/memory` (PSI); absent → `Unavailable` | JNI `sysctlbyname("kern.memorystatus_vm_pressure_level")` | JNI `GlobalMemoryStatusEx` (load, commit vs limit) + `QueryMemoryResourceNotification` |
+| pressure | cgroup v2 `memory.pressure` when limited, else `/proc/pressure/memory` (PSI); absent → `Unavailable` | JNI `sysctlbyname("kern.memorystatus_vm_pressure_level")` **and the compressor's churn**: `vm_statistics64` `compressions + decompressions`, rated (below) | JNI `GlobalMemoryStatusEx` (load, commit vs limit) + `QueryMemoryResourceNotification` |
 | fork footprint | `/proc/<pid>/status`: `RssAnon + VmSwap` (same number as `smaps_rollup`, 14 µs instead of 1.7 ms) | JNI `proc_pid_rusage` → `phys_footprint` | JNI `GetProcessMemoryInfo` → `PrivateUsage` |
 
 - Linux is pure file reads, any JDK. macOS and Windows use one small C file called through plain JNI (primitives and `long[]` only, failures as status
@@ -354,6 +354,15 @@ crashes.** A dead server can never hold it. The remaining danger is a holder tha
   counterpart of the host's `MemTotal − MemAvailable`.
 - **Purgeable pages (macOS)** are subtracted: apps mark them as discardable caches and the kernel drops them without compressing or swapping, so they are
   not "memory someone must pay to reclaim". The same subtraction Activity Monitor makes for "App Memory".
+- **macOS pressure is the compressor's churn** (`Churn`, `Pressure.normalise`). Measured on the owner's 48 GB Mac with kernel_task CPU as the ground
+  truth for "overloaded" (> 90 %): the used figure stayed 42.4–42.8 GB from calm to 300 % kernel_task (anonymous 27 → 12 GB, compressor 10 → 26 GB —
+  the pages moved, the sum did not), the kernel's level went to 2 forty seconds after the 90 % crossing, swapins exploded only late; compressions plus
+  decompressions went 6k–50k pages/s calm → 98k/s at 95 % → 236k/s at 111 % → 338k/s at 160 % → 411–508k/s at 268–296 %. So the probe reports the
+  cumulative counters (same `host_statistics64` call; swapins/swapouts too, for metrics), the scheduler rates them with a dt-weighted exponential average
+  (τ = 10 s: a 10 ms tick moves it by a thousandth, a 3 s slow check by a quarter; a step reaches 63 % in 10 s, 95 % in 30 s; a counter that went
+  backwards restarts the baseline), and normalises: **Elevated ≥ 75,000 pages/s, Critical ≥ 200,000 pages/s** (`PressureThresholds`, calibrated from
+  this one test), or the kernel level as a floor (2 → at least Elevated, 4 → Critical). Until the second sample there is no rate: `Pressure.Warming`,
+  the brake off, said as such rather than as Normal.
 - A probe call that fails throws. **A missing pressure source is not a failure**: `RawPressure.Unavailable(reason)` (e.g. a Linux kernel without PSI,
   or RHEL's `psi=0` default) — a warning once at startup and in `top`, and the pressure brake is off; room still works (§9.1).
 - On Windows the JDK's `OperatingSystemMXBean` returns the same `GlobalMemoryStatusEx` numbers (verified in CI); JNI is still needed for the low-memory

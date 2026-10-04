@@ -205,7 +205,12 @@ object MyState {
 }
 
 /** One reading of the machine, taken under the lock on a claiming tick so it includes every earlier claim. */
-case class MachineView(physicalMb: Long, usedMb: Long, pressure: Pressure, nowMs: Long)
+/** @param churnPagesPerSecond
+  *   macOS's compressor churn as rated so far (design §9); absent on other platforms and before the second sample
+  * @param pressureLevel
+  *   the kernel's own level where it reports one (macOS: 1, 2, 4)
+  */
+case class MachineView(physicalMb: Long, usedMb: Long, pressure: Pressure, nowMs: Long, churnPagesPerSecond: Option[Long], pressureLevel: Option[Int])
 
 /** The outcome of trying for `machine.lock` this tick (design §6.3, §8). */
 sealed trait LockState

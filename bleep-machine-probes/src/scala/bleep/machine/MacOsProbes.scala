@@ -11,7 +11,10 @@ package bleep.machine
   * simply drops them, with no compression and no swap. Activity Monitor subtracts them for "App Memory" for the same reason. File-backed pages are not counted
   * either; the kernel drops them for free.
   *
-  * '''Pressure''' is `kern.memorystatus_vm_pressure_level`, the kernel's own verdict (what Activity Monitor's pressure graph shows).
+  * '''Pressure''' is `kern.memorystatus_vm_pressure_level`, the kernel's own verdict (what Activity Monitor's pressure graph shows) — and the cumulative
+  * compressor and swap counters (`vm_stat`'s Compressions, Decompressions, Swapins, Swapouts), from the same `host_statistics64` call, because the level lags:
+  * on a 48 GB Mac driven to kernel_task at 160 % it went to 2 forty seconds after the overload began, while compressions plus decompressions had climbed from
+  * under 50k to 340k pages/s. The scheduler rates those counters ([[Churn]]); the probe only reports them.
   *
   * '''A fork's footprint''' is `ri_phys_footprint` from `proc_pid_rusage(RUSAGE_INFO_V4)` — what `footprint(1)` and Activity Monitor's "Memory" column report:
   * the process's dirty private memory including what has been compressed, excluding shared and clean file-backed pages.
@@ -24,12 +27,13 @@ final class MacOsProbes(native: MachineNative) extends MachineProbe with ForkPro
   private val hostPort: Long = native.macHostPort()
 
   def sample(): MachineSample = {
-    val out = new Array[Long](7)
+    val out = new Array[Long](11)
     native.macSample(hostPort, out) match {
       case 0 => ()
       case 1 => throw new IllegalStateException(s"host_statistics64(HOST_VM_INFO64) failed: kern_return_t ${out(0)}")
       case 2 => throw new IllegalStateException(s"sysctlbyname(kern.memorystatus_vm_pressure_level) failed: errno ${out(0)}")
       case 3 => throw new IllegalStateException(s"sysctlbyname(hw.memsize) failed: errno ${out(0)}")
+      case 4 => throw new IllegalStateException("macSample was handed an output array shorter than 11; the library and this code disagree on the layout")
       case s => throw new IllegalStateException(s"macSample returned unknown status $s")
     }
     fromCounts(out)
@@ -53,7 +57,7 @@ object MacOsProbes {
     MachineSample(
       physicalMb = out(0) / MB,
       usedMb = (out(2) - out(6) + out(3) + out(4)) * pageSize / MB,
-      pressure = RawPressure.MacOs(out(5).toInt)
+      pressure = RawPressure.MacOs(level = out(5).toInt, compressions = out(7), decompressions = out(8), swapins = out(9), swapouts = out(10))
     )
   }
 }

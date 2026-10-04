@@ -15,7 +15,7 @@ class DecideTest extends AnyFunSuite with Matchers {
   private val blank = MyState.empty.copy(nextForkId = 101L)
 
   private def view(usedMb: Long, pressure: Pressure = Pressure.Normal): MachineView =
-    MachineView(physicalMb = 10_000L, usedMb = usedMb, pressure = pressure, nowMs = now)
+    MachineView(physicalMb = 10_000L, usedMb = usedMb, pressure = pressure, nowMs = now, churnPagesPerSecond = None, pressureLevel = None)
 
   private def fork(
       id: Long,

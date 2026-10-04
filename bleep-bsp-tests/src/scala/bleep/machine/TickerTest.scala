@@ -37,7 +37,7 @@ class TickerTest extends AnyFunSuite with Matchers {
 
   test("under elevated pressure an idle server sheds its idle workspaces' caches, once per slow-check interval while it lasts") {
     withWorld { w =>
-      w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 14_000L, pressure = RawPressure.MacOs(2)))
+      w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 14_000L, pressure = RawPressure.MacOs(2, 0L, 0L, 0L, 0L)))
       val t = ticker(w)
       t.tick()
       t.tick()
@@ -46,7 +46,7 @@ class TickerTest extends AnyFunSuite with Matchers {
       t.tick()
       w.effects.all.size shouldBe 2
       // Pressure gone, nobody waiting: nothing more is shed.
-      w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 4_096L, pressure = RawPressure.MacOs(1)))
+      w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 4_096L, pressure = RawPressure.MacOs(1, 0L, 0L, 0L, 0L)))
       w.clock.addAndGet(w.slowCheckIntervalMs): Unit
       t.tick()
       w.effects.all.size shouldBe 2
@@ -256,7 +256,7 @@ class TickerTest extends AnyFunSuite with Matchers {
 
   test("an unconstrained server never probes, never reads anyone and never sheds") {
     withWorld { w =>
-      w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 14_000L, pressure = RawPressure.MacOs(4)))
+      w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 14_000L, pressure = RawPressure.MacOs(4, 0L, 0L, 0L, 0L)))
       w.otherServer("bbbb", forks = Nil, wantsMore = true)
       val t = new Ticker(w.depsUnconstrained("test", tickIntervalPerServerMs = 10L))
       t.tick()
@@ -423,7 +423,7 @@ class TickerTest extends AnyFunSuite with Matchers {
       w.effects.clear()
       t.tick()
       w.effects.all shouldBe Nil // warm: four suites still to come
-      w.machineProbe.current.set(MachineSample(16_384L, 15_000L, RawPressure.MacOs(4)))
+      w.machineProbe.current.set(MachineSample(16_384L, 15_000L, RawPressure.MacOs(4, 0L, 0L, 0L, 0L)))
       t.tick()
       // Eviction is the decision's; the shed is §5.2's answer to the same pressure, for whatever this server caches for nobody.
       w.effects.all shouldBe List(
