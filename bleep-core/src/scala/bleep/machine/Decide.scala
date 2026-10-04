@@ -207,7 +207,7 @@ object Decide {
       updatedAtEpochMs = now,
       requests = me.requests.size,
       cpuInUse = next.cpuInUse,
-      wantsMore = nextReady.nonEmpty,
+      wantsMore = next.wantsMore,
       shuttingDown = me.shuttingDown,
       forks = forks.map(toStateFork)
     )

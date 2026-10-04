@@ -46,11 +46,11 @@ object ForkKind {
 }
 
 /** Work that runs inside the server's own heap. Only `Compile` is subject to the heap gate. */
-sealed trait InHeapKind
+sealed abstract class InHeapKind(val json: String)
 object InHeapKind {
-  case object Compile extends InHeapKind
-  case object Discover extends InHeapKind
-  case object ResolveAnnotationProcessors extends InHeapKind
+  case object Compile extends InHeapKind("compile")
+  case object Discover extends InHeapKind("discover")
+  case object ResolveAnnotationProcessors extends InHeapKind("annotation-processors")
 }
 
 /** Something a request's DAG could start now. A request's demands are submitted in the DAG's priority order. */
@@ -165,6 +165,9 @@ case class MyState(
 ) {
   def cpuInUse: Int = inHeap.map(_.cpu).sum + forks.map(_.busyCpu).sum
   def compilesRunning: Int = inHeap.count(_.kind == InHeapKind.Compile)
+
+  /** Ready demands this server could not admit on its last tick — what it publishes as `wantsMore` (design §6.2). */
+  def wantsMore: Boolean = ready.nonEmpty
 }
 
 object MyState {

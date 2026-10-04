@@ -4,7 +4,7 @@ package server
 package tui
 
 import bleep.bsp.ServerState
-import bleep.bsp.protocol.DaemonStatus
+import bleep.bsp.protocol.{DaemonStatus, SchedulerDto, SchedulerForkDto}
 import bleep.testing.FancyBuildDisplay.Palette
 import jatatui.core.layout.Flex
 import jatatui.core.style.Style
@@ -81,16 +81,15 @@ object ServerTopView {
     val live = state.live
     val running = live.count(_.info.isRunning)
     val wedged = live.length - running
-    // Held slots sum across servers because each is really holding them, but capacity does not: every server on this machine sees the same cores, so adding
-    // their totals claimed 36 slots on an 18-core machine.
-    val busySlots = live.flatMap(_.status).map(_.machine.usedCpu).sum
-    val totalSlots = live.flatMap(_.status).map(_.machine.totalCpu).maxOption.getOrElse(0)
-    val queued = live.flatMap(_.status).map(_.machine.waiting.size).sum
+    // Held slots sum across servers because each is really holding them. There is no machine-wide capacity to put them against: `parallelism` is each
+    // server's own (design §5), so the header counts what is held and leaves capacity to the per-server lines.
+    val busySlots = live.flatMap(_.status).map(_.scheduler.cpuInUse).sum
+    val queued = live.flatMap(_.status).map(_.scheduler.waiting.size).sum
 
     val parts = List(
       Some(s"$running running"),
       Option.when(wedged > 0)(s"$wedged wedged"),
-      Option.when(busySlots > 0)(s"$busySlots of $totalSlots slots busy" + (if (queued > 0) s", $queued queued" else ""))
+      Option.when(busySlots > 0)(s"$busySlots slot${if (busySlots == 1) "" else "s"} busy" + (if (queued > 0) s", $queued waiting" else ""))
     ).flatten
 
     val dead = state.dead
@@ -154,8 +153,72 @@ object ServerTopView {
         barLine("Memory", if (physical > 0) ratio(memoryMb, physical) else 0.0, memoryCaption),
         barLine("CPU", ratio((cores * 100).round, state.machine.cores.toLong * 100), coresCaption),
         boldLineOf(s"  $verdictText", verdictColor)
-      )
+      ) ++ schedulerLines(state)
     }
+  }
+
+  /** The machine scheduler across every server (design §10 step 12): how much of the machine's memory is in use against the ceiling forks may fill, what is
+    * pending for forks still starting, the OS's pressure, and the servers standing outside the arrangement — running unconstrained, or kept out by the lock.
+    *
+    * The machine reading comes from whichever server probed most recently: there is one machine, and every cooperative server reads the same probe under the
+    * same lock. Pending is summed from every server's `state.json`, read here without the lock — the same files the servers read about each other, so the
+    * number is the one a claiming server would see.
+    */
+  private def schedulerLines(state: ServerTopState): List[Line] = {
+    val live = state.live
+    val schedulers = live.flatMap(row => row.status.map(status => row -> status.scheduler))
+    val cooperative = schedulers.filter(_._2.mode == SchedulerDto.Cooperative)
+    val pendingMb = live.flatMap(_.published).map(_.startingBoundMb).sum
+    val freshest =
+      cooperative.flatMap { case (_, scheduler) => scheduler.machine.map(view => (view, scheduler.headroomMb)) }.sortBy(_._1.sampledAgoMs).headOption
+
+    val machine = freshest match {
+      case Some((view, headroomMb)) =>
+        val ceiling = math.max(0L, view.physicalMb - headroomMb)
+        val pending = if (pendingMb > 0) s", ${mb(pendingMb)} pending for starting forks" else ""
+        val age = if (view.sampledAgoMs >= 5000) s", read ${humanDuration(view.sampledAgoMs)} ago" else ""
+        // One line, and a short one: the summary sits above the server list, every line here is one fewer for the detail below, and the pane cuts at its
+        // width rather than wrapping.
+        List(
+          Line.from(
+            Span.styled(s"  ${"Machine".padTo(8, ' ')}", bold(Palette.text)),
+            Span.styled(
+              s"${mb(view.usedMb)} used of ${mb(ceiling)} fork ceiling (${mb(view.physicalMb)} − ${mb(headroomMb)} headroom)$pending — " +
+                s"${pressureText(view.pressure, view.pressureReason)}$age",
+              style(Palette.text)
+            )
+          )
+        )
+      case None if cooperative.nonEmpty =>
+        val pending = if (pendingMb > 0) s"; ${mb(pendingMb)} pending for starting forks" else ""
+        List(lineOf(s"  Machine no reading yet — no server has had to claim memory$pending", Palette.textDim))
+      case None => Nil
+    }
+
+    val unconstrained = schedulers.collect {
+      case (row, scheduler) if scheduler.mode == SchedulerDto.Unconstrained =>
+        lineOf(s"  ▲ ${row.name} runs unconstrained — ${scheduler.unconstrainedReason.getOrElse("no reason given")}", Palette.warning)
+    }
+    val lockedOut = schedulers.collect {
+      case (row, scheduler) if scheduler.lock.state == "unavailable" =>
+        val holder = scheduler.lock.holderPid match {
+          case Some(pid) =>
+            val name = live.find(_.pid.contains(pid)).map(_.name).getOrElse(s"pid $pid (not a server this dashboard knows)")
+            s"$name${scheduler.lock.holderHeldForMs.map(ms => s", held for ${humanDuration(ms)}").getOrElse("")}"
+          case None => "an unannounced holder — just released, or not yet announced"
+        }
+        lineOf(s"  ▲ ${row.name} could not get machine.lock: $holder", Palette.warning)
+    }
+    val yielding = schedulers.collect {
+      case (row, scheduler) if scheduler.shuttingDown =>
+        lineOf(s"  ${row.name} is shutting down to yield its memory", Palette.textMuted)
+    }
+    machine ++ unconstrained ++ lockedOut ++ yielding
+  }
+
+  private def pressureText(pressure: String, reason: Option[String]): String = pressure match {
+    case "no-signal" => s"no pressure signal (${reason.getOrElse("no reason given")})"
+    case level       => s"pressure $level"
   }
 
   private def barLine(label: String, value: Double, caption: String): Line = {
@@ -195,26 +258,48 @@ object ServerTopView {
   private def doing(row: ServerRow): (String, jatatui.core.style.Color) =
     row.status match {
       case None if row.info.state == ServerState.Wedged => ("wedged — alive but not answering", Palette.error)
-      case None                                         => (row.error.map(e => s"cannot ask: ${e.message}").getOrElse("not answering"), Palette.warning)
-      case Some(status)                                 =>
-        val machine = status.machine
-        val working = machine.active.filter(_.cpu > 0)
+      case None                                         =>
+        // What it published is still true of the machine even when the daemon will not answer: its forks are charged until it is gone.
+        row.published match {
+          case Some(published) =>
+            (s"not answering; its state.json holds ${published.forks.size} fork(s), ${published.cpuInUse} slot(s) busy", Palette.warning)
+          case None => (row.error.map(e => s"cannot ask: ${e.message}").getOrElse("not answering"), Palette.warning)
+        }
+      case Some(status) =>
+        val scheduler = status.scheduler
+        val working = workingOf(scheduler)
         working.headOption match {
-          case Some(first) =>
+          case Some((kind, label)) =>
             val more = if (working.size > 1) s" +${working.size - 1} more" else ""
-            val queued = if (machine.waiting.nonEmpty) s", ${machine.waiting.size} queued" else ""
-            (s"${verb(first.kind)} ${shortLabel(first.label)}$more$queued", Palette.accent)
-          case None if machine.waiting.nonEmpty => (s"stalled — ${machine.waiting.size} queued, nothing running", Palette.warning)
-          case None                             => ("idle", Palette.textDim)
+            val queued = if (scheduler.waiting.nonEmpty) s", ${scheduler.waiting.size} waiting" else ""
+            (s"${verb(kind)} ${shortLabel(label)}$more$queued", Palette.accent)
+          case None if scheduler.shuttingDown     => ("shutting down to yield its memory", Palette.textMuted)
+          case None if scheduler.waiting.nonEmpty => (s"stalled — ${scheduler.waiting.size} waiting, nothing running", Palette.warning)
+          case None                               => ("idle", Palette.textDim)
         }
     }
 
+  /** What holds this server's cpu slots, as (kind, label): work in its heap by task, then the forks with work on them. The scheduler charges a fork's slots to
+    * the fork, not to the suite running on it, so a busy fork is named as a fork.
+    */
+  private def workingOf(scheduler: SchedulerDto): List[(String, String)] =
+    scheduler.inHeap.map(task => (task.kind, task.taskId)) ++ scheduler.forks.filter(_.busyCpu > 0).map(fork => (fork.kind, s"on ${forkName(fork)}"))
+
+  private def forkName(fork: SchedulerForkDto): String = s"fork #${fork.id}" + fork.pid.map(pid => s" (pid $pid)").getOrElse("")
+
+  /** The scheduler's kind names (`InHeapKind.json`, `ForkKind.json`) as a verb, for "what is it doing". */
   private def verb(kind: String): String = kind match {
-    case "Compile"       => "compiling"
-    case "TestFork"      => "testing"
-    case "SourcegenFork" => "generating sources for"
-    case "KspFork"       => "processing symbols for"
-    case other           => other.toLowerCase
+    case "compile"               => "compiling"
+    case "discover"              => "discovering tests in"
+    case "annotation-processors" => "resolving annotation processors for"
+    case "test-suite"            => "testing"
+    case "test-batch"            => "testing"
+    case "sourcegen"             => "generating sources"
+    case "annotation-processor"  => "running annotation processors"
+    case "ksp"                   => "processing symbols"
+    case "link"                  => "linking"
+    case "post-compile"          => "post-processing"
+    case other                   => other
   }
 
   /** Ledger labels carry their kind as a prefix — `compile:dquery-generated/dquery/ast` — which the verb already says. */
@@ -340,7 +425,15 @@ object ServerTopView {
       val startedBy = row.parent match {
         case Some(parent) =>
           val age = parent.startedAtEpochMs.map(started => s", running ${humanDuration(state.nowMs - started)}").getOrElse("")
-          List(lineOf(s"  started by ${parent.label} (pid ${parent.pid}$age) — it keeps this server in use while it lives", Palette.textMuted), Line.empty())
+          // A parent is not a client. What keeps a server is a connection or running work; `bleep mcp-server` in particular reconnects for every tool call
+          // and holds nothing between them, so a server it started may yield like any other (design §5.1).
+          List(
+            lineOf(
+              s"  started by ${parent.label} (pid ${parent.pid}$age) — a parent, not a client: only connections and work keep this server",
+              Palette.textMuted
+            ),
+            Line.empty()
+          )
         case None => Nil
       }
 
@@ -372,38 +465,53 @@ object ServerTopView {
     )
   }
 
-  /** The work the governor has admitted or queued. Forks' memory reservations are left out: they are not work, and the process tree shows them as what they are
-    * — processes.
+  /** The work the scheduler has admitted, and the demands it is holding back. Warm forks are left out: they are not work, and the process tree below shows them
+    * as what they are — processes.
     */
   private def taskLines(status: DaemonStatus): List[TreeLine] = {
-    val machine = status.machine
-    val running = machine.active.filter(_.cpu > 0).map { entry =>
+    val scheduler = status.scheduler
+    def slots(n: Int): String = s"$n slot${if (n == 1) "" else "s"}"
+    val inHeap = scheduler.inHeap.map { task =>
       TreeLine(
         List(
           Span.styled("▸ ", bold(Palette.accent)),
-          Span.styled(workName(entry.kind, 1).padTo(12, ' '), style(Palette.accent)),
-          Span.styled(entry.label, style(Palette.text)),
-          Span.styled(s"  ${entry.cpu} slot${if (entry.cpu == 1) "" else "s"}", style(Palette.textDim))
+          Span.styled(workName(task.kind, 1).padTo(12, ' '), style(Palette.accent)),
+          Span.styled(task.taskId, style(Palette.text)),
+          Span.styled(s"  ${slots(task.cpu)}, in the server's heap", style(Palette.textDim))
         ),
         "",
         "",
-        humanDuration(entry.ageMs)
+        ""
       )
     }
-    val waiting = machine.waiting.map { entry =>
+    val busyForks = scheduler.forks.filter(_.busyCpu > 0).map { fork =>
+      TreeLine(
+        List(
+          Span.styled("▸ ", bold(Palette.accent)),
+          Span.styled(workName(fork.kind, 1).padTo(12, ' '), style(Palette.accent)),
+          Span.styled(s"on ${forkName(fork)}", style(Palette.text)),
+          Span.styled(s"  ${slots(fork.busyCpu)}", style(Palette.textDim))
+        ),
+        "",
+        "",
+        humanDuration(fork.ageMs)
+      )
+    }
+    val waiting = scheduler.waiting.map { demand =>
+      val memory = demand.boundMb.map(bound => s" and ${bound} MB").getOrElse("")
       TreeLine(
         List(
           Span.styled("· ", bold(Palette.warning)),
-          Span.styled(workName(entry.kind, 1).padTo(12, ' '), style(Palette.warning)),
-          Span.styled(entry.label, style(Palette.textMuted)),
-          Span.styled(s"  queued for ${entry.cpu} slot${if (entry.cpu == 1) "" else "s"}", style(Palette.warning))
+          Span.styled(workName(demand.kind, 1).padTo(12, ' '), style(Palette.warning)),
+          Span.styled(demand.taskId, style(Palette.textMuted)),
+          Span.styled(s"  waiting for ${slots(demand.cpu)}$memory", style(Palette.warning))
         ),
         "",
         "",
-        humanDuration(entry.ageMs)
+        ""
       )
     }
-    running ++ waiting
+    inHeap ++ busyForks ++ waiting
   }
 
   /** A process and everything beneath it. The memory and CPU columns are the subtree's — what this process costs the machine including what it spawned — and a
@@ -589,7 +697,7 @@ object ServerTopView {
     */
   private def overviewLines(status: DaemonStatus): List[Line] = {
     val jvm = status.jvm
-    val machine = status.machine
+    val scheduler = status.scheduler
 
     val retained =
       if (jvm.heapLiveMb < 0) "not reported by this JVM"
@@ -610,9 +718,15 @@ object ServerTopView {
       fieldOf("Committed", s"${jvm.heapCommittedMb} MB reserved from the OS, ${jvm.nonHeapUsedMb} MB outside the heap"),
       fieldOf("Collections", gcSummary),
       Line.empty(),
-      sectionOf("CAPACITY — what this server may spend on compiling"),
-      gaugeLine("Compile slots", ratio(machine.usedCpu.toLong, machine.totalCpu.toLong), s"${machine.usedCpu} of ${machine.totalCpu} in use"),
-      gaugeLine("Memory for forks", ratio(machine.usedMemoryMb, machine.totalMemoryMb), s"${machine.usedMemoryMb} MB of ${machine.totalMemoryMb} MB"),
+      sectionOf("SCHEDULER — this server's cpu slots, and the machine's memory for forks"),
+      gaugeLine(
+        "CPU slots",
+        ratio(scheduler.cpuInUse.toLong, scheduler.parallelism.toLong),
+        s"${scheduler.cpuInUse} of ${scheduler.parallelism} in use — parallelism is per server"
+      )
+    ) ++ machineLines(scheduler) ++ List(
+      fieldOf("Forks", forksSummary(scheduler)),
+      fieldOf("Lock", lockText(scheduler)),
       fieldOf("Threads", s"${jvm.threads} alive, peak ${jvm.peakThreads}, ${jvm.daemonThreads} of them background"),
       fieldOf("Processor", s"${pct(jvm.cpuProcess)} of the machine used by this server, ${pct(jvm.cpuSystem)} used in total"),
       fieldOf("Open files", jvm.openFileDescriptors.map(count => s"$count file descriptors").getOrElse("not reported on this platform")),
@@ -633,35 +747,90 @@ object ServerTopView {
     * exactly what its name says. What makes a server busy is the slots it is holding, whatever kind of work holds them, so that is what this says.
     */
   private def statusLine(status: DaemonStatus): Line = {
-    val machine = status.machine
-    val working = machine.active.filter(_.cpu > 0)
-    val forks = machine.active.filter(entry => entry.cpu == 0 && entry.memoryMb > 0)
+    val scheduler = status.scheduler
+    val working = workingOf(scheduler)
+    val warm = scheduler.forks.filter(_.busyCpu == 0)
 
-    val breakdown = working.groupBy(_.kind).toList.sortBy(-_._2.size).map { case (kind, entries) => s"${entries.size} ${workName(kind, entries.size)}" }
-    val waiting = if (machine.waiting.nonEmpty) s", ${machine.waiting.size} waiting for capacity" else ""
+    val breakdown = working.groupBy(_._1).toList.sortBy(-_._2.size).map { case (kind, entries) => s"${entries.size} ${workName(kind, entries.size)}" }
+    val waiting = if (scheduler.waiting.nonEmpty) s", ${scheduler.waiting.size} waiting for capacity" else ""
 
     val (summary, color) =
-      if (working.nonEmpty) {
-        val slots = s"${machine.usedCpu} of ${machine.totalCpu} slots"
+      if (scheduler.shuttingDown) ("Shutting down — yielding its memory to a server that wants more", Palette.warning)
+      else if (working.nonEmpty) {
+        val slots = s"${scheduler.cpuInUse} of ${scheduler.parallelism} slots"
         (s"Busy — $slots: ${breakdown.mkString(", ")}$waiting", Palette.accent)
-      } else if (machine.waiting.nonEmpty) (s"Stalled — nothing running, ${machine.waiting.size} waiting for capacity", Palette.warning)
-      else if (forks.nonEmpty) (s"Idle — ${forks.size} forked JVM(s) kept warm, holding ${forks.map(_.memoryMb).sum} MB", Palette.text)
+      } else if (scheduler.waiting.nonEmpty) (s"Stalled — nothing running, ${scheduler.waiting.size} waiting for capacity", Palette.warning)
+      else if (warm.nonEmpty) (s"Idle — ${warm.size} warm fork(s) charged ${mb(warm.map(charged).sum)}", Palette.text)
       else if (status.connections.exists(!_.observer)) ("Idle, with a client connected", Palette.text)
       else ("Idle, nobody connected", Palette.textDim)
 
     boldLineOf(s"  $summary", color)
   }
 
-  /** The governor's kind names are internal ("TestFork", "SourcegenFork"); these are what the work is called. */
+  /** The scheduler's kind names (`InHeapKind.json`, `ForkKind.json`) as what the work is called. */
   private def workName(kind: String, count: Int): String = {
     val singular = kind match {
-      case "Compile"       => "compile"
-      case "TestFork"      => "test suite"
-      case "SourcegenFork" => "sourcegen"
-      case "KspFork"       => "symbol processor"
-      case other           => other.toLowerCase
+      case "compile"               => "compile"
+      case "discover"              => "test discovery"
+      case "annotation-processors" => "annotation-processor resolution"
+      case "test-suite"            => "test suite"
+      case "test-batch"            => "test batch"
+      case "sourcegen"             => "sourcegen"
+      case "annotation-processor"  => "annotation processor"
+      case "ksp"                   => "symbol processor"
+      case "link"                  => "link"
+      case "post-compile"          => "post-compile step"
+      case other                   => other
     }
-    if (count == 1) singular else s"${singular}s"
+    if (count == 1) singular
+    else if (singular.endsWith("y")) s"${singular.dropRight(1)}ies"
+    else s"${singular}s"
+  }
+
+  /** What the scheduler charges the machine for a fork right now: its bound until measured, the measurement after (design §5 rule 1). */
+  private def charged(fork: SchedulerForkDto): Long = fork.measuredMb.getOrElse(fork.boundMb)
+
+  /** The machine as this server's scheduler last read it, or why it has no reading. */
+  private def machineLines(scheduler: SchedulerDto): List[Line] =
+    scheduler.machine match {
+      case Some(view) =>
+        val ceiling = math.max(0L, view.physicalMb - scheduler.headroomMb)
+        val age = if (view.sampledAgoMs >= 5000) s", read ${humanDuration(view.sampledAgoMs)} ago" else ""
+        List(
+          gaugeLine(
+            "Machine memory",
+            ratio(view.usedMb, ceiling),
+            s"${view.usedMb} MB of ${ceiling} MB ceiling in use, ${pressureText(view.pressure, view.pressureReason)}$age"
+          ),
+          fieldOf("Ceiling", s"${view.physicalMb} MB physical − ${scheduler.headroomMb} MB headroom, shared by ${scheduler.liveServers} live server(s)")
+        )
+      case None if scheduler.mode == SchedulerDto.Unconstrained =>
+        List(fieldOf("Machine memory", s"not scheduled — unconstrained: ${scheduler.unconstrainedReason.getOrElse("no reason given")}"))
+      case None => List(fieldOf("Machine memory", "no reading yet — this server has not had to claim memory"))
+    }
+
+  private def forksSummary(scheduler: SchedulerDto): String =
+    if (scheduler.forks.isEmpty) "none"
+    else {
+      val starting = scheduler.forks.filter(_.measuredMb.isEmpty)
+      val measured = scheduler.forks.filter(_.measuredMb.isDefined)
+      val busy = scheduler.forks.count(_.busyCpu > 0)
+      val parts = List(
+        Option.when(measured.nonEmpty)(s"${measured.size} measured at ${measured.flatMap(_.measuredMb).sum} MB"),
+        Option.when(starting.nonEmpty)(s"${starting.size} starting, charged ${starting.map(_.boundMb).sum} MB bound")
+      ).flatten
+      s"${scheduler.forks.size}: ${parts.mkString(", ")}; $busy busy, ${scheduler.forks.size - busy} warm"
+    }
+
+  private def lockText(scheduler: SchedulerDto): String = scheduler.lock.state match {
+    case "held"       => "machine.lock held on the last tick"
+    case "not-needed" => if (scheduler.mode == SchedulerDto.Unconstrained) "not taken — unconstrained" else "not needed on the last tick — nothing to claim"
+    case other        =>
+      val holder = scheduler.lock.holderPid match {
+        case Some(pid) => s"pid $pid${scheduler.lock.holderHeldForMs.map(ms => s" for ${humanDuration(ms)}").getOrElse("")}"
+        case None      => "an unannounced holder"
+      }
+      s"$other — machine.lock was held by $holder; only guarantees, reuse and eviction went ahead"
   }
 
   /** How long since the server last did anything for a real client — the same clock its idle shutdown counts down, so it also says how long it has left. */
@@ -706,62 +875,79 @@ object ServerTopView {
           }
         }
 
-  /** What the server is doing right now, and what is stacked up behind it.
+  /** What the server is doing right now, what it is charged for, and what is stacked up behind it — the scheduler's view of this one server.
     *
-    * Work and forked JVMs are listed apart because they are charged for different things, and mixing them reads as nonsense: a suite costs a slot and no
-    * memory, while the JVM it runs in costs memory and no slot.
-    *
-    * The slot is charged to the work, not the process, so a suite running in a fork appears twice — once above holding the slot, once below holding the memory.
-    * A fork with no suite is between jobs and kept warm, still holding its footprint. Either way the total is right: one slot per running suite.
+    * Work and forks are listed apart because the scheduler charges them for different things: work in the heap costs cpu slots and no machine memory; a fork
+    * costs machine memory from the moment it is granted, and cpu slots only while work runs on it. A warm fork holds its memory and no slot.
     */
   private def activityLines(row: ServerRow, status: DaemonStatus): List[Line] = {
-    val machine = status.machine
-    val (forks, work) = machine.active.partition(entry => entry.cpu == 0 && entry.memoryMb > 0)
+    val scheduler = status.scheduler
+    val busyForks = scheduler.forks.filter(_.busyCpu > 0)
 
     val running =
-      if (work.isEmpty) List(lineOf("  Nothing running.", Palette.textDim))
+      if (scheduler.inHeap.isEmpty && busyForks.isEmpty) List(lineOf("  Nothing running.", Palette.textDim))
       else
-        work.map(entry =>
-          lineOf(
-            f"  ▸ ${entry.kind}%-10s ${entry.label}%-40s ${entry.cpu}%d slot(s), running ${humanDuration(entry.ageMs)}%s",
-            Palette.accent
+        scheduler.inHeap
+          .map(task => lineOf(f"  ▸ ${task.kind}%-22s ${task.taskId}%-40s ${task.cpu}%d slot(s), in the server's heap, for ${task.request}", Palette.accent)) ++
+          busyForks.map(fork =>
+            lineOf(f"  ▸ ${fork.kind}%-22s on ${forkName(fork)}%-37s ${fork.busyCpu}%d slot(s), running ${humanDuration(fork.ageMs)}", Palette.accent)
           )
-        )
 
-    // What the forks actually cost, as opposed to what the governor set aside for them. Every process under the daemon, not just direct children: a fork can
-    // spawn its own. `None` from a daemon too old to report processes, or a platform that cannot measure.
-    val measuredForks = row.processes.map(_.filter(_.parentPid.isDefined)).map(_.flatMap(_.footprintMb)).filter(_.nonEmpty).map(_.sum)
-    val measured = measuredForks match {
-      case Some(total) => s", ${total} MB measured"
-      case None        => ", actual use not measurable here"
-    }
-
+    // The client's own measurement of the whole tree, next to the scheduler's charge, so a gap between them is visible: a fork the scheduler has not measured
+    // yet is charged its bound, which can be several times what it is using.
+    val measuredByClient = row.processes.map(_.filter(_.parentPid.isDefined)).map(_.flatMap(_.footprintMb)).filter(_.nonEmpty).map(_.sum)
     val forkLines =
-      if (forks.isEmpty) Nil
-      else
+      if (scheduler.forks.isEmpty) Nil
+      else {
+        val heading = s"FORKS — ${scheduler.forks.size}, charged ${scheduler.forks.map(charged).sum} MB" +
+          measuredByClient.map(total => s"; $total MB measured from here").getOrElse("")
         List(
           Line.empty(),
-          sectionOf(s"FORKED JVMS — ${forks.size}, ${forks.map(_.memoryMb).sum} MB reserved$measured"),
+          sectionOf(heading),
           lineOf(
-            "  Reserved is what the governor sets aside before a fork starts: its heap bound plus overhead, until a fork of that kind has run and its",
+            "  A fork is charged its bound — heap plus overhead — from the moment it is granted until the scheduler has measured its process tree,",
             Palette.textDim
           ),
-          lineOf("  peak was measured. Measured is what they hold right now — each one is on the Processes tab, by pid.", Palette.textDim),
+          lineOf("  and what it measures from then on. The charge is what the other servers see in this server's state.json.", Palette.textDim)
+        ) ++ scheduler.forks.map { fork =>
+          val pid = fork.pid.map(p => s"pid $p").getOrElse("no pid yet")
+          val charge = fork.measuredMb match {
+            case Some(measured) => s"measured ${measured} MB (bound ${fork.boundMb} MB)"
+            case None           => s"starting, charged ${fork.boundMb} MB bound"
+          }
+          val work = if (fork.busyCpu > 0) s"${fork.busyCpu} slot(s)" else "warm"
+          val flags = List(Option.when(fork.shared)("shared"), Option.when(fork.evicting)("evicting")).flatten.map(f => s", $f").mkString
           lineOf(
-            "  A running suite's slot is charged above, to the work. Forks with no work are between suites, kept warm rather than restarted.",
-            Palette.textDim
+            f"  ▪ #${fork.id}%-3d ${fork.kind}%-12s ${pid}%-11s ${charge}%-40s $work$flags, alive ${humanDuration(fork.ageMs)}, for ${fork.request} (${fork.key})",
+            if (fork.evicting) Palette.textDim else Palette.textMuted
           )
-        ) ++ forks.map(entry => lineOf(f"  ▪ ${entry.label}%-46s ${entry.memoryMb}%5d MB reserved, alive ${humanDuration(entry.ageMs)}%s", Palette.textMuted))
+        }
+      }
 
     val queue =
-      if (machine.waiting.isEmpty) List(lineOf("  Nothing waiting — the server has capacity to spare.", Palette.textDim))
+      if (scheduler.waiting.isEmpty) List(lineOf("  Nothing waiting — the server has capacity to spare.", Palette.textDim))
       else
-        machine.waiting.map(entry =>
-          lineOf(
-            f"  · ${entry.kind}%-10s ${entry.label}%-30s wants ${entry.cpu}%d slot(s) and ${entry.memoryMb}%d MB, waiting ${humanDuration(entry.ageMs)}%s",
-            Palette.warning
-          )
+        scheduler.waiting.map { demand =>
+          val memory = demand.boundMb.map(bound => s" and $bound MB of machine memory").getOrElse("")
+          lineOf(f"  · ${demand.kind}%-22s ${demand.taskId}%-40s wants ${demand.cpu}%d slot(s)$memory, for ${demand.request}", Palette.warning)
+        }
+    val why =
+      List(
+        Option.when(scheduler.lock.state == "unavailable")(lineOf(s"  ${lockText(scheduler)}", Palette.warning)),
+        Option.when(scheduler.wantsMore)(
+          lineOf("  Published as wantsMore: idle servers yield their memory and busy ones shed idle workspaces' caches for it.", Palette.textDim)
         )
+      ).flatten
+
+    val machine = machineLines(scheduler)
+    val mode = scheduler.mode match {
+      case SchedulerDto.Unconstrained =>
+        s"unconstrained — ${scheduler.unconstrainedReason.getOrElse("no reason given")}: no memory room, no pressure brake, no lock"
+      case other => s"$other — memory shared with ${scheduler.liveServers - 1} other live server(s) through machine.lock"
+    }
+    val flags = List(
+      Option.when(scheduler.shuttingDown)(boldLineOf("  Shutting down to yield its memory.", Palette.warning))
+    ).flatten
 
     val clients = status.connections.map { connection =>
       val who = connection.clientName.getOrElse(if (connection.observer) "an observer, watching only" else "unidentified")
@@ -771,11 +957,12 @@ object ServerTopView {
     }
 
     val heading =
-      if (work.isEmpty) "RUNNING NOW — nothing"
-      else s"RUNNING NOW — ${work.size} operation(s), ${machine.activeCompiles} of them compiles"
+      if (scheduler.inHeap.isEmpty && busyForks.isEmpty) "RUNNING NOW — nothing"
+      else s"RUNNING NOW — ${scheduler.cpuInUse} of ${scheduler.parallelism} slots: ${scheduler.inHeap.size} in the heap, ${busyForks.size} on forks"
 
     List(sectionOf(heading)) ++ running ++ forkLines ++
-      List(Line.empty(), sectionOf(s"WAITING FOR CAPACITY — ${machine.waiting.size}")) ++ queue ++
+      List(Line.empty(), sectionOf(s"WAITING — ${scheduler.waiting.size}")) ++ queue ++ why ++
+      List(Line.empty(), sectionOf("SCHEDULER"), fieldOf("Mode", mode), fieldOf("Lock", lockText(scheduler))) ++ machine ++ flags ++
       List(Line.empty(), sectionOf(s"CONNECTED CLIENTS — ${status.connections.size}")) ++ clients
   }
 

@@ -34,6 +34,12 @@ final class DaemonScheduling private (
   /** The scheduler's view after its last tick. */
   def snapshot: Option[SchedulerSnapshot] = runtime.snapshot
 
+  /** The mode's name as `bleep/status` and `state.json` readers spell it. */
+  def modeName: String = mode match {
+    case Ticker.SchedulingMode.Unconstrained(_) => bleep.bsp.protocol.SchedulerDto.Unconstrained
+    case _: Ticker.SchedulingMode.Cooperative   => bleep.bsp.protocol.SchedulerDto.Cooperative
+  }
+
   override def close(): Unit = {
     releasePool.unsafeRunSync()
     runtime.close()

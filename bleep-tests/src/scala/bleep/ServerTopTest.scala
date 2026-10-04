@@ -36,22 +36,56 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     openFileDescriptors = Some(383L)
   )
 
-  private def status(workspaces: List[WorkspaceDto], active: List[MachineEntryDto]): DaemonStatus = DaemonStatus(
-    adminProtocolVersion = 1,
+  /** A cooperative scheduler on a 48 GB machine with 8 GB headroom: a 40 GB ceiling, 12 GB in use, nothing running. */
+  private val idleScheduler: SchedulerDto = SchedulerDto(
+    mode = SchedulerDto.Cooperative,
+    unconstrainedReason = None,
+    parallelism = 18,
+    headroomMb = 8192L,
+    machine = Some(MachineViewDto(physicalMb = 49152L, usedMb = 12288L, pressure = "normal", pressureReason = None, sampledAgoMs = 500L)),
+    lock = LockDto(state = "held", holderPid = None, holderStartedAtEpochMs = None, holderHeldForMs = None),
+    liveServers = 2,
+    requests = 0,
+    cpuInUse = 0,
+    wantsMore = false,
+    shuttingDown = false,
+    inHeap = Nil,
+    forks = Nil,
+    waiting = Nil
+  )
+
+  private def compile(project: String, cpu: Int): InHeapTaskDto = InHeapTaskDto(request = "op-1", taskId = s"compile:$project", kind = "compile", cpu = cpu)
+
+  /** A test fork of the pool's key, 2560 MB bound. */
+  private def fork(id: Long, pid: Option[Long], measuredMb: Option[Long], busyCpu: Int): SchedulerForkDto = SchedulerForkDto(
+    id = id,
+    pid = pid,
+    request = "op-1",
+    kind = "test-suite",
+    key = "jvm ce91585a08d64aec:shared",
+    boundMb = 2560L,
+    measuredMb = measuredMb,
+    shared = true,
+    busyCpu = busyCpu,
+    evicting = false,
+    ageMs = 99_000L
+  )
+
+  private def waitingCompile(project: String, cpu: Int): DemandDto =
+    DemandDto(request = "op-1", taskId = s"compile:$project", kind = "compile", cpu = cpu, boundMb = None)
+
+  /** The idle scheduler with this work on it; cpu in use follows from the work, as it does in the scheduler. */
+  private def working(inHeap: List[InHeapTaskDto], forks: List[SchedulerForkDto]): SchedulerDto =
+    idleScheduler.copy(inHeap = inHeap, forks = forks, cpuInUse = inHeap.map(_.cpu).sum + forks.map(_.busyCpu).sum, requests = 1)
+
+  private def status(workspaces: List[WorkspaceDto], scheduler: SchedulerDto): DaemonStatus = DaemonStatus(
+    adminProtocolVersion = BleepServerAdmin.ProtocolVersion,
     bleepVersion = "1.0.0-M11",
     pid = 4242L,
     startedAtEpochMs = NowMs - 600_000L, // ten minutes of uptime
     socketDir = "/tmp/sockets/aaaa1111",
     jvm = jvm,
-    machine = MachineSnapshotDto(
-      totalCpu = 18,
-      usedCpu = active.map(_.cpu).sum,
-      totalMemoryMb = 16000,
-      usedMemoryMb = 2000,
-      activeCompiles = active.size,
-      active = active,
-      waiting = Nil
-    ),
+    scheduler = scheduler,
     connections = List(ConnectionDto(1, NowMs, observer = false, Some("Metals"), Some("1.0"), Some("/home/dev/project"))),
     workspaces = workspaces,
     buildCache = BuildCacheDto(cachedWorkspaces = workspaces.map(_.path), bound = 12),
@@ -83,11 +117,32 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   private def info(hash: String, state: ServerState): ServerDirInfo =
     ServerDirInfo(Path.of("/tmp/sockets").resolve(hash), hash, state, Some(4242L), None, 0L)
 
-  private def running(hash: String, isCurrent: Boolean, workspaces: List[WorkspaceDto] = Nil, active: List[MachineEntryDto] = Nil): ServerRow =
-    ServerRow(info(hash, ServerState.Running), Some(status(workspaces, active)), None, isCurrent, Some(processTree), parent = None, isOutdated = false)
+  private def running(hash: String, isCurrent: Boolean, workspaces: List[WorkspaceDto] = Nil, scheduler: SchedulerDto = idleScheduler): ServerRow =
+    ServerRow(
+      info(hash, ServerState.Running),
+      Some(status(workspaces, scheduler)),
+      None,
+      isCurrent,
+      Some(processTree),
+      parent = None,
+      isOutdated = false,
+      published = None
+    )
 
   private def dead(hash: String): ServerRow =
-    ServerRow(info(hash, ServerState.Dead(crashed = false)), None, None, isCurrent = false, processes = None, parent = None, isOutdated = false)
+    ServerRow(
+      info(hash, ServerState.Dead(crashed = false)),
+      None,
+      None,
+      isCurrent = false,
+      processes = None,
+      parent = None,
+      isOutdated = false,
+      published = None
+    )
+
+  private def withScheduler(row: ServerRow, f: SchedulerDto => SchedulerDto): ServerRow =
+    row.copy(status = row.status.map(s => s.copy(scheduler = f(s.scheduler))))
 
   private def stateWith(rows: List[ServerRow]): ServerTopState =
     ServerTopState.initial(NowMs, TestMachine).copy(rows = rows)
@@ -222,14 +277,12 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   }
 
   test("the processes tab shows the selected server's work, then the daemon and the JVMs it forked as a tree") {
-    val suite = MachineEntryDto("TestFork", "test-batch:dparsegen/test", cpu = 1, memoryMb = 0, ageMs = 42_000)
-    val queued = MachineEntryDto("Compile", "bleep-core", cpu = 2, memoryMb = 0, ageMs = 3_000)
-    val row = running("aaaa1111", isCurrent = true, active = List(suite))
-    val withQueue = row.copy(status = row.status.map(s => s.copy(machine = s.machine.copy(waiting = List(queued)))))
-    val screen = drawAt(stateWith(List(withQueue)), width = 140, height = 40)
+    val busyFork = fork(id = 3L, pid = Some(5001L), measuredMb = Some(3072L), busyCpu = 1)
+    val row = running("aaaa1111", isCurrent = true, scheduler = working(Nil, List(busyFork)).copy(waiting = List(waitingCompile("bleep-core", cpu = 2))))
+    val screen = drawAt(stateWith(List(row)), width = 140, height = 40)
 
-    screen should include("▸ test suite  test-batch:dparsegen/test")
-    screen should include("· compile     bleep-core  queued for 2 slots")
+    screen should include("▸ test suite  on fork #3 (pid 5001)  1 slot")
+    screen should include("· compile     compile:bleep-core  waiting for 2 slots")
     screen should include("compile server  pid 4242  heap 512 MB/12.0 GB  self 2.0 GB")
     screen should include("├─ test JVM  pid 5001")
     screen should include("└─ test JVM  pid 5002")
@@ -278,7 +331,8 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       isCurrent = false,
       processes = Some(List(ProcessTree.Sample(2L, None, "compile server", Some(100L), None, Some(NowMs - 90_000L)))),
       parent = None,
-      isOutdated = false
+      isOutdated = false,
+      published = None
     )
     val screen = draw(stateWith(List(running("aaaa1111", isCurrent = true), old, wedged)))
     listRow(screen, "pid 4242") should include("up 10m0s")
@@ -329,7 +383,8 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   }
 
   test("a wedged server stays on the main view — it is alive and holding memory — and can be killed but not restarted") {
-    val wedged = ServerRow(info("cccc3333", ServerState.Wedged), None, None, isCurrent = false, processes = None, parent = None, isOutdated = false)
+    val wedged =
+      ServerRow(info("cccc3333", ServerState.Wedged), None, None, isCurrent = false, processes = None, parent = None, isOutdated = false, published = None)
     val state = stateWith(List(wedged))
 
     draw(state) should include("wedged")
@@ -395,40 +450,44 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       isCurrent = false,
       processes = None,
       parent = None,
-      isOutdated = false
+      isOutdated = false,
+      published = None
     )
 
     draw(stateWith(List(tooOld)).copy(tab = Tab.Overview)) should include("older bleep")
   }
 
-  /** A suite is charged a slot and no memory; the JVM it runs in is charged memory and no slot, and stays alive between suites. Listed together those read as
-    * nonsense — "using 0 slot(s), 5120 MB" — and leave you unable to explain why a server at zero slots is holding gigabytes.
+  /** Work costs cpu slots; a fork costs machine memory, and slots only while work runs on it. Listed together those read as nonsense — "using 0 slot(s), 5120
+    * MB" — and leave you unable to explain why a server at zero slots is holding gigabytes.
     */
-  test("forked JVMs are listed apart from the work, since they are charged for different things") {
-    val suite = MachineEntryDto("TestFork", "test:dfmt/DfmtBatteryTest", cpu = 1, memoryMb = 0, ageMs = 99000)
-    val jvm = MachineEntryDto("TestFork", "jvm ce91585a08d64aec", cpu = 0, memoryMb = 5120, ageMs = 99000)
-    val state = stateWith(List(running("aaaa1111", isCurrent = true, active = List(suite, jvm)))).copy(tab = Tab.Activity)
+  test("forks are listed apart from the work, since they are charged for different things") {
+    val busyFork = fork(id = 1L, pid = Some(5001L), measuredMb = Some(3072L), busyCpu = 1)
+    val warmFork = fork(id = 2L, pid = Some(5002L), measuredMb = Some(1024L), busyCpu = 0)
+    val state = stateWith(List(running("aaaa1111", isCurrent = true, scheduler = working(Nil, List(busyFork, warmFork))))).copy(tab = Tab.Activity)
 
     val screen = draw(state)
-    screen should include("RUNNING NOW — 1 operation(s)")
-    screen should include("FORKED JVMS — 1, 5120 MB reserved, 4096 MB measured")
+    screen should include("RUNNING NOW — 1 of 18 slots: 0 in the heap, 1 on forks")
+    screen should include("FORKS — 2, charged 4096 MB; 4096 MB measured from here")
+    screen should include("1 slot(s)")
+    screen should include("warm")
     withClue("the explanation belongs next to the numbers that prompt the question: ") {
-      screen should include("charged above, to the work")
+      screen should include("charged its bound")
     }
   }
 
-  /** The governor's reservation is the fork's heap bound plus overhead until it has measured one — 12 forks at -Xmx2g read as "32000 MB holding", on a machine
-    * where they were using a fraction of that. A reservation is not a measurement and must not be worded as one.
+  /** Until the scheduler has measured a fork's process tree it charges the bound — heap plus overhead — which can be several times what the fork uses. A charge
+    * is not a measurement and must not be worded as one.
     */
-  test("forked JVMs' memory is called reserved, and what they really use is shown next to it when the server can say") {
-    val jvm = MachineEntryDto("TestFork", "jvm ce91585a08d64aec", cpu = 0, memoryMb = 2560, ageMs = 99000)
-    val row = running("aaaa1111", isCurrent = true, active = List(jvm))
+  test("a fork's memory is called a charge, bound until measured, and the measurement is shown once there is one") {
+    val starting = fork(id = 1L, pid = None, measuredMb = None, busyCpu = 0)
+    val row = running("aaaa1111", isCurrent = true, scheduler = working(Nil, List(starting)))
     val screen = draw(stateWith(List(row)).copy(tab = Tab.Activity))
-    screen should include("2560 MB reserved")
+    screen should include("starting, charged 2560 MB bound")
+    screen should include("no pid yet")
     screen should not include "holding"
 
-    val old = row.copy(processes = None)
-    draw(stateWith(List(old)).copy(tab = Tab.Activity)) should include("actual use not measurable here")
+    val measured = withScheduler(row, _.copy(forks = List(fork(id = 1L, pid = Some(5001L), measuredMb = Some(1200L), busyCpu = 0))))
+    draw(stateWith(List(measured)).copy(tab = Tab.Activity)) should include("measured 1200 MB (bound 2560 MB)")
   }
 
   test("a memory total over only some of the servers says how many it left out") {
@@ -438,16 +497,15 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     draw(stateWith(List(measured))) should not include "could not be measured"
   }
 
-  test("with only forked JVMs alive the work section says nothing is running, not zero compiles") {
-    val jvm = MachineEntryDto("TestFork", "jvm abc", cpu = 0, memoryMb = 512, ageMs = 1000)
-    val state = stateWith(List(running("aaaa1111", isCurrent = true, active = List(jvm)))).copy(tab = Tab.Activity)
+  test("with only warm forks alive the work section says nothing is running, not zero compiles") {
+    val warm = fork(id = 1L, pid = Some(5002L), measuredMb = Some(512L), busyCpu = 0)
+    val state = stateWith(List(running("aaaa1111", isCurrent = true, scheduler = working(Nil, List(warm))))).copy(tab = Tab.Activity)
 
     draw(state) should include("RUNNING NOW — nothing")
   }
 
   test("the activity tab shows what is running and who is connected") {
-    val compiling = MachineEntryDto(kind = "Compile", label = "bleep-core", cpu = 4, memoryMb = 512, ageMs = 3000)
-    val state = stateWith(List(running("aaaa1111", isCurrent = true, active = List(compiling)))).copy(tab = Tab.Activity)
+    val state = stateWith(List(running("aaaa1111", isCurrent = true, scheduler = working(List(compile("bleep-core", cpu = 4)), Nil)))).copy(tab = Tab.Activity)
 
     val screen = draw(state)
     screen should include("bleep-core")
@@ -467,22 +525,92 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     screen should include("compile  bleep-core, bleep-cli")
   }
 
-  /** Every server on a machine sees the same cores, so adding their capacities claimed 36 slots on an 18-core machine. Held slots do sum — each server really
-    * is holding those — but capacity is one number.
+  /** `parallelism` is each server's own, so there is no machine-wide slot capacity to quote: an earlier header added the servers' capacities and claimed 36
+    * slots on an 18-core machine. Held slots do sum — each server really is holding those — so that is all the header counts.
     */
-  test("the header does not multiply the machine's capacity by the number of servers") {
-    def busy(hash: String) = {
-      val row = running(hash, isCurrent = false)
-      row.copy(status = row.status.map(s => s.copy(machine = s.machine.copy(usedCpu = 9, totalCpu = 18))))
-    }
+  test("the header counts the slots held across servers and claims no machine-wide capacity") {
+    def busy(hash: String) = withScheduler(running(hash, isCurrent = false), _.copy(cpuInUse = 9))
 
     val screen = draw(stateWith(List(busy("aaaa1111"), busy("bbbb2222"))))
-    screen should include("18 of 18 slots busy")
+    screen should include("18 slots busy")
     screen should not include "of 36 slots"
+    screen should not include "of 18 slots busy"
+  }
+
+  /** The machine-wide line is the scheduler's own arithmetic, from the freshest probe and every server's `state.json`: what a claiming server would see. */
+  test("the summary shows the machine's memory against the fork ceiling, what is pending for starting forks, and the pressure") {
+    val starting = fork(id = 7L, pid = None, measuredMb = None, busyCpu = 0)
+    val published = bleep.machine.StateJson(
+      version = 1,
+      pid = 4242L,
+      startedAtEpochMs = NowMs - 600_000L,
+      bleepVersion = "1.0.0-M11",
+      updatedAtEpochMs = NowMs,
+      requests = 1,
+      cpuInUse = 0,
+      wantsMore = false,
+      shuttingDown = false,
+      forks = List(bleep.machine.StateFork(7L, None, bleep.machine.ForkKind.TestSuite, 2560L, bleep.machine.StateForkState.Starting, NowMs - 1000L))
+    )
+    val row = running("aaaa1111", isCurrent = true, scheduler = working(Nil, List(starting))).copy(published = Some(published))
+
+    val screen = draw(stateWith(List(row)))
+    screen should include(
+      "12.0 GB used of 40.0 GB fork ceiling (48.0 GB − 8.0 GB headroom), 2.5 GB pending for starting forks — pressure normal"
+    )
+  }
+
+  test("a server without a pressure signal says so and why, instead of reporting normal") {
+    val noSignal = withScheduler(
+      running("aaaa1111", isCurrent = true),
+      s => s.copy(machine = s.machine.map(_.copy(pressure = "no-signal", pressureReason = Some("macOS 12 has no memory pressure sysctl"))))
+    )
+    draw(stateWith(List(noSignal))) should include("no pressure signal (macOS 12 has no memory pressure sysctl)")
+  }
+
+  test("servers running unconstrained are named in the summary, with the reason") {
+    val unconstrained = withScheduler(
+      running("aaaa1111", isCurrent = true),
+      _.copy(mode = SchedulerDto.Unconstrained, unconstrainedReason = Some("machineScheduling: unconstrained in the server config"), machine = None)
+    )
+    val screen = draw(stateWith(List(unconstrained)))
+    screen should include("pid 4242 runs unconstrained — machineScheduling: unconstrained in the server config")
+    withClue("one unconstrained server has no machine reading to show, and the summary must not claim one: ") {
+      screen should not include "fork ceiling"
+    }
+  }
+
+  test("a server that could not get the lock names the holder by the server the dashboard knows it as") {
+    val holder = running("bbbb2222", isCurrent = false)
+    val lockedOut = withScheduler(
+      running("aaaa1111", isCurrent = true),
+      _.copy(lock = LockDto(state = "unavailable", holderPid = Some(4242L), holderStartedAtEpochMs = Some(NowMs - 600_000L), holderHeldForMs = Some(1300L)))
+    )
+    val screen = draw(stateWith(List(lockedOut, holder)))
+    screen should include("could not get machine.lock: pid 4242, held for 1s")
+  }
+
+  /** A wedged server's forks still count against the machine: its `state.json` is what the other schedulers read, and so does the dashboard. */
+  test("a server that does not answer is described from its state.json when it has one") {
+    val published = bleep.machine.StateJson(
+      version = 1,
+      pid = 4242L,
+      startedAtEpochMs = NowMs - 600_000L,
+      bleepVersion = "1.0.0-M11",
+      updatedAtEpochMs = NowMs,
+      requests = 1,
+      cpuInUse = 3,
+      wantsMore = true,
+      shuttingDown = false,
+      forks =
+        List(bleep.machine.StateFork(1L, Some(5001L), bleep.machine.ForkKind.TestSuite, 2560L, bleep.machine.StateForkState.Measured(3072L), NowMs - 1000L))
+    )
+    val wedged = running("aaaa1111", isCurrent = true).copy(status = None, published = Some(published))
+    draw(stateWith(List(wedged))) should include("its state.json holds 1 fork(s), 3 slot(s) busy")
   }
 
   test("the header answers the machine-level question before any server is selected") {
-    val busy = running("aaaa1111", isCurrent = true, active = List(MachineEntryDto("Compile", "bleep-core", 4, 512, 3000)))
+    val busy = running("aaaa1111", isCurrent = true, scheduler = working(List(compile("bleep-core", cpu = 4)), Nil))
     val screen = draw(stateWith(List(busy, dead("bbbb2222"))))
 
     screen should include("1 running")
@@ -512,7 +640,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   }
 
   test("a running server says what it is doing, and a stopped one what it is holding") {
-    val busy = running("aaaa1111", isCurrent = true, active = List(MachineEntryDto("Compile", "bleep-core", 4, 512, 3000)))
+    val busy = running("aaaa1111", isCurrent = true, scheduler = working(List(compile("bleep-core", cpu = 4)), Nil))
     draw(stateWith(List(busy))) should include("compiling bleep-core")
 
     draw(press(stateWith(List(dead("bbbb2222"))), KeyPress.ShowDead)) should include("MB on disk")
@@ -951,7 +1079,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val screen = drawOverview(stateWith(List(running("aaaa1111", isCurrent = true))))
 
     screen should include("MEMORY —")
-    screen should include("CAPACITY —")
+    screen should include("SCHEDULER —")
     screen should include("WHAT IT IS KEEPING WARM")
   }
 
@@ -968,8 +1096,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val idle = drawOverview(stateWith(List(running("aaaa1111", isCurrent = true))))
     idle should include("Idle")
 
-    val compiling = MachineEntryDto("Compile", "bleep-core", 4, 512, 3000)
-    val busy = drawOverview(stateWith(List(running("aaaa1111", isCurrent = true, active = List(compiling)))))
+    val busy = drawOverview(stateWith(List(running("aaaa1111", isCurrent = true, scheduler = working(List(compile("bleep-core", cpu = 4)), Nil)))))
     withClue("what makes a server busy is the slots it holds, whatever kind of work holds them: ") {
       busy should include("Busy — 4 of 18 slots")
       busy should include("1 compile")
@@ -978,10 +1105,8 @@ class ServerTopTest extends AnyFunSuite with Matchers {
 
   /** A server running one compile and sixteen test suites reported "1 compiling", because that count is of compiles. It is the wrong number to lead with. */
   test("a server full of test suites reads as busy, not as one compile") {
-    val compile = MachineEntryDto("Compile", "bleep-core", 1, 0, 3000)
-    val suites = (1 to 16).map(index => MachineEntryDto("TestFork", s"suite-$index", 1, 0, 3000)).toList
-    val row = running("aaaa1111", isCurrent = true, active = compile :: suites)
-    val busy = row.copy(status = row.status.map(s => s.copy(machine = s.machine.copy(usedCpu = 17))))
+    val suites = (1 to 16).map(index => fork(id = index.toLong, pid = Some(5000L + index), measuredMb = Some(900L), busyCpu = 1)).toList
+    val busy = running("aaaa1111", isCurrent = true, scheduler = working(List(compile("bleep-core", cpu = 1)), suites))
 
     val screen = drawOverview(stateWith(List(busy)))
     screen should include("17 of 18 slots")
@@ -990,8 +1115,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   }
 
   test("a queue with nothing running says so rather than reading as idle") {
-    val row = running("aaaa1111", isCurrent = true)
-    val queued = row.copy(status = row.status.map(s => s.copy(machine = s.machine.copy(waiting = List(MachineEntryDto("Compile", "x", 1, 1, 1))))))
+    val queued = withScheduler(running("aaaa1111", isCurrent = true), _.copy(waiting = List(waitingCompile("x", cpu = 1))))
 
     drawOverview(stateWith(List(queued))) should include("waiting for capacity")
   }
@@ -1025,11 +1149,11 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     val screen = drawOverview(stateWith(List(running("aaaa1111", isCurrent = true))))
 
     screen should include("Heap in use")
-    screen should include("Compile slots")
-    screen should include("Memory for forks")
+    screen should include("CPU slots")
+    screen should include("Machine memory")
     withClue("section headings should say what the numbers under them are for: ") {
       screen should include("how much of its heap")
-      screen should include("what this server may spend on compiling")
+      screen should include("this server's cpu slots, and the machine's memory for forks")
     }
   }
 

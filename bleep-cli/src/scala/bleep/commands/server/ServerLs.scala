@@ -77,7 +77,12 @@ case class ServerLs(logger: Logger, userPaths: UserPaths, outputMode: OutputMode
         "heapMaxMb" -> status.map(_.jvm.heapMaxMb).asJson,
         "connections" -> status.map(_.connections.size).asJson,
         "workspaces" -> status.map(_.workspaces.map(_.path)).asJson,
-        "activeCompiles" -> status.map(_.machine.activeCompiles).asJson,
+        "activeCompiles" -> status.map(_.scheduler.compilesRunning).asJson,
+        "cpuInUse" -> status.map(_.scheduler.cpuInUse).asJson,
+        "parallelism" -> status.map(_.scheduler.parallelism).asJson,
+        "forks" -> status.map(_.scheduler.forks.size).asJson,
+        "waiting" -> status.map(_.scheduler.waiting.size).asJson,
+        "schedulingMode" -> status.map(_.scheduler.mode).asJson,
         "error" -> row.error.map(_.message).asJson
       )
     }
@@ -113,8 +118,9 @@ case class ServerLs(logger: Logger, userPaths: UserPaths, outputMode: OutputMode
           case Some(status) =>
             val uptime = humanDuration(System.currentTimeMillis() - status.startedAtEpochMs)
             val workspaces = if (status.workspaces.isEmpty) "no workspaces" else s"${status.workspaces.size} workspaces"
-            val busy = if (status.machine.activeCompiles > 0) s", ${status.machine.activeCompiles} compiling" else ""
-            val queued = if (status.machine.waiting.nonEmpty) s", ${status.machine.waiting.size} queued" else ""
+            val scheduler = status.scheduler
+            val busy = if (scheduler.cpuInUse > 0) s", ${scheduler.cpuInUse} of ${scheduler.parallelism} slots busy" else ""
+            val queued = if (scheduler.waiting.nonEmpty) s", ${scheduler.waiting.size} waiting" else ""
             ServerAdminClient.skewWarning(info.socketDir, status).foreach(warning => logger.warn(warning.message))
             s"  pid ${status.pid}  heap ${status.jvm.heapUsedMb}/${status.jvm.heapMaxMb}MB  up $uptime  " +
               s"${status.connections.size} clients  $workspaces$busy$queued"

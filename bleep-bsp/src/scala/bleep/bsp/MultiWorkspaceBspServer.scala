@@ -25,9 +25,13 @@ import bleep.bsp.protocol.{
   CopyStateRequest,
   CopyStateResponse,
   DaemonStatus,
-  MachineEntryDto,
-  MachineSnapshotDto,
+  DemandDto,
+  InHeapTaskDto,
+  LockDto,
+  MachineViewDto,
   OperationDto,
+  SchedulerDto,
+  SchedulerForkDto,
   ServerConfigDto,
   StatusRequest,
   WorkspaceDto
@@ -803,7 +807,7 @@ class MultiWorkspaceBspServer(
       startedAtEpochMs = daemonInfo.startedAtEpochMs,
       socketDir = daemonInfo.socketDir.toString,
       jvm = jvm,
-      machine = MultiWorkspaceBspServer.machineSnapshotDto(scheduling.snapshot, scheduling.parallelism(), nowMs),
+      scheduler = MultiWorkspaceBspServer.schedulerDto(scheduling.snapshot, scheduling.modeName, scheduling.parallelism(), scheduling.reason, nowMs),
       connections = daemonInfo.connectionRegistry.snapshot,
       workspaces = workspaces,
       buildCache = BuildCacheDto(cachedWorkspaces = cachedWorkspaces, bound = buildCache.bound),
@@ -5269,37 +5273,97 @@ class MultiWorkspaceBspServer(
 
 object MultiWorkspaceBspServer {
 
-  /** `bleep/status`'s machine view from the scheduler's last tick. Minimal and honest: cpu is this server's `parallelism` and what is held of it; memory is the
-    * machine's used against the ceiling when the scheduler measures it (cooperative mode), else what this server's own forks are charged; `active` lists
-    * running in-heap tasks and forks, `waiting` the demands not yet granted. Phase D redesigns `top` around `state.json` (design §10 step 12).
+  /** `bleep/status`'s scheduler view, from the scheduler's last tick (design §10 step 12). Nothing here is estimated: what the scheduler has not measured or
+    * not probed is absent, and `top` says so.
+    *
+    * @param reason
+    *   why the server runs unconstrained, when it does
     */
-  def machineSnapshotDto(snapshot: Option[bleep.machine.SchedulerSnapshot], parallelism: Int, nowMs: Long): MachineSnapshotDto =
+  def schedulerDto(snapshot: Option[bleep.machine.SchedulerSnapshot], mode: String, parallelism: Int, reason: Option[String], nowMs: Long): SchedulerDto =
     snapshot match {
       case None =>
-        MachineSnapshotDto(totalCpu = parallelism, usedCpu = 0, totalMemoryMb = 0L, usedMemoryMb = 0L, activeCompiles = 0, active = Nil, waiting = Nil)
+        // Before the first tick. The mode is decided, nothing has been scheduled.
+        SchedulerDto(
+          mode = mode,
+          unconstrainedReason = reason,
+          parallelism = parallelism,
+          headroomMb = 0L,
+          machine = None,
+          lock = lockDto(bleep.machine.LockState.NotNeeded),
+          liveServers = 1,
+          requests = 0,
+          cpuInUse = 0,
+          wantsMore = false,
+          shuttingDown = false,
+          inHeap = Nil,
+          forks = Nil,
+          waiting = Nil
+        )
       case Some(snap) =>
-        MachineSnapshotDto(
-          totalCpu = snap.params.parallelism,
-          usedCpu = snap.state.cpuInUse,
-          totalMemoryMb = snap.machine.map(v => math.max(0L, v.physicalMb - snap.params.headroomMb)).getOrElse(0L),
-          usedMemoryMb = snap.machine.map(_.usedMb).getOrElse(snap.state.forks.map(_.reclaimableMb).sum),
-          activeCompiles = snap.state.compilesRunning,
-          active = snap.state.inHeap.map(t => MachineEntryDto(kind = t.kind.toString, label = t.taskId.value, cpu = t.cpu, memoryMb = 0L, ageMs = 0L)) ++
-            snap.state.forks.map(f =>
-              MachineEntryDto(
-                kind = f.kind.json,
-                label = s"${f.owner.value} ${f.key.value}",
-                cpu = f.busyCpu,
-                memoryMb = f.reclaimableMb,
-                ageMs = nowMs - f.startedAtMs
-              )
-            ),
+        SchedulerDto(
+          mode = snap.mode,
+          unconstrainedReason = reason,
+          parallelism = snap.params.parallelism,
+          headroomMb = snap.params.headroomMb,
+          machine = snap.machine.map { view =>
+            val (pressure, pressureReason) = view.pressure match {
+              case bleep.machine.Pressure.Normal           => ("normal", None)
+              case bleep.machine.Pressure.Elevated         => ("elevated", None)
+              case bleep.machine.Pressure.Critical         => ("critical", None)
+              case bleep.machine.Pressure.NoSignal(reason) => ("no-signal", Some(reason))
+            }
+            MachineViewDto(
+              physicalMb = view.physicalMb,
+              usedMb = view.usedMb,
+              pressure = pressure,
+              pressureReason = pressureReason,
+              sampledAgoMs = math.max(0L, nowMs - view.nowMs)
+            )
+          },
+          lock = lockDto(snap.lock),
+          liveServers = snap.liveServers,
+          requests = snap.state.requests.size,
+          cpuInUse = snap.state.cpuInUse,
+          wantsMore = snap.state.wantsMore,
+          shuttingDown = snap.state.shuttingDown,
+          inHeap = snap.state.inHeap.map(t => InHeapTaskDto(request = t.request.value, taskId = t.taskId.value, kind = t.kind.json, cpu = t.cpu)),
+          forks = snap.state.forks.map { f =>
+            SchedulerForkDto(
+              id = f.id.value,
+              pid = f.pid,
+              request = f.owner.value,
+              kind = f.kind.json,
+              key = f.key.value,
+              boundMb = f.boundMb,
+              measuredMb = f.state match {
+                case bleep.machine.ForkState.Starting               => None
+                case bleep.machine.ForkState.Measured(footprint, _) => Some(footprint)
+              },
+              shared = f.shared,
+              busyCpu = f.busyCpu,
+              evicting = f.evicting,
+              ageMs = math.max(0L, nowMs - f.startedAtMs)
+            )
+          },
           waiting = snap.ready.map {
-            case d: bleep.machine.InHeap     => MachineEntryDto(kind = d.kind.toString, label = d.taskId.value, cpu = d.cpu, memoryMb = 0L, ageMs = 0L)
-            case d: bleep.machine.ForkDemand => MachineEntryDto(kind = d.kind.json, label = d.taskId.value, cpu = d.cpu, memoryMb = d.boundMb, ageMs = 0L)
+            case d: bleep.machine.InHeap     => DemandDto(request = d.request.value, taskId = d.taskId.value, kind = d.kind.json, cpu = d.cpu, boundMb = None)
+            case d: bleep.machine.ForkDemand =>
+              DemandDto(request = d.request.value, taskId = d.taskId.value, kind = d.kind.json, cpu = d.cpu, boundMb = Some(d.boundMb))
           }
         )
     }
+
+  private def lockDto(lock: bleep.machine.LockState): LockDto = lock match {
+    case bleep.machine.LockState.Held                => LockDto(state = "held", holderPid = None, holderStartedAtEpochMs = None, holderHeldForMs = None)
+    case bleep.machine.LockState.NotNeeded           => LockDto(state = "not-needed", holderPid = None, holderStartedAtEpochMs = None, holderHeldForMs = None)
+    case bleep.machine.LockState.Unavailable(holder) =>
+      holder match {
+        case bleep.machine.LockHolder.Announced(pid, startedAtEpochMs, heldForMs) =>
+          LockDto(state = "unavailable", holderPid = Some(pid), holderStartedAtEpochMs = Some(startedAtEpochMs), holderHeldForMs = Some(heldForMs))
+        case bleep.machine.LockHolder.Unannounced =>
+          LockDto(state = "unavailable", holderPid = None, holderStartedAtEpochMs = None, holderHeldForMs = None)
+      }
+  }
 
   /** Run the message loop to completion, treating an interrupt of this thread as the stop signal it is.
     *

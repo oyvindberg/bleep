@@ -338,18 +338,21 @@ object BspServerDaemon {
             while (!shutdownRequested.get()) {
               Thread.sleep(15000)
               scheduling.snapshot.foreach { snap =>
-                val view = MultiWorkspaceBspServer.machineSnapshotDto(Some(snap), snap.params.parallelism, System.currentTimeMillis())
+                val view =
+                  MultiWorkspaceBspServer.schedulerDto(Some(snap), scheduling.modeName, snap.params.parallelism, scheduling.reason, System.currentTimeMillis())
                 if (view.waiting.nonEmpty)
-                  logger.info(s"machine: cpu ${view.usedCpu}/${view.totalCpu}, ${view.waiting.size} waiting: ${view.waiting.map(_.label).mkString(", ")}")
+                  logger.info(
+                    s"machine: cpu ${view.cpuInUse}/${view.parallelism}, ${view.waiting.size} waiting: ${view.waiting.map(_.taskId).mkString(", ")}"
+                  )
                 BspMetrics.recordMachine(
-                  usedCpu = view.usedCpu,
-                  totalCpu = view.totalCpu,
-                  usedMemoryMb = view.usedMemoryMb,
-                  totalMemoryMb = view.totalMemoryMb,
+                  usedCpu = view.cpuInUse,
+                  totalCpu = view.parallelism,
+                  usedMemoryMb = view.machine.map(_.usedMb).getOrElse(view.forks.map(f => f.measuredMb.getOrElse(f.boundMb)).sum),
+                  totalMemoryMb = view.machine.map(m => math.max(0L, m.physicalMb - view.headroomMb)).getOrElse(0L),
                   physicalMemoryMb = physicalMemoryMb,
                   serverHeapMb = serverHeapMb,
-                  activeCompiles = view.activeCompiles,
-                  running = view.active.size,
+                  activeCompiles = view.compilesRunning,
+                  running = view.inHeap.size + view.forks.size,
                   waiting = view.waiting.size
                 )
               }

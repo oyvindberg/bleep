@@ -47,12 +47,39 @@ case class ServerStatus(logger: Logger, userPaths: UserPaths, id: Option[String]
     logger.info(s"  fds      ${status.jvm.openFileDescriptors.map(_.toString).getOrElse("n/a")}")
     status.jvm.gc.foreach(gc => logger.info(s"  gc       ${gc.name}: ${gc.count} collections, ${gc.timeMs}ms"))
 
+    val scheduler = status.scheduler
+    val mode = scheduler.unconstrainedReason.fold(scheduler.mode)(reason => s"${scheduler.mode} ($reason)")
+    val lockHolder = scheduler.lock.holderPid.map(pid => s" held by pid $pid${scheduler.lock.holderHeldForMs.map(ms => s" for ${ms}ms").getOrElse("")}")
+    val flags = List(Option.when(scheduler.wantsMore)("wants more memory"), Option.when(scheduler.shuttingDown)("shutting down to yield")).flatten
     logger.info(
-      s"  machine  cpu ${status.machine.usedCpu}/${status.machine.totalCpu}, " +
-        s"fork mem ${status.machine.usedMemoryMb}/${status.machine.totalMemoryMb}MB, ${status.machine.activeCompiles} compiling"
+      s"  scheduler $mode, ${scheduler.liveServers} live server(s), cpu ${scheduler.cpuInUse}/${scheduler.parallelism}, " +
+        s"${scheduler.compilesRunning} compiling, ${scheduler.forks.size} fork(s), ${scheduler.waiting.size} waiting, " +
+        s"lock ${scheduler.lock.state}${lockHolder.getOrElse("")}${flags.map(f => s", $f").mkString}"
     )
-    status.machine.active.foreach(e => logger.info(s"    running  ${e.kind} ${e.label} (cpu ${e.cpu}, ${e.memoryMb}MB, ${e.ageMs / 1000}s)"))
-    status.machine.waiting.foreach(e => logger.info(s"    queued   ${e.kind} ${e.label} (cpu ${e.cpu}, ${e.memoryMb}MB, waiting ${e.ageMs / 1000}s)"))
+    scheduler.machine match {
+      case Some(view) =>
+        val ceiling = math.max(0L, view.physicalMb - scheduler.headroomMb)
+        val pressure = view.pressureReason.fold(view.pressure)(reason => s"${view.pressure} ($reason)")
+        logger.info(
+          s"  machine  ${view.usedMb}/${ceiling}MB used of the fork ceiling (physical ${view.physicalMb}MB − headroom ${scheduler.headroomMb}MB), " +
+            s"pressure $pressure, read ${view.sampledAgoMs / 1000}s ago"
+        )
+      case None if scheduler.mode == bleep.bsp.protocol.SchedulerDto.Unconstrained => ()
+      case None => logger.info("  machine  no reading yet — this server has not had to claim memory")
+    }
+    scheduler.inHeap.foreach(t => logger.info(s"    running  ${t.kind} ${t.taskId} (cpu ${t.cpu}, in the server's heap)"))
+    scheduler.forks.foreach { f =>
+      val pid = f.pid.map(p => s"pid $p").getOrElse("no pid yet")
+      val charge = f.measuredMb.fold(s"bound ${f.boundMb}MB")(measured => s"measured ${measured}MB (bound ${f.boundMb}MB)")
+      val busy = if (f.busyCpu > 0) s"cpu ${f.busyCpu}" else "warm"
+      val shared = if (f.shared) ", shared" else ""
+      val evicting = if (f.evicting) ", evicting" else ""
+      logger.info(s"    fork     #${f.id} ${f.kind} $pid ${f.key} — $charge, $busy$shared$evicting, ${f.ageMs / 1000}s, for ${f.request}")
+    }
+    scheduler.waiting.foreach { d =>
+      val memory = d.boundMb.map(m => s", ${m}MB").getOrElse("")
+      logger.info(s"    waiting  ${d.kind} ${d.taskId} (cpu ${d.cpu}$memory)")
+    }
 
     logger.info(s"  clients  ${status.connections.size}")
     status.connections.foreach { c =>
