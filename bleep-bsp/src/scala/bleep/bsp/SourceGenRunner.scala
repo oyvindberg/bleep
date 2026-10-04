@@ -272,7 +272,8 @@ object SourceGenRunner {
       scripts: Map[ScriptDef.Main, Set[CrossProjectName]],
       compileProjects: Set[CrossProjectName] => IO[Boolean],
       killSignal: Deferred[IO, KillReason],
-      listener: SourceGenListener
+      listener: SourceGenListener,
+      onStarted: Process => Unit
   ): IO[SourceGenResult] =
     if (scripts.isEmpty) {
       IO.pure(SourceGenResult(0, 0, Nil))
@@ -301,7 +302,7 @@ object SourceGenRunner {
               IO.pure(SourceGenResult(0, 0, List("Failed to compile sourcegen script projects")))
             } else {
               // Run each script
-              runScriptsSequentially(started, scriptsNeedingRun, killSignal, listener).map { failures =>
+              runScriptsSequentially(started, scriptsNeedingRun, killSignal, listener, onStarted).map { failures =>
                 SourceGenResult(scriptsNeedingRun.size, scripts.size - scriptsNeedingRun.size, failures)
               }
             }
@@ -313,11 +314,12 @@ object SourceGenRunner {
       started: Started,
       scripts: List[ScriptToRun],
       killSignal: Deferred[IO, KillReason],
-      listener: SourceGenListener
+      listener: SourceGenListener,
+      onStarted: Process => Unit
   ): IO[List[String]] =
     scripts.foldLeft(IO.pure(List.empty[String])) { case (accIO, scriptToRun) =>
       accIO.flatMap { acc =>
-        runSingleScript(started, scriptToRun, killSignal, listener).map {
+        runSingleScript(started, scriptToRun, killSignal, listener, onStarted).map {
           case None        => acc
           case Some(error) => acc :+ error
         }
@@ -419,7 +421,9 @@ object SourceGenRunner {
       script: ScriptDef.Main,
       forProjects: Set[CrossProjectName],
       killSignal: Deferred[IO, KillReason],
-      listener: SourceGenListener
+      listener: SourceGenListener,
+      /** Told of the script's JVM the moment it exists — the scheduler's fork reporting; each script of a task reports in turn. */
+      onStarted: Process => Unit
   ): IO[Option[String]] =
     getScriptSemaphore(ScriptKey(script.project, script.main)).flatMap { sem =>
       sem.permit.use { _ =>
@@ -428,7 +432,7 @@ object SourceGenRunner {
           listener.onLog(s"Sourcegen ${script.main} already up to date", false)
           IO.pure(None)
         } else {
-          runSingleScriptLocked(started, ScriptToRun(script, stillNeeded), killSignal, listener)
+          runSingleScriptLocked(started, ScriptToRun(script, stillNeeded), killSignal, listener, onStarted)
         }
       }
     }
@@ -438,9 +442,10 @@ object SourceGenRunner {
       started: Started,
       scriptToRun: ScriptToRun,
       killSignal: Deferred[IO, KillReason],
-      listener: SourceGenListener
+      listener: SourceGenListener,
+      onStarted: Process => Unit
   ): IO[Option[String]] =
-    runOne(started, scriptToRun.script, scriptToRun.forProjects, killSignal, listener)
+    runOne(started, scriptToRun.script, scriptToRun.forProjects, killSignal, listener, onStarted)
 
   /** Run a single sourcegen script by forking a separate JVM. Caller must hold the script lock.
     *
@@ -452,7 +457,8 @@ object SourceGenRunner {
       started: Started,
       scriptToRun: ScriptToRun,
       killSignal: Deferred[IO, KillReason],
-      listener: SourceGenListener
+      listener: SourceGenListener,
+      onStarted: Process => Unit
   ): IO[Option[String]] = {
     val script = scriptToRun.script
     val forProjectNames = scriptToRun.forProjects.map(_.value).toList
@@ -478,7 +484,7 @@ object SourceGenRunner {
         val pb = new ProcessBuilder(cmd*)
         pb.directory(started.buildPaths.buildDir.toFile)
 
-        ProcessRunner.runWithOutput(pb, killSignal).map { outcome =>
+        ProcessRunner.runWithOutput(pb, killSignal, onStarted).map { outcome =>
           val durationMs = System.currentTimeMillis() - startTime
           outcome match {
             case Outcome.RunOutcome.Completed(0, stdout, _) =>

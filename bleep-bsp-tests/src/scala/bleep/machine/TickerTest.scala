@@ -122,6 +122,34 @@ class TickerTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("a successor process under the same grant is charged at the bound again and measured a second after it started") {
+    withWorld { w =>
+      val t = ticker(w)
+      t(Event.RegisterRequest(r1, RequestKind.Test))
+      t(Event.SubmitReady(r1, List(forkDemand(r1, "t1", 1000L, shared = false)), Map(k -> 1)))
+      val started = w.clock.get()
+      t.tick()
+      t(Event.ForkSpawned(ForkId(1), pid = 500L))
+      w.forkProbe.footprints.set(Map(500L -> 640L, 501L -> 300L))
+      w.clock.set(started + 1000L)
+      t.tick()
+      t.current.forks.head.state shouldBe ForkState.Measured(640L, started + 1000L)
+      // The first script's JVM ends and the next one starts under the same fork: back to Starting, measured a second after *its* start, not the fork's.
+      w.clock.set(started + 1500L)
+      t(Event.ForkSpawned(ForkId(1), pid = 501L))
+      t.current.forks.head.pid shouldBe Some(501L)
+      t.current.forks.head.state shouldBe ForkState.Starting
+      t.current.forks.head.startedAtMs shouldBe started
+      w.clock.set(started + 2400L)
+      t.tick()
+      t.current.forks.head.state shouldBe ForkState.Starting
+      w.clock.set(started + 2500L)
+      t.tick()
+      t.current.forks.head.state shouldBe ForkState.Measured(300L, started + 2500L)
+      w.ownState.get.forks.head.pid shouldBe Some(501L)
+    }
+  }
+
   test("an unavailable lock still spawns the guarantee, reads nobody, and is reported") {
     withWorld { w =>
       w.otherServer("bbbb", forks = Nil)

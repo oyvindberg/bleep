@@ -59,7 +59,7 @@ object DaemonScheduling {
       logger: Logger,
       onDeath: Throwable => Unit
   ): DaemonScheduling =
-    build(
+    create(
       mode = selected.mode,
       identity = identity,
       params = () => Params(headroomMb = selected.headroomMb, parallelism = config().effectiveParallelism, maxNewForksPerTick = 1),
@@ -76,7 +76,7 @@ object DaemonScheduling {
     * through the real cache directory would be wrong.
     */
   def unconstrained(parallelism: Int, reason: String, heapGate: HeapGate, logger: Logger): DaemonScheduling =
-    build(
+    create(
       mode = Ticker.SchedulingMode.Unconstrained(reason),
       identity = StateFile.selfIdentity(bleep.model.BleepVersion.current.value),
       params = () => Params(headroomMb = 0L, parallelism = parallelism, maxNewForksPerTick = 1),
@@ -92,7 +92,10 @@ object DaemonScheduling {
       onDeath = t => throw new IllegalStateException("the in-process machine scheduler died", t)
     )
 
-  private def build(
+  /** Any mode, any params: what [[start]] and [[unconstrained]] are built from, and what a test uses to run a cooperative scheduler against temp directories
+    * and real probes.
+    */
+  def create(
       mode: Ticker.SchedulingMode,
       identity: ServerIdentity,
       params: () => Params,

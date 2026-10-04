@@ -37,7 +37,8 @@ class SourceGenIntegrationTest extends AnyFunSuite with Matchers with PlatformTe
         scripts = Map.empty,
         compileProjects = _ => IO.pure(true),
         killSignal = killSignal,
-        listener = SourceGenRunner.SourceGenListener.noop
+        listener = SourceGenRunner.SourceGenListener.noop,
+        onStarted = bleep.bsp.ProcessRunner.NoStartHook
       )
       .unsafeRunSync()
 

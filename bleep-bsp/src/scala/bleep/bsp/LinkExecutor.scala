@@ -148,7 +148,11 @@ object LinkExecutor {
       mainClass: Option[String],
       baseOutputDir: Path,
       logger: LinkLogger,
-      killSignal: Deferred[IO, KillReason]
+      killSignal: Deferred[IO, KillReason],
+      /** Told of a linker process the moment it exists — the scheduler's fork reporting. Only Kotlin/Native forks one (`konanc`); the other linkers run in the
+        * server's own heap, and whatever they shell out to (clang, node) is a child of the server, not of a reported process.
+        */
+      onStarted: Process => Unit
   ): IO[(TaskResult, LinkResult)] =
     killSignal.tryGet.flatMap {
       case Some(reason) => IO.pure((TaskResult.Killed(reason), LinkResult.Cancelled))
@@ -179,7 +183,7 @@ object LinkExecutor {
             executeKotlinJs(task.project.value, platform, classpath, outputDir, logger, killSignal)
 
           case platform: LinkPlatform.KotlinNative =>
-            executeKotlinNative(task.project.value, platform, classpath, mainClass, outputDir, logger, killSignal)
+            executeKotlinNative(task.project.value, platform, classpath, mainClass, outputDir, logger, killSignal, onStarted)
 
           case LinkPlatform.Jvm =>
             // JVM doesn't need linking
@@ -450,7 +454,8 @@ object LinkExecutor {
       mainClass: Option[String],
       outputDir: Path,
       logger: LinkLogger,
-      killSignal: Deferred[IO, KillReason]
+      killSignal: Deferred[IO, KillReason],
+      onStarted: Process => Unit
   ): IO[(TaskResult, LinkResult)] = {
     val binaryPath = outputDir.resolve(projectName)
     val possiblePaths = Seq(
@@ -471,7 +476,7 @@ object LinkExecutor {
 
       case None =>
         // Need to link
-        doKotlinNativeLink(projectName, platform, classpath, mainClass, binaryPath, logger, killSignal)
+        doKotlinNativeLink(projectName, platform, classpath, mainClass, binaryPath, logger, killSignal, onStarted)
     }
   }
 
@@ -482,7 +487,8 @@ object LinkExecutor {
       mainClass: Option[String],
       binaryPath: Path,
       logger: LinkLogger,
-      killSignal: Deferred[IO, KillReason]
+      killSignal: Deferred[IO, KillReason],
+      onStarted: Process => Unit
   ): IO[(TaskResult, LinkResult)] =
     killSignal.tryGet.flatMap {
       case Some(reason) => IO.pure((TaskResult.Killed(reason), LinkResult.Cancelled))
@@ -589,7 +595,8 @@ object LinkExecutor {
                 outputPath = binaryPath,
                 config = nativeConfig,
                 diagnosticListener = diagnosticListener,
-                cancellation = cancellation
+                cancellation = cancellation,
+                onStarted = onStarted
               )
               .map { result =>
                 if (result.isSuccess) {

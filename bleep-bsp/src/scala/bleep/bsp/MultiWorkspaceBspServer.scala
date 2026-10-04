@@ -1604,7 +1604,7 @@ class MultiWorkspaceBspServer(
         }
   }
 
-  private type RunSymbolProcessorsHandler = (TaskDag.RunSymbolProcessorsTask, bleep.machine.ForkId, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, Int)]
+  private type RunSymbolProcessorsHandler = (TaskDag.RunSymbolProcessorsTask, GrantedFork, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, Int)]
 
   /** Per-project KSP handler: resolves the runner classpath + processor jars, computes the incremental decision against a per-variant `inputs-manifest.json`,
     * forks `KSPJvmMain`. Generated `.kt`/`.java`/resources land under `.bleep/projects/<cross>/generated-sources/ksp/`; KSP caches + emitted `.class`es under
@@ -1612,7 +1612,7 @@ class MultiWorkspaceBspServer(
     */
   private def makeSymbolProcessorHandler(s: Started, originId: Option[String]): RunSymbolProcessorsHandler = {
     val _ = originId
-    (task, _, kill) =>
+    (task, grant, kill) =>
       val cn = task.project
       // Bridge the DAG kill signal to a CancellationToken via a lifecycle-managed `background.surround` so the watcher fiber is cancelled when the work
       // completes. Using `Outcome.bridgeKillSignal` directly would leak the watcher fiber — it `.start.void`s a `kill.get` listener with no cancellation hook,
@@ -1684,7 +1684,7 @@ class MultiWorkspaceBspServer(
           val kspHeapMb = MemorySizes.forkHeapMb(s.config.bspServerConfigOrDefault.kspRunnerMaxMemory)
           kspMutexFor(cn).flatMap(_.lock.surround {
             bleep.analysis.KspRunner
-              .run(ksp, decision, s.jvmCommand, Some(s"${kspHeapMb}m"), cancellation, logger)
+              .run(ksp, decision, s.jvmCommand, Some(s"${kspHeapMb}m"), cancellation, logger, grant.onStarted)
               .flatMap {
                 case bleep.analysis.KspRunner.RunResult.Success =>
                   // Save the manifest only on success; a failed run leaves the prior manifest intact so the next try sees the same deltas and can retry.
@@ -1717,7 +1717,7 @@ class MultiWorkspaceBspServer(
   private def makeSourcegenHandler(
       started: Started,
       originId: Option[String]
-  ): (TaskDag.SourcegenTask, bleep.machine.ForkId, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] = {
+  ): (TaskDag.SourcegenTask, GrantedFork, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] = {
     val _ = originId
     val listener = new SourceGenRunner.SourceGenListener {
       def onScriptStarted(scriptMain: String, forProjects: List[String]): Unit =
@@ -1736,7 +1736,7 @@ class MultiWorkspaceBspServer(
       def onLog(message: String, isError: Boolean): Unit =
         if (isError) bspError(message) else bspInfo(message)
     }
-    (sgt, _, killSignal) =>
+    (sgt, grant, killSignal) =>
       killSignal.tryGet.flatMap {
         case Some(reason) => IO.pure(TaskDag.TaskResult.Killed(reason))
         case None         =>
@@ -1748,7 +1748,7 @@ class MultiWorkspaceBspServer(
               .foldLeft(IO.pure(Option.empty[String])) { case (acc, (script, forProjects)) =>
                 acc.flatMap {
                   case failed @ Some(_) => IO.pure(failed)
-                  case None             => SourceGenRunner.runOne(started, script, forProjects, killSignal, listener)
+                  case None             => SourceGenRunner.runOne(started, script, forProjects, killSignal, listener, grant.onStarted)
                 }
               }
               .map {
@@ -1945,8 +1945,8 @@ class MultiWorkspaceBspServer(
         val sourcegenHandler = makeSourcegenHandler(started, params.originId)
 
         // Create link handler
-        val linkHandler: (TaskDag.LinkTask, bleep.machine.ForkId, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] = {
-          (linkTask, _, taskKillSignal) =>
+        val linkHandler: (TaskDag.LinkTask, GrantedFork, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] = {
+          (linkTask, grant, taskKillSignal) =>
             val projectPaths = started.projectPaths(linkTask.project)
             val project = started.build.explodedProjects(linkTask.project)
             val resolved = started.resolvedProject(linkTask.project)
@@ -1956,7 +1956,15 @@ class MultiWorkspaceBspServer(
             val linkLogger = createLinkLogger()
             val outputDir = projectPaths.targetDir.resolve("link-output")
             withLinkMetrics(linkTask, started.buildPaths.buildDir.toString) {
-              LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
+              LinkExecutor.execute(
+                linkTask,
+                classpath.map(_.toAbsolutePath),
+                project.platform.flatMap(_.mainClass),
+                outputDir,
+                linkLogger,
+                taskKillSignal,
+                grant.onStarted
+              )
             }
         }
 
@@ -2734,8 +2742,8 @@ class MultiWorkspaceBspServer(
               }
 
           // Link handler for non-JVM platforms (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native)
-          val linkHandler: (TaskDag.LinkTask, bleep.machine.ForkId, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
-            (linkTask, _, killSignal) =>
+          val linkHandler: (TaskDag.LinkTask, GrantedFork, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
+            (linkTask, grant, killSignal) =>
               // Same reasoning as testHandler — getTestClasspath synchronously Awaits a coursier resolve.
               IO.blocking(getTestClasspath(started, linkTask.project)).flatMap { classpath =>
                 val projectPaths = started.projectPaths(linkTask.project)
@@ -2744,7 +2752,7 @@ class MultiWorkspaceBspServer(
                 // test mytest` linked the same project into two trees, each with its own up-to-date check that could not see the other's output.
                 val outputDir = projectPaths.targetDir.resolve("link-output")
                 withLinkMetrics(linkTask, started.buildPaths.buildDir.toString) {
-                  LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
+                  LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal, grant.onStarted)
                 }
               }
 
@@ -3364,8 +3372,8 @@ class MultiWorkspaceBspServer(
     *
     * Exclusive on the project, since the script writes the classes consumers read under their shared locks; shared on what the script reads.
     */
-  private def makePostCompileHandler(started: Started): (TaskDag.PostCompileTask, bleep.machine.ForkId, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
-    (task, _, killSignal) => {
+  private def makePostCompileHandler(started: Started): (TaskDag.PostCompileTask, GrantedFork, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
+    (task, grant, killSignal) => {
       val project = task.project
       val specs: List[(CrossProjectName, Path, ProjectLock.LockMode)] =
         (project, started.projectPaths(project).targetDir / "classes", ProjectLock.LockMode.Exclusive) ::
@@ -3377,7 +3385,7 @@ class MultiWorkspaceBspServer(
         acc.flatMap(_ => ProjectLock.acquire(proj, dir, mode, lockTimeout, () => ()).void)
       }
       locks.use { _ =>
-        PostCompileRunner.run(started, project, killSignal, line => bspInfo(line)).flatMap {
+        PostCompileRunner.run(started, project, killSignal, line => bspInfo(line), grant.onStarted).flatMap {
           case None        => IO.pure(TaskDag.TaskResult.Success)
           case Some(error) =>
             killSignal.tryGet.map {

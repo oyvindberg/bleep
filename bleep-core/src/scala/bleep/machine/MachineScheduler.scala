@@ -8,7 +8,8 @@ package bleep.machine
   *   1. `submitReady` whenever the request's DAG has a new ready set — the whole set, in priority order, replacing the previous one. It also carries how many
   *      test suites per fork key the DAG has still to start, which is what keeps a warm fork alive between them. A demand stays in the set until the scheduler
   *      grants it (through [[SchedulerEffects]]) or the next `submitReady` leaves it out.
-  *   1. Granted work reports back: `inHeapFinished` when a compile/discover/resolve task ends; `forkSpawned` once the process exists and its pid is known;
+  *   1. Granted work reports back: `inHeapFinished` when a compile/discover/resolve task ends; `forkSpawned` once the process exists and its pid is known — and
+  *      again for each successor process under the same grant when a task runs several in a row (one fork, one charge, whichever process is alive);
   *      `forkWorkFinished` when a fork finishes a unit of work and gives its cpu slots back (the fork is then idle, or less busy if shared); `forkExited` when
   *      the process is gone, whether it finished, crashed or was evicted.
   *   1. `unregisterRequest` when the command ends. Its forks stay registered until they exit; idle ones are evicted on the next tick, since no unstarted suite

@@ -190,7 +190,8 @@ class PlatformCancellationTest extends AnyFunSuite with Matchers {
         outputPath = outputPath,
         config = config,
         diagnosticListener = DiagnosticListener.noop,
-        cancellation = cancellation
+        cancellation = cancellation,
+        onStarted = bleep.bsp.ProcessRunner.NoStartHook
       )
 
       // Run and check outcome

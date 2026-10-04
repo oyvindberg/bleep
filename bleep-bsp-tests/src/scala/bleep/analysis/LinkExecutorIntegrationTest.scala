@@ -67,7 +67,8 @@ class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with Platfor
           mainClass = None,
           baseOutputDir = baseOutputDir,
           logger = LinkExecutor.LinkLogger.Silent,
-          killSignal = killSignal
+          killSignal = killSignal,
+          onStarted = bleep.bsp.ProcessRunner.NoStartHook
         )
       } yield outcome).unsafeRunSync()
 
@@ -105,7 +106,8 @@ class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with Platfor
             mainClass = None,
             baseOutputDir = baseOutputDir,
             logger = LinkExecutor.LinkLogger.Silent,
-            killSignal = killSignal
+            killSignal = killSignal,
+            onStarted = bleep.bsp.ProcessRunner.NoStartHook
           )
         } yield outcome).unsafeRunSync()
       }
@@ -147,7 +149,8 @@ class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with Platfor
           outputPath = klibPath,
           config = config,
           diagnosticListener = DiagnosticListener.noop,
-          cancellation = CancellationToken.never
+          cancellation = CancellationToken.never,
+          onStarted = bleep.bsp.ProcessRunner.NoStartHook
         )
         .unsafeRunSync()
 
@@ -181,7 +184,8 @@ class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with Platfor
           mainClass = None,
           baseOutputDir = baseOutputDir,
           logger = LinkExecutor.LinkLogger.Silent,
-          killSignal = killSignal
+          killSignal = killSignal,
+          onStarted = bleep.bsp.ProcessRunner.NoStartHook
         )
       } yield outcome).unsafeRunSync()
 

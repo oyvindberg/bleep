@@ -799,7 +799,8 @@ object KotlinNativeProjectCompiler extends ProjectCompiler {
         outputPath = outputPath,
         config = nativeConfig,
         diagnosticListener = diagnosticListener,
-        cancellation = cancellationToken
+        cancellation = cancellationToken,
+        onStarted = bleep.bsp.ProcessRunner.NoStartHook
       )
       .map { result =>
         if (result.isSuccess) {

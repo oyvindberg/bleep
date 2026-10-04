@@ -37,7 +37,8 @@ class DecideTest extends AnyFunSuite with Matchers {
       state = state,
       busyCpu = busyCpu,
       startedAtMs = startedAtMs,
-      evicting = false
+      evicting = false,
+      pidSinceMs = startedAtMs
     )
 
   private def demand(owner: Request, task: String, key: ForkKey = k, boundMb: Long = 1000L, cpu: Int = 1, shared: Boolean = false) =

@@ -34,7 +34,7 @@ final class SchedulerBridge(forks: ForkRegistry, heapUsage: () => HeapUsage, log
     // to return the resource through, and is not dropped on the floor.
     val now = System.currentTimeMillis()
     channels.values().asScala.filter(ch => ch.closedAtMs.exists(at => now - at > RequestChannel.ClosedRetentionMs)).foreach(ch => channels.remove(ch.id))
-    val channel = new RequestChannel(id, kind, scheduler, heapWaits, heapUsage)
+    val channel = new RequestChannel(id, kind, scheduler, forks, heapWaits, heapUsage)
     if (channels.putIfAbsent(id, channel) != null) throw new IllegalStateException(s"request ${id.value} is already open")
     scheduler.registerRequest(id, kind)
     channel
@@ -113,6 +113,7 @@ final class RequestChannel(
     val id: RequestId,
     val kind: RequestKind,
     scheduler: MachineScheduler,
+    forks: ForkRegistry,
     heapWaits: HeapWaitListener,
     heapUsage: () => HeapUsage
 ) extends ForkAcquirer {
@@ -169,6 +170,9 @@ final class RequestChannel(
 
   /** A DAG-level fork task (sourcegen, KSP, link, post-compile) is done: its process is gone. */
   def forkExited(fork: ForkId): Unit = scheduler.forkExited(fork)
+
+  /** The handle a fork task's handler reports its process(es) through; see [[GrantedFork]]. */
+  def grantedFork(id: ForkId, label: String, key: ForkKey): GrantedFork = new GrantedFork(id, label, key, scheduler, forks)
 
   // ---- ForkAcquirer: the pool asks for a test fork on a handler's behalf
 
@@ -288,4 +292,44 @@ object RequestChannel {
 
   /** How long an ended request's channel is kept to catch grants decided before the scheduler heard it end: a few ticks' worth, generously. */
   val ClosedRetentionMs: Long = 60_000L
+}
+
+/** A fork the scheduler granted to a DAG task — sourcegen, KSP, link, post-compile — and how its handler reports the process running under it.
+  *
+  * One grant is one fork and one charge, whichever process is alive under it. A task may run several processes in a row (a sourcegen task runs its scripts one
+  * after another; a Kotlin/Native link runs `konanc`), and each is reported as it starts: the scheduler charges the bound again until the newcomer has run a
+  * second and been measured, and the registry's entry points at it, so an eviction or a cancel kills the process that exists now. Processes a toolchain starts
+  * on its own (clang under a Scala Native link) are not reported, but they are children of the reported one where there is one, and the scheduler measures the
+  * live tree; where the link runs in the server's own heap, nothing is reported and the fork stays charged at its bound — the server's heap is in the machine's
+  * used memory already, so that only overstates.
+  *
+  * `kill` destroys the current process forcibly; the task's own cancellation path then sees it exit. Only idle forks are evicted and these are never idle, so
+  * this is for cancellation and `top`.
+  */
+final class GrantedFork(val id: ForkId, label: String, key: ForkKey, scheduler: MachineScheduler, forks: ForkRegistry) {
+  private val current = new java.util.concurrent.atomic.AtomicReference[Process](null)
+
+  /** A process now runs under this grant. Reported for measurement and registered for eviction, cancellation and `top`; a previous process's entry is replaced.
+    */
+  def started(process: Process): Unit = {
+    current.set(process)
+    forks.unregister(id): Unit
+    forks.register(
+      ForkRegistry.LiveFork(
+        id = id,
+        pid = process.pid(),
+        label = label,
+        key = key,
+        startedAtEpochMs = System.currentTimeMillis(),
+        kill = _ => Option(current.get()).foreach(p => p.destroyForcibly(): Unit)
+      )
+    )
+    scheduler.forkSpawned(id, process.pid())
+  }
+
+  /** `started` as the hook a process runner takes. */
+  val onStarted: Process => Unit = started
+
+  /** The task is over and no process runs under the grant any more. The executor also tells the scheduler the fork exited. */
+  def ended(): Unit = forks.unregister(id): Unit
 }

@@ -146,7 +146,8 @@ class ScalaJsLinkIntegrationTest extends AnyFunSuite with Matchers {
         mainClass = None,
         baseOutputDir = Path.of("."),
         logger = LinkExecutor.LinkLogger.Silent,
-        killSignal = killSignal
+        killSignal = killSignal,
+        onStarted = bleep.bsp.ProcessRunner.NoStartHook
       )
     } yield outcome).unsafeRunSync()
 

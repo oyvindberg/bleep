@@ -84,7 +84,8 @@ object Decide {
         state = ForkState.Starting,
         busyCpu = d.cpu,
         startedAtMs = now,
-        evicting = false
+        evicting = false,
+        pidSinceMs = now
       )
       room -= d.boundMb
       cpuInUse += d.cpu

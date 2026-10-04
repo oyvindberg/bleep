@@ -78,9 +78,10 @@ final class Ticker(deps: Ticker.Deps) {
       state = state.copy(inHeap = state.inHeap.patch(i, Nil, 1))
 
     case Event.ForkSpawned(fork, pid) =>
+      // A first process, or a successor under the same grant (one fork, one charge, whichever process is alive). Either way it is charged at the bound again
+      // until it has run a full second and been measured.
       val f = forkOrThrow(fork)
-      require(f.pid.isEmpty, s"fork ${fork.value} already has pid ${f.pid.get}, reported again as $pid")
-      update(f.copy(pid = Some(pid)))
+      update(f.copy(pid = Some(pid), state = ForkState.Starting, pidSinceMs = deps.clock()))
 
     case Event.ForkWorkFinished(fork, cpu) =>
       val f = forkOrThrow(fork)
@@ -172,12 +173,12 @@ final class Ticker(deps: Ticker.Deps) {
   private def measure(forkProbe: ForkProbe, s: MyState, now: Long): MyState =
     s.copy(forks = s.forks.map { f =>
       val due = f.state match {
-        case ForkState.Starting          => now - f.startedAtMs >= MeasureAfterMs
+        case ForkState.Starting          => now - f.pidSinceMs >= MeasureAfterMs
         case ForkState.Measured(_, atMs) => now - atMs >= MeasureAfterMs
       }
       f.pid match {
         case Some(pid) if due =>
-          forkProbe.footprintMb(pid) match {
+          Ticker.footprintOfTree(forkProbe, pid) match {
             case Some(footprint) => f.copy(state = ForkState.Measured(footprint, now))
             case None            => f // exited between the decision to measure and the measurement; its exit event is on its way
           }
@@ -190,6 +191,23 @@ object Ticker {
 
   /** A fork is charged its bound until it has run one full second, and remeasured at most once a second after that (design §5 rule 1). */
   val MeasureAfterMs: Long = 1000L
+
+  /** What a fork's process costs together with everything it has spawned: a linker JVM and the node or clang it runs, a sourcegen script and whatever it shells
+    * out to. Summed over the live tree through the per-pid probe — no probe measures a tree. `None` only when the root process itself is gone; a child that
+    * exits mid-sweep is skipped. Pages shared within the tree are counted once per sharer, which overstates it slightly: the figure is for display and eviction
+    * choice, never for the room arithmetic, and overstating is the safe direction.
+    */
+  def footprintOfTree(forkProbe: ForkProbe, pid: Long): Option[Long] =
+    forkProbe.footprintMb(pid).map { root =>
+      val handle = ProcessHandle.of(pid)
+      if (!handle.isPresent) root
+      else {
+        val it = handle.get().descendants().iterator()
+        var children = 0L
+        while (it.hasNext) children += forkProbe.footprintMb(it.next().pid()).getOrElse(0L)
+        root + children
+      }
+    }
 
   /** Whether this tick may add a memory claim (design §6.3): a ready fork demand nothing warm can absorb. Conservative — a demand that would then fail rule 6
     * still costs the lock — but exact enough that a server reusing warm forks, compiling, or idle never takes it.

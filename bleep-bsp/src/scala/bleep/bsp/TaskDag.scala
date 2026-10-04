@@ -999,9 +999,11 @@ object TaskDag {
     */
   case class Handlers(
       compile: (CompileTask, Deferred[IO, KillReason]) => IO[TaskResult],
-      /** Forks a JVM, under the [[ForkId]] the scheduler allotted it; the executor reports the fork gone when the handler returns. */
-      postCompile: (PostCompileTask, ForkId, Deferred[IO, KillReason]) => IO[TaskResult],
-      link: (LinkTask, ForkId, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
+      /** Forks a JVM under the grant the scheduler allotted it, reporting each process it starts through the [[GrantedFork]]; the executor reports the fork
+        * gone when the handler returns.
+        */
+      postCompile: (PostCompileTask, GrantedFork, Deferred[IO, KillReason]) => IO[TaskResult],
+      link: (LinkTask, GrantedFork, Deferred[IO, KillReason]) => IO[(TaskResult, LinkResult)],
       /** Discovery reads the linked artifact on JS and Native — it asks the binary to enumerate its own suites — so it needs the same link output the run does.
         */
       discover: (DiscoverTask, Option[LinkResult], Deferred[IO, KillReason]) => IO[(TaskResult, DiscoveryResult)],
@@ -1013,9 +1015,9 @@ object TaskDag {
       test: (TestSuiteTask, Option[LinkResult], Deferred[IO, KillReason]) => IO[TaskResult],
       /** Run a whole project's JUnit suites as one batched execution. JVM-only (JUnit Platform has no non-JVM linked form), so no LinkResult. */
       testBatch: (TestBatchTask, Deferred[IO, KillReason]) => IO[TaskResult],
-      sourcegen: (SourcegenTask, ForkId, Deferred[IO, KillReason]) => IO[TaskResult],
+      sourcegen: (SourcegenTask, GrantedFork, Deferred[IO, KillReason]) => IO[TaskResult],
       annotationProcessor: (ResolveAnnotationProcessorsTask, Deferred[IO, KillReason]) => IO[(TaskResult, Int)],
-      symbolProcessor: (RunSymbolProcessorsTask, ForkId, Deferred[IO, KillReason]) => IO[(TaskResult, Int)]
+      symbolProcessor: (RunSymbolProcessorsTask, GrantedFork, Deferred[IO, KillReason]) => IO[(TaskResult, Int)]
   )
 
   /** Create a DAG executor with the given handlers. */
@@ -1058,7 +1060,8 @@ object TaskDag {
 
       def executeTask(task: Task, fork: Option[ForkId], dagRef: Ref[IO, Dag], taskKillSignals: Ref[IO, Map[TaskId, Deferred[IO, KillReason]]]): IO[Unit] = {
         val startTime = System.currentTimeMillis()
-        def forkIdOrThrow: ForkId = fork.getOrElse(throw new IllegalStateException(s"${task.id} forks a JVM but was started without a fork grant"))
+        val grant: Option[GrantedFork] = fork.map(id => channel.grantedFork(id, task.id.value, ForkKey(task.id.value)))
+        def forkIdOrThrow: GrantedFork = grant.getOrElse(throw new IllegalStateException(s"${task.id} forks a JVM but was started without a fork grant"))
 
         // Per-task kill signal as a Resource so the propagation fiber + registration are both scoped to the task's lifetime. On release: the `.background`
         // cancels the propagation fiber (no leaked listener), and `taskKillSignals` is deregistered.
@@ -1272,8 +1275,10 @@ object TaskDag {
           _ <- IO {
             demandFor(task, forkHeaps, channel.id) match {
               case Some(_: InHeap)     => channel.inHeapFinished(bleep.machine.TaskId(task.id.value))
-              case Some(_: ForkDemand) => fork.foreach(channel.forkExited)
-              case None                => channel.testFinished(task.project.value)
+              case Some(_: ForkDemand) =>
+                grant.foreach(_.ended())
+                fork.foreach(channel.forkExited)
+              case None => channel.testFinished(task.project.value)
             }
           }
           _ <- result match {

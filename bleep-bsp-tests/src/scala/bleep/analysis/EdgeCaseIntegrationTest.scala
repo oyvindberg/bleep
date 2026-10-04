@@ -466,7 +466,8 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           mainClass = None,
           baseOutputDir = Path.of("/tmp/link-test"),
           logger = LinkExecutor.LinkLogger.Silent,
-          killSignal = killSignal
+          killSignal = killSignal,
+          onStarted = bleep.bsp.ProcessRunner.NoStartHook
         )
       } yield outcome).unsafeRunSync()
 
@@ -493,7 +494,8 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           mainClass = None,
           baseOutputDir = Path.of("/tmp/link-test"),
           logger = LinkExecutor.LinkLogger.Silent,
-          killSignal = killSignal
+          killSignal = killSignal,
+          onStarted = bleep.bsp.ProcessRunner.NoStartHook
         )
       } yield outcome).unsafeRunSync()
 
