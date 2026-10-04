@@ -78,6 +78,7 @@ object SchedulerMetrics {
         evictedNothingToReuse: Int,
         evictedRoomShortage: Int,
         evictedCriticalPressure: Int,
+        evictedOwnerGone: Int,
         heapDeferred: Int,
         requests: Int,
         forks: Int,
@@ -90,7 +91,7 @@ object SchedulerMetrics {
         s"""{"type":"scheduler","ts":$ts,"ticks":$ticks,"claims":$claims,"lock_held":$lockHeld,"lock_unavailable":$lockUnavailable,""" +
           s""""hold_max_ms":$holdMaxMs,"hold_ms":$hold,"spawns":$spawns,"spawns_guaranteed":$spawnsGuaranteed,"reuses":$reuses,""" +
           s""""reuses_guaranteed":$reusesGuaranteed,"in_heap":$inHeap,"in_heap_guaranteed":$inHeapGuaranteed,""" +
-          s""""evicted":{"nothing_to_reuse":$evictedNothingToReuse,"room_shortage":$evictedRoomShortage,"critical_pressure":$evictedCriticalPressure},""" +
+          s""""evicted":{"nothing_to_reuse":$evictedNothingToReuse,"room_shortage":$evictedRoomShortage,"critical_pressure":$evictedCriticalPressure,"owner_gone":$evictedOwnerGone},""" +
           s""""heap_deferred":$heapDeferred,"requests":$requests,"forks":$forks,"cpu_in_use":$cpuInUse,"live_servers":$liveServers,"wants_more":$wantsMore}"""
       }
     }
@@ -122,6 +123,7 @@ object SchedulerMetrics {
           evictedNothingToReuse = line.evictedNothingToReuse + r.evictedNothingToReuse,
           evictedRoomShortage = line.evictedRoomShortage + r.evictedRoomShortage,
           evictedCriticalPressure = line.evictedCriticalPressure + r.evictedCriticalPressure,
+          evictedOwnerGone = line.evictedOwnerGone + r.evictedOwnerGone,
           heapDeferred = line.heapDeferred + r.heapDeferred,
           requests = r.requests,
           forks = r.forks,
@@ -154,6 +156,7 @@ object SchedulerMetrics {
           evictedNothingToReuse = 0,
           evictedRoomShortage = 0,
           evictedCriticalPressure = 0,
+          evictedOwnerGone = 0,
           heapDeferred = 0,
           requests = 0,
           forks = 0,

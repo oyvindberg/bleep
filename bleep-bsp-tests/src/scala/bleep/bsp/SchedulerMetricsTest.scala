@@ -25,6 +25,7 @@ class SchedulerMetricsTest extends AnyFunSuite with Matchers {
       evictedNothingToReuse = 0,
       evictedRoomShortage = 0,
       evictedCriticalPressure = 0,
+      evictedOwnerGone = 0,
       heapDeferred = 0,
       pressure = Some(pressure),
       liveServers = 2,

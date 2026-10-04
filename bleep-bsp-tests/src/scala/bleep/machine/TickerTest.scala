@@ -231,6 +231,29 @@ class TickerTest extends AnyFunSuite with Matchers {
     }
   }
 
+  /** With no request nothing may hold a fork or a cpu slot: a fork a request left busy — its work never reported finished — is evicted the next tick, and the
+    * ticks keep coming until it is gone.
+    */
+  test("no requests means no forks and no cpu in use: a fork left busy by an ended request is evicted") {
+    withWorld { w =>
+      val t = ticker(w)
+      t(Event.RegisterRequest(r1, RequestKind.Test))
+      t(Event.SubmitReady(r1, List(forkDemand(r1, "t1", 1000L, shared = false)), Map(k -> 1)))
+      t.tick()
+      t(Event.ForkSpawned(ForkId(1), pid = 500L))
+      t(Event.UnregisterRequest(r1)) // no ForkWorkFinished: the request ended with its fork marked busy
+      t.idle shouldBe false // a fork remains, so the runtime keeps ticking
+      w.effects.clear()
+      t.tick()
+      w.effects.all shouldBe List(Effect.Evict(ForkId(1), Decision.EvictReason.OwnerGone))
+      t.current.cpuInUse shouldBe 0
+      w.ownState.get.cpuInUse shouldBe 0
+      t(Event.ForkExited(ForkId(1)))
+      t.current.forks shouldBe Nil
+      t.idle shouldBe true
+    }
+  }
+
   test("an unconstrained server never probes, never reads anyone and never sheds") {
     withWorld { w =>
       w.machineProbe.current.set(MachineSample(physicalMb = 16_384L, usedMb = 14_000L, pressure = RawPressure.MacOs(4)))
@@ -496,7 +519,9 @@ class TickerTest extends AnyFunSuite with Matchers {
       t.current.unstartedSuitesByKey shouldBe Map.empty
       w.effects.clear()
       t.tick()
-      w.effects.all shouldBe List(Effect.Evict(ForkId(1), Decision.EvictReason.NothingToReuseIt))
+      w.effects.all shouldBe List(
+        Effect.Evict(ForkId(1), Decision.EvictReason.OwnerGone)
+      ) // its request has ended: gone whatever it was doing, before any warm-fork reasoning
     }
   }
 

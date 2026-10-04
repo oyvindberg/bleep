@@ -391,6 +391,11 @@ object Decision {
 
     /** Idle under Critical pressure (rule 2). */
     case object CriticalPressure extends EvictReason
+
+    /** Its request has ended and nothing reported it done: a fork nobody can release. Evicted busy or idle — with no request there is nothing to hold a fork or
+      * a cpu slot for, and a process a request left behind would otherwise live as long as the server.
+      */
+    case object OwnerGone extends EvictReason
   }
 
   case class HeapDeferred(demand: InHeap, delayMs: Long, firstDeferredAtMs: Long)

@@ -24,6 +24,7 @@ case class TickReport(
     evictedNothingToReuse: Int,
     evictedRoomShortage: Int,
     evictedCriticalPressure: Int,
+    evictedOwnerGone: Int,
     heapDeferred: Int,
     pressure: Option[Pressure],
     liveServers: Int,
@@ -33,7 +34,8 @@ case class TickReport(
     wantsMore: Boolean
 ) {
   def holdMs: Long = holdBreakdownMs.map(_._2).sum
-  def decidedAnything: Boolean = spawns + reuses + admittedInHeap + evictedNothingToReuse + evictedRoomShortage + evictedCriticalPressure + heapDeferred > 0
+  def decidedAnything: Boolean =
+    spawns + reuses + admittedInHeap + evictedNothingToReuse + evictedRoomShortage + evictedCriticalPressure + evictedOwnerGone + heapDeferred > 0
 }
 
 object TickReport {
@@ -60,6 +62,7 @@ object TickReport {
       evictedNothingToReuse = decision.evict.count(_.reason == Decision.EvictReason.NothingToReuseIt),
       evictedRoomShortage = decision.evict.count(_.reason == Decision.EvictReason.RoomShortage),
       evictedCriticalPressure = decision.evict.count(_.reason == Decision.EvictReason.CriticalPressure),
+      evictedOwnerGone = decision.evict.count(_.reason == Decision.EvictReason.OwnerGone),
       heapDeferred = decision.heapDeferred.size,
       pressure = pressure,
       liveServers = liveServers,

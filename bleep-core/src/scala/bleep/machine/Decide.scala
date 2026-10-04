@@ -120,6 +120,13 @@ object Decide {
       room += fork.reclaimableMb
       evicted = evicted :+ Evict(fork.id, reason)
     }
+    // A fork whose request has ended goes whatever it is doing: nothing can release it, so nothing may hold it. Its cpu goes back with it, since no request
+    // can be charged for it.
+    forks.filter(f => !f.evicting && !me.requests.exists(_.id == f.owner)).foreach { f =>
+      cpuInUse -= f.busyCpu
+      forks = forks.map(x => if (x.id == f.id) x.copy(busyCpu = 0) else x)
+      evict(f, EvictReason.OwnerGone)
+    }
     forks.filter(_.available).foreach { f =>
       if (critical) evict(f, EvictReason.CriticalPressure)
       else if (me.unstartedSuitesByKey.getOrElse(f.key, 0) <= 0) evict(f, EvictReason.NothingToReuseIt)

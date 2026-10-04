@@ -475,7 +475,8 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       val xArr = fmtDoubles(events.scheduler.map(e => relS(e.get("ts").getAsLong)))
       def evicted(e: JsonObject): Long = {
         val ev = e.getAsJsonObject("evicted")
-        ev.get("nothing_to_reuse").getAsLong + ev.get("room_shortage").getAsLong + ev.get("critical_pressure").getAsLong
+        ev.get("nothing_to_reuse").getAsLong + ev.get("room_shortage").getAsLong + ev.get("critical_pressure").getAsLong +
+          (if (ev.has("owner_gone")) ev.get("owner_gone").getAsLong else 0L)
       }
       t += scatterTrace(xArr, fmtLongs(events.scheduler.map(_.get("spawns").getAsLong)), "Spawned", "#3b82f6", "solid", "none", "lines")
       t += scatterTrace(xArr, fmtLongs(events.scheduler.map(_.get("reuses").getAsLong)), "Reused warm", "#22c55e", "solid", "none", "lines")

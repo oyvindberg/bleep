@@ -235,6 +235,17 @@ class DecideTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("a fork whose request has ended is evicted busy or idle, and its cpu goes back") {
+    val busyOrphan = fork(1L, owner = r2, busyCpu = 1)
+    val idleOwned = fork(2L, owner = r1, busyCpu = 0)
+    val me = blank.copy(requests = List(r1), forks = List(busyOrphan, idleOwned), unstartedSuitesByKey = Map(k -> 1))
+    val d = decide(me)
+    d.evict shouldBe List(Decision.Evict(ForkId(1L), Decision.EvictReason.OwnerGone))
+    d.next.cpuInUse shouldBe 0
+    d.next.forks.find(_.id == ForkId(1L)).map(_.evicting) shouldBe Some(true)
+    d.next.forks.find(_.id == ForkId(2L)).map(_.evicting) shouldBe Some(false) // its owner lives and a suite still wants it
+  }
+
   test("discovery and processor resolution bypass the heap gate") {
     val neverAdmit: HeapGate = (_, _, _, _) => HeapVerdict.Defer(500L)
     val disc = InHeap(r1.id, TaskId("d"), InHeapKind.Discover, cpu = 1)
