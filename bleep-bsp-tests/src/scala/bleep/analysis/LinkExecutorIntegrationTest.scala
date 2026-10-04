@@ -30,8 +30,16 @@ class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with Platfor
       def forkWorkFinished(fork: bleep.machine.ForkId, cpu: Int): Unit = ()
       def forkExited(fork: bleep.machine.ForkId): Unit = ()
     }
+    val registry = new bleep.machine.ForkRegistry
     TaskDag.TaskGrant.Fork(
-      new bleep.bsp.GrantedFork(bleep.machine.ForkId(1L), "link:test", bleep.machine.ForkKey("link:test"), silent, new bleep.machine.ForkRegistry)
+      new bleep.bsp.GrantedFork(
+        bleep.machine.ForkId(1L),
+        "link:test",
+        bleep.machine.ForkKey("link:test"),
+        silent,
+        registry,
+        new bleep.bsp.ChildWatch(registry, ryddig.TypedLogger.DevNull)
+      )
     )
   }
 

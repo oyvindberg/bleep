@@ -5,6 +5,8 @@ import cats.effect.{Deferred, IO}
 import cats.effect.unsafe.implicits.global
 import ryddig.Logger
 
+import java.nio.file.Path
+
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedQueue, Executors}
 import java.util.concurrent.atomic.AtomicLong
 import scala.jdk.CollectionConverters.*
@@ -17,7 +19,8 @@ import scala.jdk.CollectionConverters.*
   *
   * One per daemon, passed structurally; nothing here is global.
   */
-final class SchedulerBridge(forks: ForkRegistry, heapUsage: () => HeapUsage, relief: MemoryRelief, logger: Logger) extends SchedulerEffects {
+final class SchedulerBridge(forks: ForkRegistry, heapUsage: () => HeapUsage, relief: MemoryRelief, children: ChildWatch, logger: Logger)
+    extends SchedulerEffects {
   private val channels = new ConcurrentHashMap[RequestId, RequestChannel]()
   private val lastLockWarningMs = new AtomicLong(0L)
 
@@ -34,7 +37,7 @@ final class SchedulerBridge(forks: ForkRegistry, heapUsage: () => HeapUsage, rel
     // to return the resource through, and is not dropped on the floor.
     val now = System.currentTimeMillis()
     channels.values().asScala.filter(ch => ch.closedAtMs.exists(at => now - at > RequestChannel.ClosedRetentionMs)).foreach(ch => channels.remove(ch.id))
-    val channel = new RequestChannel(id, kind, scheduler, forks, heapWaits, heapUsage)
+    val channel = new RequestChannel(id, kind, scheduler, forks, children, heapWaits, heapUsage)
     if (channels.putIfAbsent(id, channel) != null) throw new IllegalStateException(s"request ${id.value} is already open")
     scheduler.registerRequest(id, kind)
     channel
@@ -144,6 +147,7 @@ final class RequestChannel(
     val kind: RequestKind,
     scheduler: MachineScheduler,
     forks: ForkRegistry,
+    children: ChildWatch,
     heapWaits: HeapWaitListener,
     heapUsage: () => HeapUsage
 ) extends ForkAcquirer {
@@ -202,7 +206,7 @@ final class RequestChannel(
   def forkExited(fork: ForkId): Unit = scheduler.forkExited(fork)
 
   /** The handle a fork task's handler reports its process(es) through; see [[GrantedFork]]. */
-  def grantedFork(id: ForkId, label: String, key: ForkKey): GrantedFork = new GrantedFork(id, label, key, scheduler, forks)
+  def grantedFork(id: ForkId, label: String, key: ForkKey): GrantedFork = new GrantedFork(id, label, key, scheduler, forks, children)
 
   // ---- ForkAcquirer: the pool asks for a test fork on a handler's behalf
 
@@ -334,7 +338,7 @@ object RequestChannel {
   * `Process.!` then fails — but it is what makes `bleep server kill` and the registry's cleanup reach a clang that would otherwise outlive its server. Only
   * idle forks are evicted and these are never idle, so eviction does not reach here.
   */
-final class GrantedFork(val id: ForkId, label: String, key: ForkKey, scheduler: MachineScheduler, forks: ForkRegistry) {
+final class GrantedFork(val id: ForkId, label: String, key: ForkKey, scheduler: MachineScheduler, forks: ForkRegistry, children: ChildWatch) {
   private val owned = new java.util.concurrent.ConcurrentHashMap[Long, ProcessHandle]()
   private val registered = new java.util.concurrent.atomic.AtomicBoolean(false)
 
@@ -359,6 +363,11 @@ final class GrantedFork(val id: ForkId, label: String, key: ForkKey, scheduler: 
         )
       scheduler.forkSpawned(id, handle.pid())
     }
+
+  /** A toolchain under this grant is about to spawn processes of its own, every one naming a path under `dir`: have the daemon's [[ChildWatch]] attribute the
+    * server's children to this grant for as long as the result is open (design §5.3).
+    */
+  def observeChildrenUnder(dir: Path): AutoCloseable = children.claim(this, dir)
 
   /** The processes under this grant that are still alive. */
   def livePids: Set[Long] = owned.values().asScala.filter(_.isAlive).map(_.pid()).toSet

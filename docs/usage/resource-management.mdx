@@ -140,6 +140,8 @@ Every bleep server on the machine runs the same **machine scheduler**. Memory is
 
 **One guarantee.** A command with nothing running gets one working fork, always — whatever the room, whatever other servers are doing. A build never stalls completely because the machine is full; it slows down to one fork and continues. Beyond that guarantee, forks are admitted as room allows, one new fork per tick per server, oldest request first.
 
+**Processes a toolchain spawns.** A Scala Native link runs clang and the linker itself, many at once; bleep attributes those processes to the link — every one of them names the link's work directory — and charges the link the sum of what they use. A process bleep cannot place with any fork is said so in the server log; it still counts in the machine's used memory, so nothing is over-admitted because of it.
+
 **Warm forks first.** A test fork that has finished its suite is kept warm for the next suite of the same shape rather than killed and restarted; the scheduler reuses a warm fork before it starts a new one, and evicts warm forks that nothing will reuse, or that stand in the way of a fork that is needed now, oldest first.
 
 **Pressure.** Besides used memory, the scheduler reads the OS's own memory pressure signal (macOS's memory pressure level, Linux PSI, Windows memory load). Under *elevated* pressure no new forks start beyond the guarantee; under *critical* pressure every idle warm fork is also evicted. On a platform with no pressure signal the scheduler says so once in the server log and schedules on used memory alone.

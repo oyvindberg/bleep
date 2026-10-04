@@ -224,6 +224,29 @@ drops that state for every workspace with no active request:
 `parallelism` is per server, CPU only, read from the user config (re-read on change). Lowering it never kills running work; it is respected as work
 finishes. A fork holds cpu slots while it runs work (a batch fork as many as suites it runs at once, as today); an idle warm fork holds none.
 
+### 5.3 Processes a toolchain spawns
+
+Scala Native's toolchain runs clang, clang++, lld, dsymutil and ar itself (`scala.sys.process`), many at once, with no hook to hand the processes out. They are
+children of the *server*, next to test JVMs, konanc, node and other workspaces' links. The link's grant owns them anyway:
+
+- **Attribution rule.** Verified against the toolchain's source (0.5.x `LLVM.scala`): every command it runs names a path under the directory bleep hands it
+  as `baseDir` — each compile's `.ll`/`.c` input and `.o` output, `@<workDir>/llvmLinkInfo` for the link, the build path for dsymutil and ar — and bleep
+  gives every link its own such directory (`…/link-output/<platform>/native-work`). A child of the server whose command line names a path under exactly one
+  claimed directory belongs to that claim. A child already registered as a fork's process is not a candidate. Two claims matching one child is a bug and
+  throws. (`ChildAttribution`, pure; `ChildWatch`, the thread.)
+- **Cadence.** The link claims its directory for the time of the link; while any claim is open the daemon lists its children once a second — the measurement
+  cadence, not the tick's — and reports attributed ones through `GrantedFork.observed`, idempotent per pid. With no claim open nothing runs.
+- **Charge.** The grant is one fork with a *set* of processes (§4): a process joining puts it back to the bound until the set has been measured; the
+  measurement is every live tree summed; gone processes leave the set. Scala Native's compile phase spawns a clang every few hundred milliseconds, so the
+  grant sits at its bound for that phase and is measured during the longer link step — the safe direction.
+- **Unattributed children** — a `clang --version` the toolchain runs to find its compiler, a `git` bleep ran synchronously — are warned about once per
+  command, with pid and command line. They are in the machine's used memory (every server reads it), so no room arithmetic is wrong; they are charged to no
+  grant, which is said rather than hidden, and never charged to a grant that did not start them.
+- **Kill.** The grant's `kill` destroys every process alive under it, clangs included; the task's own cancellation stops the toolchain first, whose next
+  `Process.!` then fails. Only idle forks are evicted and a link's fork is never idle.
+- **Platform note.** `ProcessHandle.Info.arguments()` is available for same-user children on Linux and macOS; on Windows only `commandLine()` is, which is
+  also consulted. A child whose command line the OS will not reveal is unattributed and warned about.
+
 ## 6. Shared state
 
 ### 6.1 Files
@@ -430,8 +453,6 @@ own footprint in the retune), deleted again at step 11. The stopgap available to
 - **Slow-check cadence** — **provisional**: 3 s (`Ticker.SlowCheckIntervalMs`), well inside ZGC's ~30 s uncommit.
 - **Two-stage test admission** (task slot, then fork, because the fork key needs the classpath computed in the handler): **kept for v1**.
 - **In-heap linkers** — **ruled** (Phase D): Scala.js and Kotlin/JS linkers are in-heap `Link` demands, gated like compiles; Kotlin/Native's `konanc` is a fork.
-- **Scala Native's clang/lld** — **open, for the owner**. The toolchain spawns them itself through `scala.sys.process`, many at once, with no hook to hand
-  them out, so the link's fork stays charged at its bound and reports no process (over-charged, never unaccounted). Options: (a) fork the Scala Native
-  linker into its own JVM, as Kotlin/Native already is — the clangs become that process's children and the tree is measured; costs a cold JVM and toolchain
-  per link; (b) a multi-pid grant that measures a set of child pids observed under the server — an interface change to the one-pid-per-fork model.
+- **Scala Native's clang/lld** — **ruled and done** (option b, §5.3): a fork is a set of processes; the daemon attributes the server's children to the
+  link's grant by the work directory every toolchain command names, on the measurement cadence.
 - **Listing-process bound** — **provisional**: 256 MB (`TaskDag.ListingProcessBoundMb`) for node or a native binary listing its suites, until measured.

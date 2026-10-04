@@ -40,7 +40,7 @@ class GrantedForkTest extends AnyFunSuite with Matchers {
   test("successive processes under one grant are each reported, the registry knows what is alive under it, and kill reaches it") {
     val scheduler = new RecordingScheduler
     val forks = new ForkRegistry
-    val grant = new GrantedFork(ForkId(7L), "sourcegen:gen", ForkKey("sourcegen:gen"), scheduler, forks)
+    val grant = new GrantedFork(ForkId(7L), "sourcegen:gen", ForkKey("sourcegen:gen"), scheduler, forks, new ChildWatch(forks, ryddig.TypedLogger.DevNull))
     val first = sleeper(20_000L)
     try {
       grant.started(first)
@@ -73,7 +73,7 @@ class GrantedForkTest extends AnyFunSuite with Matchers {
   test("processes a toolchain started are observed by handle, once each however often they are seen, and kill reaches every one alive") {
     val scheduler = new RecordingScheduler
     val forks = new ForkRegistry
-    val grant = new GrantedFork(ForkId(9L), "link:native", ForkKey("link:native"), scheduler, forks)
+    val grant = new GrantedFork(ForkId(9L), "link:native", ForkKey("link:native"), scheduler, forks, new ChildWatch(forks, ryddig.TypedLogger.DevNull))
     val a = sleeper(20_000L)
     val b = sleeper(20_000L)
     try {
@@ -94,7 +94,8 @@ class GrantedForkTest extends AnyFunSuite with Matchers {
 
   test("a process runner's start hook is the grant's reporter") {
     val scheduler = new RecordingScheduler
-    val grant = new GrantedFork(ForkId(3L), "ksp:p", ForkKey("ksp:p"), scheduler, new ForkRegistry)
+    val registry = new ForkRegistry
+    val grant = new GrantedFork(ForkId(3L), "ksp:p", ForkKey("ksp:p"), scheduler, registry, new ChildWatch(registry, ryddig.TypedLogger.DevNull))
     val p = sleeper(0L)
     try {
       grant.onStarted(p)

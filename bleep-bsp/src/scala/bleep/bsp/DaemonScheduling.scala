@@ -21,6 +21,7 @@ final class DaemonScheduling private (
     val bridge: SchedulerBridge,
     val requests: RequestRegistry,
     val forks: ForkRegistry,
+    val children: ChildWatch,
     val pool: JvmPool,
     releasePool: IO[Unit],
     val parallelism: () => Int,
@@ -44,6 +45,7 @@ final class DaemonScheduling private (
     releasePool.unsafeRunSync()
     runtime.close()
     bridge.close()
+    children.close()
   }
 }
 
@@ -126,7 +128,8 @@ object DaemonScheduling {
       onDeath: Throwable => Unit
   ): DaemonScheduling = {
     val forks = new ForkRegistry
-    val bridge = new SchedulerBridge(forks, heapUsage, relief, logger)
+    val children = new ChildWatch(forks, logger)
+    val bridge = new SchedulerBridge(forks, heapUsage, relief, children, logger)
     val runtime = new TickRuntime(
       Ticker.Deps(
         mode = mode,
@@ -152,6 +155,6 @@ object DaemonScheduling {
     }
     val (pool, releasePool) = JvmPool.create(BspMetrics.jvmPoolListener, lifecycle, forks).allocated.unsafeRunSync()
     runtime.start()
-    new DaemonScheduling(mode, runtime, bridge, requests, forks, pool, releasePool, parallelism, reason)
+    new DaemonScheduling(mode, runtime, bridge, requests, forks, children, pool, releasePool, parallelism, reason)
   }
 }
