@@ -64,6 +64,8 @@ class MultiWorkspaceBspServer(
     out: OutputStream,
     logger: Logger,
     machine: MachineResources,
+    /** The daemon's in-flight requests, shared by every connection; see [[RequestRegistry]]. */
+    requests: RequestRegistry,
     heapMonitor: HeapMonitor,
     kspMutexes: KspMutexes,
     buildCache: BuildCache,
@@ -171,7 +173,7 @@ class MultiWorkspaceBspServer(
             // Unregister operations belonging to this connection
             IO.delay {
               activeWorkspace.get().foreach { ws =>
-                SharedWorkspaceState.unregisterAll(ws, myOperationIds.asScala)
+                requests.unregisterAll(ws, myOperationIds.asScala)
                 myOperationIds.clear()
               }
             } >>
@@ -446,7 +448,7 @@ class MultiWorkspaceBspServer(
 
       case "bleep/cancelBlockingWork" =>
         sync {
-          activeWorkspace.get().foreach(SharedWorkspaceState.cancelAll)
+          activeWorkspace.get().foreach(requests.cancelAll)
           None
         }
 
@@ -789,7 +791,7 @@ class MultiWorkspaceBspServer(
     val allWorkspaces = (registered ++ cachedWorkspaces).distinct.sorted
 
     val workspaces = allWorkspaces.map { path =>
-      val operations = SharedWorkspaceState.getActiveOperations(java.nio.file.Paths.get(path)).map { work =>
+      val operations = requests.getActiveOperations(java.nio.file.Paths.get(path)).map { work =>
         OperationDto(
           operationId = work.operationId,
           operation = work.operation,
@@ -864,7 +866,7 @@ class MultiWorkspaceBspServer(
       recorder: TranscriptRecorder
   ): Unit = {
     // Notify client about concurrent operations (informational)
-    val concurrent = SharedWorkspaceState.getActiveOperations(workspace)
+    val concurrent = requests.getActiveOperations(workspace)
     concurrent.foreach { active =>
       sendEvent(
         originId,
@@ -880,14 +882,14 @@ class MultiWorkspaceBspServer(
     }
 
     val kill: Runnable = () => cancelAllActiveRequests()
-    val work = SharedWorkspaceState.ActiveWork(operationId, operation, projects, cancellation, System.currentTimeMillis(), kill)
-    SharedWorkspaceState.register(workspace, work)
+    val work = RequestRegistry.ActiveWork(operationId, operation, projects, cancellation, System.currentTimeMillis(), kill)
+    requests.register(workspace, work)
     myOperationIds.add(operationId): Unit
   }
 
   /** Unregister an operation after it completes. */
   private def unregisterOperation(workspace: Path, operationId: String): Unit = {
-    SharedWorkspaceState.unregister(workspace, operationId)
+    requests.unregister(workspace, operationId)
     myOperationIds.remove(operationId): Unit
   }
 

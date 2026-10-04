@@ -27,7 +27,7 @@ import scala.jdk.CollectionConverters.*
   *   it back. Measured on a daemon serving 11 worktrees: the post-GC floor climbed from 3.5GB to 8.2GB of a 12GB heap over 45 minutes, after which compiles
   *   OOM'd at a concurrency of three. Bounding the cache bounds that floor.
   */
-class BuildCache(maxWorkspaces: Int, analysisCache: bleep.analysis.AnalysisCache) {
+class BuildCache(maxWorkspaces: Int, analysisCache: bleep.analysis.AnalysisCache, requests: RequestRegistry) {
 
   private case class Entry(buildId: BuildId, started: Started, lastUsedMs: AtomicLong)
 
@@ -68,7 +68,7 @@ class BuildCache(maxWorkspaces: Int, analysisCache: bleep.analysis.AnalysisCache
 
         case existing =>
           existing.foreach { stale =>
-            val inFlight = SharedWorkspaceState.getActiveOperations(workspace).size
+            val inFlight = requests.getActiveOperations(workspace).size
             logger
               .withContext("workspace", workspace.toString)
               .withContext("variant", variant.toString)
@@ -117,7 +117,7 @@ class BuildCache(maxWorkspaces: Int, analysisCache: bleep.analysis.AnalysisCache
       val doomed = BuildCache.selectMissing(
         present = entries.keySet().iterator().asScala.toVector,
         exists = (key: model.WorkspaceKey) => Files.isDirectory(key.workspace),
-        isBusy = (key: model.WorkspaceKey) => SharedWorkspaceState.getActiveOperations(key.workspace).nonEmpty
+        isBusy = (key: model.WorkspaceKey) => requests.getActiveOperations(key.workspace).nonEmpty
       )
       doomed.foreach { key =>
         val freed = dropAll(key)
@@ -162,7 +162,7 @@ class BuildCache(maxWorkspaces: Int, analysisCache: bleep.analysis.AnalysisCache
         present = present,
         keep = keep,
         bound = maxWorkspaces,
-        isBusy = key => SharedWorkspaceState.getActiveOperations(key.workspace).nonEmpty
+        isBusy = key => requests.getActiveOperations(key.workspace).nonEmpty
       )
       doomed.foreach { case (key, lastUsedMs) =>
         val freed = dropAll(key)

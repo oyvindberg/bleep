@@ -243,6 +243,8 @@ object BspServerDaemon {
       logger = logger,
       longWaitWarnMs = MachineResources.DefaultLongWaitWarnMs
     )
+    // The daemon's in-flight requests: one register for every connection and workspace this daemon serves, handed to each connection below.
+    val requests = new RequestRegistry
 
     // Track what the machine can actually spare, for as long as the daemon lives.
     //
@@ -285,7 +287,7 @@ object BspServerDaemon {
     val analysisCache = new bleep.analysis.AnalysisCache
     // The server's own heap is the exact figure the ratio should scale on — the client set `-Xmx`
     // when it started us.
-    val buildCache = new BuildCache(daemonConfig.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), analysisCache)
+    val buildCache = new BuildCache(daemonConfig.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), analysisCache, requests)
 
     // Background reporter. Two jobs, one thread:
     //
@@ -479,6 +481,7 @@ object BspServerDaemon {
                   clientSocket.getOutputStream,
                   logger.withContext("client", connId),
                   machine,
+                  requests,
                   kspMutexes,
                   buildCache,
                   analysisCache,
@@ -499,6 +502,7 @@ object BspServerDaemon {
                       clientSocket.getOutputStream,
                       logger.withContext("client", connId),
                       machine,
+                      requests,
                       kspMutexes,
                       buildCache,
                       analysisCache,
@@ -554,6 +558,7 @@ object BspServerDaemon {
       output: java.io.OutputStream,
       logger: Logger,
       machine: MachineResources,
+      requests: RequestRegistry,
       kspMutexes: KspMutexes,
       buildCache: BuildCache,
       analysisCache: bleep.analysis.AnalysisCache,
@@ -567,6 +572,7 @@ object BspServerDaemon {
         output,
         logger,
         machine = machine,
+        requests = requests,
         heapMonitor = HeapMonitor.system,
         kspMutexes = kspMutexes,
         buildCache = buildCache,

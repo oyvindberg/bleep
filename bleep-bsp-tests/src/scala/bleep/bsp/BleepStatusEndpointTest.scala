@@ -42,14 +42,17 @@ class BleepStatusEndpointTest extends AnyFunSuite with Matchers {
       requestDaemonShutdown = () => shutdownRequested.set(true)
     )
 
+    private val requests = new RequestRegistry
+
     private val server = new MultiWorkspaceBspServer(
       clientToServer.source,
       serverToClient.sink,
       logger,
       machine = bleep.MachineResources.forThisMachine(totalCpu = 4, logger = logger),
+      requests = requests,
       heapMonitor = HeapMonitor.system,
       kspMutexes = new KspMutexes,
-      buildCache = new BuildCache(4, analysisCache),
+      buildCache = new BuildCache(4, analysisCache, requests),
       analysisCache = analysisCache,
       daemonInfo = daemonInfo,
       connId = 17,

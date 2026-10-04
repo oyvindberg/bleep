@@ -42,16 +42,21 @@ object InProcessBspServer {
             try {
               val inProcessAnalysisCache = new bleep.analysis.AnalysisCache
               // One server per in-process run, so fresh daemon-scoped state is correct here.
+              val requests = new RequestRegistry
               val server =
                 new MultiWorkspaceBspServer(
                   clientToServer.source,
                   serverToClient.sink,
                   logger,
                   machine = machine,
+                  requests = requests,
                   heapMonitor = HeapMonitor.system,
                   kspMutexes = new KspMutexes,
-                  buildCache =
-                    new BuildCache(bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), inProcessAnalysisCache),
+                  buildCache = new BuildCache(
+                    bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()),
+                    inProcessAnalysisCache,
+                    requests
+                  ),
                   analysisCache = inProcessAnalysisCache,
                   daemonInfo = DaemonInfo.inProcess(config.bspServerConfigOrDefault),
                   connId = 1,

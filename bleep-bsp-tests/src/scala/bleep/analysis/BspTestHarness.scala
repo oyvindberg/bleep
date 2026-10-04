@@ -134,36 +134,49 @@ object BspTestHarness {
 
   /** Run a test with the BSP server (simple version - auto-detects project) */
   def withServer[A](workspaceRoot: Path)(f: BspClient => A): A = {
-    val (analysisCache, buildCache) = freshCaches()
-    val harness = new BspTestHarness(workspaceRoot, None, analysisCache, buildCache)
+    val (analysisCache, buildCache, requests) = freshCaches()
+    val harness = new BspTestHarness(workspaceRoot, None, analysisCache, buildCache, requests)
     harness.use(f)
   }
 
   /** Run a test with BSP server and explicit project configuration */
   def withProject[A](workspaceRoot: Path, config: ProjectConfig)(f: BspClient => A): A = {
-    val (analysisCache, buildCache) = freshCaches()
-    withProjectAndCaches(workspaceRoot, config, analysisCache, buildCache)(f)
+    val (analysisCache, buildCache, requests) = freshCaches()
+    withProjectAndCaches(workspaceRoot, config, analysisCache, buildCache, requests)(f)
   }
 
   /** Like [[withProject]], with the daemon-scoped caches supplied by the test, so it can look at what the server cached and act on the cache directly. */
-  def withProjectAndCaches[A](workspaceRoot: Path, config: ProjectConfig, analysisCache: bleep.analysis.AnalysisCache, buildCache: bleep.bsp.BuildCache)(
+  def withProjectAndCaches[A](
+      workspaceRoot: Path,
+      config: ProjectConfig,
+      analysisCache: bleep.analysis.AnalysisCache,
+      buildCache: bleep.bsp.BuildCache,
+      requests: RequestRegistry
+  )(
       f: BspClient => A
   ): A = {
-    val harness = new BspTestHarness(workspaceRoot, Some(List(config)), analysisCache, buildCache)
+    val harness = new BspTestHarness(workspaceRoot, Some(List(config)), analysisCache, buildCache, requests)
     harness.use(f)
   }
 
   /** Run a test with BSP server and multiple project configurations */
   def withProjects[A](workspaceRoot: Path, configs: List[ProjectConfig])(f: BspClient => A): A = {
-    val (analysisCache, buildCache) = freshCaches()
-    val harness = new BspTestHarness(workspaceRoot, Some(configs), analysisCache, buildCache)
+    val (analysisCache, buildCache, requests) = freshCaches()
+    val harness = new BspTestHarness(workspaceRoot, Some(configs), analysisCache, buildCache, requests)
     harness.use(f)
   }
 
-  /** One server per harness, so fresh daemon-scoped caches, bounded the way a real daemon on this machine would bound them. */
-  def freshCaches(): (bleep.analysis.AnalysisCache, bleep.bsp.BuildCache) = {
+  /** One server per harness, so fresh daemon-scoped state — the caches, bounded the way a real daemon on this machine would bound them, and the request
+    * registry the build cache consults and the server registers into.
+    */
+  def freshCaches(): (bleep.analysis.AnalysisCache, bleep.bsp.BuildCache, RequestRegistry) = {
     val analysisCache = new bleep.analysis.AnalysisCache
-    (analysisCache, new bleep.bsp.BuildCache(bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), analysisCache))
+    val requests = new RequestRegistry
+    (
+      analysisCache,
+      new bleep.bsp.BuildCache(bleep.model.BspServerConfig.default.maxCachedWorkspacesFor(Runtime.getRuntime.maxMemory()), analysisCache, requests),
+      requests
+    )
   }
 
   /** Client interface for sending BSP requests */
@@ -218,7 +231,8 @@ class BspTestHarness(
     workspaceRoot: Path,
     projectConfigs: Option[List[BspTestHarness.ProjectConfig]],
     harnessAnalysisCache: bleep.analysis.AnalysisCache,
-    harnessBuildCache: BuildCache
+    harnessBuildCache: BuildCache,
+    harnessRequests: RequestRegistry
 ) {
   import BspTestHarness._
   import JsonRpcCodecs.given
@@ -236,6 +250,7 @@ class BspTestHarness(
       serverToClient.sink,
       Loggers.stderr(LogPatterns.logFile),
       machine = bleep.MachineResources.forThisMachine(totalCpu = Runtime.getRuntime.availableProcessors(), logger = Loggers.stderr(LogPatterns.logFile)),
+      requests = harnessRequests,
       heapMonitor = HeapMonitor.system,
       // One server per harness, so fresh daemon-scoped state is the right scope here.
       kspMutexes = new KspMutexes,
