@@ -40,6 +40,20 @@ class CliInvocationTest extends AnyFunSuite {
     )
   }
 
+  test("script descriptions line up, and a script without one shows what it runs") {
+    def main(project: String, cls: String, description: Option[String]): model.JsonList[model.ScriptDef] =
+      model.JsonList(
+        List(model.ScriptDef.Main(model.CrossProjectName(model.ProjectName(project), None), cls, model.JsonSet.empty, model.JsonSet.empty, description))
+      )
+    val rendered = commands.ListScripts.render(
+      List(
+        model.ScriptName("a") -> main("scripts", "s.A", None),
+        model.ScriptName("long-name") -> main("scripts", "s.B", Some("does b"))
+      )
+    )
+    assert(rendered == List("a          (scripts/s.A)", "long-name  does b"))
+  }
+
   test("a script's `description` survives a YAML round trip") {
     val yaml = "main: s.A\nproject: scripts\ndescription: does a\n"
     val parsed = bleep.yaml.parse(yaml).flatMap(_.as[model.ScriptDef]).toTry.get

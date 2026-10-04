@@ -901,6 +901,9 @@ object Main {
               }
             }
           ),
+          Opts.subcommand("script", "list the scripts in this build, with their descriptions")(
+            outputMode.map(mode => commands.ListScripts(mode))
+          ),
           Opts.subcommand("projects-test", "show test projects under current directory")(
             (testProjectNames, outputMode).mapN { (projectNames, mode) =>
               new BleepBuildCommand {
