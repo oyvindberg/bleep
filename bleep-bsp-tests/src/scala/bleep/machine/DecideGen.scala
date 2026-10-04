@@ -107,7 +107,8 @@ object DecideGen {
       pressure = pressure(r),
       nowMs = now,
       churnPagesPerSecond = None,
-      pressureLevel = None
+      pressureLevel = None,
+      roomFromUsed = true
     )
     val me = MyState(
       requests = requests,

@@ -5352,7 +5352,8 @@ object MultiWorkspaceBspServer {
               pressureReason = pressureReason,
               sampledAgoMs = math.max(0L, nowMs - view.nowMs),
               churnPagesPerSecond = view.churnPagesPerSecond,
-              pressureLevel = view.pressureLevel
+              pressureLevel = view.pressureLevel,
+              roomFromUsed = view.roomFromUsed
             )
           },
           lock = lockDto(snap.lock),

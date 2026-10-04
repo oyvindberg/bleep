@@ -210,7 +210,16 @@ object MyState {
   * @param pressureLevel
   *   the kernel's own level where it reports one (macOS: 1, 2, 4)
   */
-case class MachineView(physicalMb: Long, usedMb: Long, pressure: Pressure, nowMs: Long, churnPagesPerSecond: Option[Long], pressureLevel: Option[Int])
+case class MachineView(
+    physicalMb: Long,
+    usedMb: Long,
+    pressure: Pressure,
+    nowMs: Long,
+    churnPagesPerSecond: Option[Long],
+    pressureLevel: Option[Int],
+    /** Whether `usedMb` bounds room (design §5 rule 1); false on macOS, where pressure alone is the brake (§9). From the probe's sample. */
+    roomFromUsed: Boolean
+)
 
 /** The outcome of trying for `machine.lock` this tick (design §6.3, §8). */
 sealed trait LockState

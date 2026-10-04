@@ -50,7 +50,8 @@ class ServerTopTest extends AnyFunSuite with Matchers {
         pressureReason = None,
         sampledAgoMs = 500L,
         churnPagesPerSecond = None,
-        pressureLevel = None
+        pressureLevel = None,
+        roomFromUsed = true
       )
     ),
     lock = LockDto(state = "held", holderPid = None, holderStartedAtEpochMs = None, holderHeldForMs = None),
@@ -569,6 +570,17 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     screen should include(
       "12.0 GB used of 40.0 GB fork ceiling (48.0 GB − 8.0 GB headroom), 2.5 GB pending for starting forks — pressure normal"
     )
+  }
+
+  test("on a platform where used memory is not room, the summary says what admits forks — pressure, with churn and level — instead of a ceiling") {
+    val mac = withScheduler(
+      running("aaaa1111", isCurrent = true),
+      s => s.copy(machine = s.machine.map(_.copy(roomFromUsed = false, churnPagesPerSecond = Some(12_345L), pressureLevel = Some(1))))
+    )
+    val screen = draw(stateWith(List(mac)))
+    screen should include("12.0 GB used of 48.0 GB; room is not what admits forks here — pressure normal (churn 12k pages/s, level 1)")
+    screen should not include "fork ceiling"
+    drawOverview(stateWith(List(mac))) should include("room is not used on this platform, pressure is the brake")
   }
 
   test("a server without a pressure signal says so and why, instead of reporting normal") {

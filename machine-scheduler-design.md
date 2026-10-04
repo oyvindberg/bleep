@@ -153,6 +153,10 @@ In order. Every rule is a pure function of the inputs above.
 1. **Room.** `ceiling = physical − headroom`. `room = ceiling − usedMb − Σ boundMb(forks in Starting, all servers)`.
    A fork is charged its bound from admission until it has run one full second; then it is measured, its memory is in `usedMb`, and it is
    remeasured at most once a second (measurements are for display and eviction choice, never for prediction).
+   **Room gates admissions only where the probe says `usedMb` is a measure of it** (`MachineSample.roomFromUsed`): Linux (`MemAvailable`, cgroup working
+   set) and Windows (available physical) yes; **macOS no** — its used figure stayed 42.4–42.8 GB from a calm machine to one at 300 % kernel_task (§9), so
+   there the brake is pressure alone. Everything else of this rule stays on macOS: Starting forks are charged and published for the other servers,
+   the measurement cadence, the lock, one spawn per tick, the guarantee, cpu.
 2. **Pressure.** `Elevated` → no *new* forks beyond guarantees; a fork that already exists is reused as usual (an idle warm fork, or this request's busy
    shared fork), subject to the cpu slot — its memory is spent whether or not it works, unless rule 3 decides to evict it, which comes first. `Critical`
    → additionally evict every idle fork of this server, so nothing idle is left to reuse.

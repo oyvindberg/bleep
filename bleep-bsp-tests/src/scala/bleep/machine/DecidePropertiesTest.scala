@@ -27,6 +27,17 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("where used memory is not room, the decision does not depend on it at all: an empty machine and a full one decide alike") {
+    forAll(Runs, Seed + 11) { in =>
+      val noRoom = in.copy(view = in.view.copy(roomFromUsed = false))
+      val empty = run(noRoom.copy(view = noRoom.view.copy(usedMb = 0L)))
+      val full = run(noRoom.copy(view = noRoom.view.copy(usedMb = noRoom.view.physicalMb * 2L)))
+      withClue(s"used memory changed the decision on a platform where it is not room: ")(full shouldBe empty)
+      // and nothing else loosened: the spawn allowance holds there too
+      full.spawn.size should be <= in.params.maxNewForksPerTick
+    }
+  }
+
   /** Requests that want a guaranteed fork this tick: no working fork, a ready fork demand. */
   private def wantingGuarantee(in: Inputs): List[Request] =
     in.me.requests.filter { r =>

@@ -294,7 +294,8 @@ final class Ticker(deps: Ticker.Deps) {
         case Churn.Rate.PagesPerSecond(v) => Some(math.round(v))
         case Churn.Rate.Unknown           => None
       },
-      pressureLevel = level
+      pressureLevel = level,
+      roomFromUsed = sample.roomFromUsed
     )
   }
 

@@ -15,7 +15,7 @@ class DecideTest extends AnyFunSuite with Matchers {
   private val blank = MyState.empty.copy(nextForkId = 101L)
 
   private def view(usedMb: Long, pressure: Pressure = Pressure.Normal): MachineView =
-    MachineView(physicalMb = 10_000L, usedMb = usedMb, pressure = pressure, nowMs = now, churnPagesPerSecond = None, pressureLevel = None)
+    MachineView(physicalMb = 10_000L, usedMb = usedMb, pressure = pressure, nowMs = now, churnPagesPerSecond = None, pressureLevel = None, roomFromUsed = true)
 
   private def fork(
       id: Long,
@@ -244,6 +244,20 @@ class DecideTest extends AnyFunSuite with Matchers {
     d.next.cpuInUse shouldBe 0
     d.next.forks.find(_.id == ForkId(1L)).map(_.evicting) shouldBe Some(true)
     d.next.forks.find(_.id == ForkId(2L)).map(_.evicting) shouldBe Some(false) // its owner lives and a suite still wants it
+  }
+
+  test("where used memory is not room (macOS), a full machine admits a second fork; pressure, the spawn allowance and cpu still apply") {
+    // ceiling 9000, used 8990: no room at all. The guarantee spawns t1 either way; t2 spawns only where room is not consulted — and then only one per tick.
+    val me = blank.copy(requests = List(r1), ready = List(demand(r1, "t1"), demand(r1, "t2"), demand(r1, "t3")), unstartedSuitesByKey = Map(k -> 3))
+    val gated = decide(me, v = view(8990L))
+    gated.spawn.map(_.demand.taskId.value) shouldBe List("t1")
+    val unGated = decide(me, v = view(8990L).copy(roomFromUsed = false))
+    unGated.spawn.map(_.demand.taskId.value) shouldBe List("t1") // maxNewForksPerTick = 1 still bounds the tick
+    val second = decide(unGated.next.copy(ready = List(demand(r1, "t2"), demand(r1, "t3"))), v = view(8990L).copy(roomFromUsed = false))
+    second.spawn.map(_.demand.taskId.value) shouldBe List("t2")
+    withClue("Elevated pressure withholds the non-guaranteed spawn whether or not room is consulted: ") {
+      decide(unGated.next.copy(ready = List(demand(r1, "t2"))), v = view(8990L, Pressure.Elevated).copy(roomFromUsed = false)).spawn shouldBe Nil
+    }
   }
 
   test("discovery and processor resolution bypass the heap gate") {

@@ -21,10 +21,12 @@ object Decide {
     require(me.ready.map(d => (d.request, d.taskId)).distinct.size == me.ready.size, "ready demands must be unique per request and task")
 
     // ---- rule 1: room. Every fork still charged at its bound, on every server, is spent; the measured ones are in usedMb already. Unconstrained has no
-    // room to run out of, no pressure to brake on and no lock to hold: the three machine-wide clauses below are simply absent.
+    // room to run out of, no pressure to brake on and no lock to hold: the three machine-wide clauses below are simply absent. A platform whose used figure
+    // is not a measure of room (macOS, design §9) keeps everything else — the charge of Starting forks is still published for the others to see, pressure
+    // brakes, one spawn per tick, the guarantee, cpu — but admissions are not gated by room.
     val (roomLimited, critical, spawnsAllowed, lockHeld) = machine match {
       case Machine.Cooperative(view, _, lock) =>
-        (true, view.pressure == Pressure.Critical, !Pressure.withholdsNewForks(view.pressure), lock == LockState.Held)
+        (view.roomFromUsed, view.pressure == Pressure.Critical, !Pressure.withholdsNewForks(view.pressure), lock == LockState.Held)
       case Machine.Unconstrained(_) => (false, false, true, true)
     }
     var room: Long = machine match {

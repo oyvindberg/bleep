@@ -78,6 +78,8 @@ object StatusRequest {
   *   macOS: the compressor's churn (compressions + decompressions per second, smoothed) — what the pressure is judged from (design §9)
   * @param pressureLevel
   *   the kernel's own level where it reports one (macOS: 1, 2, 4)
+  * @param roomFromUsed
+  *   whether `usedMb` against the ceiling gates admissions here; false on macOS, where pressure is the brake (design §9)
   */
 case class MachineViewDto(
     physicalMb: Long,
@@ -86,7 +88,8 @@ case class MachineViewDto(
     pressureReason: Option[String],
     sampledAgoMs: Long,
     churnPagesPerSecond: Option[Long],
-    pressureLevel: Option[Int]
+    pressureLevel: Option[Int],
+    roomFromUsed: Boolean
 )
 
 object MachineViewDto {

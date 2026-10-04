@@ -22,7 +22,12 @@ trait MachineProbe {
   * @param pressure
   *   the platform's own pressure signal, unnormalised. The scheduler maps it to Normal/Elevated/Critical.
   */
-case class MachineSample(physicalMb: Long, usedMb: Long, pressure: RawPressure)
+/** @param roomFromUsed
+  *   whether `usedMb` is a measure the scheduler may gate admissions on — `physical − headroom − used` as room (design §5 rule 1). The platform says: Linux's
+  *   `MemAvailable` and cgroup working set mean what they say, Windows's available physical does too, but on macOS the used figure does not move between a calm
+  *   machine and an overloaded one (anonymous pages become compressor pages; §9), so there room gates nothing and pressure is the brake.
+  */
+case class MachineSample(physicalMb: Long, usedMb: Long, pressure: RawPressure, roomFromUsed: Boolean)
 
 /** The OS's own judgement of memory trouble, as the OS reports it. Each variant carries exactly what its platform exposes. */
 sealed trait RawPressure

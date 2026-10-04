@@ -57,7 +57,9 @@ object MacOsProbes {
     MachineSample(
       physicalMb = out(0) / MB,
       usedMb = (out(2) - out(6) + out(3) + out(4)) * pageSize / MB,
-      pressure = RawPressure.MacOs(level = out(5).toInt, compressions = out(7), decompressions = out(8), swapins = out(9), swapouts = out(10))
+      pressure = RawPressure.MacOs(level = out(5).toInt, compressions = out(7), decompressions = out(8), swapins = out(9), swapouts = out(10)),
+      // Used memory cannot tell a calm Mac from an overloaded one (design §9): it is published, shown, and never room.
+      roomFromUsed = false
     )
   }
 }

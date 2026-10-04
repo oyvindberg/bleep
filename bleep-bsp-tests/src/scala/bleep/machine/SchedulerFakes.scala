@@ -77,7 +77,9 @@ object SchedulerFakes {
     val ownSocketDir: Path = Files.createDirectories(bspSocketDir.resolve("own0000"))
     // A Linux reading by default: Normal from the first sample. macOS's level needs the churn's two samples to settle (`Pressure.Warming`), which the tests about
     // churn cover on purpose and the rest should not trip over.
-    val machineProbe = new FakeMachineProbe(MachineSample(physicalMb = 16_384L, usedMb = 4_096L, pressure = RawPressure.LinuxPsi(0.0, 0.0)))
+    val machineProbe = new FakeMachineProbe(
+      MachineSample(physicalMb = 16_384L, usedMb = 4_096L, pressure = RawPressure.LinuxPsi(0.0, 0.0), roomFromUsed = true)
+    )
     val forkProbe = new FakeForkProbe
     val lock = new FakeLock
     val effects = new RecordingEffects

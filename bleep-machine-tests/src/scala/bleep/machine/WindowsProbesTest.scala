@@ -20,6 +20,7 @@ class WindowsProbesTest extends AnyFunSuite with Matchers {
     WindowsProbes.fromStatus(out) shouldBe MachineSample(
       physicalMb = 32 * 1024,
       usedMb = 12 * 1024,
+      roomFromUsed = true,
       pressure = RawPressure.Windows(memoryLoadPercent = 37, commitTotalMb = 25 * 1024, commitLimitMb = 40 * 1024, lowMemory = true)
     )
   }

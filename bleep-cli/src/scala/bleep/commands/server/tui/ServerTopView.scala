@@ -178,15 +178,14 @@ object ServerTopView {
         val pending = if (pendingMb > 0) s", ${mb(pendingMb)} pending for starting forks" else ""
         val age = if (view.sampledAgoMs >= 5000) s", read ${humanDuration(view.sampledAgoMs)} ago" else ""
         // One line, and a short one: the summary sits above the server list, every line here is one fewer for the detail below, and the pane cuts at its
-        // width rather than wrapping.
+        // width rather than wrapping. Where used memory is not room (macOS), say what admits forks instead of quoting a ceiling nothing is measured against.
+        val text =
+          if (view.roomFromUsed) s"${mb(view.usedMb)} used of ${mb(ceiling)} fork ceiling (${mb(view.physicalMb)} − ${mb(headroomMb)} headroom)$pending — "
+          else s"${mb(view.usedMb)} used of ${mb(view.physicalMb)}; room is not what admits forks here$pending — "
         List(
           Line.from(
             Span.styled(s"  ${"Machine".padTo(8, ' ')}", bold(Palette.text)),
-            Span.styled(
-              s"${mb(view.usedMb)} used of ${mb(ceiling)} fork ceiling (${mb(view.physicalMb)} − ${mb(headroomMb)} headroom)$pending — " +
-                s"${pressureText(view)}$age",
-              style(Palette.text)
-            )
+            Span.styled(text + s"${pressureText(view)}$age", style(Palette.text))
           )
         )
       case None if cooperative.nonEmpty =>
@@ -804,7 +803,7 @@ object ServerTopView {
   /** The machine as this server's scheduler last read it, or why it has no reading. */
   private def machineLines(scheduler: SchedulerDto): List[Line] =
     scheduler.machine match {
-      case Some(view) =>
+      case Some(view) if view.roomFromUsed =>
         val ceiling = math.max(0L, view.physicalMb - scheduler.headroomMb)
         val age = if (view.sampledAgoMs >= 5000) s", read ${humanDuration(view.sampledAgoMs)} ago" else ""
         List(
@@ -814,6 +813,16 @@ object ServerTopView {
             s"${view.usedMb} MB of ${ceiling} MB ceiling in use, ${pressureText(view)}$age"
           ),
           fieldOf("Ceiling", s"${view.physicalMb} MB physical − ${scheduler.headroomMb} MB headroom, shared by ${scheduler.liveServers} live server(s)")
+        )
+      case Some(view) =>
+        // macOS: the used figure is shown but admits nothing — it does not move between a calm Mac and an overloaded one; the compressor's churn does.
+        val age = if (view.sampledAgoMs >= 5000) s", read ${humanDuration(view.sampledAgoMs)} ago" else ""
+        List(
+          gaugeLine("Machine memory", ratio(view.usedMb, view.physicalMb), s"${view.usedMb} MB of ${view.physicalMb} MB in use — not what admits forks here"),
+          fieldOf(
+            "Admission",
+            s"${pressureText(view)}$age; room is not used on this platform, pressure is the brake, shared by ${scheduler.liveServers} live server(s)"
+          )
         )
       case None if scheduler.mode == SchedulerDto.Unconstrained =>
         List(fieldOf("Machine memory", s"not scheduled — unconstrained: ${scheduler.unconstrainedReason.getOrElse("no reason given")}"))

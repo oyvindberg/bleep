@@ -57,20 +57,30 @@ class MacOsProbesTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("the probe says used memory is not room on macOS") {
+    assume(onMac)
+    probes.sample().roomFromUsed shouldBe false
+  }
+
   test("the compressor and swap counters are vm_stat's, cumulative and monotonic") {
     assume(onMac)
     val RawPressure.MacOs(_, c1, d1, si1, so1) = probes.sample().pressure: @unchecked
     val stats = parseVmStat(run("/usr/bin/vm_stat"))
     val RawPressure.MacOs(_, c2, d2, si2, so2) = probes.sample().pressure: @unchecked
-    // Counters since boot only ever grow; vm_stat read between the two probes lies between them.
+    // Counters since boot only ever grow.
     c2 should be >= c1
     d2 should be >= d1
     si2 should be >= si1
     so2 should be >= so1
-    stats("Compressions") should (be >= c1 and be <= c2)
-    stats("Decompressions") should (be >= d1 and be <= d2)
-    stats("Swapins") should (be >= si1 and be <= si2)
-    stats("Swapouts") should (be >= so1 and be <= so2)
+    // vm_stat prints the same quantities, and a wrong field would be off by orders of magnitude; but the kernel does not serialise these counters against a
+    // process that ran in between — vm_stat read right after a probe has been seen a few hundred pages ahead of the probe read right after it — so the check is
+    // closeness (one percent), not an ordering.
+    def close(name: String, mine: Long): Unit =
+      withClue(s"$name: vm_stat ${stats(name)} vs probe $mine: ")(math.abs(stats(name) - mine) should be <= math.max(1000L, mine / 100))
+    close("Compressions", c2)
+    close("Decompressions", d2)
+    close("Swapins", si2)
+    close("Swapouts", so2)
   }
 
   test("footprint is the same phys_footprint the FFM reading saw") {
