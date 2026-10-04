@@ -46,6 +46,25 @@ object HeapPressureGate {
     * `firstRefusedAt` is when this task was first deferred (None if it has never been), which is what makes [[MaxWaitMs]] enforceable across separate admission
     * attempts rather than within one sleep loop.
     */
+  /** This gate as the machine scheduler's [[bleep.machine.HeapGate]] (design §3.2: `decide` calls the gate, fed the scheduler's own compile count).
+    *
+    * `threshold` is read on every call so an edited `heapPressureThreshold` applies without a restart, as the rest of the scheduler's params do. The scheduler
+    * keeps the first-deferral time per compile and hands it back here, which is what makes [[MaxWaitMs]] hold across ticks.
+    */
+  def asHeapGate(threshold: () => Double): bleep.machine.HeapGate =
+    (heap, othersCompiling, firstDeferredAtMs, nowMs) =>
+      decide(
+        usage = HeapMonitor.Usage(usedBytes = heap.usedMb * 1024L * 1024L, maxBytes = heap.maxMb * 1024L * 1024L),
+        othersCompiling = othersCompiling,
+        threshold = threshold(),
+        retryMs = DefaultRetryMs,
+        firstRefusedAt = firstDeferredAtMs.map(EpochMs.apply),
+        now = EpochMs(nowMs)
+      ) match {
+        case Decision.Admit          => bleep.machine.HeapVerdict.Admit
+        case Decision.Defer(delayMs) => bleep.machine.HeapVerdict.Defer(delayMs)
+      }
+
   def decide(
       usage: HeapMonitor.Usage,
       othersCompiling: Boolean,
