@@ -115,7 +115,7 @@ class ForkMeasurementDagTest extends AnyFunSuite with Matchers {
   test("a sourcegen fork is reported, measured and gone") {
     val target = projectName("target")
     val scripts = projectName("scripts")
-    val s = ScriptDef.Main(scripts, "gen.Tool", JsonSet.empty, JsonSet.empty)
+    val s = ScriptDef.Main(scripts, "gen.Tool", JsonSet.empty, JsonSet.empty, None)
     val plan = SourcegenPlan(perProject = Map(target -> Set(s)), scriptProjectDeps = Map(s -> Set(scripts)))
     val dag = TaskDag.buildCompileDag(Set(target), ctx(Map.empty, plan, SymbolProcessorPlan.empty, AnnotationProcessorPlan.empty, Map.empty, Map.empty))
     observe(
