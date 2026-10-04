@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.{traverseish, TransitiveProjects}
+import bleep.internal.TransitiveProjects
 
 case class SourceGen(watch: Boolean, projectNames: Array[model.CrossProjectName]) extends BleepBuildCommand {
   override def run(started: Started): Either[BleepException, Unit] =
@@ -26,15 +26,10 @@ case class SourceGen(watch: Boolean, projectNames: Array[model.CrossProjectName]
     TransitiveProjects(started.build, projectNames ++ scriptProjects)
   }
 
-  private def runOnce(started: Started): Either[BleepException, Unit] = {
-    val byScript: Map[model.ScriptDef, Array[model.CrossProjectName]] =
-      projectNames
-        .flatMap(projectName => started.build.explodedProjects(projectName).sourcegen.values.map(script => (script, projectName)))
-        .groupMap { case (s, _) => s } { case (_, pn) => pn }
-
-    traverseish.runAll(byScript) { case (script, projectNames) =>
-      val args = projectNames.toList.flatMap(pn => List("--project", pn.value))
-      Script.run(started, List(script), args = args, watch = false)
-    }
-  }
+  /** Through the compile server's task graph, the same as the sourcegen a compile runs: each script after its script project and its `inputs` are built. Unlike
+    * a compile, the named projects' generators run even when up to date. Running the scripts here with `Run` instead built only the script project, so a script
+    * declaring `inputs` ran before the projects it reads existed — and `Script.run` refused it outright, its `inputs` check being meant for `bleep run`.
+    */
+  private def runOnce(started: Started): Either[BleepException, Unit] =
+    ReactiveBsp.sourcegen(projectNames, DisplayMode.NoTui).run(started)
 }

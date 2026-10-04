@@ -892,6 +892,30 @@ object TaskDag {
     Dag.fromTasks(projectTasks.toSeq ++ sourcegenTasks ++ apTasks ++ kspTasks)
   }
 
+  /** Build DAG for running the sourcegen that `projects` declare, without compiling `projects`.
+    *
+    * Cut from the compile DAG rather than assembled separately, so a sourcegen script waits on exactly what it waits on in `bleep compile` — its script
+    * project, the projects it declares as `inputs`, and whatever those need in turn — with no second copy of that ordering to drift. What is kept is the
+    * declared sourcegen tasks and everything they transitively wait on; the projects' own compiles, and anything only they need, are dropped.
+    */
+  def buildSourcegenDag(projects: Set[CrossProjectName], ctx: BuildContext): Dag = {
+    val full = buildCompileDag(projects, ctx)
+    val roots: Set[TaskId] = projects.flatMap(p => ctx.sourcegen.perProject.getOrElse(p, Set.empty)).map(s => TaskId.Sourcegen(s): TaskId)
+    val missing = roots -- full.tasks.keySet
+    if (missing.nonEmpty) throw new IllegalStateException(s"sourcegen tasks missing from the compile DAG: ${missing.map(_.value).mkString(", ")}")
+
+    val kept = mutable.Set.empty[TaskId]
+    val queue = mutable.Queue.from(roots)
+    while (queue.nonEmpty) {
+      val id = queue.dequeue()
+      if (kept.add(id)) {
+        val task = full.tasks(id)
+        queue.enqueueAll(task.dependencies ++ task.runAfter)
+      }
+    }
+    Dag.fromTasks(kept.toSeq.map(full.tasks))
+  }
+
   /** Build initial DAG for test execution.
     *
     * Every target and its transitive dependencies get a CompileTask. Only the targets that declared `isTestProject: true` get a DiscoverTask — and, on non-JVM
