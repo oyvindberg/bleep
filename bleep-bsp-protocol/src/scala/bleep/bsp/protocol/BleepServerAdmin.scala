@@ -78,18 +78,19 @@ object StatusRequest {
   *   macOS: the compressor's churn (compressions + decompressions per second, smoothed) — what the pressure is judged from (design §9)
   * @param pressureLevel
   *   the kernel's own level where it reports one (macOS: 1, 2, 4)
-  * @param roomFromUsed
-  *   whether `usedMb` against the ceiling gates admissions here; false on macOS, where pressure is the brake (design §9)
+  * @param availableMb
+  *   what a new process can take now without the OS reclaiming anything (design §5 rule 1); room for forks is this less the reserve and the starting forks'
+  *   charges
   */
 case class MachineViewDto(
     physicalMb: Long,
     usedMb: Long,
+    availableMb: Long,
     pressure: String,
     pressureReason: Option[String],
     sampledAgoMs: Long,
     churnPagesPerSecond: Option[Long],
-    pressureLevel: Option[Int],
-    roomFromUsed: Boolean
+    pressureLevel: Option[Int]
 )
 
 object MachineViewDto {
@@ -159,8 +160,8 @@ object DemandDto {
   *   `cooperative` — shares the machine's memory with the other servers through `machine.lock` — or `unconstrained`, with `unconstrainedReason` saying why
   * @param parallelism
   *   this server's cpu slots; per server, not machine-wide
-  * @param headroomMb
-  *   what the scheduler keeps free of the machine's memory; the ceiling for forks is `physicalMb - headroomMb`
+  * @param reserveMb
+  *   what of the available memory is never given to forks: room is `availableMb - reserveMb - pending`
   * @param liveServers
   *   servers counted on the last claiming tick, this one included
   * @param wantsMore
@@ -172,7 +173,7 @@ case class SchedulerDto(
     mode: String,
     unconstrainedReason: Option[String],
     parallelism: Int,
-    headroomMb: Long,
+    reserveMb: Long,
     machine: Option[MachineViewDto],
     lock: LockDto,
     liveServers: Int,

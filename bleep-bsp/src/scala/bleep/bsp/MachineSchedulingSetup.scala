@@ -2,7 +2,7 @@ package bleep.bsp
 
 import bleep.machine.{FileMachineLock, MachineLock, PressureThresholds, Probes, ServerDiscovery, ServerIdentity, Ticker}
 import bleep.model.{BspServerConfig, MachineScheduling}
-import bleep.{MemorySizes, UserPaths}
+import bleep.UserPaths
 import ryddig.Logger
 
 import java.nio.file.Path
@@ -18,7 +18,11 @@ object MachineSchedulingSetup {
     * proportionate share on a large one. The design's single tunable input, deliberately not a user setting yet. Defined here and nowhere else, so that
     * deciding it later is a one-line change.
     */
-  def provisionalHeadroomMb(physicalMb: Long): Long = math.max(4096L, physicalMb / 8L)
+  /** What of the machine's available memory is never handed to forks (design §5 rule 1): the OS's own cushion before it starts compressing or swapping.
+    * PROVISIONAL, CALIBRATED FROM ONE MACHINE: the owner's 48 GB Mac had 3–4 GB free + speculative at calm, and compression took off within one 512 MB step of
+    * free pages reaching zero (§9). One gigabyte leaves the kernel that step. One named value, no user setting.
+    */
+  val ProvisionalReserveMb: Long = 1024L
 
   /** How long a claiming tick waits for `machine.lock` before deciding with `LockState.Unavailable` (design §8 point 5). */
   val LockWaitMs: Long = 1000L
@@ -33,7 +37,7 @@ object MachineSchedulingSetup {
     * @param reason
     *   why the server runs unconstrained, when it does: the user's config, or the OS/architecture bleep cannot measure
     */
-  case class Selected(mode: Ticker.SchedulingMode, headroomMb: Long, reason: Option[String])
+  case class Selected(mode: Ticker.SchedulingMode, reserveMb: Long, reason: Option[String])
 
   /** Choose the mode for this server.
     *
@@ -49,7 +53,7 @@ object MachineSchedulingSetup {
     config.effectiveMachineScheduling match {
       case MachineScheduling.Unconstrained =>
         val reason = "machineScheduling is `unconstrained` in the user config"
-        Selected(Ticker.SchedulingMode.Unconstrained(reason), provisionalHeadroomMb(MemorySizes.physicalMemoryMb(fallbackMb = 0L)), Some(reason))
+        Selected(Ticker.SchedulingMode.Unconstrained(reason), ProvisionalReserveMb, Some(reason))
 
       case MachineScheduling.Cooperative =>
         val probes: Either[Throwable, Probes] =
@@ -57,7 +61,6 @@ object MachineSchedulingSetup {
           catch { case t: Throwable => Left(t) }
         probes match {
           case Right(p) =>
-            val physicalMb = p.machine.sample().physicalMb
             val mode = Ticker.SchedulingMode.Cooperative(
               machineProbe = p.machine,
               forkProbe = p.fork,
@@ -67,12 +70,12 @@ object MachineSchedulingSetup {
               ownSocketDir = ownSocketDir,
               discovery = new ServerDiscovery(userPaths.bspSocketDir, identity, () => System.currentTimeMillis(), DiscoveryListingTtlMs)
             )
-            Selected(mode, provisionalHeadroomMb(physicalMb), None)
+            Selected(mode, ProvisionalReserveMb, None)
           case Left(t) =>
             val reason = s"bleep cannot measure this machine (${t.getClass.getSimpleName}: ${t.getMessage}), so this server schedules unconstrained: " +
               "its forks are bounded by parallelism alone, not by the machine's memory, and it does not coordinate with other bleep servers"
             logger.warn(reason)
-            Selected(Ticker.SchedulingMode.Unconstrained(reason), provisionalHeadroomMb(MemorySizes.physicalMemoryMb(fallbackMb = 0L)), Some(reason))
+            Selected(Ticker.SchedulingMode.Unconstrained(reason), ProvisionalReserveMb, Some(reason))
         }
     }
 }

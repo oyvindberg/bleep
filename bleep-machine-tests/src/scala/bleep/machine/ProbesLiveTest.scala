@@ -28,6 +28,8 @@ class ProbesLiveTest extends AnyFunSuite with Matchers {
     s.usedMb should be <= s.physicalMb
     // This JVM alone is using memory, so a machine that looks empty is a misread.
     s.usedMb should be >= ((Runtime.getRuntime.totalMemory() - Runtime.getRuntime.freeMemory()) / MB)
+    s.availableMb should be >= 0L
+    s.availableMb should be <= s.physicalMb
   }
 
   test("machine: pressure fields are in range") {

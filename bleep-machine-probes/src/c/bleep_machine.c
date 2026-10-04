@@ -13,7 +13,7 @@
 
 /* Bump together with MachineNative.AbiVersion whenever a native method's signature or meaning changes. The loader
  * checks it, so a stale library in the cache directory is an error instead of a crash. */
-#define BLEEP_MACHINE_ABI_VERSION 2
+#define BLEEP_MACHINE_ABI_VERSION 3
 
 JNIEXPORT jint JNICALL Java_bleep_machine_MachineNative_abiVersion(JNIEnv *env, jobject self) {
     (void)env;
@@ -42,7 +42,7 @@ JNIEXPORT jlong JNICALL Java_bleep_machine_MachineNative_macHostPort(JNIEnv *env
 #define MAC_PRESSURE_LEVEL 2
 #define MAC_MEMSIZE 3
 
-/* One reading of the machine, into out[0..10]:
+/* One reading of the machine, into out[0..12]:
  *   0 hw.memsize (bytes)            1 page size (bytes)
  *   2 internal_page_count            vm_stat's "Anonymous pages"
  *   3 wire_count                     vm_stat's "Pages wired down"
@@ -53,13 +53,15 @@ JNIEXPORT jlong JNICALL Java_bleep_machine_MachineNative_macHostPort(JNIEnv *env
  *   8 decompressions                 vm_stat's "Decompressions"   rates them, and that rate is what tells an overloaded
  *   9 swapins                        vm_stat's "Swapins"          Mac from a merely full one (the used figure cannot)
  *  10 swapouts                       vm_stat's "Swapouts"
+ *  11 free_count                      vm_stat's "Pages free"        — with speculative and purgeable, what a new
+ *  12 speculative_count               vm_stat's "Pages speculative"   fork can have without anything being compressed
  * All from the one host_statistics64 call already made for used memory.
  */
 #define MAC_OUT_TOO_SMALL 4
 JNIEXPORT jint JNICALL Java_bleep_machine_MachineNative_macSample(JNIEnv *env, jobject self, jlong hostPort, jlongArray out) {
     (void)self;
-    jlong values[11];
-    if ((*env)->GetArrayLength(env, out) < 11) return MAC_OUT_TOO_SMALL;
+    jlong values[13];
+    if ((*env)->GetArrayLength(env, out) < 13) return MAC_OUT_TOO_SMALL;
 
     vm_statistics64_data_t vm;
     mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
@@ -98,7 +100,9 @@ JNIEXPORT jint JNICALL Java_bleep_machine_MachineNative_macSample(JNIEnv *env, j
     values[8] = (jlong)vm.decompressions;
     values[9] = (jlong)vm.swapins;
     values[10] = (jlong)vm.swapouts;
-    (*env)->SetLongArrayRegion(env, out, 0, 11, values);
+    values[11] = (jlong)vm.free_count;
+    values[12] = (jlong)vm.speculative_count;
+    (*env)->SetLongArrayRegion(env, out, 0, 13, values);
     return MAC_OK;
 }
 

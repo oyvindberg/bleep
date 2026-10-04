@@ -11,6 +11,10 @@ package bleep.machine
   * simply drops them, with no compression and no swap. Activity Monitor subtracts them for "App Memory" for the same reason. File-backed pages are not counted
   * either; the kernel drops them for free.
   *
+  * '''Available memory''' is free + speculative + purgeable pages: the room a new fork has before anything is compressed. Inactive and file-backed pages are
+  * not counted — on macOS they are not a reserve that gets reclaimed first (measured: ~17 GB inactive stood still while free went to zero and the compressor
+  * took off).
+  *
   * '''Pressure''' is `kern.memorystatus_vm_pressure_level`, the kernel's own verdict (what Activity Monitor's pressure graph shows) — and the cumulative
   * compressor and swap counters (`vm_stat`'s Compressions, Decompressions, Swapins, Swapouts), from the same `host_statistics64` call, because the level lags:
   * on a 48 GB Mac driven to kernel_task at 160 % it went to 2 forty seconds after the overload began, while compressions plus decompressions had climbed from
@@ -27,13 +31,13 @@ final class MacOsProbes(native: MachineNative) extends MachineProbe with ForkPro
   private val hostPort: Long = native.macHostPort()
 
   def sample(): MachineSample = {
-    val out = new Array[Long](11)
+    val out = new Array[Long](13)
     native.macSample(hostPort, out) match {
       case 0 => ()
       case 1 => throw new IllegalStateException(s"host_statistics64(HOST_VM_INFO64) failed: kern_return_t ${out(0)}")
       case 2 => throw new IllegalStateException(s"sysctlbyname(kern.memorystatus_vm_pressure_level) failed: errno ${out(0)}")
       case 3 => throw new IllegalStateException(s"sysctlbyname(hw.memsize) failed: errno ${out(0)}")
-      case 4 => throw new IllegalStateException("macSample was handed an output array shorter than 11; the library and this code disagree on the layout")
+      case 4 => throw new IllegalStateException("macSample was handed an output array shorter than 13; the library and this code disagree on the layout")
       case s => throw new IllegalStateException(s"macSample returned unknown status $s")
     }
     fromCounts(out)
@@ -57,9 +61,10 @@ object MacOsProbes {
     MachineSample(
       physicalMb = out(0) / MB,
       usedMb = (out(2) - out(6) + out(3) + out(4)) * pageSize / MB,
-      pressure = RawPressure.MacOs(level = out(5).toInt, compressions = out(7), decompressions = out(8), swapins = out(9), swapouts = out(10)),
-      // Used memory cannot tell a calm Mac from an overloaded one (design §9): it is published, shown, and never room.
-      roomFromUsed = false
+      // Free, speculative and purgeable pages: what a new process can take before the kernel starts compressing anything (design §5 rule 1, §9). The owner's
+      // run showed compression — and kernel_task — taking off exactly as free pages ran out, while inactive and file-backed pages stood still.
+      availableMb = (out(11) + out(12) + out(6)) * pageSize / MB,
+      pressure = RawPressure.MacOs(level = out(5).toInt, compressions = out(7), decompressions = out(8), swapins = out(9), swapouts = out(10))
     )
   }
 }

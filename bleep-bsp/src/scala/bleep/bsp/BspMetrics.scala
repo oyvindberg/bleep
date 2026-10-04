@@ -260,7 +260,8 @@ object BspMetrics {
       usedCpu: Int,
       totalCpu: Int,
       usedMemoryMb: Long,
-      totalMemoryMb: Long,
+      availableMemoryMb: Long,
+      reserveMb: Long,
       physicalMemoryMb: Long,
       serverHeapMb: Long,
       activeCompiles: Int,
@@ -268,7 +269,7 @@ object BspMetrics {
       waiting: Int
   ): Unit =
     writeEvent(
-      s"""{"type":"machine","ts":${now()},"used_cpu":$usedCpu,"total_cpu":$totalCpu,"used_memory_mb":$usedMemoryMb,"total_memory_mb":$totalMemoryMb,"physical_memory_mb":$physicalMemoryMb,"server_heap_mb":$serverHeapMb,"active_compiles":$activeCompiles,"running":$running,"waiting":$waiting}"""
+      s"""{"type":"machine","ts":${now()},"used_cpu":$usedCpu,"total_cpu":$totalCpu,"used_memory_mb":$usedMemoryMb,"available_memory_mb":$availableMemoryMb,"reserve_mb":$reserveMb,"physical_memory_mb":$physicalMemoryMb,"server_heap_mb":$serverHeapMb,"active_compiles":$activeCompiles,"running":$running,"waiting":$waiting}"""
     )
 
   /** What the Zinc analysis cache is holding after each sweep. The largest single retainer in the server heap, so its size is the first number to look at when

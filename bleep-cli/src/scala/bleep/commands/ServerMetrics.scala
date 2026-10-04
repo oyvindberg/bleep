@@ -452,19 +452,24 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       addChart("machine-cpu", "Scheduling — CPU and queue", t, baseLayout("Time (s)", "count"), false, 280)
     }
 
-    // ---- Machine memory against the fork ceiling ----
-    // `used_memory_mb` is the machine's used memory as the scheduler's probe reads it — every process, bleep's or not — and `total_memory_mb` the ceiling forks
-    // may fill: physical memory less the scheduler's headroom (design §5 rule 1). Neither is a budget bleep sets aside; the gap between them is the room.
+    // ---- Machine memory: used, available, and the reserve forks never get ----
+    // `used_memory_mb` is what the probe counts as in use (display only; on macOS it does not move under overload), `available_memory_mb` what a new process
+    // can take without reclaim — room for forks is that less `reserve_mb` and the starting forks' charges (design §5 rule 1).
     if (events.machine.nonEmpty) {
       val t = ArrayBuffer.empty[String]
       val xArr = fmtDoubles(events.machine.map(e => relS(e.get("ts").getAsLong)))
       t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("used_memory_mb").getAsLong)), "Machine used", "#8b5cf6", "solid", "tozeroy", "lines")
-      t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("total_memory_mb").getAsLong)), "Fork ceiling", "#f59e0b", "dash", "none", "lines")
+      if (events.machine.head.has("available_memory_mb"))
+        t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("available_memory_mb").getAsLong)), "Available", "#22c55e", "solid", "none", "lines")
+      if (events.machine.head.has("reserve_mb"))
+        t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("reserve_mb").getAsLong)), "Reserve", "#f59e0b", "dash", "none", "lines")
+      else if (events.machine.head.has("total_memory_mb"))
+        t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("total_memory_mb").getAsLong)), "Fork ceiling (old)", "#f59e0b", "dash", "none", "lines")
       if (events.machine.head.has("physical_memory_mb"))
         t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("physical_memory_mb").getAsLong)), "Machine RAM", "#9ca3af", "dot", "none", "lines")
       if (events.machine.head.has("server_heap_mb"))
         t += scatterTrace(xArr, fmtLongs(events.machine.map(_.get("server_heap_mb").getAsLong)), "Server heap cap", "#ef4444", "dot", "none", "lines")
-      addChart("machine-mem", "Machine memory vs fork ceiling (MB)", t, baseLayout("Time (s)", "MB"), false, 280)
+      addChart("machine-mem", "Machine memory — used, available, reserve (MB)", t, baseLayout("Time (s)", "MB"), false, 280)
     }
 
     // ---- What the scheduler decided, per second ----

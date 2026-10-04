@@ -7,15 +7,24 @@ import org.scalatest.matchers.should.Matchers
 class DecideTest extends AnyFunSuite with Matchers {
   private val now = 50_000L
   private val identity = ServerIdentity(pid = 1L, startedAtEpochMs = 1L, bleepVersion = "test")
-  private val params = Params(headroomMb = 1000L, parallelism = 4, maxNewForksPerTick = 1)
+  private val params = Params(reserveMb = 1000L, parallelism = 4, maxNewForksPerTick = 1)
   private val k = ForkKey("k")
   private val r1 = Request(RequestId("r1"), RequestKind.Test, startedAtMs = 1L)
   private val r2 = Request(RequestId("r2"), RequestKind.Test, startedAtMs = 2L)
 
   private val blank = MyState.empty.copy(nextForkId = 101L)
 
-  private def view(usedMb: Long, pressure: Pressure = Pressure.Normal): MachineView =
-    MachineView(physicalMb = 10_000L, usedMb = usedMb, pressure = pressure, nowMs = now, churnPagesPerSecond = None, pressureLevel = None, roomFromUsed = true)
+  /** A 10 GB machine with `availableMb` free for a new process; room = available − the 1000 MB reserve. Used is display only and set for scale. */
+  private def view(availableMb: Long, pressure: Pressure = Pressure.Normal): MachineView =
+    MachineView(
+      physicalMb = 10_000L,
+      usedMb = 10_000L - availableMb,
+      availableMb = availableMb,
+      pressure = pressure,
+      nowMs = now,
+      churnPagesPerSecond = None,
+      pressureLevel = None
+    )
 
   private def fork(
       id: Long,
@@ -46,7 +55,7 @@ class DecideTest extends AnyFunSuite with Matchers {
 
   private def decide(
       me: MyState,
-      v: MachineView = view(usedMb = 2000L),
+      v: MachineView = view(availableMb = 8000L),
       others: List[StateJson] = Nil,
       lock: LockState = LockState.Held,
       gate: HeapGate = HeapGate.alwaysAdmit,
@@ -70,7 +79,7 @@ class DecideTest extends AnyFunSuite with Matchers {
     )
 
   test("a fork is charged its bound until measured; measured forks are in usedMb and charge nothing") {
-    // ceiling 9000, used 6000 → room 3000. Another server's Starting fork of 2000 leaves 1000: a second (non-guaranteed) 1500 demand does not fit.
+    // available 4000 − reserve 1000 → room 3000. Another server's Starting fork of 2000 leaves 1000: a second (non-guaranteed) 1500 demand does not fit.
     val me = blank.copy(
       requests = List(r1),
       forks = List(fork(1, r1, busyCpu = 1)), // r1 already has a fork, so nothing here is guaranteed
@@ -78,19 +87,19 @@ class DecideTest extends AnyFunSuite with Matchers {
       unstartedSuitesByKey = Map(k -> 1)
     )
     val starting = other(StateFork(7L, List(900L), ForkKind.TestSuite, boundMb = 2000L, StateForkState.Starting, now))
-    decide(me, view(usedMb = 6000L), others = List(starting)).spawn shouldBe empty
+    decide(me, view(availableMb = 4000L), others = List(starting)).spawn shouldBe empty
     // A server that is shutting down (§5.1) is still alive, so its starting fork is still charged.
-    decide(me, view(usedMb = 6000L), others = List(starting.copy(shuttingDown = true))).spawn shouldBe empty
+    decide(me, view(availableMb = 4000L), others = List(starting.copy(shuttingDown = true))).spawn shouldBe empty
     val measured = other(StateFork(7L, List(900L), ForkKind.TestSuite, boundMb = 2000L, StateForkState.Measured(1800L), now))
-    decide(me, view(usedMb = 6000L), others = List(measured)).spawn.map(_.demand.taskId.value) shouldBe List("t1")
+    decide(me, view(availableMb = 4000L), others = List(measured)).spawn.map(_.demand.taskId.value) shouldBe List("t1")
     // The same for this server's own forks: a Starting one of 1000 leaves 2000 of the 3000, so a 2500 demand waits; measured, it fits.
     val mine = me.copy(forks = me.forks :+ fork(2, r1, busyCpu = 1, state = ForkState.Starting), ready = List(demand(r1, "t1", boundMb = 2500L)))
-    decide(mine, view(usedMb = 6000L)).spawn shouldBe empty
-    decide(mine.copy(forks = me.forks :+ fork(2, r1, busyCpu = 1)), view(usedMb = 6000L)).spawn.map(_.demand.taskId.value) shouldBe List("t1")
+    decide(mine, view(availableMb = 4000L)).spawn shouldBe empty
+    decide(mine.copy(forks = me.forks :+ fork(2, r1, busyCpu = 1)), view(availableMb = 4000L)).spawn.map(_.demand.taskId.value) shouldBe List("t1")
   }
 
   test("under room shortage idle forks are evicted oldest first, only as many as make the admission fit") {
-    // ceiling 9000, used 8500 → room 500. Three idle warm forks of another key, 500MB each (measured), oldest at t=10.
+    // available 1500 − reserve 1000 → room 500. Three idle warm forks of another key, 500MB each (measured), oldest at t=10.
     val warm = ForkKey("warm")
     val me = blank.copy(
       requests = List(r1),
@@ -103,7 +112,7 @@ class DecideTest extends AnyFunSuite with Matchers {
       ready = List(demand(r1, "t1", boundMb = 1400L)),
       unstartedSuitesByKey = Map(warm -> 5, k -> 1)
     )
-    val d = decide(me, view(usedMb = 8500L))
+    val d = decide(me, view(availableMb = 1500L))
     d.evict.map(e => (e.fork.value, e.reason)) shouldBe List((2L, Decision.EvictReason.RoomShortage), (3L, Decision.EvictReason.RoomShortage))
     d.spawn.map(_.demand.taskId.value) shouldBe List("t1")
     d.next.forks.filter(_.evicting).map(_.id.value) shouldBe List(2L, 3L)
@@ -118,7 +127,7 @@ class DecideTest extends AnyFunSuite with Matchers {
       ready = List(demand(r1, "t1", boundMb = 5000L)),
       unstartedSuitesByKey = Map(warm -> 5, k -> 1)
     )
-    val d = decide(me, view(usedMb = 8500L))
+    val d = decide(me, view(availableMb = 1500L))
     d.evict shouldBe empty
     d.spawn shouldBe empty
     d.publish.wantsMore shouldBe true
@@ -126,7 +135,7 @@ class DecideTest extends AnyFunSuite with Matchers {
 
   test("a guaranteed fork reuses an idle warm fork before anything is evicted, even under Critical pressure") {
     val me = blank.copy(requests = List(r1), forks = List(fork(1, r1)), ready = List(demand(r1, "t1")), unstartedSuitesByKey = Map(k -> 1))
-    val d = decide(me, view(usedMb = 9500L, pressure = Pressure.Critical), lock = LockState.Unavailable(LockHolder.Announced(5L, 0L, 3000L)))
+    val d = decide(me, view(availableMb = 500L, pressure = Pressure.Critical), lock = LockState.Unavailable(LockHolder.Announced(5L, 0L, 3000L)))
     d.reuse.map(x => (x.fork.value, x.guaranteed)) shouldBe List((1L, true))
     d.spawn shouldBe empty
     d.evict shouldBe empty
@@ -134,15 +143,15 @@ class DecideTest extends AnyFunSuite with Matchers {
 
   test("two guarantees needing new forks share one spawn slot: the older request spawns this tick, the younger next tick") {
     val me = blank.copy(requests = List(r2, r1), ready = List(demand(r2, "t2"), demand(r1, "t1")), unstartedSuitesByKey = Map(k -> 2))
-    val first = decide(me, view(usedMb = 9500L, pressure = Pressure.Elevated), lock = LockState.Unavailable(LockHolder.Unannounced))
+    val first = decide(me, view(availableMb = 500L, pressure = Pressure.Elevated), lock = LockState.Unavailable(LockHolder.Unannounced))
     first.spawn.map(s => (s.demand.taskId.value, s.guaranteed)) shouldBe List(("t1", true))
     first.publish.wantsMore shouldBe true
-    val second = decide(first.next, view(usedMb = 9500L, pressure = Pressure.Elevated), lock = LockState.Unavailable(LockHolder.Unannounced))
+    val second = decide(first.next, view(availableMb = 500L, pressure = Pressure.Elevated), lock = LockState.Unavailable(LockHolder.Unannounced))
     second.spawn.map(s => (s.demand.taskId.value, s.guaranteed)) shouldBe List(("t2", true))
     // A warm fork of the key, though, is reused for a guarantee without waiting for the slot — by the oldest request, whoever started the fork — and the
     // spawn slot then goes to the other.
     val warm = me.copy(forks = List(fork(1, r2)))
-    val d = decide(warm, view(usedMb = 9500L, pressure = Pressure.Elevated), lock = LockState.Unavailable(LockHolder.Unannounced))
+    val d = decide(warm, view(availableMb = 500L, pressure = Pressure.Elevated), lock = LockState.Unavailable(LockHolder.Unannounced))
     d.reuse.map(x => (x.demand.taskId.value, x.guaranteed)) shouldBe List(("t1", true))
     d.spawn.map(s => (s.demand.taskId.value, s.guaranteed)) shouldBe List(("t2", true))
   }
@@ -246,18 +255,29 @@ class DecideTest extends AnyFunSuite with Matchers {
     d.next.forks.find(_.id == ForkId(2L)).map(_.evicting) shouldBe Some(false) // its owner lives and a suite still wants it
   }
 
-  test("where used memory is not room (macOS), a full machine admits a second fork; pressure, the spawn allowance and cpu still apply") {
-    // ceiling 9000, used 8990: no room at all. The guarantee spawns t1 either way; t2 spawns only where room is not consulted — and then only one per tick.
-    val me = blank.copy(requests = List(r1), ready = List(demand(r1, "t1"), demand(r1, "t2"), demand(r1, "t3")), unstartedSuitesByKey = Map(k -> 3))
-    val gated = decide(me, v = view(8990L))
-    gated.spawn.map(_.demand.taskId.value) shouldBe List("t1")
-    val unGated = decide(me, v = view(8990L).copy(roomFromUsed = false))
-    unGated.spawn.map(_.demand.taskId.value) shouldBe List("t1") // maxNewForksPerTick = 1 still bounds the tick
-    val second = decide(unGated.next.copy(ready = List(demand(r1, "t2"), demand(r1, "t3"))), v = view(8990L).copy(roomFromUsed = false))
-    second.spawn.map(_.demand.taskId.value) shouldBe List("t2")
-    withClue("Elevated pressure withholds the non-guaranteed spawn whether or not room is consulted: ") {
-      decide(unGated.next.copy(ready = List(demand(r1, "t2"))), v = view(8990L, Pressure.Elevated).copy(roomFromUsed = false)).spawn shouldBe Nil
-    }
+  /** The owner's run 2 — 512 MB steps on a 48 GB Mac (held GB, kernel_task %, free GB, churn/s): room runs out BEFORE the compressor starts churning. At the
+    * 4.0 GB row free is 0.06 GB and churn still 2.9k/s, and that is where new forks beyond the guarantee must already be withheld; a row later churn is 40k/s
+    * and kernel_task 22 %; one more GB and it is the cliff (run 1: 243k/s, 154 %). Available here is free plus the ~0.25 GB speculative + purgeable that
+    * machine showed.
+    */
+  test("run 2: forks beyond the guarantee are withheld once available memory is gone, while churn is still calm") {
+    val reserve1Gb = params.copy(reserveMb = 1024L)
+    def wanting = blank.copy(
+      requests = List(r1),
+      ready = List(demand(r1, "t1", boundMb = 2560L), demand(r1, "t2", boundMb = 2560L)),
+      unstartedSuitesByKey = Map(k -> 2)
+    )
+    // held 0.0: free 3.22 GB → room for both (the second waits only on the one-spawn-per-tick slot, not on room)
+    val calm = decide(wanting, v = view(3220L + 256L), p = reserve1Gb)
+    calm.spawn.map(_.demand.taskId.value) shouldBe List("t1")
+    calm.next.wantsMore shouldBe true // t2 is ready and unadmitted this tick: the slot, not room
+    // held 4.0: free 0.06 GB, churn 2.9k/s — Normal pressure, and yet no room: 316 − 1024 < 0.
+    val atFour =
+      decide(wanting.copy(forks = List(fork(1L, r1, busyCpu = 1)), ready = List(demand(r1, "t2", boundMb = 2560L))), v = view(60L + 256L), p = reserve1Gb)
+    atFour.spawn shouldBe Nil
+    atFour.next.wantsMore shouldBe true
+    // The guarantee is not room's to withhold: a request with nothing working still gets its one fork at the 4.0 GB row.
+    decide(wanting, v = view(60L + 256L), p = reserve1Gb).spawn.map(_.demand.taskId.value) shouldBe List("t1")
   }
 
   test("discovery and processor resolution bypass the heap gate") {

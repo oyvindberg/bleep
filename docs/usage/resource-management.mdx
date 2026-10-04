@@ -134,11 +134,13 @@ You never configure this, but it explains why bleep sometimes runs fewer forks t
 
 Every bleep server on the machine runs the same **machine scheduler**. Memory is decided machine-wide, for forks only; compiles run inside the server's own heap, which is already part of the machine's used memory, and never wait for memory room (they wait for a CPU slot, and for the server's own heap gate when that heap is nearly full).
 
-**The ceiling.** On Linux and Windows, forks may fill the machine's memory up to a ceiling: physical memory minus a headroom bleep keeps free for everything that is not a fork — the OS, your IDE, a browser, the servers' own heaps growing. The headroom is `max(4 GB, RAM/8)` and is not a user setting.
+**Room.** A fork may start when the machine has room for it: what the OS says is *available* — memory a new process can take right now without anything being reclaimed — minus a **reserve of 1 GB** bleep leaves to the OS, minus what forks that are still starting are charged. On Linux that is `MemAvailable` (inside a container, the cgroup's limit minus its working set); on Windows available physical memory; on macOS the free, speculative and purgeable pages. The reserve is not a user setting.
 
-**On macOS there is no ceiling.** The used figure does not tell a calm Mac from an overloaded one — measured on a 48 GB machine, it sat at 42–43 GB from idle to a kernel_task of 300%; what changed was that application memory became compressor memory. So on macOS bleep does not gate forks on used memory at all. What admits them is the OS's **memory pressure**, read from the compressor's churn: compressions plus decompressions per second, smoothed over ten seconds. Under 75,000 pages/s is normal; at 75,000 the pressure is *elevated* and no new forks start beyond the one each command is guaranteed; at 200,000 it is *critical* and warm forks are also evicted. The kernel's own pressure level counts too, as a floor. `bleep server top` shows the churn and the level in place of a ceiling. Everything else — one fork per command, one new fork per tick, warm forks first, the CPU slots — applies as on any platform.
+Why available and not "used": on macOS the used figure cannot tell a calm machine from an overloaded one — measured on a 48 GB Mac, it sat at 42–43 GB from idle to a kernel_task of 300%; what changed was that application memory became compressor memory. What *did* predict the trouble was free memory running out: within one 512 MB step of free reaching zero the compressor took off, and one more gigabyte was the cliff. Inactive and file-backed pages did not help — on macOS they are not a reserve that gets reclaimed first. So room is measured from what is actually free.
 
-**What counts.** The machine's *used* memory is read from the OS each time a server wants to start a fork — every process, bleep's or not — so a browser opened mid-build simply leaves less room. A fork that has just started is charged its full heap plus overhead until the scheduler has measured it, a second later; from then on it is charged what it actually uses. A 2 GB-ceiling fork that only ever uses 600 MB is counted as 600 MB after that first second, so many more fit than the ceilings would suggest.
+**Pressure, the second brake.** Besides room, the scheduler reads the OS's memory pressure. On macOS that is the compressor's churn — compressions plus decompressions per second over the last few seconds: at 25,000 pages/s the pressure is *elevated* (compression has started: free memory is gone) and no new forks start beyond the one each command is guaranteed; at 100,000 it is *critical* and warm forks are also evicted. The kernel's own pressure level counts as a floor. On Linux it is PSI; on Windows memory load and the low-memory notification. `bleep server top` shows available, the reserve, the room that leaves, and the churn and level.
+
+**What counts against room.** A fork that has just started is charged its full heap plus overhead until the scheduler has measured it, a second later; from then on what it actually uses has left "available" on its own and the charge is dropped. A 2 GB-heap fork that only ever uses 600 MB therefore costs 2.5 GB of room for one second and 600 MB after, so many more fit than the heaps would suggest.
 
 **One guarantee.** A command with nothing running gets one working fork, always — whatever the room, whatever other servers are doing. A build never stalls completely because the machine is full; it slows down to one fork and continues. Beyond that guarantee, forks are admitted as room allows, one new fork per tick per server, oldest request first.
 
@@ -170,17 +172,17 @@ Unconstrained means no memory room, no pressure brake, no lock: `parallelism`, t
 
 ## Small machines and CI
 
-The compile server's heap and the forks' footprints come out of the same physical memory, and the headroom is held back for everything that isn't a fork. It is worth doing the arithmetic once, because the failure mode is forks queueing rather than anything that names memory.
+The compile server's heap and the forks' footprints come out of the same physical memory, and the 1 GB reserve is left to the OS. It is worth doing the arithmetic once, because the failure mode is forks queueing rather than anything that names memory.
 
-On a 16 GB runner the ceiling for forks is 12 GB (16 minus the 4 GB headroom), and the server's own heap is part of what is *used* under it:
+On a 16 GB runner with the OS and tooling taking ~2 GB, what is *available* is roughly 14 GB minus the server's heap, and room for forks is that minus the reserve:
 
-| server heap | used by the server (roughly) | room for forks | what fits |
+| server heap | available (roughly) | room for forks | what fits |
 | --- | --- | --- | --- |
-| 8 GB | ~8 GB | **~4 GB** | one or two forks, serialised |
-| 4 GB | ~4 GB | **~8 GB** | two or three 2–3 GB forks |
-| 2 GB | ~2 GB | **~10 GB** | three or four 2–3 GB forks |
+| 8 GB | ~6 GB | **~5 GB** | one or two forks, serialised |
+| 4 GB | ~10 GB | **~9 GB** | three 2–3 GB forks |
+| 2 GB | ~12 GB | **~11 GB** | four 2–3 GB forks |
 
-The trap is asking for a big compile server *and* big forks on a small box: an 8 GB server on 16 GB leaves little under the ceiling, so forks queue behind each other and the job takes far longer than the numbers suggest. On a 16 GB runner, a 4 GB server is usually the better trade.
+The trap is asking for a big compile server *and* big forks on a small box: an 8 GB server on 16 GB leaves little available, so forks queue behind each other and the job takes far longer than the numbers suggest. On a 16 GB runner, a 4 GB server is usually the better trade.
 
 Two rules of thumb for CI:
 
@@ -214,9 +216,9 @@ bleep distinguishes who did the killing, because it matters for the fix:
 The dashboard's summary puts bleep's use in proportion to the machine, then one line for the scheduler:
 
 ```
-Machine  12.0 GB used of 40.0 GB fork ceiling (48.0 GB − 8.0 GB headroom), 2.5 GB pending for starting forks — pressure normal
+Machine  36.0 GB available of 48.0 GB (12.0 GB used), 1.0 GB reserved, 2.5 GB pending for starting forks: room for forks 32.5 GB — pressure normal (churn 12k pages/s, level 1)
 ```
 
-*Used* is the machine's memory as the scheduler's probe reads it, every process included; *pending* is what forks that have started but not yet been measured are charged; *pressure* is the OS's level, or "no pressure signal" and why. Servers running unconstrained are named with their reason, and so is a server that could not get the lock and who held it.
+*Available* is what the OS says a new process can take now; *used* is shown for scale; *pending* is what forks that have started but not yet been measured are charged; *room* is available minus the reserve minus pending; *pressure* is the OS's level (on macOS with the compressor's churn and the kernel level), or "no pressure signal" and why. Servers running unconstrained are named with their reason, and so is a server that could not get the lock and who held it.
 
-Per server, the **Overview** tab shows CPU slots in use of that server's `parallelism`, the machine memory gauge, how many forks it holds (measured against still starting), and the lock's last outcome. The **Activity** tab lists what runs in the server's heap, each fork with its charge — `starting, charged 2560 MB bound` until measured, then `measured 1200 MB (bound 2560 MB)` — whether it is busy or warm, and what is waiting for a slot or for memory. The **Processes** tab measures the same forks from outside, by pid, so a gap between the scheduler's charge and the process's real footprint is visible.
+Per server, the **Overview** tab shows CPU slots in use of that server's `parallelism`, the machine memory gauge with the room arithmetic, how many forks it holds (measured against still starting), and the lock's last outcome. The **Activity** tab lists what runs in the server's heap, each fork with its charge — `starting, charged 2560 MB bound` until measured, then `measured 1200 MB (bound 2560 MB)` — whether it is busy or warm, and what is waiting for a slot or for memory. The **Processes** tab measures the same forks from outside, by pid, so a gap between the scheduler's charge and the process's real footprint is visible.

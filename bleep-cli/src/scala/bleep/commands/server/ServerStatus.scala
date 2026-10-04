@@ -58,14 +58,14 @@ case class ServerStatus(logger: Logger, userPaths: UserPaths, id: Option[String]
     )
     scheduler.machine match {
       case Some(view) =>
-        val ceiling = math.max(0L, view.physicalMb - scheduler.headroomMb)
         val detail = List(view.churnPagesPerSecond.map(c => s"churn $c pages/s"), view.pressureLevel.map(l => s"level $l")).flatten
         val pressure =
           view.pressureReason.fold(view.pressure)(reason => s"${view.pressure} ($reason)") + (if (detail.isEmpty) "" else detail.mkString(" [", ", ", "]"))
-        val room =
-          if (view.roomFromUsed) s"${view.usedMb}/${ceiling}MB used of the fork ceiling (physical ${view.physicalMb}MB − headroom ${scheduler.headroomMb}MB)"
-          else s"${view.usedMb}/${view.physicalMb}MB used; room is not what admits forks on this platform"
-        logger.info(s"  machine  $room, pressure $pressure, read ${view.sampledAgoMs / 1000}s ago")
+        val room = view.availableMb - scheduler.reserveMb
+        logger.info(
+          s"  machine  ${view.availableMb}MB available of ${view.physicalMb}MB (${view.usedMb}MB used), ${scheduler.reserveMb}MB reserved: " +
+            s"room for new forks ${room}MB before starting forks' charges, pressure $pressure, read ${view.sampledAgoMs / 1000}s ago"
+        )
       case None if scheduler.mode == bleep.bsp.protocol.SchedulerDto.Unconstrained => ()
       case None => logger.info("  machine  no reading yet — this server has not had to claim memory")
     }

@@ -213,12 +213,12 @@ object MyState {
 case class MachineView(
     physicalMb: Long,
     usedMb: Long,
+    /** What a new process can take now without reclaim (design §5 rule 1); room is this less the reserve and the starting forks' charges. */
+    availableMb: Long,
     pressure: Pressure,
     nowMs: Long,
     churnPagesPerSecond: Option[Long],
-    pressureLevel: Option[Int],
-    /** Whether `usedMb` bounds room (design §5 rule 1); false on macOS, where pressure alone is the brake (§9). From the probe's sample. */
-    roomFromUsed: Boolean
+    pressureLevel: Option[Int]
 )
 
 /** The outcome of trying for `machine.lock` this tick (design §6.3, §8). */
@@ -293,8 +293,11 @@ object Machine {
   *   new forks per tick, guaranteed ones included (design: 1). Guaranteed spawns take the slot first, oldest request first; a guarantee that needs a new fork
   *   may take several ticks to be met. Reusing a warm fork is not a spawn and is not counted.
   */
-case class Params(headroomMb: Long, parallelism: Int, maxNewForksPerTick: Int) {
-  require(headroomMb >= 0L, s"headroomMb $headroomMb is negative")
+/** @param reserveMb
+  *   what of the available memory is never given to forks (design §5 rule 1): the OS's own cushion before it compresses or swaps
+  */
+case class Params(reserveMb: Long, parallelism: Int, maxNewForksPerTick: Int) {
+  require(reserveMb >= 0L, s"reserveMb $reserveMb is negative")
   require(parallelism >= 1, s"parallelism $parallelism is below 1")
   require(maxNewForksPerTick >= 0, s"maxNewForksPerTick $maxNewForksPerTick is negative")
 }

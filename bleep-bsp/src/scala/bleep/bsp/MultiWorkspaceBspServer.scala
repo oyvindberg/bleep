@@ -5319,7 +5319,7 @@ object MultiWorkspaceBspServer {
           mode = mode,
           unconstrainedReason = reason,
           parallelism = parallelism,
-          headroomMb = 0L,
+          reserveMb = 0L,
           machine = None,
           lock = lockDto(bleep.machine.LockState.NotNeeded),
           liveServers = 1,
@@ -5336,7 +5336,7 @@ object MultiWorkspaceBspServer {
           mode = snap.mode,
           unconstrainedReason = reason,
           parallelism = snap.params.parallelism,
-          headroomMb = snap.params.headroomMb,
+          reserveMb = snap.params.reserveMb,
           machine = snap.machine.map { view =>
             val (pressure, pressureReason) = view.pressure match {
               case bleep.machine.Pressure.Normal           => ("normal", None)
@@ -5348,12 +5348,12 @@ object MultiWorkspaceBspServer {
             MachineViewDto(
               physicalMb = view.physicalMb,
               usedMb = view.usedMb,
+              availableMb = view.availableMb,
               pressure = pressure,
               pressureReason = pressureReason,
               sampledAgoMs = math.max(0L, nowMs - view.nowMs),
               churnPagesPerSecond = view.churnPagesPerSecond,
-              pressureLevel = view.pressureLevel,
-              roomFromUsed = view.roomFromUsed
+              pressureLevel = view.pressureLevel
             )
           },
           lock = lockDto(snap.lock),

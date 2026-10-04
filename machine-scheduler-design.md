@@ -150,13 +150,15 @@ def decide(view: MachineView, others: List[StateJson], me: MyState, lock: LockSt
 
 In order. Every rule is a pure function of the inputs above.
 
-1. **Room.** `ceiling = physical − headroom`. `room = ceiling − usedMb − Σ boundMb(forks in Starting, all servers)`.
-   A fork is charged its bound from admission until it has run one full second; then it is measured, its memory is in `usedMb`, and it is
+1. **Room.** `room = availableMb − reserve − Σ boundMb(forks in Starting, all servers)`, on every platform. *Available* is what a new process can take
+   now without the OS reclaiming anything — Linux `MemAvailable` (or a cgroup's `memory.max − working set`), Windows available physical, macOS free +
+   speculative + purgeable pages (§9). Not `ceiling − used`: on macOS the used figure stayed 42.4–42.8 GB from a calm machine to one at 300 % kernel_task,
+   while free pages going to zero was the precursor of every cliff — compression and kernel_task took off within one 512 MB step of free running out,
+   with inactive (~17 GB) and file-backed pages standing still (they are not a reserve that gets reclaimed first). `reserve` is ONE named value,
+   provisional **1 GB** (`MachineSchedulingSetup.ProvisionalReserveMb`, calibrated from that run: 3–4 GB free + speculative at calm). `usedMb` is kept
+   for display and metrics only.
+   A fork is charged its bound from admission until it has run one full second; then it is measured and it has left "available" on its own, and it is
    remeasured at most once a second (measurements are for display and eviction choice, never for prediction).
-   **Room gates admissions only where the probe says `usedMb` is a measure of it** (`MachineSample.roomFromUsed`): Linux (`MemAvailable`, cgroup working
-   set) and Windows (available physical) yes; **macOS no** — its used figure stayed 42.4–42.8 GB from a calm machine to one at 300 % kernel_task (§9), so
-   there the brake is pressure alone. Everything else of this rule stays on macOS: Starting forks are charged and published for the other servers,
-   the measurement cadence, the lock, one spawn per tick, the guarantee, cpu.
 2. **Pressure.** `Elevated` → no *new* forks beyond guarantees; a fork that already exists is reused as usual (an idle warm fork, or this request's busy
    shared fork), subject to the cpu slot — its memory is spent whether or not it works, unless rule 3 decides to evict it, which comes first. `Critical`
    → additionally evict every idle fork of this server, so nothing idle is left to reuse.
@@ -345,7 +347,8 @@ crashes.** A dead server can never hold it. The remaining danger is a holder tha
 
 | | Linux | macOS | Windows |
 |---|---|---|---|
-| used memory | cgroup v2 `memory.current − inactive_file` (working set) when a `memory.max` limit is set, else `/proc/meminfo`: `MemTotal − MemAvailable` | JNI `host_statistics64`: anonymous + wired + **compressor** − **purgeable** pages | JNI `GlobalMemoryStatusEx`: total − available physical |
+| used memory (display) | cgroup v2 `memory.current − inactive_file` (working set) when a `memory.max` limit is set, else `/proc/meminfo`: `MemTotal − MemAvailable` | JNI `host_statistics64`: anonymous + wired + **compressor** − **purgeable** pages | JNI `GlobalMemoryStatusEx`: total − available physical |
+| available memory (room) | cgroup v2 `memory.max − working set` when limited, else `MemAvailable` | JNI `host_statistics64`: **free + speculative + purgeable** pages | JNI `GlobalMemoryStatusEx`: `ullAvailPhys` |
 | physical | cgroup v2 `memory.max` when set, else `MemTotal` | `hw.memsize` | `GlobalMemoryStatusEx` |
 | pressure | cgroup v2 `memory.pressure` when limited, else `/proc/pressure/memory` (PSI); absent → `Unavailable` | JNI `sysctlbyname("kern.memorystatus_vm_pressure_level")` **and the compressor's churn**: `vm_statistics64` `compressions + decompressions`, rated (below) | JNI `GlobalMemoryStatusEx` (load, commit vs limit) + `QueryMemoryResourceNotification` |
 | fork footprint | `/proc/<pid>/status`: `RssAnon + VmSwap` (same number as `smaps_rollup`, 14 µs instead of 1.7 ms) | JNI `proc_pid_rusage` → `phys_footprint` | JNI `GetProcessMemoryInfo` → `PrivateUsage` |
@@ -456,8 +459,9 @@ own footprint in the retune), deleted again at step 11. The stopgap available to
 
 ## 11. Open questions
 
-- **Headroom**: how the ceiling (`physical − headroom`) is chosen. **Provisional**: `max(4 GB, RAM/8)` in one place (`MachineSchedulingSetup.provisionalHeadroomMb`),
-  no user setting. Still the design's single tunable input; revisit after step 17.
+- **Reserve** (was headroom; the ceiling is gone, room is `available − reserve`): **provisional 1 GB** in one place
+  (`MachineSchedulingSetup.ProvisionalReserveMb`), calibrated from one 48 GB Mac (3–4 GB free + speculative at calm; one 512 MB step from free = 0 to
+  compression). No user setting. Still the design's single tunable input; revisit after step 17.
 - **Linux PSI thresholds** for `Elevated`/`Critical` — **provisional** (`PressureThresholds.provisional`: some > 10 %); measure on a real Linux machine.
 - **Windows thresholds** for memory load / commit — **provisional** (load > 90 %, commit > 0.90).
 - **`idleYieldAfter`** — **provisional**: 5 minutes (`Yield.IdleYieldAfterMs`), one named value.

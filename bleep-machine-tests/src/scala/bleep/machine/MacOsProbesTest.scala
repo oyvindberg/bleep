@@ -57,9 +57,16 @@ class MacOsProbesTest extends AnyFunSuite with Matchers {
     }
   }
 
-  test("the probe says used memory is not room on macOS") {
+  test("available memory is vm_stat's free + speculative + purgeable, and within physical") {
     assume(onMac)
-    probes.sample().roomFromUsed shouldBe false
+    val before = probes.sample()
+    val stats = parseVmStat(run("/usr/bin/vm_stat"))
+    val after = probes.sample()
+    val vmStatAvailableMb = (stats("Pages free") + stats("Pages speculative") + stats("Pages purgeable")) * stats("page size") / (1024 * 1024)
+    // Free pages move fast; allow 512 MB either way around the two probes.
+    vmStatAvailableMb should be >= (math.min(before.availableMb, after.availableMb) - 512)
+    vmStatAvailableMb should be <= (math.max(before.availableMb, after.availableMb) + 512)
+    after.availableMb should be <= after.physicalMb
   }
 
   test("the compressor and swap counters are vm_stat's, cumulative and monotonic") {

@@ -288,14 +288,14 @@ final class Ticker(deps: Ticker.Deps) {
     MachineView(
       physicalMb = sample.physicalMb,
       usedMb = sample.usedMb,
+      availableMb = sample.availableMb,
       pressure = Pressure.normalise(sample.pressure, coop.thresholds, rate),
       nowMs = now,
       churnPagesPerSecond = rate match {
         case Churn.Rate.PagesPerSecond(v) => Some(math.round(v))
         case Churn.Rate.Unknown           => None
       },
-      pressureLevel = level,
-      roomFromUsed = sample.roomFromUsed
+      pressureLevel = level
     )
   }
 

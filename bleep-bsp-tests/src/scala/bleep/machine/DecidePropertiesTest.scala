@@ -17,24 +17,13 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
   private def reclaimed(in: Inputs, d: Decision): Long =
     d.evict.map(e => in.me.forks.find(_.id == e.fork).get.reclaimableMb).sum
 
-  test("Σ bound of new forks never exceeds room, once anything beyond the guarantee is spawned") {
+  test("Σ bound of new forks never exceeds room — available − reserve − pending — once anything beyond the guarantee is spawned") {
     forAll(Runs, Seed) { in =>
       val d = run(in)
       if (d.spawn.exists(!_.guaranteed))
         withClue(s"spawns ${d.spawn}, room before ${in.roomBefore}, reclaimed ${reclaimed(in, d)}: ")(
           d.spawn.map(_.demand.boundMb).sum should be <= (in.roomBefore + reclaimed(in, d))
         )
-    }
-  }
-
-  test("where used memory is not room, the decision does not depend on it at all: an empty machine and a full one decide alike") {
-    forAll(Runs, Seed + 11) { in =>
-      val noRoom = in.copy(view = in.view.copy(roomFromUsed = false))
-      val empty = run(noRoom.copy(view = noRoom.view.copy(usedMb = 0L)))
-      val full = run(noRoom.copy(view = noRoom.view.copy(usedMb = noRoom.view.physicalMb * 2L)))
-      withClue(s"used memory changed the decision on a platform where it is not room: ")(full shouldBe empty)
-      // and nothing else loosened: the spawn allowance holds there too
-      full.spawn.size should be <= in.params.maxNewForksPerTick
     }
   }
 
@@ -170,7 +159,11 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
 
   test("unconstrained is cooperative with unlimited room, no pressure, a held lock and nobody else: nothing else is taken away") {
     forAll(Runs, Seed + 16) { in =>
-      val boundless = in.copy(view = in.view.copy(physicalMb = Long.MaxValue / 4, usedMb = 0L, pressure = Pressure.Normal), others = Nil, lock = LockState.Held)
+      val boundless = in.copy(
+        view = in.view.copy(physicalMb = Long.MaxValue / 4, usedMb = 0L, availableMb = Long.MaxValue / 4, pressure = Pressure.Normal),
+        others = Nil,
+        lock = LockState.Held
+      )
       runUnconstrained(in) shouldBe run(boundless)
     }
   }

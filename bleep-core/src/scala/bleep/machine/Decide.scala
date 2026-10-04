@@ -20,18 +20,18 @@ object Decide {
     me.ready.foreach(d => require(registered.contains(d.request), s"ready demand ${d.taskId.value} belongs to unregistered request ${d.request.value}"))
     require(me.ready.map(d => (d.request, d.taskId)).distinct.size == me.ready.size, "ready demands must be unique per request and task")
 
-    // ---- rule 1: room. Every fork still charged at its bound, on every server, is spent; the measured ones are in usedMb already. Unconstrained has no
-    // room to run out of, no pressure to brake on and no lock to hold: the three machine-wide clauses below are simply absent. A platform whose used figure
-    // is not a measure of room (macOS, design §9) keeps everything else — the charge of Starting forks is still published for the others to see, pressure
-    // brakes, one spawn per tick, the guarantee, cpu — but admissions are not gated by room.
+    // ---- rule 1: room is what the machine has available — what a new process can take before the OS reclaims anything — less a reserve, less every fork
+    // still charged at its bound on every server (the measured ones have left "available" already). Available, not ceiling − used: on macOS the used figure
+    // never moved between a calm machine and one at 300 % kernel_task, while free pages going to zero was the precursor of every cliff (design §9).
+    // Unconstrained has no room to run out of, no pressure to brake on and no lock to hold: the three machine-wide clauses below are simply absent.
     val (roomLimited, critical, spawnsAllowed, lockHeld) = machine match {
       case Machine.Cooperative(view, _, lock) =>
-        (view.roomFromUsed, view.pressure == Pressure.Critical, !Pressure.withholdsNewForks(view.pressure), lock == LockState.Held)
+        (true, view.pressure == Pressure.Critical, !Pressure.withholdsNewForks(view.pressure), lock == LockState.Held)
       case Machine.Unconstrained(_) => (false, false, true, true)
     }
     var room: Long = machine match {
       case Machine.Cooperative(view, others, _) =>
-        view.physicalMb - params.headroomMb - view.usedMb - others.map(_.startingBoundMb).sum - me.forks.collect {
+        view.availableMb - params.reserveMb - others.map(_.startingBoundMb).sum - me.forks.collect {
           case f if f.state == ForkState.Starting => f.boundMb
         }.sum
       case Machine.Unconstrained(_) => 0L // never consulted

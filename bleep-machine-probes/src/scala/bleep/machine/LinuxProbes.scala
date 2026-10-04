@@ -34,17 +34,18 @@ final class LinuxMachineProbe(procRoot: Path, cgroupRoot: Path) extends MachineP
         val statFile = dir.resolve("memory.stat")
         val current = LinuxCgroup.parseBytes(LinuxProc.read(currentFile), currentFile)
         val inactiveFile = LinuxCgroup.statField(LinuxProc.read(statFile), "inactive_file", statFile)
+        val workingSet = math.max(0L, current - inactiveFile)
         MachineSample(
           physicalMb = maxBytes / LinuxCgroup.MB,
-          usedMb = math.max(0L, current - inactiveFile) / LinuxCgroup.MB,
-          roomFromUsed = true,
+          usedMb = workingSet / LinuxCgroup.MB,
+          availableMb = math.max(0L, maxBytes - workingSet) / LinuxCgroup.MB,
           pressure = LinuxProc.readPsi(dir.resolve("memory.pressure"))
         )
       case None =>
         MachineSample(
           physicalMb = mem.totalKb / 1024,
           usedMb = (mem.totalKb - mem.availableKb) / 1024,
-          roomFromUsed = true,
+          availableMb = mem.availableKb / 1024,
           pressure = LinuxProc.readPsi(psi)
         )
     }
