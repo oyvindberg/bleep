@@ -1690,8 +1690,8 @@ class MultiWorkspaceBspServer(
           // One number decides both what the fork may use and what it is charged, so the two can't
           // drift. KspRunner only emits -Xmx when this is Some, so passing it explicitly is also what
           // bounds the fork at all rather than letting HotSpot hand it a quarter of the machine.
-          val kspHeapMb = MachineResources.forkHeapMb(s.config.bspServerConfigOrDefault.kspRunnerMaxMemory)
-          val kspForkMemMb = MachineResources.forkFootprintMb(kspHeapMb)
+          val kspHeapMb = MemorySizes.forkHeapMb(s.config.bspServerConfigOrDefault.kspRunnerMaxMemory)
+          val kspForkMemMb = MemorySizes.forkFootprintMb(kspHeapMb)
           kspMutexFor(cn).flatMap(_.lock.surround {
             machine
               .reserve(MachineResources.ResourceKind.KspFork, s"ksp ${cn.value}", cpu = 1, memoryMb = kspForkMemMb)
@@ -1803,9 +1803,9 @@ class MultiWorkspaceBspServer(
       val serverConfig = freshConfig.bspServerConfigOrDefault
       // Sizes are resolved here, once, so a task can declare the same heap the fork is started with.
       val forkHeaps = TaskDag.ForkHeaps(
-        sourcegenMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(serverConfig.sourcegenMaxMemory)),
-        kspMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(serverConfig.kspRunnerMaxMemory)),
-        linkMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(None))
+        sourcegenMb = MemorySizes.forkFootprintMb(MemorySizes.forkHeapMb(serverConfig.sourcegenMaxMemory)),
+        kspMb = MemorySizes.forkFootprintMb(MemorySizes.forkHeapMb(serverConfig.kspRunnerMaxMemory)),
+        linkMb = MemorySizes.forkFootprintMb(MemorySizes.forkHeapMb(None))
       )
       debugLog(s"BSP config: parallelism=${serverConfig.effectiveParallelism}")
 
@@ -2358,9 +2358,9 @@ class MultiWorkspaceBspServer(
       val serverConfig = freshConfig.bspServerConfigOrDefault
       val maxParallelism = serverConfig.effectiveParallelism
       val forkHeaps = TaskDag.ForkHeaps(
-        sourcegenMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(serverConfig.sourcegenMaxMemory)),
-        kspMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(serverConfig.kspRunnerMaxMemory)),
-        linkMb = MachineResources.forkFootprintMb(MachineResources.forkHeapMb(None))
+        sourcegenMb = MemorySizes.forkFootprintMb(MemorySizes.forkHeapMb(serverConfig.sourcegenMaxMemory)),
+        kspMb = MemorySizes.forkFootprintMb(MemorySizes.forkHeapMb(serverConfig.kspRunnerMaxMemory)),
+        linkMb = MemorySizes.forkFootprintMb(MemorySizes.forkHeapMb(None))
       )
 
       // Sourcegen plan — scripts for test projects and their transitive deps.
@@ -2739,9 +2739,9 @@ class MultiWorkspaceBspServer(
                       options = TestRunner.Options(
                         // Only what someone asked for, in precedence order: the project's own options, then this run's `--jvm-opt`. The configured heap is NOT
                         // prepended here — it goes in as the default the pool falls back to, so a fork carries exactly one `-Xmx` and it is the one that
-                        // decided the heap. See MachineResources.withHeapBound.
+                        // decided the heap. See MemorySizes.withHeapBound.
                         jvmOptions = projectJvmOptions ++ testOptions.jvmOptions,
-                        defaultHeapMb = MachineResources.forkHeapMb(serverConfig.testRunnerHeap),
+                        defaultHeapMb = MemorySizes.forkHeapMb(serverConfig.testRunnerHeap),
                         testArgs = testOptions.testArgs,
                         idleTimeout = idleTimeout,
                         environment = testEnv,
@@ -2786,7 +2786,7 @@ class MultiWorkspaceBspServer(
                   eventQueue = eventQueue,
                   options = TestRunner.Options(
                     jvmOptions = declaredJvmOptions ++ sourcegenJvmOptions ++ testOptions.jvmOptions,
-                    defaultHeapMb = MachineResources.forkHeapMb(serverConfig.testRunnerHeap),
+                    defaultHeapMb = MemorySizes.forkHeapMb(serverConfig.testRunnerHeap),
                     testArgs = testOptions.testArgs,
                     idleTimeout = idleTimeout,
                     environment = testEnv,

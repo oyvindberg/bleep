@@ -147,37 +147,37 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
     // The whole point of the redesign. An unstated -Xmx is not "unlimited" — HotSpot hands the fork
     // MaxRAMPercentage=25, a quarter of the machine, which is how ~18 forks came to request 216GB on
     // a 48GB box. Containment is the bound, not the scheduling.
-    MachineResources.withHeapBound(Nil, MachineResources.DefaultForkHeapMb) shouldBe List(s"-Xmx${MachineResources.DefaultForkHeapMb}m")
-    MachineResources.withHeapBound(List("-XX:+UseZGC"), MachineResources.DefaultForkHeapMb) shouldBe List(
+    MemorySizes.withHeapBound(Nil, MemorySizes.DefaultForkHeapMb) shouldBe List(s"-Xmx${MemorySizes.DefaultForkHeapMb}m")
+    MemorySizes.withHeapBound(List("-XX:+UseZGC"), MemorySizes.DefaultForkHeapMb) shouldBe List(
       "-XX:+UseZGC",
-      s"-Xmx${MachineResources.DefaultForkHeapMb}m"
+      s"-Xmx${MemorySizes.DefaultForkHeapMb}m"
     )
     // A build that stated its own bound keeps it, exactly.
-    MachineResources.withHeapBound(List("-Xmx12g"), MachineResources.DefaultForkHeapMb) shouldBe List("-Xmx12g")
-    MachineResources.DefaultForkHeapMb shouldBe 2048L
+    MemorySizes.withHeapBound(List("-Xmx12g"), MemorySizes.DefaultForkHeapMb) shouldBe List("-Xmx12g")
+    MemorySizes.DefaultForkHeapMb shouldBe 2048L
   }
 
   test("the configured default applies only when the build states no -Xmx of its own") {
     // `testRunnerHeap` is a default, not a ceiling. It used to be prepended to the build's options and
     // left to JVM last-one-wins, so a fork could be started with two `-Xmx` and neither source told you
     // which one it ran with. Exactly one comes out of here.
-    val configured = MachineResources.forkHeapMb(Some("512m"))
-    MachineResources.withHeapBound(Nil, configured) shouldBe List("-Xmx512m")
+    val configured = MemorySizes.forkHeapMb(Some("512m"))
+    MemorySizes.withHeapBound(Nil, configured) shouldBe List("-Xmx512m")
     // A project asking for MORE than the configured default gets it — the machine is protected by
     // admission (a big fork runs alone), not by shrinking a heap the code was told it could have.
-    MachineResources.withHeapBound(List("-Xmx3g"), configured) shouldBe List("-Xmx3g")
+    MemorySizes.withHeapBound(List("-Xmx3g"), configured) shouldBe List("-Xmx3g")
     // ...and asking for less is equally left alone.
-    MachineResources.withHeapBound(List("-Xmx64m"), configured) shouldBe List("-Xmx64m")
+    MemorySizes.withHeapBound(List("-Xmx64m"), configured) shouldBe List("-Xmx64m")
   }
 
   test("one number decides both what a fork may use and what it is charged") {
     // If these were derived separately they would drift, and the governor would be accounting for a
     // bound the process was never held to — which is what made the old accounting fiction.
-    MachineResources.forkHeapMb(None) shouldBe MachineResources.DefaultForkHeapMb
-    MachineResources.forkHeapMb(Some("12g")) shouldBe 12288L
+    MemorySizes.forkHeapMb(None) shouldBe MemorySizes.DefaultForkHeapMb
+    MemorySizes.forkHeapMb(Some("12g")) shouldBe 12288L
     // Charged the heap plus the non-heap the JVM also commits (metaspace, code cache, stacks, GC).
-    MachineResources.forkFootprintMb(2048) shouldBe 2560L
-    MachineResources.forkFootprintMb(256) shouldBe 512L // small heaps get a floor, not a useless percentage
+    MemorySizes.forkFootprintMb(2048) shouldBe 2560L
+    MemorySizes.forkFootprintMb(256) shouldBe 512L // small heaps get a floor, not a useless percentage
   }
 
   test("at the 2GB default, CPU is very nearly the binding constraint on a 48GB box") {
@@ -187,7 +187,7 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
     val physicalMb = 49152L // 48GB
     val serverHeapMb = 8192L
     val budget = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
-    val defaultFork = MachineResources.forkFootprintMb(MachineResources.DefaultForkHeapMb)
+    val defaultFork = MemorySizes.forkFootprintMb(MemorySizes.DefaultForkHeapMb)
 
     budget shouldBe 26624L
     defaultFork shouldBe 2560L
@@ -195,7 +195,7 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
 
     // And a genuinely heavy fork that DECLARES 12g still can't pair up with another — two of those
     // is the ~30GB that got SIGKILLed on this exact machine.
-    val heavyFork = MachineResources.forkFootprintMb(12288)
+    val heavyFork = MemorySizes.forkFootprintMb(12288)
     heavyFork should be <= budget
     (2 * heavyFork) should be > budget
   }

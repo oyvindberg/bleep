@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.MachineResources
+import bleep.MemorySizes
 import bleep.bsp.protocol.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, ProcessExit, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, SuiteName, TestName}
@@ -51,7 +51,7 @@ object TestRunner {
   object Options {
     val default: Options = Options(
       jvmOptions = Nil,
-      defaultHeapMb = MachineResources.DefaultForkHeapMb,
+      defaultHeapMb = MemorySizes.DefaultForkHeapMb,
       testArgs = Nil,
       idleTimeout = 2.minutes,
       environment = Map.empty,

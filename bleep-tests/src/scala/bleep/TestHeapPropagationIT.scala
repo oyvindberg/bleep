@@ -49,7 +49,7 @@ class TestHeapPropagationIT extends IntegrationTestHarness {
     * stop depending on a file outside the repository.
     */
   private val configuredDefaultMb: Long =
-    MachineResources.forkHeapMb(testConfig.bspServerConfigOrDefault.testRunnerHeap)
+    MemorySizes.forkHeapMb(testConfig.bspServerConfigOrDefault.testRunnerHeap)
 
   private def runTests(started: Started, jvmOptions: List[String]): Either[BleepException, Unit] =
     commands.ReactiveBsp

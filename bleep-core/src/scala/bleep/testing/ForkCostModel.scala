@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.MachineResources
+import bleep.MemorySizes
 import cats.effect.{IO, Ref}
 
 /** What a fork of a given kind has actually been observed to cost, so the next one can be admitted on evidence instead of on its `-Xmx`.
@@ -45,7 +45,7 @@ object ForkCostModel {
             case Some(observed) => math.max(FloorMb, observed)
             // Unobserved: the only thing we know is the bound it will be held to. Conservative by
             // construction, and it stops being used for this kind of fork after the first one runs.
-            case None => MachineResources.forkFootprintMb(heapBoundMb)
+            case None => MemorySizes.forkFootprintMb(heapBoundMb)
           }
         }
 
@@ -61,7 +61,7 @@ object ForkCostModel {
     */
   val static: ForkCostModel =
     new ForkCostModel {
-      def estimateMb(key: String, heapBoundMb: Long): IO[Long] = IO.pure(MachineResources.forkFootprintMb(heapBoundMb))
+      def estimateMb(key: String, heapBoundMb: Long): IO[Long] = IO.pure(MemorySizes.forkFootprintMb(heapBoundMb))
       def observe(key: String, footprintMb: Long): IO[Unit] = IO.unit
       def learned: IO[Map[String, Long]] = IO.pure(Map.empty)
     }

@@ -119,7 +119,7 @@ class ServerTopLoop(userPaths: UserPaths, currentWorkspace: Option[Path]) {
   private def initialState(): ServerTopState =
     ServerTopState.initial(
       System.currentTimeMillis(),
-      ServerTopState.Machine(physicalMemoryMb = MachineResources.physicalMemoryMb(fallbackMb = 0L), cores = Runtime.getRuntime.availableProcessors())
+      ServerTopState.Machine(physicalMemoryMb = MemorySizes.physicalMemoryMb(fallbackMb = 0L), cores = Runtime.getRuntime.availableProcessors())
     )
 
   /** One path for everything the user does, mouse or keyboard: pure update, then run whatever effects it asked for. */

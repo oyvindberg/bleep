@@ -170,10 +170,10 @@ object BspRifle {
     * `bleep config compile-server max-memory 8g` is the lever, and `max-memory-clear` puts it back.
     */
   private[bsp] def heapDescription(config: BspRifleConfig): String = {
-    val physicalMb = bleep.MachineResources.physicalMemoryMb(fallbackMb = 0L)
+    val physicalMb = bleep.MemorySizes.physicalMemoryMb(fallbackMb = 0L)
     def render(mb: Long) = if (mb % 1024 == 0) s"${mb / 1024}g" else s"${mb}m"
 
-    config.javaOpts.filter(_.startsWith("-Xmx")).lastOption.flatMap(bleep.MachineResources.parseMemoryMb) match {
+    config.javaOpts.filter(_.startsWith("-Xmx")).lastOption.flatMap(bleep.MemorySizes.parseMemoryMb) match {
       // "max", because `-Xmx` is a ceiling and nothing is reserved up front — ZGC commits as it needs and hands memory back after `ZUncommitDelay`. Written as
       // a plain size it reads like the server is holding that much, which would make the number beside the machine's RAM alarming rather than informative.
       case Some(capMb) if physicalMb > 0 => s"max ${render(capMb)} of ${render(physicalMb)} RAM"
@@ -187,7 +187,7 @@ object BspRifle {
     val log = config.address.socketDir.resolve("output")
     if (BspServerOperations.containsOomMarker(log)) {
       val cap = config.javaOpts.filter(_.startsWith("-Xmx")).lastOption.getOrElse("<unset>")
-      val suggestion = bleep.MachineResources.parseMemoryMb(cap) match {
+      val suggestion = bleep.MemorySizes.parseMemoryMb(cap) match {
         case Some(mb) =>
           val doubled = mb * 2
           if (doubled % 1024 == 0) s"${doubled / 1024}g" else s"${doubled}m"

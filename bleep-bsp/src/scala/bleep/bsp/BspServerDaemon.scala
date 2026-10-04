@@ -231,7 +231,7 @@ object BspServerDaemon {
     // pool — but the governor still admitted up to one-per-core across every connected client.
     val maxConcurrentOperations = daemonConfig.effectiveParallelism
     val serverHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
-    val physicalMb = MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
+    val physicalMb = bleep.MemorySizes.physicalMemoryMb(fallbackMb = serverHeapMb * 2)
     val forkMemoryBudgetMb = MachineResources.forkMemoryBudgetMb(physicalMb, serverHeapMb)
     logger.info(
       s"Machine: ${Runtime.getRuntime.availableProcessors()} cores, ${physicalMb}MB RAM, server heap ${serverHeapMb}MB -> " +
@@ -306,7 +306,7 @@ object BspServerDaemon {
         // Constant for the life of the process, so read once rather than per sample. Both are recorded on every machine event anyway: without them the
         // machine's RAM has to be inferred by inverting the fork-budget formula, which does not work once the budget has been retuned.
         private val serverHeapMb: Long = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
-        private val physicalMemoryMb: Long = bleep.MachineResources.physicalMemoryMb(fallbackMb = serverHeapMb * 4)
+        private val physicalMemoryMb: Long = bleep.MemorySizes.physicalMemoryMb(fallbackMb = serverHeapMb * 4)
 
         override def run(): Unit =
           try

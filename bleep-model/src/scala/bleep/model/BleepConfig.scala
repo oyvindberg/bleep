@@ -40,7 +40,7 @@ case class BspServerConfig(
     parallelismRatio: Option[Double],
     /** Idle timeout for test suites in minutes — resets each time a test completes */
     testIdleTimeoutMinutes: Option[Int],
-    /** Default heap for forked test runner JVMs, e.g. "512m", "2g". None = [[bleep.MachineResources.DefaultForkHeapMb]].
+    /** Default heap for forked test runner JVMs, e.g. "512m", "2g". None = [[bleep.MemorySizes.DefaultForkHeapMb]].
       *
       * A default, not a ceiling: a project that states its own `-Xmx` in `platform.jvmOptions` runs with that instead, and this number does not apply. That is
       * the right way round, because how much heap a suite needs is a property of the code, which lives in the build, while this setting belongs to whoever owns

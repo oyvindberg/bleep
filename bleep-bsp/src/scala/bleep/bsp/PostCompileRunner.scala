@@ -88,7 +88,7 @@ object PostCompileRunner {
         val args =
           List("--from", p.paths.compilerOutput.toString, "--to", scratch.toString, "--classpath", p.compileClasspath.mkString(File.pathSeparator)) ++
             p.inputs.flatMap { case (name, dir) => List("--input", s"${name.value}=$dir") }
-        val jvmOptions = List(s"-Xmx${MachineResources.forkHeapMb(started.config.bspServerConfigOrDefault.sourcegenMaxMemory)}m")
+        val jvmOptions = List(s"-Xmx${MemorySizes.forkHeapMb(started.config.bspServerConfigOrDefault.sourcegenMaxMemory)}m")
         val cmd = jvmRunCommand.cmd(started.resolvedJvm.forceGet, jvmOptions, p.scriptClasspath, p.postCompile.main, args)
         val pb = new ProcessBuilder(cmd*)
         pb.directory(started.buildPaths.buildDir.toFile)

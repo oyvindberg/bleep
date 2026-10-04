@@ -764,7 +764,7 @@ object TaskDag {
   object ForkHeaps {
 
     /** What bleep gives a fork that states no `-Xmx` of its own. */
-    private val defaultFootprint: Long = MachineResources.forkFootprintMb(MachineResources.DefaultForkHeapMb)
+    private val defaultFootprint: Long = bleep.MemorySizes.forkFootprintMb(bleep.MemorySizes.DefaultForkHeapMb)
     val default: ForkHeaps = ForkHeaps(sourcegenMb = defaultFootprint, kspMb = defaultFootprint, linkMb = defaultFootprint)
   }
 

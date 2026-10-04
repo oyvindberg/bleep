@@ -19,7 +19,7 @@ class ForkCostModelTest extends AnyFunSuite with Matchers {
       m <- ForkCostModel.create
       // Nothing observed yet — fall back to the ceiling the JVM is held to.
       cold <- m.estimateMb("suite-a", heapBoundMb = 2048)
-      _ = cold shouldBe MachineResources.forkFootprintMb(2048)
+      _ = cold shouldBe MemorySizes.forkFootprintMb(2048)
       _ = cold shouldBe 2560L
       // One fork of this kind ran and really cost 610MB.
       _ <- m.observe("suite-a", 610)
@@ -72,7 +72,7 @@ class ForkCostModelTest extends AnyFunSuite with Matchers {
       est <- ForkCostModel.static.estimateMb("k", heapBoundMb = 2048)
       learned <- ForkCostModel.static.learned
     } yield {
-      est shouldBe MachineResources.forkFootprintMb(2048) // observation changed nothing
+      est shouldBe MemorySizes.forkFootprintMb(2048) // observation changed nothing
       learned shouldBe empty
     }
     prog.timeout(10.seconds).unsafeRunSync()

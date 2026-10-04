@@ -318,7 +318,7 @@ object MachineResources {
     * A platform that cannot answer leaves the budget exactly as configured, which is the behaviour that existed before this.
     */
   def retuneLoop(machine: MachineResources, memory: MachineMemory, logger: Logger): IO[Unit] = {
-    val physicalMb = physicalMemoryMb(fallbackMb = 4096)
+    val physicalMb = MemorySizes.physicalMemoryMb(fallbackMb = 4096)
     val floor = budgetFloorMb(physicalMb)
     val once =
       IO.blocking((memory.unreclaimableMb, ProcessMemory.ourTreeFootprintMb(ProcessHandle.current()))).flatMap {
@@ -366,7 +366,7 @@ object MachineResources {
     */
   def forThisMachine(totalCpu: Int, logger: Logger): MachineResources = {
     val ownHeapMb = Runtime.getRuntime.maxMemory() / (1024L * 1024L)
-    val physicalMb = physicalMemoryMb(fallbackMb = ownHeapMb * 2)
+    val physicalMb = MemorySizes.physicalMemoryMb(fallbackMb = ownHeapMb * 2)
     create(
       totalCpu = totalCpu,
       totalMemoryMb = forkMemoryBudgetMb(physicalMb, ownHeapMb),
@@ -374,88 +374,6 @@ object MachineResources {
       longWaitWarnMs = DefaultLongWaitWarnMs
     )
   }
-
-  /** Parse a heap-size string (`"512m"`, `"2g"`, `"1500m"`, optionally `-Xmx`-prefixed) into MB.
-    *
-    * `None` means "no size stated here". It does NOT mean "unparseable": a string that looks like a size but isn't one we understand throws, because silently
-    * mis-weighting a fork is exactly how the budget stops bounding anything. An unknown suffix is the dangerous case — reading `2t` as 2MB under-counts a fork
-    * a millionfold, and the governor would happily admit hundreds of them.
-    */
-  def parseMemoryMb(raw0: String): Option[Long] = {
-    val raw = raw0.trim.stripPrefix("-Xmx").trim
-    if (raw.isEmpty) None
-    else {
-      val (num, unit) = raw.span(_.isDigit)
-      if (num.isEmpty) throw new IllegalArgumentException(s"cannot parse memory size '$raw0': expected digits, optionally suffixed with k/m/g")
-      val n =
-        try num.toLong
-        catch { case _: NumberFormatException => throw new IllegalArgumentException(s"cannot parse memory size '$raw0': '$num' is not a valid number") }
-      Some(unit.trim.toLowerCase match {
-        case "g" | "gb" => n * 1024L
-        case "m" | "mb" => n
-        case "k" | "kb" => math.max(1L, n / 1024L)
-        case ""         => math.max(1L, n / (1024L * 1024L)) // bare number is bytes, per -Xmx semantics
-        case other      => throw new IllegalArgumentException(s"cannot parse memory size '$raw0': unknown unit '$other' (expected k/m/g)")
-      })
-    }
-  }
-
-  /** Total physical RAM in MB.
-    *
-    * `fallbackMb` covers the one genuinely-expected miss: a JVM whose OperatingSystemMXBean isn't the `com.sun` one that exposes total memory. An *exception*
-    * from the platform bean is not that case and is not swallowed — it would mean the budget is being computed from a number we never actually read.
-    */
-  def physicalMemoryMb(fallbackMb: Long): Long =
-    java.lang.management.ManagementFactory.getOperatingSystemMXBean match {
-      case os: com.sun.management.OperatingSystemMXBean => os.getTotalMemorySize / (1024L * 1024L)
-      case _                                            => fallbackMb
-    }
-
-  /** Heap ceiling imposed on any forked JVM whose build states none — test runners, sourcegen scripts, KSP.
-    *
-    * A fork with no `-Xmx` is not "unlimited": HotSpot silently gives it `MaxRAMPercentage=25`, a quarter of the machine. That default assumes it is the only
-    * thing running, which is exactly wrong for a build tool that starts one per core — on an 18-core / 48GB machine bleep was requesting 18 × 12GB. OOM was
-    * arithmetic, not bad luck, and scheduling cannot fix it, because a scheduler gets no say in what a process allocates.
-    *
-    * So bleep states a bound rather than inheriting one. Every comparable tool does: Gradle defaults `Test.maxHeapSize` to 512m, Maven Surefire runs a single
-    * fork, sbt runs tests in-process. 2GB is comfortable for ordinary JVM test suites and small enough that CPU, not memory, decides how wide a build runs.
-    *
-    * A fork that genuinely needs more says so — `testRunnerHeap` / `sourcegenMaxMemory` / `kspRunnerMaxMemory`, or the project's own `jvmOptions` — and if it
-    * then exceeds that, it gets an `OutOfMemoryError` naming the limit: attributable to the code that caused it, instead of a SIGKILL landing on whichever
-    * process the kernel happened to pick.
-    */
-  val DefaultForkHeapMb: Long = 2048L
-
-  /** The heap a fork will actually run with: what the build configured, else [[DefaultForkHeapMb]]. The single source of truth for both halves of the deal —
-    * what we tell the JVM it may use, and what we tell the governor it costs. Deriving those separately is how they drift apart.
-    */
-  def forkHeapMb(configured: Option[String]): Long =
-    configured.flatMap(parseMemoryMb).getOrElse(DefaultForkHeapMb)
-
-  /** The options a fork is actually started with: whatever the build asked for, plus `defaultHeapMb` if it stated no `-Xmx`.
-    *
-    * A fork ends up with exactly one `-Xmx`, which is the point. Configured heaps used to be prepended to the build's own options and left to JVM last-one-wins
-    * to resolve, so `java -Xmx1g … -Xmx3g` was a normal argv and the number a fork ran with could not be read off either source alone. It also made the config
-    * knob look like a ceiling while behaving as a default. Now the choice is made here, once, and the argv states the answer.
-    *
-    * Returned rather than applied in place because for pooled forks these options are also the pool key — a JVM started with an imposed bound must not be
-    * handed to a caller who asked for a different one.
-    */
-  def withHeapBound(jvmOptions: List[String], defaultHeapMb: Long): List[String] =
-    if (jvmOptions.exists(_.startsWith("-Xmx"))) jvmOptions
-    else jvmOptions :+ s"-Xmx${defaultHeapMb}m"
-
-  /** What a forked JVM whose heap is capped at `heapMb` costs the machine.
-    *
-    * `-Xmx` bounds the heap, not the process: on top of it a JVM commits metaspace, the code cache, a stack per thread, direct/mapped byte buffers and the GC's
-    * own bookkeeping.
-    *
-    * This is honest accounting of a bound we already know — NOT a safety mechanism. Containment comes from the `-Xmx` every fork now carries (see
-    * [[bleep.testing.JvmPool.DefaultForkHeapMb]]). It used to be load-bearing, back when forks ran unbounded and this multiplier was the only thing between a
-    * fork storm and the OOM killer, which was always the wrong job for an estimate: an estimate cannot stop a process from allocating.
-    */
-  def forkFootprintMb(heapMb: Long): Long =
-    heapMb + math.max(256L, heapMb / 4)
 
   /** Fork-memory budget: physical RAM, minus the server's own footprint, minus a reserve for everything that is not bleep.
     *
@@ -475,6 +393,6 @@ object MachineResources {
     */
   def forkMemoryBudgetMb(physicalMb: Long, serverHeapMb: Long): Long = {
     val reserve = math.max(4096L, physicalMb / 4)
-    math.max(1024L, physicalMb - forkFootprintMb(serverHeapMb) - reserve)
+    math.max(1024L, physicalMb - MemorySizes.forkFootprintMb(serverHeapMb) - reserve)
   }
 }

@@ -35,7 +35,7 @@ trait JvmPool extends TestExecutor {
   /** Acquire a JVM suitable for the given classpath and options.
     *
     * `defaultHeapMb` is the heap this fork gets if `jvmOptions` states no `-Xmx` of its own — the caller's configured default, not a ceiling over what the
-    * caller asked for. See [[MachineResources.withHeapBound]].
+    * caller asked for. See [[bleep.MemorySizes.withHeapBound]].
     *
     * Returns a Resource that will release the JVM back to the pool when done.
     */
@@ -235,7 +235,7 @@ object JvmPool {
   /** Parse a `-Xmx` value (e.g. `-Xmx2g`, `-Xmx512m`) from JVM options into MB. Last one wins (JVM semantics). None if no `-Xmx` is present.
     */
   private[testing] def parseXmxMb(jvmOptions: List[String]): Option[Long] =
-    jvmOptions.reverse.collectFirst { case o if o.startsWith("-Xmx") => o }.flatMap(MachineResources.parseMemoryMb)
+    jvmOptions.reverse.collectFirst { case o if o.startsWith("-Xmx") => o }.flatMap(bleep.MemorySizes.parseMemoryMb)
 
   private[testing] case class ExitDescription(summary: String, detail: Option[String])
 
@@ -623,7 +623,7 @@ object JvmPool {
       // Bound the fork before anything else looks at these options. Everything downstream — the pool
       // key, the spawn, and what the governor is told this costs — must agree on the heap the JVM
       // will actually run with, and that is only true if the bound is applied once, here.
-      val boundedOptions = MachineResources.withHeapBound(jvmOptions, defaultHeapMb)
+      val boundedOptions = bleep.MemorySizes.withHeapBound(jvmOptions, defaultHeapMb)
       val key = JvmKey(classpath, boundedOptions, environment, workingDirectory)
 
       // NO machine CPU reservation here. The caller already holds one.
@@ -1273,7 +1273,7 @@ object JvmPool {
 
     private def buildSharedSession(request: TestSessionRequest, key: String): IO[SharedProjectSession] = {
       val _ = key
-      val boundedOptions = MachineResources.withHeapBound(request.jvmOptions, request.defaultHeapMb)
+      val boundedOptions = bleep.MemorySizes.withHeapBound(request.jvmOptions, request.defaultHeapMb)
       val jvmKey = JvmKey(request.classpath, boundedOptions, request.environment, request.workingDirectory)
       getOrCreate(request.label, jvmKey, request.classpath, boundedOptions, request.runnerClass, request.environment, request.workingDirectory)
         .flatMap(SharedProjectSession.start)

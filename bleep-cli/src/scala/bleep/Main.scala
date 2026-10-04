@@ -260,7 +260,7 @@ object Main {
         "default heap for forked test runner JVMs (e.g. 512m, 2g). A project's own platform.jvmOptions -Xmx overrides it",
         "size"
       )(_ => ())((config, size) => config.copy(testRunnerHeap = Some(size))),
-      set("test-runner-heap-clear", s"remove the setting (back to bleep's default: ${MachineResources.DefaultForkHeapMb}m per test fork)")(
+      set("test-runner-heap-clear", s"remove the setting (back to bleep's default: ${MemorySizes.DefaultForkHeapMb}m per test fork)")(
         _.copy(testRunnerHeap = None)
       ),
       // Renamed because it never was a maximum: a project's own -Xmx has always outranked it, and calling it `max` had people believing a per-project heap
