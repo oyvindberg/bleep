@@ -391,13 +391,21 @@ deletes, then behaviour lands on top.
 
 ### Phase D — on top
 
-12. **`bleep server top` / `bleep/status`** show ceiling, used, pending, per-server guarantees and forks from `state.json`, plus lock holder/wait.
-13. **Busy servers shed idle workspaces' caches** (§5.2).
-14. **Idle servers yield** (§5.1) — the idle-yield check and the `shuttingDown` state; reword `top`'s "keeps this server in use" label.
-15. **Metrics** — tick events (hold time, decision summary, pressure) into `metrics.jsonl`.
+12. **`bleep server top` / `bleep/status`** show ceiling, used, pending, per-server guarantees and forks from `state.json`, plus lock holder/wait. **Done**:
+    admin protocol v2 (`SchedulerDto`), `top` reads every server's `state.json` without the lock, names unconstrained servers and lock holders.
+13. **Busy servers shed idle workspaces' caches** (§5.2). **Done**: `MemoryNeed` (pressure ≥ Elevated, or another server's `wantsMore`), the slow check
+    every 3 s (provisional) on servers with nothing to claim, `BuildCache.shedIdle`, at most one shed per interval while the need lasts.
+14. **Idle servers yield** (§5.1) — the idle-yield check and the `shuttingDown` state; reword `top`'s "keeps this server in use" label. **Done**:
+    `idleSinceEpochMs` published in `state.json` (additive to v1), `Yield.candidate`/`Yield.goes`, one per tick under the lock, longest idle first.
+15. **Metrics** — tick events (hold time, decision summary, pressure) into `metrics.jsonl`. **Done**: one `scheduler` line per busy second, `pressure`,
+    `lock_unavailable`, `cache_shed` and `yield` as they happen; `bleep server metrics` draws them.
 16. **Docs** — rewrite `docs/usage/resource-management.mdx` and the compile-server guide; remove mentions of the fork-memory budget; `parallelism`
-    documented as CPU-only, per server.
+    documented as CPU-only, per server. **Done.**
 17. **End-to-end validation** — two servers on the owner's machine running dlab tests, watched with `bleep server top`; then one small run per OS in CI.
+    **Open.**
+
+Also landed in Phase D, by the owner's ruling: in-process linkers (Scala.js, Kotlin/JS) are in-heap `Link` demands answering to the heap gate like compiles;
+Kotlin/JS and Kotlin/Native test discovery, which run the linked artifact, are `Discover` forks that report their process.
 
 Optional before Phase A, only if freezes bite while this is built: two small fixes to the *current* code (count compressor pages; subtract the server's
 own footprint in the retune), deleted again at step 11. The stopgap available today without code: `bleep server config parallelism 8` and
@@ -405,11 +413,18 @@ own footprint in the retune), deleted again at step 11. The stopgap available to
 
 ## 11. Open questions
 
-- **Headroom**: how the ceiling (`physical − headroom`) is chosen. On hold; it is the design's single tunable input.
-- **Linux PSI thresholds** for `Elevated`/`Critical` — measure on a real Linux machine.
-- **Windows thresholds** for memory load / commit.
-- **`idleYieldAfter`**: how long a server must be idle before it may yield its memory (2–5 min?).
-- **Shrink before shutdown?** An idle server could first take the §5.2 step (drop every workspace's caches, let ZGC return the heap) and shut down only
-  if that is not enough. Simpler alternative: always shut down.
-- **Two-stage test admission** (task slot, then fork, because the fork key needs the classpath computed in the handler): keep for v1, or move classpath
-  computation into discovery so a test demand is a single `ForkDemand`?
+- **Headroom**: how the ceiling (`physical − headroom`) is chosen. **Provisional**: `max(4 GB, RAM/8)` in one place (`MachineSchedulingSetup.provisionalHeadroomMb`),
+  no user setting. Still the design's single tunable input; revisit after step 17.
+- **Linux PSI thresholds** for `Elevated`/`Critical` — **provisional** (`PressureThresholds.provisional`: some > 10 %); measure on a real Linux machine.
+- **Windows thresholds** for memory load / commit — **provisional** (load > 90 %, commit > 0.90).
+- **`idleYieldAfter`** — **provisional**: 5 minutes (`Yield.IdleYieldAfterMs`), one named value.
+- **Shrink before shutdown?** **Resolved by construction**: an idle server has only idle workspaces, so the §5.2 shed on the same need empties its caches
+  first; by the time it has been idle for `idleYieldAfter` the shrink has happened, and the yield is a plain shutdown. No separate step.
+- **Slow-check cadence** — **provisional**: 3 s (`Ticker.SlowCheckIntervalMs`), well inside ZGC's ~30 s uncommit.
+- **Two-stage test admission** (task slot, then fork, because the fork key needs the classpath computed in the handler): **kept for v1**.
+- **In-heap linkers** — **ruled** (Phase D): Scala.js and Kotlin/JS linkers are in-heap `Link` demands, gated like compiles; Kotlin/Native's `konanc` is a fork.
+- **Scala Native's clang/lld** — **open, for the owner**. The toolchain spawns them itself through `scala.sys.process`, many at once, with no hook to hand
+  them out, so the link's fork stays charged at its bound and reports no process (over-charged, never unaccounted). Options: (a) fork the Scala Native
+  linker into its own JVM, as Kotlin/Native already is — the clangs become that process's children and the tree is measured; costs a cold JVM and toolchain
+  per link; (b) a multi-pid grant that measures a set of child pids observed under the server — an interface change to the one-pid-per-fork model.
+- **Listing-process bound** — **provisional**: 256 MB (`TaskDag.ListingProcessBoundMb`) for node or a native binary listing its suites, until measured.

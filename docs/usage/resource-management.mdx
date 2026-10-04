@@ -1,7 +1,7 @@
 
 # Memory & Parallelism
 
-When a test, a source generator, or a compile runs out of memory — you see `Java heap space`, an `OutOfMemoryError`, or a process `killed by SIGKILL (exit 137)` — this page is what the build summary links you to. It explains every knob that governs how much memory a build uses and how many things run at once, and how they interact.
+When a test, a source generator, or a compile runs out of memory — you see `Java heap space`, an `OutOfMemoryError`, or a process `killed by SIGKILL (exit 137)` — this page is what the build summary links you to. It explains every knob that governs how much memory a build uses and how many things run at once, how bleep's servers share one machine, and how to read what `bleep server top` shows.
 
 ## The short version
 
@@ -10,20 +10,20 @@ Two questions, and they belong to different owners:
 | question | who decides | where |
 | --- | --- | --- |
 | how much memory does *this code* need? | the build | `platform.jvmOptions` in `bleep.yaml` — per project, and it sizes **forks** |
-| how much of *this machine* may bleep use? | whoever owns the machine | user config: `parallelism`, `compileServerMaxMemory` |
+| how much of *this machine* may bleep use? | whoever owns the machine | user config: `parallelism`, `compileServerMaxMemory`, `machineScheduling` |
 
 That split is deliberate. A repo cannot know whether it is running on a 16 GB CI container or a 64 GB workstation, and a machine cannot know which of your suites is heavy.
 
-A forked JVM (a test runner, a sourcegen script, a KSP processor) then has **two** costs, and they are controlled separately:
+A forked process (a test runner, a sourcegen script, a KSP processor, a native linker) then has **two** costs, and they are controlled separately:
 
 1. **How big each fork is** — its `-Xmx` heap ceiling. If a suite genuinely needs more memory than it is given, it fails with an in-JVM `OutOfMemoryError` naming the suite. **Fix: give that project more heap.**
-2. **How many forks run at once** — the parallelism. If too many run together, the machine runs out of real memory and the OS kills processes with `SIGKILL`. **Fix: lower parallelism, or lower per-fork heap so more fit.**
+2. **Whether there is room for it on the machine** — decided by bleep, not by you. Every bleep server on the machine shares one view of its memory and admits a fork only when it fits. You do not configure this; the one thing you can turn is `parallelism`, which is about CPU.
 
-bleep also measures what forks actually cost and sizes concurrency against what the machine can currently spare, so most of the time you never touch any of this. You reach for these knobs when a specific suite is heavier than the default, or when bleep is sharing the machine with something it can't see.
+bleep measures what forks actually cost and admits them against what the machine can currently spare, so most of the time you never touch any of this. You reach for these knobs when a specific suite is heavier than the default, or when bleep is sharing the machine with something it can't see.
 
 :::info Version
 
-The machine-wide accounting described on this page arrived after `1.0.0-M10`. On M10 and earlier, concurrency is a plain count of permits with **no memory dimension** — so on a small machine you must set `parallelism` yourself, because nothing will do it for you.
+The machine-wide scheduler described on this page arrived after `1.0.0-M10`. On M10 and earlier, concurrency is a plain count of permits with **no memory dimension** — so on a small machine you must set `parallelism` yourself, because nothing will do it for you.
 
 :::
 
@@ -74,7 +74,7 @@ projects:
       jvmOptions: -Xmx4g    # … and this suite still forks with 4 GB
 ```
 
-That is the right way round: how much heap a suite needs is a property of the code, and the code is what lives in the repo. Nothing silently shrinks a heap the build asked for. What protects the machine from one project asking for a lot is *admission* — bleep charges a fork its whole footprint and will run an oversized one on its own rather than alongside others — not clamping.
+That is the right way round: how much heap a suite needs is a property of the code, and the code is what lives in the repo. Nothing silently shrinks a heap the build asked for. What protects the machine from one project asking for a lot is *admission* — the scheduler charges a fork its whole heap until it has measured it, and will run an oversized one on its own rather than alongside others — not clamping.
 
 To see what a fork was actually given, `bleep server config show` prints the configured default, and the test view reports each fork's heap. If you want to check from inside a suite, `Runtime.getRuntime.maxMemory` is the number that settles it. Do **not** test this by setting an absurdly small `-Xmx` and expecting a crash: the JVM quietly rounds a too-small heap up to something it can start with, so `-Xmx3m` proves nothing.
 
@@ -97,9 +97,9 @@ Sourcegen scripts and KSP runners are sized in user config, since they are bleep
 
 ## How many run at once
 
-One knob: **`parallelism`** — how many operations bleep may run at once on this machine. It defaults to one per core and covers everything the build scheduler runs: compiles, links, test suites, sourcegen scripts, annotation-processor and KSP resolution. It also sizes the pool of forked test JVMs.
+One knob: **`parallelism`** — how many CPU slots *one compile server* may hold at once. It defaults to one per core and covers everything the scheduler runs for that server: compiles, links, test suites, sourcegen scripts, annotation-processor and KSP resolution. A compile holds a slot while it runs; a fork holds slots only while work runs on it (a batch fork as many as suites it runs at once); a warm fork between suites holds none.
 
-It is a property of the *machine*, not of a run: the compile server is shared between every client and every workspace on it, so this is the total across all of them, not a limit each one gets separately.
+It is **CPU only, and per server.** Memory is not what it controls — the scheduler decides memory machine-wide on its own, below — and it is not shared between servers: two servers on one machine (two bleep versions, two JVMs) may each hold their own `parallelism` slots. That is deliberate: a slot is cheap to over-subscribe for a moment, memory is not, and the two are kept apart so that lowering one never silently changes the other.
 
 ```bash
 bleep server config parallelism 2
@@ -108,11 +108,11 @@ bleep server config parallelism-clear   # back to one per core
 
 `parallelismRatio` expresses the same thing as a fraction of cores (`0.5` for half) if you prefer that in a config file shared across machines of different sizes.
 
-Lowering parallelism is the direct fix when the machine is being *overwhelmed* — many forks killed by `SIGKILL` at once, rather than one suite failing with a clean `OutOfMemoryError`. Fewer forks run together, so peak memory drops.
+Lowering parallelism is the fix when the machine is being *overwhelmed on CPU* — everything is slow because too much is running — not when forks are being killed. Memory is the scheduler's job (next section), and lowering parallelism to protect memory only leaves cores idle.
 
 ### Setting it for a CI job
 
-There is deliberately **no environment variable** for this, and no per-invocation flag. The compile server is shared: it reads `parallelism` once at startup and passes it to every fork it spawns, so a per-client override would mean whichever client happened to start the daemon silently configured it for everyone else — including runs that had no opinion. The same goes for the server's own heap, which is part of the key that decides *which* daemon you get: two different values would quietly give you two daemons.
+There is deliberately **no environment variable** for this, and no per-invocation flag. The compile server is shared: it reads `parallelism` from user config and applies a change to its next decision, so a per-client override would mean whichever client happened to start the daemon silently configured it for everyone else — including runs that had no opinion. The same goes for the server's own heap, which is part of the key that decides *which* daemon you get: two different values would quietly give you two daemons.
 
 A CI job is one machine, so configure the machine, as a step before you build:
 
@@ -128,59 +128,74 @@ A CI job is one machine, so configure the machine, as a step before you build:
 
 That writes the same user config a developer would keep, which is what a fresh runner wants: it has no standing preferences, so state them once and let every later invocation agree.
 
+## How the machine's memory is shared
+
+You never configure this, but it explains why bleep sometimes runs fewer forks than the raw numbers suggest — and why it never runs *more*.
+
+Every bleep server on the machine runs the same **machine scheduler**. Memory is decided machine-wide, for forks only; compiles run inside the server's own heap, which is already part of the machine's used memory, and never wait for memory room (they wait for a CPU slot, and for the server's own heap gate when that heap is nearly full).
+
+**The ceiling.** Forks may fill the machine's memory up to a ceiling: physical memory minus a headroom bleep keeps free for everything that is not a fork — the OS, your IDE, a browser, the servers' own heaps growing. The headroom is `max(4 GB, RAM/8)` and is not a user setting.
+
+**What counts.** The machine's *used* memory is read from the OS each time a server wants to start a fork — every process, bleep's or not — so a browser opened mid-build simply leaves less room. A fork that has just started is charged its full heap plus overhead until the scheduler has measured it, a second later; from then on it is charged what it actually uses. A 2 GB-ceiling fork that only ever uses 600 MB is counted as 600 MB after that first second, so many more fit than the ceilings would suggest.
+
+**One guarantee.** A command with nothing running gets one working fork, always — whatever the room, whatever other servers are doing. A build never stalls completely because the machine is full; it slows down to one fork and continues. Beyond that guarantee, forks are admitted as room allows, one new fork per tick per server, oldest request first.
+
+**Warm forks first.** A test fork that has finished its suite is kept warm for the next suite of the same shape rather than killed and restarted; the scheduler reuses a warm fork before it starts a new one, and evicts warm forks that nothing will reuse, or that stand in the way of a fork that is needed now, oldest first.
+
+**Pressure.** Besides used memory, the scheduler reads the OS's own memory pressure signal (macOS's memory pressure level, Linux PSI, Windows memory load). Under *elevated* pressure no new forks start beyond the guarantee; under *critical* pressure every idle warm fork is also evicted. On a platform with no pressure signal the scheduler says so once in the server log and schedules on used memory alone.
+
+**Shared through a lock.** Every server reads the others' state and claims memory under one lock, held for microseconds. If another server holds it for longer than a second — stuck, or on a stalled disk — the waiting server still gets its guarantee and its warm reuse, and `bleep server top` names the holder.
+
+### When memory is needed elsewhere
+
+Two things make a server give memory back without being asked by its own work: the OS reports elevated pressure, or another server publishes that it has work it could not admit. Low memory with nobody waiting is neither — a warm server is not thrown away for nothing.
+
+- A **busy** server sheds the cached builds and compile analyses of every workspace it has no request for. The cost is a cold load next time that workspace is used; nothing about correctness changes.
+- An **idle** server — no client connected, nothing scheduled, and idle for five minutes — shuts itself down, so the next command starts a fresh one. One server yields at a time, the longest idle first. An IDE connected through `bleep bsp` keeps its server, since the IDE would otherwise see the build server disconnect; an MCP server does not need to, since `bleep mcp-server` reconnects on every tool call.
+
+### Opting out
+
+If a machine should not take part — a CI runner that is bleep's alone, or a platform bleep cannot measure — a server can run **unconstrained**:
+
+```bash
+bleep server config machine-scheduling unconstrained
+bleep server config machine-scheduling-clear   # back to cooperative
+```
+
+Unconstrained means no memory room, no pressure brake, no lock: `parallelism`, the server's heap gate, warm reuse and the one-fork guarantee are all that remain. A server that cannot measure its machine (an OS or architecture the probes do not support) runs unconstrained whether or not you asked, and says so in its log and in `bleep server top`.
+
 ## Small machines and CI
 
-The compile server's heap and the test forks' heaps come out of **one pot**, and a quarter of RAM is held back for everything that isn't bleep. It is worth doing the arithmetic once, because the failure mode is forks being killed at startup rather than anything that names memory.
+The compile server's heap and the forks' footprints come out of the same physical memory, and the headroom is held back for everything that isn't a fork. It is worth doing the arithmetic once, because the failure mode is forks queueing rather than anything that names memory.
 
-For a fork to be admitted, its heap must fit in:
+On a 16 GB runner the ceiling for forks is 12 GB (16 minus the 4 GB headroom), and the server's own heap is part of what is *used* under it:
 
-```
-budget = RAM − (server heap × 1.25) − max(4 GB, RAM/4)
-```
-
-On a typical 16 GB CI runner, that quarter-of-RAM reserve and the server's own footprint dominate:
-
-| server heap | reserve | fork budget | what fits |
+| server heap | used by the server (roughly) | room for forks | what fits |
 | --- | --- | --- | --- |
-| 8 GB | 4 GB | **2 GB** | one small fork, serialised |
-| 4 GB | 4 GB | **7 GB** | one 6 GB fork, or two 3 GB forks |
-| 2 GB | 4 GB | **9.5 GB** | three 3 GB forks |
+| 8 GB | ~8 GB | **~4 GB** | one or two forks, serialised |
+| 4 GB | ~4 GB | **~8 GB** | two or three 2–3 GB forks |
+| 2 GB | ~2 GB | **~10 GB** | three or four 2–3 GB forks |
 
-The trap is asking for a big compile server *and* big forks on a small box: an 8 GB server on 16 GB leaves 2 GB for everything else, so every fork queues behind every other fork and the job takes far longer than the numbers suggest. On a 16 GB runner, a 4 GB server is usually the better trade.
+The trap is asking for a big compile server *and* big forks on a small box: an 8 GB server on 16 GB leaves little under the ceiling, so forks queue behind each other and the job takes far longer than the numbers suggest. On a 16 GB runner, a 4 GB server is usually the better trade.
 
 Two rules of thumb for CI:
 
 1. **Size the server first.** It is long-lived and shared; the forks divide what's left.
-2. **Set `parallelism` explicitly.** A CI runner's core count is not a good guide to its memory, and the default is one fork per core.
-
-## What decides when something starts
-
-You never configure this, but it explains why bleep sometimes runs fewer things than the raw numbers suggest — and why it never runs *more*.
-
-There is one place that decides. The build scheduler holds every task whose dependencies are met, sorts them so the ones unblocking the most other work come first, and asks the machine whether each fits right now. Anything that fits starts; anything that doesn't stays queued and is asked again the moment a running task finishes, which is exactly when resources come back. So the order you'd want is the order you get, even when the machine is full.
-
-"Fits" is two questions:
-
-- **A slot.** `parallelism` is how many things may run at once, so this is simply whether one is free.
-- **Room for a fork.** Only work that starts a *process* asks this: test runners, sourcegen scripts, KSP, and the linkers for Scala.js, Scala Native, Kotlin/JS and Kotlin/Native. Compiles run inside the server and take a slot but no fork memory.
-
-The fork-memory budget is not a fixed number. The server continuously measures how much of the machine's non-reclaimable memory is held by **other** processes — your IDE, a browser, another build — and sizes the budget as what's left, minus a safety margin. Open something memory-hungry mid-build and bleep stops admitting new forks until there is room, rather than pushing the machine into swap; close it and bleep uses more.
-
-A fork is also charged its **measured** cost rather than its `-Xmx` ceiling: a 2 GB-ceiling fork that only ever uses 600 MB is counted as 600 MB, so many more fit than the ceilings would suggest.
+2. **Set `parallelism` to the cores you actually have.** A CI runner often advertises more cores than it will give you steadily; the default is one slot per advertised core.
 
 ## How the knobs trade off
 
 They are not independent — think of it as *peak memory ≈ per-fork heap × forks running at once*, bounded by what the machine can spare.
 
-- **Raising per-fork heap** lets a heavy suite pass, but each fork now costs more, so **fewer fit** at a given budget — effective parallelism drops.
-- **Raising parallelism** finishes the build faster, but only if each fork is small enough that they collectively fit. Past that point you get `SIGKILL`s instead of speed.
+- **Raising per-fork heap** lets a heavy suite pass, but each fork is charged more until measured, so **fewer start at once** — effective parallelism drops until the measurements come in.
+- **Raising parallelism** lets more run at once, but only if there is memory room for the forks; past that point the extra slots sit unused while forks wait for room.
 - **Lowering per-fork heap** lets more run in parallel, but a suite that needed the headroom will `OutOfMemoryError`.
 
 The practical recipe:
 
 1. **A single suite fails with `Java heap space` / `OutOfMemoryError`.** That suite needs more heap. Give *that project* a larger `platform.jvmOptions: -Xmx…`. Don't lower parallelism — the rest of the build is fine.
-2. **Many forks are killed by `SIGKILL (exit 137)` at once, especially late in a big run.** The machine is over-subscribed. Lower `parallelism` (or `parallelismRatio`), or lower a too-generous per-fork heap so more fit.
-3. **A fork is killed before it even starts** (`terminated before sending Ready — killed by SIGKILL`). Same cause as (2): the machine had no room to back a new JVM. Same fixes.
+2. **Forks are killed by `SIGKILL (exit 137)`.** The machine ran out of memory anyway: something bleep cannot see took it, or a fork grew far past its measured size between two measurements. `bleep server top` shows the machine's used memory against the ceiling and the pressure level at the time; the fix is usually a smaller server heap or a smaller per-fork heap on that machine, not a lower parallelism.
+3. **The build is slow and `top` shows forks waiting for memory.** The machine is full. Lower the server heap, lower a too-generous per-fork heap, or close what else is using the memory.
 
 ## Reading the diagnostic
 
@@ -188,4 +203,16 @@ bleep distinguishes who did the killing, because it matters for the fix:
 
 - **`Java heap space` / `OutOfMemoryError`** — the fork hit *its own* `-Xmx` ceiling. Raise that project's heap (recipe 1).
 - **`killed by SIGKILL (exit 137), not by bleep`** — the *OS* killed it, almost always memory pressure. Reduce concurrent memory (recipe 2/3). Check your system log for a memory-pressure kill to confirm.
-- **`terminated by bleep (…reason…)`** — bleep itself killed it, and the reason is stated (a suite timeout, a cancellation, pool cleanup). Not a memory problem; read the reason.
+- **`terminated by bleep (…reason…)`** — bleep itself killed it, and the reason is stated (a suite timeout, a cancellation, the scheduler evicting a warm fork for room). Not a memory problem; read the reason.
+
+## What `bleep server top` shows
+
+The dashboard's summary puts bleep's use in proportion to the machine, then one line for the scheduler:
+
+```
+Machine  12.0 GB used of 40.0 GB fork ceiling (48.0 GB − 8.0 GB headroom), 2.5 GB pending for starting forks — pressure normal
+```
+
+*Used* is the machine's memory as the scheduler's probe reads it, every process included; *pending* is what forks that have started but not yet been measured are charged; *pressure* is the OS's level, or "no pressure signal" and why. Servers running unconstrained are named with their reason, and so is a server that could not get the lock and who held it.
+
+Per server, the **Overview** tab shows CPU slots in use of that server's `parallelism`, the machine memory gauge, how many forks it holds (measured against still starting), and the lock's last outcome. The **Activity** tab lists what runs in the server's heap, each fork with its charge — `starting, charged 2560 MB bound` until measured, then `measured 1200 MB (bound 2560 MB)` — whether it is busy or warm, and what is waiting for a slot or for memory. The **Processes** tab measures the same forks from outside, by pid, so a gap between the scheduler's charge and the process's real footprint is visible.
