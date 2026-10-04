@@ -364,12 +364,16 @@ crashes.** A dead server can never hold it. The remaining danger is a holder tha
 - **macOS pressure is the compressor's churn** (`Churn`, `Pressure.normalise`). Measured on the owner's 48 GB Mac with kernel_task CPU as the ground
   truth for "overloaded" (> 90 %): the used figure stayed 42.4–42.8 GB from calm to 300 % kernel_task (anonymous 27 → 12 GB, compressor 10 → 26 GB —
   the pages moved, the sum did not), the kernel's level went to 2 forty seconds after the 90 % crossing, swapins exploded only late; compressions plus
-  decompressions went 6k–50k pages/s calm → 98k/s at 95 % → 236k/s at 111 % → 338k/s at 160 % → 411–508k/s at 268–296 %. So the probe reports the
-  cumulative counters (same `host_statistics64` call; swapins/swapouts too, for metrics), the scheduler rates them with a dt-weighted exponential average
-  (τ = 10 s: a 10 ms tick moves it by a thousandth, a 3 s slow check by a quarter; a step reaches 63 % in 10 s, 95 % in 30 s; a counter that went
-  backwards restarts the baseline), and normalises: **Elevated ≥ 75,000 pages/s, Critical ≥ 200,000 pages/s** (`PressureThresholds`, calibrated from
-  this one test), or the kernel level as a floor (2 → at least Elevated, 4 → Critical). Until the second sample there is no rate: `Pressure.Warming`,
-  the brake off, said as such rather than as Normal.
+  decompressions went 6k–50k pages/s calm → 98k/s at 95 % → 236k/s at 111 % → 338k/s at 160 % → 411–508k/s at 268–296 %. Two later runs showed the
+  shape: a **cliff, not a slope** — in 1 GB steps, +6 GB held read 20k/s and 6 % kernel_task, +7 GB read 243k/s and 154 %, and a ten-second
+  exponential average read 91k at that moment, after the damage; in 512 MB steps, free pages were the precursor (room, rule 1) and churn went 2.9k/s →
+  40.5k/s the step after free ran out. So the probe reports the cumulative counters (same `host_statistics64` call; swapins/swapouts too, for metrics),
+  the scheduler rates them as the **mean over the last 2.5 s** (`Churn`: newest sample against the oldest inside the window, thinned to one per 100 ms;
+  at 3 s slow checks the previous sample is the anchor, so a cliff is seen in full at the next check; a single 10 ms burst is averaged over the window
+  and cannot lift a calm machine over the threshold; a counter that went backwards restarts the baseline), and normalises: **Elevated ≥ 25,000
+  pages/s** (compression has started, free is gone), **Critical ≥ 100,000 pages/s** (at or past the kernel_task cliff) — `PressureThresholds`,
+  calibrated from these runs — or the kernel level as a floor (2 → at least Elevated, 4 → Critical). Until the second sample there is no rate:
+  `Pressure.Warming`, the brake off, said as such rather than as Normal.
 - A probe call that fails throws. **A missing pressure source is not a failure**: `RawPressure.Unavailable(reason)` (e.g. a Linux kernel without PSI,
   or RHEL's `psi=0` default) — a warning once at startup and in `top`, and the pressure brake is off; room still works (§9.1).
 - On Windows the JDK's `OperatingSystemMXBean` returns the same `GlobalMemoryStatusEx` numbers (verified in CI); JNI is still needed for the low-memory

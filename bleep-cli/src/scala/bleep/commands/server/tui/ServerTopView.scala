@@ -157,8 +157,8 @@ object ServerTopView {
     }
   }
 
-  /** The machine scheduler across every server (design §10 step 12): how much of the machine's memory is in use against the ceiling forks may fill, what is
-    * pending for forks still starting, the OS's pressure, and the servers standing outside the arrangement — running unconstrained, or kept out by the lock.
+  /** The machine scheduler across every server (design §10 step 12): what the machine has available against the reserve, what is pending for forks still
+    * starting, the OS's pressure, and the servers standing outside the arrangement — running unconstrained, or kept out by the lock.
     *
     * The machine reading comes from whichever server probed most recently: there is one machine, and every cooperative server reads the same probe under the
     * same lock. Pending is summed from every server's `state.json`, read here without the lock — the same files the servers read about each other, so the

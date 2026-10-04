@@ -106,14 +106,15 @@ object Pressure {
 
 /** The thresholds [[Pressure.normalise]] applies where the platform does not judge for us.
   *
-  * The macOS churn values are CALIBRATED FROM ONE TEST — the owner's 48 GB Mac driven to overload, with kernel_task CPU as the ground truth (design §9): churn
-  * 98k pages/s at 95 % kernel_task, 236k at 111 %, 338k at 160 %, under 50k calm. The others are OPEN (design §11): not measured on a real machine yet. All are
-  * parameters precisely so that the numbers are visible at every call site and in `top`, rather than constants buried in a match.
+  * The macOS churn values are CALIBRATED FROM THE OWNER'S TWO RUNS on a 48 GB Mac, with kernel_task CPU above 90 % as the ground truth (design §9): calm 1–7k
+  * pages/s; 40k/s the moment free memory was gone and compression had started (kernel_task 22 %); 98k/s at the first 90 % crossing; 243k/s at 154 %. The others
+  * are OPEN (design §11): not measured on a real machine yet. All are parameters precisely so that the numbers are visible at every call site and in `top`,
+  * rather than constants buried in a match.
   *
   * @param macOsChurnElevatedPagesPerSecond
-  *   macOS: compressions + decompressions per second at or above this is `Elevated` — below the 98k/s seen at the first overload reading
+  *   macOS: compressions + decompressions per second at or above this is `Elevated` — compression has started, free memory is gone (40k/s seen there)
   * @param macOsChurnCriticalPagesPerSecond
-  *   macOS: at or above this is `Critical` — between the 98k/s of a just-overloaded machine and the 236k/s of one well past it
+  *   macOS: at or above this is `Critical` — the machine is at or past the kernel_task cliff (98k/s at the crossing, 243k/s a step later)
   *
   * @param linuxPsiSomeAvg10ElevatedPercent
   *   Linux: `some avg10` above this is `Elevated`. Design §9 estimates ≈10 %, to be measured.
@@ -152,8 +153,8 @@ object PressureThresholds {
 
   /** The design's estimates, pending measurement (§11). Named "provisional" so no call site mistakes them for tuned values. */
   val provisional: PressureThresholds = PressureThresholds(
-    macOsChurnElevatedPagesPerSecond = 75_000.0,
-    macOsChurnCriticalPagesPerSecond = 200_000.0,
+    macOsChurnElevatedPagesPerSecond = 25_000.0,
+    macOsChurnCriticalPagesPerSecond = 100_000.0,
     linuxPsiSomeAvg10ElevatedPercent = 10.0,
     windowsMemoryLoadElevatedPercent = 90,
     windowsCommitElevatedFraction = 0.90

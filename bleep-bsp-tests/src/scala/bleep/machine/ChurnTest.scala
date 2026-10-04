@@ -3,19 +3,19 @@ package bleep.machine
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-/** The compressor churn average (design §9), driven with the readings from the owner's overload test and with the cadences the scheduler samples at. */
+/** The compressor churn rate (design §9), driven with the owner's two overload runs and with the cadences the scheduler samples at. */
 class ChurnTest extends AnyFunSuite with Matchers {
   private val t = PressureThresholds.provisional
 
-  /** Feeds a sequence of (seconds since start, pages/s held over the previous interval) as cumulative counters; returns the pressure after each sample. */
-  private def drive(ratesPerInterval: List[(Long, Double)]): List[Pressure] = {
+  /** Feeds (seconds since start, pages/s held over the previous interval) as cumulative counters; returns the pressure after each sample. */
+  private def drive(ratesPerInterval: List[(Double, Double)]): List[Pressure] = {
     var state: Option[Churn.State] = None
     var pages = 0L
-    var lastS = 0L
+    var lastS = 0.0
     ratesPerInterval.map { case (atS, rate) =>
       pages += math.round(rate * (atS - lastS))
       lastS = atS
-      val next = Churn.update(state, atS * 1000L, pages)
+      val next = Churn.update(state, math.round(atS * 1000.0), pages)
       state = Some(next)
       Pressure.normalise(RawPressure.MacOs(1, pages, 0L, 0L, 0L), t, next.rate)
     }
@@ -28,35 +28,45 @@ class ChurnTest extends AnyFunSuite with Matchers {
     s2.rate shouldBe Churn.Rate.PagesPerSecond(20_000.0)
   }
 
-  test("a calm machine stays Normal: the owner's calm readings, sampled every seven seconds") {
-    // calm: 6k–50k pages/s, level 1
-    val samples = List(0L -> 0.0, 7L -> 6_000.0, 14L -> 50_000.0, 21L -> 30_000.0, 28L -> 48_000.0, 35L -> 12_000.0, 42L -> 50_000.0)
-    drive(samples).drop(1) should contain only Pressure.Normal
-  }
-
-  test("the first overload reading, 98k pages/s, becomes Elevated within a few samples and stays there") {
-    val samples = List(0L -> 0.0, 7L -> 40_000.0, 14L -> 98_000.0, 21L -> 98_000.0, 28L -> 98_000.0, 35L -> 98_000.0)
-    val pressures = drive(samples)
+  test("run 2: every row before free memory ran out is Normal, and the row where compression started is Elevated") {
+    // held GB → churn/s per 7 s interval: 0.0 1.5k, 1.0 5.3k, 2.5 1.1k, 3.5 6.6k, 4.0 2.9k (free 0.06 GB), 4.5 40.5k (compression has started)
+    val pressures = drive(List(0.0 -> 0.0, 7.0 -> 1_500.0, 14.0 -> 5_300.0, 21.0 -> 1_100.0, 28.0 -> 6_600.0, 35.0 -> 2_900.0, 42.0 -> 40_500.0))
+    pressures.slice(1, 6) should contain only Pressure.Normal
     pressures.last shouldBe Pressure.Elevated
-    // Smoothing: one 7 s interval at 98k over a 40k baseline does not yet cross 75k (alpha ≈ 0.50 → ≈69k); the next does.
-    pressures(2) shouldBe Pressure.Normal
-    pressures(3) shouldBe Pressure.Elevated
   }
 
-  test("a machine well past overload — 236k and up — is Critical, and the kernel's level 2 arriving late changes nothing") {
-    val samples = List(0L -> 0.0, 7L -> 50_000.0, 14L -> 236_000.0, 21L -> 338_000.0, 28L -> 411_000.0)
-    drive(samples).last shouldBe Pressure.Critical
+  test("run 1: the cliff — 20k/s one interval, 243k/s the next — is Critical at the very next sample, not after a long average") {
+    val pressures = drive(List(0.0 -> 0.0, 7.0 -> 20_000.0, 14.0 -> 243_000.0))
+    pressures(1) shouldBe Pressure.Normal
+    pressures(2) shouldBe Pressure.Critical
   }
 
-  test("the average is weighted by the interval, so 10 ms ticks and 3 s slow checks agree on a steady rate") {
-    var fast: Option[Churn.State] = None
-    var slow: Option[Churn.State] = None
-    (0 to 3000).foreach { i => fast = Some(Churn.update(fast, i * 10L, i * 1_000L)) } // 100k pages/s, every 10 ms for 30 s
-    (0 to 10).foreach { i => slow = Some(Churn.update(slow, i * 3000L, i * 300_000L)) } // 100k pages/s, every 3 s for 30 s
-    val Churn.Rate.PagesPerSecond(f) = fast.get.rate: @unchecked
-    val Churn.Rate.PagesPerSecond(s) = slow.get.rate: @unchecked
-    f shouldBe 100_000.0 +- 1.0
-    s shouldBe 100_000.0 +- 1.0
+  test("the first 90 % crossing, 98k/s, is Elevated; it is Critical from 100k/s") {
+    drive(List(0.0 -> 0.0, 3.0 -> 98_000.0)).last shouldBe Pressure.Elevated
+    drive(List(0.0 -> 0.0, 3.0 -> 100_000.0)).last shouldBe Pressure.Critical
+  }
+
+  test("at 10 ms ticks the rate is the mean over the window: a steady rate reads exactly, and a single burst does not lift a calm machine over the threshold") {
+    var state: Option[Churn.State] = None
+    var pages = 0L
+    (0 to 300).foreach { i => pages += 50L; state = Some(Churn.update(state, i * 10L, pages)) } // 5k pages/s for 3 s
+    val Churn.Rate.PagesPerSecond(steady) = state.get.rate: @unchecked
+    steady shouldBe 5_000.0 +- 50.0
+    state.get.samples.size should be <= 30 // thinned, not one per tick
+    // One 10 ms burst of 20k pages (a 320 MB compression) on top: averaged over the window, still under 25k/s.
+    pages += 20_000L
+    state = Some(Churn.update(state, 3010L, pages))
+    val Churn.Rate.PagesPerSecond(afterBurst) = state.get.rate: @unchecked
+    afterBurst should be < 25_000.0
+    afterBurst should be > 5_000.0
+  }
+
+  test("3 s slow checks, wider than the window, still rate every interval: the previous sample is the anchor") {
+    var state: Option[Churn.State] = None
+    (0 to 10).foreach { i => state = Some(Churn.update(state, i * 3000L, i * 300_000L)) } // 100k pages/s, every 3 s for 30 s
+    val Churn.Rate.PagesPerSecond(slow) = state.get.rate: @unchecked
+    slow shouldBe 100_000.0 +- 1.0
+    state.get.samples.size shouldBe 2
   }
 
   test("a counter that went backwards is a new baseline: no rate until the next sample; a repeated instant rates nothing") {
