@@ -27,7 +27,8 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
       cpn(scriptProject),
       "gen.Main",
       model.JsonSet(SortedSet.from(globs.map(RelPath.force))),
-      model.JsonSet.empty
+      model.JsonSet.empty,
+      None
     )
 
   /** Every build here pins one, because [[ProjectDigest.computeAll]] refuses to digest a build whose toolchain is whatever `java` is on PATH. Which JDK does

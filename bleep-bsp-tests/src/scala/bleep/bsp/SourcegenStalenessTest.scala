@@ -25,7 +25,7 @@ class SourcegenStalenessTest extends AnyFunSuite with Matchers {
     model.CrossProjectName(model.ProjectName(name), None)
 
   private def script(globs: String*): model.ScriptDef.Main =
-    model.ScriptDef.Main(cpn("scripts"), "gen.Main", model.JsonSet(SortedSet.from(globs.map(RelPath.force))), model.JsonSet.empty)
+    model.ScriptDef.Main(cpn("scripts"), "gen.Main", model.JsonSet(SortedSet.from(globs.map(RelPath.force))), model.JsonSet.empty, None)
 
   private def emptyDirs: ProjectPaths.DirsByOrigin =
     ProjectPaths.DirsByOrigin(SortedSet.empty, Map.empty, Map.empty, None, Nil, stamps = None)

@@ -26,7 +26,7 @@ class BuildProjectRename(from: model.ProjectName, to: model.ProjectName) extends
 
     def rewriteScriptDefs(s: model.ScriptDef): model.ScriptDef =
       s match {
-        case s @ model.ScriptDef.Main(model.CrossProjectName(`from`, _), _, _, _) =>
+        case s @ model.ScriptDef.Main(model.CrossProjectName(`from`, _), _, _, _, _) =>
           s.copy(project = model.CrossProjectName(to, s.project.crossId))
         case s => s
       }

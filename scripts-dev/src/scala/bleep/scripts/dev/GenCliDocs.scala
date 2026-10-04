@@ -28,7 +28,7 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
     Files.createDirectories(outDir)
 
     val builder = List.newBuilder[CommandDoc]
-    builder ++= CliDocsWalker.topLevelSubcommands(bleep.Main.hasBuildOpts(started))
+    builder ++= CliDocsWalker.topLevelSubcommands(bleep.Main.builtinBuildOpts(started))
 
     // Reach the no-build commands too — these include `import-maven`, `config`,
     // `install-tab-completions-*`, etc. Construct a non-existing build loader
@@ -41,20 +41,15 @@ object GenCliDocs extends BleepScript("GenCliDocs") {
     )
 
     // Merge by name — when a top-level appears in both, prefer the
-    // hasBuildOpts version (which is what the user sees in a built repo).
+    // builtinBuildOpts version (which is what the user sees in a built repo).
     val seen = scala.collection.mutable.LinkedHashMap.empty[String, CommandDoc]
     builder.result().foreach { c =>
       if (!seen.contains(c.name)) seen(c.name) = c
     }
 
-    // Hide:
-    // - underscore-prefixed internal commands (_complete, _complete-zsh)
-    // - user-defined scripts from the current build's `scripts:` section —
-    //   those are project-specific subcommands, not general CLI surface.
-    val userScriptNames = started.build.scripts.keys.map(_.value).toSet
+    // Hide underscore-prefixed internal commands (_complete, _complete-zsh). The build's own scripts never got here: builtinBuildOpts leaves them out.
     val docs = seen.values
       .filter(c => !c.name.startsWith("_"))
-      .filter(c => !userScriptNames.contains(c.name))
       .toList
       .sortBy(_.name)
 

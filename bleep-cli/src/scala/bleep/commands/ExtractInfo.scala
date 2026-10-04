@@ -29,8 +29,22 @@ object ExtractInfo {
   case class ScriptInfo(
       name: String,
       project: String,
-      mainClass: String
+      mainClass: String,
+      description: Option[String]
   )
+
+  /** One entry per script definition, sorted by script name. */
+  def scriptInfos(build: model.Build): List[ScriptInfo] =
+    build.scripts.toList.sortBy(_._1.value).flatMap { case (scriptName, scriptDefs) =>
+      scriptDefs.values.collect { case model.ScriptDef.Main(project, main, _, _, description) =>
+        ScriptInfo(
+          name = scriptName.value,
+          project = project.value,
+          mainClass = main,
+          description = description
+        )
+      }
+    }
 
   case class ScriptsOutput(
       scripts: List[ScriptInfo]
@@ -67,7 +81,7 @@ object ExtractInfo {
     Encoder.forProduct1("groups")(_.groups)
 
   implicit val scriptInfoEncoder: Encoder[ScriptInfo] =
-    Encoder.forProduct3("name", "project", "mainClass")(s => (s.name, s.project, s.mainClass))
+    Encoder.forProduct4("name", "project", "mainClass", "description")(s => (s.name, s.project, s.mainClass, s.description))
 
   implicit val scriptsOutputEncoder: Encoder[ScriptsOutput] =
     Encoder.forProduct1("scripts")(_.scripts)
@@ -135,19 +149,7 @@ object ExtractInfo {
   /** Outputs scripts as JSON - script name, project, and main class */
   case object Scripts extends BleepBuildCommand {
     override def run(started: Started): Either[BleepException, Unit] = {
-      val build = started.build
-
-      val scripts = build.scripts.toList.sortBy(_._1.value).flatMap { case (scriptName, scriptDefs) =>
-        scriptDefs.values.collect { case model.ScriptDef.Main(project, main, _, _) =>
-          ScriptInfo(
-            name = scriptName.value,
-            project = project.value,
-            mainClass = main
-          )
-        }
-      }
-
-      val output = ScriptsOutput(scripts = scripts)
+      val output = ScriptsOutput(scripts = scriptInfos(started.build))
       CommandResult.print(CommandResult.success(output))
       Right(())
     }
@@ -159,7 +161,7 @@ object ExtractInfo {
       val build = started.build
 
       val sourcegens = build.explodedProjects.toList.sortBy(_._1.value).flatMap { case (crossName, project) =>
-        project.sourcegen.values.toList.collect { case model.ScriptDef.Main(sourceGenProject, main, _, _) =>
+        project.sourcegen.values.toList.collect { case model.ScriptDef.Main(sourceGenProject, main, _, _, _) =>
           SourceGenInfo(
             project = crossName.value,
             sourceGenProject = sourceGenProject.value,
@@ -207,19 +209,11 @@ object ExtractInfo {
         }
 
       // Scripts
-      val scripts = build.scripts.toList.sortBy(_._1.value).flatMap { case (scriptName, scriptDefs) =>
-        scriptDefs.values.collect { case model.ScriptDef.Main(project, main, _, _) =>
-          ScriptInfo(
-            name = scriptName.value,
-            project = project.value,
-            mainClass = main
-          )
-        }
-      }
+      val scripts = scriptInfos(build)
 
       // SourceGens
       val sourcegens = build.explodedProjects.toList.sortBy(_._1.value).flatMap { case (crossName, project) =>
-        project.sourcegen.values.toList.collect { case model.ScriptDef.Main(sourceGenProject, main, _, _) =>
+        project.sourcegen.values.toList.collect { case model.ScriptDef.Main(sourceGenProject, main, _, _, _) =>
           SourceGenInfo(
             project = crossName.value,
             sourceGenProject = sourceGenProject.value,

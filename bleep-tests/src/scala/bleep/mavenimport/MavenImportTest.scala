@@ -571,7 +571,7 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
       val template = buildFile.templates.value.getOrElse(templateId, sys.error(s"expected $templateId in generated build"))
       assert(template.maxConcurrentSuites === Some(1))
       assert(template.testFork === Some(model.TestForkMode.PerProject))
-      assert(template.sourcegen.values.exists { case model.ScriptDef.Main(project, main, _, _) =>
+      assert(template.sourcegen.values.exists { case model.ScriptDef.Main(project, main, _, _, _) =>
         project.name.value === "scripts" && main === "bleep.plugin.quarkus.QuarkusTestModelGen"
       })
       // No platform block: the sourcegen declares the fork's JVM options at build time by writing them to the project's forkJvmOptions file.

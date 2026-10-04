@@ -55,6 +55,7 @@
   - bleep remote-cache pull
   - bleep remote-cache push
 - bleep run
+- bleep script
 - bleep server
   - bleep server top
   - bleep server ls

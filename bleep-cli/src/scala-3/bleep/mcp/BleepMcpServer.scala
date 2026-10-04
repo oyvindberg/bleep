@@ -951,11 +951,12 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
     /** List scripts defined in the build. */
     private def listScripts(started: Started): IO[String] = IO {
       val scripts = started.build.scripts.toList.sortBy(_._1.value).flatMap { case (scriptName, scriptDefs) =>
-        scriptDefs.values.collect { case model.ScriptDef.Main(project, main, _, _) =>
+        scriptDefs.values.collect { case model.ScriptDef.Main(project, main, _, _, description) =>
           Json.obj(
             "name" -> Json.fromString(scriptName.value),
             "project" -> Json.fromString(project.value),
-            "mainClass" -> Json.fromString(main)
+            "mainClass" -> Json.fromString(main),
+            "description" -> description.fold(Json.Null)(Json.fromString)
           )
         }
       }
@@ -976,7 +977,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         case Some(sn) =>
           val scriptDefs = started.build.scripts(sn).values
           scriptDefs.headOption match {
-            case Some(model.ScriptDef.Main(project, main, _, _)) =>
+            case Some(model.ScriptDef.Main(project, main, _, _, _)) =>
               runProject(started, project, Some(main), args, timeoutSeconds, context)
             case _ =>
               IO.raiseError(new BleepException.Text(s"Script '$name' has no main class definition"))

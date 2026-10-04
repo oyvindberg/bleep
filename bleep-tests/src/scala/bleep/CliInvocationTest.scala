@@ -40,6 +40,35 @@ class CliInvocationTest extends AnyFunSuite {
     )
   }
 
+  test("'--help' lists the build's scripts in their own section, after bleep's subcommands") {
+    // this repo's own build: `native-image` is one of its scripts
+    val lines = callMainSlurpingStdIo(Array("--help")).stdOutBuffer.toString.linesIterator.toList
+    val (beforeScripts, scriptsSection) = lines.span(line => !line.startsWith("Scripts"))
+    assert(scriptsSection.exists(_.trim.startsWith("native-image ")))
+    assert(!beforeScripts.exists(_.trim == "native-image"))
+  }
+
+  test("script descriptions line up, and a script without one shows what it runs") {
+    def main(project: String, cls: String, description: Option[String]): model.JsonList[model.ScriptDef] =
+      model.JsonList(
+        List(model.ScriptDef.Main(model.CrossProjectName(model.ProjectName(project), None), cls, model.JsonSet.empty, model.JsonSet.empty, description))
+      )
+    val rendered = commands.ListScripts.render(
+      List(
+        model.ScriptName("a") -> main("scripts", "s.A", None),
+        model.ScriptName("long-name") -> main("scripts", "s.B", Some("does b"))
+      )
+    )
+    assert(rendered == List("a          (scripts/s.A)", "long-name  does b"))
+  }
+
+  test("a script's `description` survives a YAML round trip") {
+    val yaml = "main: s.A\nproject: scripts\ndescription: does a\n"
+    val parsed = bleep.yaml.parse(yaml).flatMap(_.as[model.ScriptDef]).toTry.get
+    assert(parsed.asInstanceOf[model.ScriptDef.Main].description == Some("does a"))
+    assert(parsed.asJson.as[model.ScriptDef].toTry.get == parsed)
+  }
+
   private val scriptNames = Set("myscript", "native-image")
 
   test("script invocation forwards plain trailing args unchanged") {

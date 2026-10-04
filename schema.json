@@ -814,6 +814,10 @@
         "main": {
           "type": "string"
         },
+        "description": {
+          "type": "string",
+          "description": "one line saying what the script does, shown by `bleep script` and in the scripts section of `bleep --help`"
+        },
         "sourceGlobs": {
           "description": "extra directories the generator reads, relative to the folder of THIS project (the one declaring `sourcegen`), not the script project. They are real inputs: a change under them re-runs the generator, changes the remote-cache key, shows up in `bleep build invalidated`, and wakes up `--watch`. Despite the name there is no glob matching, entries are plain directory paths. The source and resource folders of the script project and its dependencies are already inputs and do not need listing. See https://bleep.build/docs/concepts/sourcegen#what-counts-as-an-input",
           "oneOf": [

@@ -40,7 +40,7 @@ class BuildProjectMergeInto(projectName: model.ProjectName, into: model.ProjectN
 
   def rewriteScriptDef(s: model.ScriptDef): model.ScriptDef =
     s match {
-      case s @ model.ScriptDef.Main(model.CrossProjectName(`projectName`, _), _, _, _) =>
+      case s @ model.ScriptDef.Main(model.CrossProjectName(`projectName`, _), _, _, _, _) =>
         s.copy(project = model.CrossProjectName(into, s.project.crossId))
       case s => s
     }

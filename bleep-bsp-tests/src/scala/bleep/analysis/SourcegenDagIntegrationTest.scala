@@ -40,7 +40,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     CrossProjectName(ProjectName(name), None)
 
   private def script(scriptProject: CrossProjectName, main: String): ScriptDef.Main =
-    ScriptDef.Main(scriptProject, main, JsonSet.empty, JsonSet.empty)
+    ScriptDef.Main(scriptProject, main, JsonSet.empty, JsonSet.empty, None)
 
   // ==========================================================================
   // DAG Construction Tests
@@ -173,7 +173,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     val scriptsProject = projectName("scripts")
     val plain = script(scriptsProject, "gen.Shared")
     // same script and main, but `b` also declares a project the generator reads
-    val withInput = ScriptDef.Main(scriptsProject, "gen.Shared", JsonSet.empty, JsonSet(input))
+    val withInput = ScriptDef.Main(scriptsProject, "gen.Shared", JsonSet.empty, JsonSet(input), None)
 
     val plan = SourcegenPlan(
       perProject = Map(a -> Set(plain), b -> Set(withInput)),

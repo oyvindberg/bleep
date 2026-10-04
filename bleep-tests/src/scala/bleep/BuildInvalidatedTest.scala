@@ -65,7 +65,7 @@ class BuildInvalidatedTest extends AnyFunSuite with Matchers {
     val scripts = cpn("scripts")
     val app = model.Project.empty.copy(
       dependsOn = model.JsonSet(SortedSet(model.ProjectRef(model.ProjectName("lib")))),
-      sourcegen = model.JsonSet(SortedSet(model.ScriptDef.Main(scripts, "my.Gen", model.JsonSet.empty, model.JsonSet.empty): model.ScriptDef))
+      sourcegen = model.JsonSet(SortedSet(model.ScriptDef.Main(scripts, "my.Gen", model.JsonSet.empty, model.JsonSet.empty, None): model.ScriptDef))
     )
     val build = makeBuild(
       "lib" -> model.Project.empty,

@@ -17,8 +17,16 @@ object ScriptDef {
   /** @param inputs
     *   projects whose output the script reads (their compiled classes, by path from the build model): built before it runs, a change to their classes re-runs
     *   it, and never on anyone's classpath because of this. The `sourcegen:` counterpart of `postCompile.inputs`.
+    * @param description
+    *   one line saying what the script does, shown by `bleep script` and in `bleep --help`
     */
-  case class Main(project: CrossProjectName, main: String, sourceGlobs: JsonSet[RelPath], inputs: JsonSet[CrossProjectName]) extends ScriptDef {
+  case class Main(
+      project: CrossProjectName,
+      main: String,
+      sourceGlobs: JsonSet[RelPath],
+      inputs: JsonSet[CrossProjectName],
+      description: Option[String]
+  ) extends ScriptDef {
     def folderName: String = main
   }
 
@@ -26,13 +34,20 @@ object ScriptDef {
     implicit val codec: Codec.AsObject[Main] = deriveCodec
   }
 
+  /** What `bleep script` and `bleep --help` say about a script: the descriptions of its entries, in order. `None` when no entry has one. */
+  def description(scriptDefs: Seq[ScriptDef]): Option[String] =
+    scriptDefs.flatMap { case x: Main => x.description }.distinct match {
+      case Seq()     => None
+      case described => Some(described.mkString("; "))
+    }
+
   val fromString: Decoder[ScriptDef] =
     Decoder.instance { c =>
       c.as[String].flatMap { str =>
         str.split("/") match {
           case Array(projectName, main) =>
             CrossProjectName.decodes.decodeJson(Json.fromString(projectName)).map { crossProjectName =>
-              ScriptDef.Main(crossProjectName, main, JsonSet.empty, JsonSet.empty)
+              ScriptDef.Main(crossProjectName, main, JsonSet.empty, JsonSet.empty, None)
             }
 
           case _ =>

@@ -52,7 +52,8 @@ class SourceGenIntegrationTest extends AnyFunSuite with Matchers with PlatformTe
       project = model.CrossProjectName(model.ProjectName("scripts"), None),
       main = "bleep.scripts.GenSources",
       sourceGlobs = model.JsonSet.empty,
-      inputs = model.JsonSet.empty
+      inputs = model.JsonSet.empty,
+      description = None
     )
     val forProjects = Set(
       model.CrossProjectName(model.ProjectName("myapp"), Some(model.CrossId("jvm3")))
