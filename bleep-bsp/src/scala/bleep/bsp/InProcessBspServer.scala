@@ -50,6 +50,7 @@ object InProcessBspServer {
                   logger,
                   machine = machine,
                   requests = requests,
+                  forks = new bleep.machine.ForkRegistry,
                   heapMonitor = HeapMonitor.system,
                   kspMutexes = new KspMutexes,
                   buildCache = new BuildCache(

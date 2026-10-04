@@ -89,6 +89,7 @@ class CopyStateEndpointTest extends AnyFunSuite with Matchers {
       logger,
       machine = bleep.MachineResources.forThisMachine(totalCpu = 4, logger = logger),
       requests = requests,
+      forks = new bleep.machine.ForkRegistry,
       heapMonitor = HeapMonitor.system,
       kspMutexes = new KspMutexes,
       buildCache = new BuildCache(4, analysisCache, requests),

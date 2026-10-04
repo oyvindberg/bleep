@@ -1,5 +1,6 @@
 package bleep.testing
 
+import bleep.machine.ForkRegistry
 import bleep.{MachineResources, ProcessMemory}
 import cats.effect._
 import cats.effect.std.{Queue, Semaphore}
@@ -181,13 +182,16 @@ object JvmPool {
     *   Maximum number of JVMs to run concurrently
     * @param jvmCommand
     *   Path to the java binary (e.g., started.jvmCommand)
+    * @param forks
+    *   the daemon's register of live forks; every JVM this pool starts is registered there for as long as it lives
     */
   def create(
       maxConcurrency: Int,
       jvmCommand: Path,
       workingDirectory: Path,
       machine: MachineResources,
-      listener: JvmPoolListener
+      listener: JvmPoolListener,
+      forks: ForkRegistry
   ): Resource[IO, JvmPool] =
     Resource.make(
       for {
@@ -211,7 +215,8 @@ object JvmPool {
         jvmCommand,
         workingDirectory,
         costs,
-        ProcessMemory.system
+        ProcessMemory.system,
+        forks
       )
     )(_.shutdown)
 
@@ -602,7 +607,8 @@ object JvmPool {
       jvmCommand: Path,
       workingDirectory: Path,
       costs: ForkCostModel,
-      processMemory: ProcessMemory
+      processMemory: ProcessMemory,
+      forks: ForkRegistry
   ) extends JvmPool {
 
     override def acquire(
@@ -671,7 +677,7 @@ object JvmPool {
       */
     private def destroy(jvm: ManagedJvm, destroyReason: String): IO[Unit] =
       observeCost(jvm).attempt >> IO.blocking(jvm.kill(destroyReason, graceMillis = 10000)).attempt >> announceEnd(jvm).attempt >> allJvms.update(_ - jvm) >>
-        jvm.releaseMemory
+        IO(forks.unregister(jvm.process.pid()): Unit) >> jvm.releaseMemory
 
     /** Announced after `kill`, so the exit description is final and `killedByUs` is set — that flag is the only thing separating a fork bleep terminated from
       * one the OS killed, since both report exit 137.
@@ -915,7 +921,7 @@ object JvmPool {
 
                 new ManagedJvm(process, stdin, stdout, stderr, processStdout, protocolSocket, key, jvmCommand, releaseMemory, exitLogPath, listener)
               }
-              .flatTap(jvm => allJvms.update(_ + jvm))
+              .flatTap(jvm => allJvms.update(_ + jvm) >> IO(forks.register(liveFork(jvm, label, jvmOptions))))
               .flatTap(jvm =>
                 waitForReady(jvm).onError { case _ =>
                   IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
@@ -1008,6 +1014,7 @@ object JvmPool {
           // would have a fork_start and never a fork_end, and their lifetimes would be unknowable.
           _ <- jvms.toList.traverse_(jvm => announceEnd(jvm).attempt)
           _ <- allJvms.set(Set.empty)
+          _ <- IO(jvms.foreach(jvm => forks.unregister(jvm.process.pid()): Unit))
           _ <- IO(pool.clear())
           // Backstop for the whole scheme: every process-lifetime reservation is returned here, so a
           // pool that is torn down can never leave the machine's memory budget permanently consumed —
@@ -1018,6 +1025,19 @@ object JvmPool {
 
     override def size: IO[Int] =
       allJvms.get.map(_.size)
+
+    /** What the daemon-wide register records about a fork this pool started: mirrors `allJvms` exactly — added where a JVM is tracked, removed where it is
+      * destroyed or shut down — so the two never disagree about what is alive.
+      */
+    private def liveFork(jvm: ManagedJvm, label: String, jvmOptions: List[String]): ForkRegistry.LiveFork =
+      ForkRegistry.LiveFork(
+        pid = jvm.process.pid(),
+        label = label,
+        key = jvm.key.costKey,
+        heapBoundMb = parseXmxMb(jvmOptions),
+        startedAtEpochMs = jvm.startedAtMs,
+        kill = reason => jvm.kill(reason, graceMillis = 10000)
+      )
 
     /** Return a JVM to the pool for reuse — or destroy it.
       *

@@ -251,6 +251,7 @@ class BspTestHarness(
       Loggers.stderr(LogPatterns.logFile),
       machine = bleep.MachineResources.forThisMachine(totalCpu = Runtime.getRuntime.availableProcessors(), logger = Loggers.stderr(LogPatterns.logFile)),
       requests = harnessRequests,
+      forks = new bleep.machine.ForkRegistry,
       heapMonitor = HeapMonitor.system,
       // One server per harness, so fresh daemon-scoped state is the right scope here.
       kspMutexes = new KspMutexes,

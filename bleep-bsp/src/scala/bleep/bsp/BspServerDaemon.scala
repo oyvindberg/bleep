@@ -245,6 +245,8 @@ object BspServerDaemon {
     )
     // The daemon's in-flight requests: one register for every connection and workspace this daemon serves, handed to each connection below.
     val requests = new RequestRegistry
+    // The daemon's live forked JVMs, likewise one register for every pool of every connection (design §10 step 10).
+    val forks = new bleep.machine.ForkRegistry
 
     // Track what the machine can actually spare, for as long as the daemon lives.
     //
@@ -482,6 +484,7 @@ object BspServerDaemon {
                   logger.withContext("client", connId),
                   machine,
                   requests,
+                  forks,
                   kspMutexes,
                   buildCache,
                   analysisCache,
@@ -503,6 +506,7 @@ object BspServerDaemon {
                       logger.withContext("client", connId),
                       machine,
                       requests,
+                      forks,
                       kspMutexes,
                       buildCache,
                       analysisCache,
@@ -559,6 +563,7 @@ object BspServerDaemon {
       logger: Logger,
       machine: MachineResources,
       requests: RequestRegistry,
+      forks: bleep.machine.ForkRegistry,
       kspMutexes: KspMutexes,
       buildCache: BuildCache,
       analysisCache: bleep.analysis.AnalysisCache,
@@ -573,6 +578,7 @@ object BspServerDaemon {
         logger,
         machine = machine,
         requests = requests,
+        forks = forks,
         heapMonitor = HeapMonitor.system,
         kspMutexes = kspMutexes,
         buildCache = buildCache,

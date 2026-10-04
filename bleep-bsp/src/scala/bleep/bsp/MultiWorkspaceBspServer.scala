@@ -66,6 +66,8 @@ class MultiWorkspaceBspServer(
     machine: MachineResources,
     /** The daemon's in-flight requests, shared by every connection; see [[RequestRegistry]]. */
     requests: RequestRegistry,
+    /** The daemon's live forked JVMs, shared by every connection; see [[bleep.machine.ForkRegistry]]. */
+    forks: bleep.machine.ForkRegistry,
     heapMonitor: HeapMonitor,
     kspMutexes: KspMutexes,
     buildCache: BuildCache,
@@ -2517,7 +2519,7 @@ class MultiWorkspaceBspServer(
 
         // Create JVM pool for test execution. The machine governor caps concurrent forks (cores +
         // fork-memory budget) across ALL clients — the per-pool maxParallelism only bounds this run.
-        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir, machine, BspMetrics.jvmPoolListener).use {
+        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir, machine, BspMetrics.jvmPoolListener, forks).use {
           jvmPool =>
             // Per-test-run map populated by the AP DAG handler and read by the compile handler. KSP runs as a separate process and emits files directly; no
             // intermediate compile-time data flow, so no equivalent map.
