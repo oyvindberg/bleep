@@ -31,6 +31,7 @@ bleep ci [flags]
 | `--flamegraph` | generate execution trace (open in chrome://tracing or ui.perfetto.dev) |
 | `--cancel` | cancel any running build before starting |
 | `--junit-report <string>` | write JUnit XML reports to this directory |
+| `--show-output` | also print what passing test suites wrote to stdout/stderr (failing suites' output is always shown) |
 | `--diff <history id>` | after the run, print only what changed vs a recorded run: bare --diff compares against the most recent test run — a ci run is recorded as one (with --watch: the previous cycle), --diff=&lt;id&gt; against that history entry (with --watch: a fixed baseline for every cycle) |
 | `--output, -o <string>` | with --diff: 'text' renders the diff for humans (default), 'json' prints the diff document |
 

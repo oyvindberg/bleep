@@ -61,6 +61,7 @@
   - bleep server status
   - bleep server kill
   - bleep server stop-all
+  - bleep server prune
   - bleep server restart
   - bleep server log
   - bleep server metrics

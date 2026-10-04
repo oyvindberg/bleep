@@ -55,7 +55,12 @@ case class BuildState(
       * classes that no framework claimed. Kept as a list rather than a count so the verdict can name them.
       */
     testProjectsWithoutSuites: List[CrossProjectName],
-    pendingOutput: Map[SuiteKey, List[String]],
+    pendingOutput: Map[SuiteKey, List[OutputLine]],
+    /** Captured output of suites that finished without a failure, newest first during accumulation. A failing suite's output travels on its [[TestFailure]]s;
+      * this is everything else, kept so `--show-output` can print it. The daemon already holds every output line in the run's transcript, so keeping it here
+      * adds no new class of memory use.
+      */
+    passedSuiteOutputs: List[SuiteOutput],
     totalTaskTimeMs: Long,
     /** The compile server died mid-run. Not a compile failure — the compiles that finished really did finish — but the run did not complete, so a summary that
       * looked clean while the command failed left the reader to reconcile two blocks that seemed to disagree.
@@ -110,6 +115,7 @@ case class BuildState(
       linkFailures = linkFailures.reverse,
       skippedProjects = skippedProjects.reverse,
       testProjectsWithoutSuites = testProjectsWithoutSuites.reverse,
+      passedSuiteOutputs = passedSuiteOutputs.reverse,
       durationMs = durationMs,
       totalTaskTimeMs = totalTaskTimeMs,
       wasCancelled = wasCancelled,
@@ -160,6 +166,7 @@ object BuildState {
     skippedProjects = Nil,
     testProjectsWithoutSuites = Nil,
     pendingOutput = Map.empty,
+    passedSuiteOutputs = Nil,
     totalTaskTimeMs = 0,
     serverCrashed = false,
     historyId = None
@@ -343,6 +350,12 @@ object BuildStateReducer {
         if (failure.project == project && failure.suite == suite) failure.copy(output = suiteOutput) else failure
       }
 
+      // Output nothing else will show: no failure of this suite carries it.
+      val updatedPassedSuiteOutputs =
+        if (suiteOutput.nonEmpty && syntheticFailures.isEmpty && existingFailuresForSuite == 0)
+          SuiteOutput(project, suite, suiteOutput) :: state.passedSuiteOutputs
+        else state.passedSuiteOutputs
+
       val isFailure = outcome.isFailure
       // For a failing suite with no per-test failures already counted, surface one failed test so
       // count-based gates see it even when other suites in the run passed. Executed(failed>0) whose
@@ -355,16 +368,17 @@ object BuildStateReducer {
         runningSuites = state.runningSuites - key,
         suiteStartTimes = state.suiteStartTimes - key,
         pendingOutput = state.pendingOutput - key,
+        passedSuiteOutputs = updatedPassedSuiteOutputs,
         failures = syntheticFailures ++ failuresWithSuiteOutput,
         totalTaskTimeMs = state.totalTaskTimeMs + suiteOccupancyMs(state, key, timestamp)
       )
 
-    case BuildEvent.Output(project, suite, line, _, _) =>
+    case BuildEvent.Output(project, suite, line, channel, _) =>
       val key = SuiteKey(project, suite)
       state.copy(
         pendingOutput = state.pendingOutput.updated(
           key,
-          state.pendingOutput.getOrElse(key, Nil) :+ line
+          state.pendingOutput.getOrElse(key, Nil) :+ OutputLine(channel, line)
         )
       )
 
@@ -398,9 +412,11 @@ object BuildStateReducer {
         project = project,
         suite = suite,
         test = TestName("(timeout)"),
-        message = Some(s"Suite idle timeout after ${timeoutMs / 1000}s"),
+        // Where the dump was written is bleep's own note, not something the suite printed, so it belongs with the message rather than on either channel.
+        message =
+          Some((s"Suite idle timeout after ${timeoutMs / 1000}s" :: threadDumpInfo.flatMap(_.dumpFile).map(p => s"Thread dump: $p").toList).mkString("\n")),
         throwable = threadDumpInfo.flatMap(_.singleThreadStack),
-        output = threadDumpInfo.flatMap(_.dumpFile).map(p => s"Thread dump: $p").toList,
+        output = Nil,
         category = FailureCategory.Timeout,
         // a jstack dump of a hung suite, not a thrown exception — no failing frame to point at
         location = None

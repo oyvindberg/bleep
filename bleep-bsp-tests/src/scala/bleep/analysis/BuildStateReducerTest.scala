@@ -59,6 +59,55 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
   }
 
   // ==========================================================================
+  // Output of passing suites (--show-output)
+  // ==========================================================================
+
+  test("a passing suite's output is kept for --show-output, in arrival order, across stdout and stderr") {
+    val summary = reduce(
+      BuildEvent.SuiteStarted(cpn("proj"), sn("Green"), ts),
+      BuildEvent.Output(cpn("proj"), sn("Green"), "out line", OutputChannel.Stdout, ts + 1),
+      BuildEvent.Output(cpn("proj"), sn("Green"), "err line", OutputChannel.Stderr, ts + 2),
+      BuildEvent.TestFinished(cpn("proj"), sn("Green"), tn("t"), TestStatus.Passed, 1, None, None, ts + 3, None),
+      BuildEvent.SuiteFinished(cpn("proj"), sn("Green"), SuiteOutcome.Executed(1, 0, 0, 0), 10, ts + 4)
+    ).toSummary(durationMs = 0, wasCancelled = false)
+
+    summary.passedSuiteOutputs shouldBe List(
+      SuiteOutput(cpn("proj"), sn("Green"), List(OutputLine(OutputChannel.Stdout, "out line"), OutputLine(OutputChannel.Stderr, "err line")))
+    )
+    summary.failures shouldBe empty
+  }
+
+  test("rendered output keeps stdout and stderr apart: stderr is a `!` warning, stdout a `|` info line, in arrival order") {
+    val summary = reduce(
+      BuildEvent.SuiteStarted(cpn("proj"), sn("Green"), ts),
+      BuildEvent.Output(cpn("proj"), sn("Green"), "out 1", OutputChannel.Stdout, ts + 1),
+      BuildEvent.Output(cpn("proj"), sn("Green"), "err 1", OutputChannel.Stderr, ts + 2),
+      BuildEvent.Output(cpn("proj"), sn("Green"), "out 2", OutputChannel.Stdout, ts + 3),
+      BuildEvent.SuiteFinished(cpn("proj"), sn("Green"), SuiteOutcome.Executed(1, 0, 0, 0), 10, ts + 4)
+    ).toSummary(durationMs = 0, wasCancelled = false)
+
+    val plain = BuildSummary.formatPassedSuiteOutput(summary).collect {
+      case SummaryLine.Info(text) if text.startsWith("  ") => "info " + text.replaceAll("\u001b\\[[0-9;]*m", "")
+      case SummaryLine.Warn(text)                          => "warn " + text.replaceAll("\u001b\\[[0-9;]*m", "")
+    }
+    plain shouldBe List("info   | out 1", "warn   ! err 1", "info   | out 2")
+  }
+
+  test("a failing suite's output stays on its failures and is not repeated as passing output") {
+    val summary = reduce(
+      BuildEvent.SuiteStarted(cpn("proj"), sn("Red"), ts),
+      BuildEvent.Output(cpn("proj"), sn("Red"), "explains the failure", OutputChannel.Stdout, ts + 1),
+      BuildEvent.TestFinished(cpn("proj"), sn("Red"), tn("t"), TestStatus.Failed, 1, Some("boom"), None, ts + 2, None),
+      BuildEvent.SuiteFinished(cpn("proj"), sn("Red"), SuiteOutcome.Executed(0, 1, 0, 0), 10, ts + 3),
+      BuildEvent.SuiteStarted(cpn("proj"), sn("Quiet"), ts),
+      BuildEvent.SuiteFinished(cpn("proj"), sn("Quiet"), SuiteOutcome.Executed(1, 0, 0, 0), 10, ts + 4)
+    ).toSummary(durationMs = 0, wasCancelled = false)
+
+    summary.passedSuiteOutputs shouldBe empty
+    summary.failures.map(_.output) shouldBe List(List(OutputLine(OutputChannel.Stdout, "explains the failure")))
+  }
+
+  // ==========================================================================
   // SuiteFinished synthetic failure tests
   // ==========================================================================
 
@@ -76,8 +125,8 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
     failure.project shouldBe cpn("proj")
     failure.suite shouldBe sn("com.example.MySuite")
     failure.test shouldBe tn("(suite failed)")
-    failure.output should contain("error line 1")
-    failure.output should contain("at com.example.MySuite.test(MySuite.scala:42)")
+    failure.output should contain(OutputLine(OutputChannel.Stderr, "error line 1"))
+    failure.output should contain(OutputLine(OutputChannel.Stderr, "at com.example.MySuite.test(MySuite.scala:42)"))
     state.suitesFailed shouldBe 1
   }
 

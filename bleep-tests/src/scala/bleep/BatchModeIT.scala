@@ -94,6 +94,7 @@ class BatchModeIT extends IntegrationTestHarness {
         flamegraph = false,
         cancel = false,
         junitReportDir = Some(reportDir),
+        showOutput = false,
         diffBase = None,
         diffOutput = OutputMode.Text,
         clientEnv = Map.empty

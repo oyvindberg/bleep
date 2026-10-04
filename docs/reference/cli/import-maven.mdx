@@ -24,6 +24,7 @@ bleep import-maven [flags]
 | `--skip-mvn` | skip running mvn, use existing effective-pom.xml in .bleep/import/maven/ |
 | `--skip-generated-resources-script` | disable creating a script to regenerate discovered generated sources/resources |
 | `--mvn-path <string>` | optional path to mvn executable |
+| `--build-jvm <integer>` | java version of the (temurin) JVM the imported build uses. At least 17, which is the default unless the build compiles for a newer java version |
 | `--exclude-project, -x <string>` (repeatable) | exclude specific projects from import and all their downstream dependencies (can be specified multiple times) |
 | `--platform, -p <platform>` (repeatable) | only import projects for specified platform(s) |
 | `--scala, -s <scala version>` (repeatable) | only import projects for specified scala version(s) |

@@ -32,7 +32,8 @@ object TranscriptFormat {
     }
     val pattern = query.map(compileQuery)
     val result =
-      if (transcript.mode == "test") formatTestResult(events, transcript.testRunResult, includeThrowables = true, pattern, limit, offset)
+      if (transcript.mode == "test")
+        formatTestResult(events, transcript.testRunResult, includeThrowables = true, includePassedSuiteOutput = false, pattern, limit, offset)
       else formatCompileResult(events, verbose = true, pattern, limit, offset)
     result.deepMerge(
       Json.obj(
@@ -264,6 +265,7 @@ object TranscriptFormat {
       events: List[BleepBspProtocol.Event],
       testRunResult: Option[BleepBspProtocol.TestRunResult],
       includeThrowables: Boolean,
+      includePassedSuiteOutput: Boolean,
       query: Option[java.util.regex.Pattern],
       limit: Option[Int],
       offset: Option[Int]
@@ -381,6 +383,19 @@ object TranscriptFormat {
       fields += "topErrors" -> Json.arr(errorJsons*)
     }
     fields ++= infrastructureFields(summary, events, verbose = includeThrowables)
+
+    if (includePassedSuiteOutput && summary.passedSuiteOutputs.nonEmpty) {
+      val outputJsons = summary.passedSuiteOutputs.map { so =>
+        Json.obj(
+          "project" -> Json.fromString(so.project.value),
+          "suite" -> Json.fromString(so.suite.value),
+          "output" -> Json.arr(so.lines.map { line =>
+            Json.obj("channel" -> Json.fromString(line.channel.wireValue), "line" -> Json.fromString(stripAnsi(line.text)))
+          }*)
+        )
+      }
+      fields += "passedSuiteOutput" -> Json.arr(outputJsons*)
+    }
 
     Json.obj(fields.result()*)
   }
