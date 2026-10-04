@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.1">
 <title data-rh="true">Write Your First Script (Java) | Bleep</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://bleep.build/docs/tutorials/your-first-script/"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Write Your First Script (Java) | Bleep"><meta data-rh="true" name="description" content="By the end of this page you will have written a bleep script that:"><meta data-rh="true" property="og:description" content="By the end of this page you will have written a bleep script that:"><link data-rh="true" rel="icon" href="/img/bleep-logo-mark.svg"><link data-rh="true" rel="canonical" href="https://bleep.build/docs/tutorials/your-first-script/"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/tutorials/your-first-script/" hreflang="en"><link data-rh="true" rel="alternate" href="https://bleep.build/docs/tutorials/your-first-script/" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Write Your First Script (Java)","item":"https://bleep.build/docs/tutorials/your-first-script"}]}</script><link rel="stylesheet" href="/assets/css/styles.f21b3d5d.css">
-<script src="/assets/js/runtime~main.d4d131b2.js" defer="defer"></script>
-<script src="/assets/js/main.efac9a0f.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.adb6e5f9.js" defer="defer"></script>
+<script src="/assets/js/main.4067829f.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -52,7 +52,9 @@ bleep CLI you&#x27;re running.</li>
 fallback when no explicit groupId is passed.</li>
 <li class="">The top-level <code>scripts:</code> section maps a CLI name (<code>proguard-publish</code>)
 to a fully qualified class name (<code>scripts.ProguardPublish</code>) plus the
-project that contains it.</li>
+project that contains it. An optional <code>description:</code> says what the
+script does; <code>bleep script</code> lists every script with its description,
+and <code>bleep --help</code> shows them in a section of their own.</li>
 </ul>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="step-2-a-tiny-library-to-publish">Step 2: A tiny library to publish<a href="#step-2-a-tiny-library-to-publish" class="hash-link" aria-label="Direct link to Step 2: A tiny library to publish" title="Direct link to Step 2: A tiny library to publish" translate="no">​</a></h2>
 <p>Any Java class will do. Put it under <code>mylib/src/java/...</code>.</p>
