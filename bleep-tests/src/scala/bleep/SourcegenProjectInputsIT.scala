@@ -44,7 +44,7 @@ class SourcegenProjectInputsIT extends IntegrationTestHarness {
                           |    targets.foreach { target =>
                           |      val file = target.sources / "listed" / "Listed.scala"
                           |      Files.createDirectories(file.getParent)
-                          |      Files.writeString(file, "package listed\nobject Listed { val names = \"" + names.mkString(",") + "\" }\n")
+                          |      Files.writeString(file, "package listed\n// run " + System.nanoTime() + "\nobject Listed { val names = \"" + names.mkString(",") + "\" }\n")
                           |    }
                           |  }
                           |}
@@ -74,5 +74,25 @@ class SourcegenProjectInputsIT extends IntegrationTestHarness {
     ws.file("lib/src/scala/lib/Lib2.scala", "package lib\nobject Lib2\n")
     commands.compile(List(a))
     assert(listed(ws).contains("Lib2.class"), listed(ws))
+  }
+
+  // Reported building scala3: `bleep sourcegen` refused a script declared under `sourcegen:` with `inputs`, because it ran sourcegen through `Script.run`, whose
+  // `inputs` check is for `bleep run`. Without the check it would still have run the script with only the script project built. It now goes through the
+  // compile server's task graph, as a compile's sourcegen does.
+  integrationTest("bleep sourcegen builds a script's inputs before running it, and does not compile the project itself") { ws =>
+    ws.yaml(Yaml)
+    ws.file("scripts/src/scala/testscripts/ListLib.scala", ListLib)
+    ws.file("lib/src/scala/lib/Lib.scala", "package lib\nobject Lib\n")
+    ws.file("a/src/scala/a/A.scala", "package a\nobject A { val n = listed.Listed.names }\n")
+
+    val (started, _, _) = ws.start()
+    commands.SourceGen(watch = false, Array(a)).run(started).orThrow
+    assert(listed(ws).contains("Lib.class"), listed(ws))
+    assert(!Files.exists(started.projectPaths(a).classes.resolve("a")), "bleep sourcegen compiled the consumer")
+
+    // Asking for sourcegen reruns the generator even though nothing it reads changed — the way to pick up inputs the timestamps cannot see.
+    val first = listed(ws)
+    commands.SourceGen(watch = false, Array(a)).run(started).orThrow
+    assert(listed(ws) != first, "bleep sourcegen skipped a generator it was asked to run")
   }
 }
