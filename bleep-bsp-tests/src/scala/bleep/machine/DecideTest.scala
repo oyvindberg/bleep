@@ -65,7 +65,8 @@ class DecideTest extends AnyFunSuite with Matchers {
       cpuInUse = 1,
       wantsMore = false,
       shuttingDown = false,
-      forks = forks.toList
+      forks = forks.toList,
+      idleSinceEpochMs = None
     )
 
   test("a fork is charged its bound until measured; measured forks are in usedMb and charge nothing") {

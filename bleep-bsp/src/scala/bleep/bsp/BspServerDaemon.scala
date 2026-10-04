@@ -315,7 +315,13 @@ object BspServerDaemon {
       relief = new MemoryRelief {
         // Design §5.2: a busy server sheds idle workspaces' caches; an idle one has only idle workspaces and sheds them all.
         def shedIdleCaches(need: bleep.machine.MemoryNeed): Unit = buildCache.shedIdle(need.describe, logger): Unit
+        // Design §5.1: the same clean path as the idle watchdog's — socket closed, lock and pid/socket files released — so the next command spawns afresh.
+        def yieldServer(need: bleep.machine.MemoryNeed, idleForMs: Long): Unit = {
+          logger.warn(s"Yielding this server's memory: ${need.describe}, and this server has been idle for ${idleForMs / 1000}s with no client connected")
+          daemonInfo.requestDaemonShutdown()
+        }
       },
+      idleness = () => bleep.machine.Yield.Idleness(connectionRegistry.nonObserverCount, connectionRegistry.lastActivityEpochMs),
       logger = logger,
       onDeath = t => {
         logger.error("The machine scheduler died; shutting the daemon down", t)

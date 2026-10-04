@@ -52,6 +52,9 @@ trait SchedulerEffects {
     */
   def shedIdleCaches(need: MemoryNeed): Unit
 
+  /** This server has marked itself `shuttingDown` under the lock (design §5.1) and must now take the clean shutdown path. Issued once. */
+  def yieldServer(need: MemoryNeed, idleForMs: Long): Unit
+
   /** The platform reports no memory pressure, so the pressure brake is off (design §9.1). Once per server, on the first tick that sees it: a loud warning. */
   def pressureSignalMissing(reason: String): Unit
 

@@ -209,7 +209,8 @@ object Decide {
       cpuInUse = next.cpuInUse,
       wantsMore = next.wantsMore,
       shuttingDown = me.shuttingDown,
-      forks = forks.map(toStateFork)
+      forks = forks.map(toStateFork),
+      idleSinceEpochMs = None // a deciding server has requests; the idle slow check publishes this
     )
     Decision(next = next, reuse = reuses, spawn = spawns, admitInHeap = admitted, evict = evicted, heapDeferred = deferred, publish = publish)
   }

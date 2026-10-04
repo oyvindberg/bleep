@@ -18,14 +18,15 @@ class TickerTest extends AnyFunSuite with Matchers {
 
   private def compile(request: RequestId, task: String): InHeap = InHeap(request, TaskId(task), InHeapKind.Compile, cpu = 1)
 
-  test("with nothing registered a tick decides nothing — no lock, no file — and runs only the slow check: one probe per interval, no lock") {
+  test("with nothing registered a tick decides nothing and takes no lock; the slow check runs once per interval and publishes an idle record") {
     withWorld { w =>
       val t = ticker(w)
       t.tick()
       t.tick()
       w.machineProbe.samples.get() shouldBe 1 // the slow check (design §5.1), once per interval however many ticks
       w.lock.calls.get() shouldBe 0
-      w.ownState shouldBe None
+      // Nothing scheduled, and no idle-since: the fake registry has a client connected, so this server is in use even though it schedules nothing.
+      w.ownState.map(s => (s.requests, s.forks, s.idleSinceEpochMs, s.shuttingDown)) shouldBe Some((0, Nil, None, false))
       w.effects.all shouldBe Nil
       w.clock.addAndGet(w.slowCheckIntervalMs): Unit
       t.tick()
@@ -76,6 +77,62 @@ class TickerTest extends AnyFunSuite with Matchers {
       t.tick()
       w.lock.calls.get() shouldBe 1
       w.effects.all should contain(Effect.ShedIdleCaches(MemoryNeed.OthersWantMore(List(StateFile.selfIdentity("other").pid))))
+    }
+  }
+
+  test("an idle server publishes since when it is idle, and yields under the lock when idle long enough and someone wants more") {
+    withWorld { w =>
+      w.otherServer("bbbb", forks = Nil, wantsMore = true)
+      val lastActivity = w.clock.get()
+      w.idleness.set(Yield.Idleness(nonObserverConnections = 0, lastActivityEpochMs = lastActivity))
+      val t = ticker(w)
+      t.tick()
+      // Not idle for long enough yet: published as idle, lock untouched.
+      w.ownState.map(s => (s.idleSinceEpochMs, s.shuttingDown)) shouldBe Some((Some(lastActivity), false))
+      w.lock.calls.get() shouldBe 0
+      w.effects.all.collect { case e: Effect.YieldServer => e } shouldBe Nil
+
+      w.clock.addAndGet(w.idleYieldAfterMs): Unit
+      t.tick()
+      w.lock.calls.get() shouldBe 1
+      w.ownState.map(s => (s.idleSinceEpochMs, s.shuttingDown)) shouldBe Some((Some(lastActivity), true))
+      val need = MemoryNeed.OthersWantMore(List(StateFile.selfIdentity("other").pid))
+      w.effects.all.collect { case e: Effect.YieldServer => e } shouldBe List(Effect.YieldServer(need, idleForMs = w.idleYieldAfterMs))
+
+      // Once is enough: no second yield, no second lock.
+      w.clock.addAndGet(w.slowCheckIntervalMs): Unit
+      t.tick()
+      w.lock.calls.get() shouldBe 1
+      w.effects.all.collect { case e: Effect.YieldServer => e }.size shouldBe 1
+    }
+  }
+
+  test("a connected IDE keeps an idle server from yielding, and so does another server that has been idle longer or is already going") {
+    withWorld { w =>
+      val lastActivity = w.clock.get() - w.idleYieldAfterMs
+      w.otherServer("bbbb", forks = Nil, wantsMore = true)
+      w.idleness.set(Yield.Idleness(nonObserverConnections = 1, lastActivityEpochMs = lastActivity))
+      val t = ticker(w)
+      t.tick()
+      w.lock.calls.get() shouldBe 0
+      w.ownState.get.idleSinceEpochMs shouldBe None // a client is connected: not idle, whatever the clock says
+
+      // Nobody connected now, but another server has been idle longer: it goes first, this one takes the lock, looks, and stays.
+      w.idleness.set(Yield.Idleness(nonObserverConnections = 0, lastActivityEpochMs = lastActivity))
+      w.otherServer("cccc", forks = Nil, wantsMore = false, idleSinceEpochMs = Some(lastActivity - 1L), shuttingDown = false)
+      w.clock.addAndGet(w.slowCheckIntervalMs): Unit
+      t.tick()
+      w.lock.calls.get() shouldBe 1
+      w.ownState.get.shuttingDown shouldBe false
+      w.effects.all.collect { case e: Effect.YieldServer => e } shouldBe Nil
+
+      // The longer-idle one marked itself shutting down: still nobody else goes this tick.
+      w.otherServer("cccc", forks = Nil, wantsMore = false, idleSinceEpochMs = Some(lastActivity - 1L), shuttingDown = true)
+      w.clock.addAndGet(w.slowCheckIntervalMs): Unit
+      t.tick()
+      w.lock.calls.get() shouldBe 2
+      w.ownState.get.shuttingDown shouldBe false
+      w.effects.all.collect { case e: Effect.YieldServer => e } shouldBe Nil
     }
   }
 

@@ -87,6 +87,7 @@ object DecideGen {
         cpuInUse = r.nextInt(8),
         wantsMore = r.nextBoolean(),
         shuttingDown = r.nextInt(4) == 0,
+        idleSinceEpochMs = if (r.nextInt(5) == 0) Some(now - r.nextInt(100_000)) else None,
         forks = (0 until r.nextInt(3)).toList.map(j =>
           StateFork(
             id = j.toLong,

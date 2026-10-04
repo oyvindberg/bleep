@@ -47,7 +47,13 @@ object TestScheduling {
       heapUsage = () => HeapUsage(usedMb = 0L, maxMb = 1024L),
       requests = new RequestRegistry,
       // These schedulers run against the developer's real machine, whose pressure is whatever it is; they hold no build cache, so there is nothing to shed.
-      relief = new bleep.bsp.MemoryRelief { def shedIdleCaches(need: bleep.machine.MemoryNeed): Unit = () },
+      relief = new bleep.bsp.MemoryRelief {
+        def shedIdleCaches(need: bleep.machine.MemoryNeed): Unit = ()
+        def yieldServer(need: bleep.machine.MemoryNeed, idleForMs: Long): Unit =
+          throw new IllegalStateException("a test scheduler with a client connected yielded")
+      },
+      // A client is always connected here, so these schedulers never yield; the pressure of the developer's machine must not end a test.
+      idleness = () => Yield.Idleness(nonObserverConnections = 1, lastActivityEpochMs = System.currentTimeMillis()),
       reason = None,
       logger = TypedLogger.DevNull,
       onDeath = t => throw new IllegalStateException("the test scheduler died", t)

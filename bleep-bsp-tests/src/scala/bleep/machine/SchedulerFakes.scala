@@ -51,6 +51,7 @@ object SchedulerFakes {
     case class PressureSignalMissing(reason: String) extends Effect
     case class SchedulingUnconstrained(reason: String) extends Effect
     case class ShedIdleCaches(need: MemoryNeed) extends Effect
+    case class YieldServer(need: MemoryNeed, idleForMs: Long) extends Effect
   }
 
   final class RecordingEffects extends SchedulerEffects {
@@ -67,6 +68,7 @@ object SchedulerFakes {
     override def pressureSignalMissing(reason: String): Unit = recorded.add(Effect.PressureSignalMissing(reason)): Unit
     override def schedulingUnconstrained(reason: String): Unit = recorded.add(Effect.SchedulingUnconstrained(reason)): Unit
     override def shedIdleCaches(need: MemoryNeed): Unit = recorded.add(Effect.ShedIdleCaches(need)): Unit
+    override def yieldServer(need: MemoryNeed, idleForMs: Long): Unit = recorded.add(Effect.YieldServer(need, idleForMs)): Unit
   }
 
   /** A whole fake world in a temp directory: `socket/<own>` for this server, `socket/` for discovery. */
@@ -83,6 +85,12 @@ object SchedulerFakes {
 
     /** The slow check's cadence against the fake clock. */
     val slowCheckIntervalMs: Long = 3000L
+
+    /** Idle for yielding after this long, against the fake clock. */
+    val idleYieldAfterMs: Long = 60_000L
+
+    /** What the connection registry would say: by default one client connected, active now — a server that never yields. */
+    val idleness = new AtomicReference[Yield.Idleness](Yield.Idleness(nonObserverConnections = 1, lastActivityEpochMs = 1_000_000L))
 
     /** Not this JVM, so that a state file written by this JVM's pid counts as another live server. */
     val identity: ServerIdentity = ServerIdentity(pid = 1L, startedAtEpochMs = 1L, bleepVersion = "test")
@@ -114,13 +122,19 @@ object SchedulerFakes {
       clock = () => clock.get(),
       effects = effects,
       tickIntervalPerServerMs = tickIntervalPerServerMs,
-      slowCheckIntervalMs = slowCheckIntervalMs
+      slowCheckIntervalMs = slowCheckIntervalMs,
+      idleness = () => idleness.get(),
+      idleYieldAfterMs = idleYieldAfterMs
     )
 
     /** Another live server's state file, in its own socket dir, naming this JVM so liveness holds. */
     def otherServer(hash: String, forks: List[StateFork]): Unit = otherServer(hash, forks, wantsMore = false)
 
-    def otherServer(hash: String, forks: List[StateFork], wantsMore: Boolean): Unit = {
+    def otherServer(hash: String, forks: List[StateFork], wantsMore: Boolean): Unit =
+      otherServer(hash, forks, wantsMore, idleSinceEpochMs = None, shuttingDown = false)
+
+    /** Every field another server can publish that a decision here reads. The pid is this JVM's, so liveness holds, whatever `hash` says. */
+    def otherServer(hash: String, forks: List[StateFork], wantsMore: Boolean, idleSinceEpochMs: Option[Long], shuttingDown: Boolean): Unit = {
       val self = StateFile.selfIdentity("other")
       val dir = Files.createDirectories(bspSocketDir.resolve(hash))
       StateFile.write(
@@ -131,11 +145,12 @@ object SchedulerFakes {
           startedAtEpochMs = self.startedAtEpochMs,
           bleepVersion = "other",
           updatedAtEpochMs = 0L,
-          requests = 1,
-          cpuInUse = 1,
+          requests = if (idleSinceEpochMs.isDefined) 0 else 1,
+          cpuInUse = if (idleSinceEpochMs.isDefined) 0 else 1,
           wantsMore = wantsMore,
-          shuttingDown = false,
-          forks = forks
+          shuttingDown = shuttingDown,
+          forks = forks,
+          idleSinceEpochMs = idleSinceEpochMs
         )
       )
     }

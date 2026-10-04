@@ -132,7 +132,7 @@ object StateFile {
   }
 
   implicit val stateEncoder: Encoder[StateJson] = Encoder.instance { s =>
-    Json.obj(
+    val fields = List(
       "version" -> Json.fromInt(s.version),
       "pid" -> Json.fromLong(s.pid),
       "startedAtEpochMs" -> Json.fromLong(s.startedAtEpochMs),
@@ -144,6 +144,8 @@ object StateFile {
       "shuttingDown" -> Json.fromBoolean(s.shuttingDown),
       "forks" -> s.forks.asJson
     )
+    // Only while idle, and last: a busy server's document is exactly §6.2's.
+    Json.obj((fields ++ s.idleSinceEpochMs.map(since => "idleSinceEpochMs" -> Json.fromLong(since)))*)
   }
 
   /** Version 1 is read whole. A version this bleep does not know is read as the fields every version must keep — `pid`, `startedAtEpochMs` (liveness), `forks`,
@@ -168,7 +170,8 @@ object StateFile {
           cpuInUse = cpuInUse,
           wantsMore = false,
           shuttingDown = false,
-          forks = forks
+          forks = forks,
+          idleSinceEpochMs = None
         )
     }
   }
@@ -184,7 +187,8 @@ object StateFile {
       wantsMore <- c.get[Boolean]("wantsMore")
       shuttingDown <- c.get[Boolean]("shuttingDown")
       forks <- c.get[List[StateFork]]("forks")
-    } yield StateJson(StateJson.CurrentVersion, pid, startedAt, bleepVersion, updatedAt, requests, cpuInUse, wantsMore, shuttingDown, forks)
+      idleSince <- c.get[Option[Long]]("idleSinceEpochMs")
+    } yield StateJson(StateJson.CurrentVersion, pid, startedAt, bleepVersion, updatedAt, requests, cpuInUse, wantsMore, shuttingDown, forks, idleSince)
 }
 
 /** [[StateFile.discoverOthers]] for the tick: the directory listing is cached for `listingTtlMs`, every known server's `state.json` is read fresh on every

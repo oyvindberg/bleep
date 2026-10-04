@@ -6,7 +6,7 @@ import org.scalatest.matchers.should.Matchers
 /** The one trigger behind shedding and yielding (design §5.1, §5.2): the OS reclaiming, or another server waiting. Neither alone is "memory is low". */
 class MemoryNeedTest extends AnyFunSuite with Matchers {
   private def server(pid: Long, wantsMore: Boolean): StateJson =
-    StateJson(1, pid, 0L, "x", 0L, requests = 1, cpuInUse = 1, wantsMore = wantsMore, shuttingDown = false, forks = Nil)
+    StateJson(1, pid, 0L, "x", 0L, requests = 1, cpuInUse = 1, wantsMore = wantsMore, shuttingDown = false, forks = Nil, idleSinceEpochMs = None)
 
   test("pressure at or above elevated is a need, whoever is waiting") {
     MemoryNeed.of(Pressure.Elevated, Nil) shouldBe Some(MemoryNeed.UnderPressure(Pressure.Elevated))

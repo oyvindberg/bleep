@@ -63,6 +63,7 @@ object DaemonScheduling {
       requests: RequestRegistry,
       heapUsage: () => HeapUsage,
       relief: MemoryRelief,
+      idleness: () => Yield.Idleness,
       logger: Logger,
       onDeath: Throwable => Unit
   ): DaemonScheduling =
@@ -75,6 +76,7 @@ object DaemonScheduling {
       heapUsage = heapUsage,
       requests = requests,
       relief = relief,
+      idleness = idleness,
       reason = selected.reason,
       logger = logger,
       onDeath = onDeath
@@ -96,6 +98,8 @@ object DaemonScheduling {
       },
       requests = new RequestRegistry,
       relief = MemoryRelief.unreachable(reason),
+      // Never read: an unconstrained scheduler runs no slow check. Loud if that ever changes.
+      idleness = () => throw new IllegalStateException(s"an unconstrained scheduler ($reason) asked about idleness, which only the slow check needs"),
       reason = Some(reason),
       logger = logger,
       onDeath = t => throw new IllegalStateException("the in-process machine scheduler died", t)
@@ -113,6 +117,7 @@ object DaemonScheduling {
       heapUsage: () => HeapUsage,
       requests: RequestRegistry,
       relief: MemoryRelief,
+      idleness: () => Yield.Idleness,
       reason: Option[String],
       logger: Logger,
       onDeath: Throwable => Unit
@@ -129,7 +134,9 @@ object DaemonScheduling {
         clock = () => System.currentTimeMillis(),
         effects = bridge,
         tickIntervalPerServerMs = 10L,
-        slowCheckIntervalMs = Ticker.SlowCheckIntervalMs
+        slowCheckIntervalMs = Ticker.SlowCheckIntervalMs,
+        idleness = idleness,
+        idleYieldAfterMs = Yield.IdleYieldAfterMs
       ),
       logger,
       onDeath

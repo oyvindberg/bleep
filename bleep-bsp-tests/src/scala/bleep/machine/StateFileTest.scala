@@ -34,7 +34,8 @@ class StateFileTest extends AnyFunSuite with Matchers {
       cpuInUse = 6,
       wantsMore = true,
       shuttingDown = false,
-      forks = forks
+      forks = forks,
+      idleSinceEpochMs = None
     )
 
   private val designExample =
@@ -88,6 +89,14 @@ class StateFileTest extends AnyFunSuite with Matchers {
     val unspawned = StateFork(1L, None, ForkKind.Ksp, 100L, StateForkState.Starting, 5L).asJson
     unspawned.asObject.get.keys.toList should not contain "pid"
     io.circe.parser.decode[StateJson](json.noSpaces) shouldBe Right(designValue)
+  }
+
+  test("idleSinceEpochMs is written only when set, and read back; a v1 file without it reads as busy") {
+    import io.circe.syntax._
+    val idle = designValue.copy(requests = 0, cpuInUse = 0, forks = Nil, idleSinceEpochMs = Some(1_759_474_500_000L))
+    idle.asJson.asObject.get.keys.toList.last shouldBe "idleSinceEpochMs"
+    io.circe.parser.decode[StateJson](idle.asJson.noSpaces) shouldBe Right(idle)
+    io.circe.parser.decode[StateJson](designExample).toOption.get.idleSinceEpochMs shouldBe None
   }
 
   test("an unknown version is read as its forks and cpuInUse; without those it fails") {

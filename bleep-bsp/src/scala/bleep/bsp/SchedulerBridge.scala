@@ -85,6 +85,9 @@ final class SchedulerBridge(forks: ForkRegistry, heapUsage: () => HeapUsage, rel
   override def shedIdleCaches(need: MemoryNeed): Unit =
     evictions.execute(() => relief.shedIdleCaches(need))
 
+  override def yieldServer(need: MemoryNeed, idleForMs: Long): Unit =
+    evictions.execute(() => relief.yieldServer(need, idleForMs))
+
   def close(): Unit = evictions.shutdownNow(): Unit
 }
 
@@ -95,6 +98,9 @@ trait MemoryRelief {
 
   /** Drop the cached build and analyses of every workspace with no request in flight. */
   def shedIdleCaches(need: MemoryNeed): Unit
+
+  /** The scheduler has marked this server `shuttingDown` under the lock: take the daemon down its clean path (socket closed, files released). */
+  def yieldServer(need: MemoryNeed, idleForMs: Long): Unit
 }
 
 object MemoryRelief {
@@ -103,6 +109,8 @@ object MemoryRelief {
   def unreachable(reason: String): MemoryRelief = new MemoryRelief {
     def shedIdleCaches(need: MemoryNeed): Unit =
       throw new IllegalStateException(s"an unconstrained scheduler ($reason) asked to shed caches for '${need.describe}', which it has no way of knowing")
+    def yieldServer(need: MemoryNeed, idleForMs: Long): Unit =
+      throw new IllegalStateException(s"an unconstrained scheduler ($reason) asked to yield for '${need.describe}', which it has no way of knowing")
   }
 }
 

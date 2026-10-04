@@ -15,7 +15,8 @@ import java.nio.file.Path
   * With no request, no fork and no in-heap task registered a tick decides nothing. What remains is the slow check (design §5.1, §5.2): every
   * `slowCheckIntervalMs`, one probe call and every other live server's `state.json` read without the lock, so a server with nothing to claim still learns that
   * memory is needed elsewhere — and sheds the caches of its idle workspaces for it. A busy server whose ticks take no lock does the same on the same cadence; a
-  * claiming tick has read the others under the lock already.
+  * claiming tick has read the others under the lock already. An idle server also publishes how long it has been idle, and — idle for `idleYieldAfterMs` with a
+  * need — takes the lock to decide, with the others' state fresh, whether it is the one to yield (design §5.1).
   */
 final class Ticker(deps: Ticker.Deps) {
   import Ticker._
@@ -120,12 +121,67 @@ final class Ticker(deps: Ticker.Deps) {
   }
 
   /** The slow check (design §5.1): one probe call and the other servers' `state.json` without the lock. The probe is skipped when this tick already took one.
+    * An idle server publishes its idleness here, and yields through [[yieldIfLongestIdle]] when every condition holds.
     */
   private def slowCheck(coop: SchedulingMode.Cooperative, now: Long): Unit = {
     lastSlowCheckMs = Some(now)
     if (!lastMachine.exists(_.nowMs == now)) lastMachine = Some(machineView(coop, coop.machineProbe.sample(), now))
     lastOthers = coop.discovery.others()
+    if (idle && !state.shuttingDown) {
+      val idleness = deps.idleness()
+      val idleSince = Option.when(idleness.nonObserverConnections == 0)(idleness.lastActivityEpochMs)
+      publishIfChanged(coop.ownSocketDir, idleStateJson(now, idleSince, shuttingDown = false))
+      val need = lastMachine.flatMap(view => MemoryNeed.of(view.pressure, lastOthers))
+      if (Yield.candidate(idleness, schedulerIdle = idle, need, now, deps.idleYieldAfterMs)) yieldIfLongestIdle(coop, now, idleness.lastActivityEpochMs)
+    }
   }
+
+  /** Under the lock, with the others fresh (design §5.1, "one server yields per tick, decided under the lock"): re-read the need, and go only if no other
+    * server is already going and none has been idle longer. Going means `shuttingDown` in this server's state.json before the lock is released, so the next
+    * holder sees it — then the effect, after the release, which takes the daemon down its clean path.
+    */
+  private def yieldIfLongestIdle(coop: SchedulingMode.Cooperative, now: Long, idleSinceEpochMs: Long): Unit = {
+    val (lockState, yielded) = coop.lock.locked(coop.lockWaitMs) { (lockState, timer) =>
+      lockState match {
+        case LockState.Held =>
+          val view = timer.step("probe")(machineView(coop, coop.machineProbe.sample(), now))
+          val others = timer.step("read")(coop.discovery.others())
+          lastMachine = Some(view)
+          lastOthers = others
+          liveServersSeen = others.size + 1
+          val need = MemoryNeed.of(view.pressure, others)
+          val goes = need.isDefined && Yield.goes(idleSinceEpochMs, deps.identity.pid, others)
+          if (goes) {
+            state = state.copy(shuttingDown = true)
+            timer.step("write")(publishIfChanged(coop.ownSocketDir, idleStateJson(now, Some(idleSinceEpochMs), shuttingDown = true)))
+          }
+          (lockState, need.filter(_ => goes))
+        case LockState.Unavailable(_) | LockState.NotNeeded => (lockState, None)
+      }
+    }
+    lastLock = lockState
+    lockState match {
+      case LockState.Unavailable(holder)        => deps.effects.lockUnavailable(holder)
+      case LockState.Held | LockState.NotNeeded => ()
+    }
+    yielded.foreach(need => deps.effects.yieldServer(need, idleForMs = now - idleSinceEpochMs))
+  }
+
+  /** What an idle server publishes: nothing scheduled, and since when it has been idle. */
+  private def idleStateJson(now: Long, idleSinceEpochMs: Option[Long], shuttingDown: Boolean): StateJson =
+    StateJson(
+      version = StateJson.CurrentVersion,
+      pid = deps.identity.pid,
+      startedAtEpochMs = deps.identity.startedAtEpochMs,
+      bleepVersion = deps.identity.bleepVersion,
+      updatedAtEpochMs = now,
+      requests = 0,
+      cpuInUse = 0,
+      wantsMore = false,
+      shuttingDown = shuttingDown,
+      forks = Nil,
+      idleSinceEpochMs = idleSinceEpochMs
+    )
 
   /** Memory needed elsewhere, as of the last reading (design §5.2): shed what this server holds for nobody. Once per slow-check interval while it lasts — the
     * caches refill only when a workspace is used again, and a shed with nothing to shed is cheap but its log line is not.
@@ -319,6 +375,10 @@ object Ticker {
     *   epoch milliseconds
     * @param slowCheckIntervalMs
     *   how often a server with nothing to claim probes and reads the others (design §5.1); [[Ticker.SlowCheckIntervalMs]] in the daemon
+    * @param idleness
+    *   the connection registry's account of clients and last activity, read on each slow check
+    * @param idleYieldAfterMs
+    *   how long idle before yielding is considered; [[Yield.IdleYieldAfterMs]] in the daemon
     */
   case class Deps(
       mode: SchedulingMode,
@@ -329,9 +389,12 @@ object Ticker {
       clock: () => Long,
       effects: SchedulerEffects,
       tickIntervalPerServerMs: Long,
-      slowCheckIntervalMs: Long
+      slowCheckIntervalMs: Long,
+      idleness: () => Yield.Idleness,
+      idleYieldAfterMs: Long
   ) {
     require(slowCheckIntervalMs > 0L, s"slowCheckIntervalMs $slowCheckIntervalMs must be positive")
+    require(idleYieldAfterMs > 0L, s"idleYieldAfterMs $idleYieldAfterMs must be positive")
   }
 
   /** The slow check's cadence (design §5.1, "every few seconds"). PROVISIONAL: a probe call and a few small file reads every three seconds cost nothing

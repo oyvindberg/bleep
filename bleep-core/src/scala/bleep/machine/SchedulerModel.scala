@@ -325,8 +325,10 @@ object StateForkState {
   * @param wantsMore
   *   this server has ready demands it could not admit this tick
   * @param shuttingDown
-  *   this server has decided to yield its memory and is shutting down (design §5.1); its forks still count until it is gone. Published from here on so that
-  *   readers of v1 know the field; nothing sets it yet.
+  *   this server has decided to yield its memory and is shutting down (design §5.1); its forks still count until it is gone
+  * @param idleSinceEpochMs
+  *   when this server last did anything for a client, published only while it has no client connected and nothing scheduled — what decides which of several
+  *   idle servers yields first (design §5.1: the longest idle). Additive to v1; absent means busy, or written by a bleep from before it existed.
   */
 case class StateJson(
     version: Int,
@@ -338,7 +340,8 @@ case class StateJson(
     cpuInUse: Int,
     wantsMore: Boolean,
     shuttingDown: Boolean,
-    forks: List[StateFork]
+    forks: List[StateFork],
+    idleSinceEpochMs: Option[Long]
 ) {
 
   /** What the next lock holder must count: forks still charged at their bound. */

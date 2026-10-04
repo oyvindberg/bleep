@@ -38,7 +38,7 @@ class TickRuntimeTest extends AnyFunSuite with Matchers {
         // The fake clock stands still, so the slow check (design §5.1) is due exactly once however long the thread waits.
         w.machineProbe.samples.get() shouldBe 1
         w.lock.calls.get() shouldBe 0
-        w.ownState shouldBe None
+        w.ownState.map(_.requests) shouldBe Some(0) // the idle record, not a decision
         w.machineProbe.samples.set(0)
         runtime.registerRequest(r1, RequestKind.Compile)
         runtime.submitReady(r1, List(InHeap(r1, TaskId("c1"), InHeapKind.Compile, 1)), Map.empty)

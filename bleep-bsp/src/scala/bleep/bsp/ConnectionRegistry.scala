@@ -72,6 +72,9 @@ class ConnectionRegistry(now: () => Long) {
 
   def idleForMs(nowMs: Long): Long = nowMs - lastActivityMs.get()
 
+  /** The instant itself, for the scheduler's idle-yield check and `state.json`: stable across reads, where an "idle for" would jitter with the clock. */
+  def lastActivityEpochMs: Long = lastActivityMs.get()
+
   /** Idle time as of now, for reporting. The watchdog takes its own `now` so it can be tested; this is the convenience for handlers. */
   def idleMs: Long = idleForMs(System.currentTimeMillis())
 

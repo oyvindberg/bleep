@@ -550,6 +550,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       cpuInUse = 0,
       wantsMore = false,
       shuttingDown = false,
+      idleSinceEpochMs = None,
       forks = List(bleep.machine.StateFork(7L, None, bleep.machine.ForkKind.TestSuite, 2560L, bleep.machine.StateForkState.Starting, NowMs - 1000L))
     )
     val row = running("aaaa1111", isCurrent = true, scheduler = working(Nil, List(starting))).copy(published = Some(published))
@@ -602,6 +603,7 @@ class ServerTopTest extends AnyFunSuite with Matchers {
       cpuInUse = 3,
       wantsMore = true,
       shuttingDown = false,
+      idleSinceEpochMs = None,
       forks =
         List(bleep.machine.StateFork(1L, Some(5001L), bleep.machine.ForkKind.TestSuite, 2560L, bleep.machine.StateForkState.Measured(3072L), NowMs - 1000L))
     )
