@@ -65,7 +65,8 @@ case class FilterContext(
 }
 
 case class BuildSummary(
-    sourcegenFailed: Int,
+    /** Each failed sourcegen script and its reason, in the order they finished. See [[SourcegenFailure]]. */
+    sourcegenFailures: List[SourcegenFailure],
     apResolutionFailed: Int,
     kspResolutionFailed: Int,
     compilesCompleted: Int,
@@ -121,6 +122,8 @@ case class BuildSummary(
     * may skip on the strength of a run that never looked.
     */
   def noOp: Boolean = compilesCompleted > 0 && upToDateProjects.size == compilesCompleted
+
+  def sourcegenFailed: Int = sourcegenFailures.size
 
   /** Convert this summary to Either — Left for cancelled/failed builds, Right for success. Use this to gate post-build steps (publishing, etc.) */
   def toEither: Either[bleep.BleepException, Unit] =
@@ -360,10 +363,14 @@ object BuildSummary {
 
     // === Story: sourcegen and compile errors and their consequences ===
 
-    if (summary.sourcegenFailed > 0) {
-      lines += s"${C.RED}${C.BOLD}Sourcegen Failures (${summary.sourcegenFailed})${C.RESET}"
-      lines += s"  ${summary.sourcegenFailed} sourcegen script(s) failed. Check output above for details."
+    if (summary.sourcegenFailures.nonEmpty) {
+      lines += s"${C.RED}${C.BOLD}Sourcegen Failures (${summary.sourcegenFailures.size})${C.RESET}"
       lines += ""
+      summary.sourcegenFailures.foreach { sf =>
+        lines += s"${C.RED}x ${sf.scriptMain}${C.RESET}"
+        sf.errorLines.foreach(line => lines += s"  ${C.RED}|${C.RESET} ${C.sanitize(line)}")
+        lines += ""
+      }
     }
 
     if (summary.compileFailures.nonEmpty) {
@@ -642,7 +649,7 @@ object BuildSummary {
   }
 
   val empty: BuildSummary = BuildSummary(
-    sourcegenFailed = 0,
+    sourcegenFailures = Nil,
     apResolutionFailed = 0,
     kspResolutionFailed = 0,
     compilesCompleted = 0,
@@ -689,6 +696,21 @@ object FailureCategory {
   case object Cancelled extends FailureCategory // test cancelled (e.g. suite killed after timeout)
   case object ProcessError extends FailureCategory // process crash, non-zero exit
   case object BuildError extends FailureCategory // general build-level error
+}
+
+/** A sourcegen script that failed, with the reason the server gave.
+  *
+  * `error` is an `Option` because that is what the protocol's `SourcegenFinished` carries; the server sets it on every failure, so `None` here means an older
+  * or misbehaving server, and the summary says exactly that instead of inventing a reason.
+  */
+case class SourcegenFailure(
+    scriptMain: String,
+    error: Option[String]
+) {
+  def errorLines: List[String] = error match {
+    case Some(e) => e.linesIterator.toList
+    case None    => List("(the server reported the failure without a reason)")
+  }
 }
 
 case class LinkFailure(
@@ -1168,8 +1190,9 @@ object BuildDisplay {
             log("Server:   crashed mid-run — the counts above are what finished before it died, not the whole build")
           else IO.unit
         _ <-
-          if (s.sourcegenFailed > 0) log(s"Sourcegen: ${s.sourcegenFailed} script(s) failed — see the errors above and the BSP server log")
+          if (s.sourcegenFailed > 0) log(s"Sourcegen: ${s.sourcegenFailed} script(s) failed")
           else IO.unit
+        _ <- if (s.sourcegenFailures.nonEmpty && failureDetails) printSourcegenFailures(s.sourcegenFailures) else IO.unit
         _ <- if (s.apResolutionFailed > 0) log(s"Annotation processors: ${s.apResolutionFailed} project(s) failed to resolve") else IO.unit
         _ <- if (s.kspResolutionFailed > 0) log(s"KSP: ${s.kspResolutionFailed} project(s) failed to resolve") else IO.unit
         wallTimeSeconds = s.durationMs / 1000.0
@@ -1177,6 +1200,15 @@ object BuildDisplay {
         _ <- s.historyId.fold(IO.unit)(id => log(s"History:  #$id (bleep history show $id)"))
         _ <- if (s.compileFailures.nonEmpty && failureDetails) printCompileFailures(s.compileFailures) else IO.unit
         _ <- log("=" * 60)
+      } yield ()
+
+    private def printSourcegenFailures(failures: List[SourcegenFailure]): IO[Unit] =
+      for {
+        _ <- log("")
+        _ <- log(SConsole.RED + "Sourcegen Failures:" + SConsole.RESET)
+        _ <- failures.traverse_ { sf =>
+          log(s"  ${sf.scriptMain}") >> sf.errorLines.traverse_(line => log(s"    | $line"))
+        }
       } yield ()
 
     private def printCompileFailures(failures: List[ProjectCompileFailure]): IO[Unit] =
