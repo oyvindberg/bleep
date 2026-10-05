@@ -106,15 +106,18 @@ object Pressure {
 
 /** The thresholds [[Pressure.normalise]] applies where the platform does not judge for us.
   *
-  * The macOS churn values are CALIBRATED FROM THE OWNER'S TWO RUNS on a 48 GB Mac, with kernel_task CPU above 90 % as the ground truth (design §9): calm 1–7k
-  * pages/s; 40k/s the moment free memory was gone and compression had started (kernel_task 22 %); 98k/s at the first 90 % crossing; 243k/s at 154 %. The others
-  * are OPEN (design §11): not measured on a real machine yet. All are parameters precisely so that the numbers are visible at every call site and in `top`,
-  * rather than constants buried in a match.
+  * The macOS churn values are CALIBRATED FROM A ONE-HOUR PASSIVE LOG of the owner's 48 GB Mac in ordinary use (1266 samples every ~3.5 s, kernel_task CPU above
+  * 90 % as the ground truth; design §9). Churn p10/p50/p90 by kernel_task band: below 50 % 0.2k/3k/41k pages/s; 50–90 % 49k/125k/186k; above 90 %
+  * 116k/249k/410k. Recall of the overloaded samples against false alarms among the calm ones, by threshold: 25k 100 %/17 %; 50k 100 %/9 %; 75k 98 %/4 %; 100k
+  * 94 %/2 %; 150k 85 %/0 %; 200k 62 %/0 %. In the sample before each of twenty onsets churn was already 85–200k. The others are OPEN (design §11): not measured
+  * on a real machine yet. All are parameters precisely so that the numbers are visible at every call site and in `top`, rather than constants buried in a
+  * match.
   *
   * @param macOsChurnElevatedPagesPerSecond
-  *   macOS: compressions + decompressions per second at or above this is `Elevated` — compression has started, free memory is gone (40k/s seen there)
+  *   macOS: compressions + decompressions per second at or above this is `Elevated` — 75k: the machine is between calm and overloaded (the 50–90 % band's
+  *   median is 125k), catching 98 % of overloads with 4 % false alarms among calm samples
   * @param macOsChurnCriticalPagesPerSecond
-  *   macOS: at or above this is `Critical` — the machine is at or past the kernel_task cliff (98k/s at the crossing, 243k/s a step later)
+  *   macOS: at or above this is `Critical` — 150k: no calm sample reached it, and 85 % of the overloaded ones did (their median is 249k)
   *
   * @param linuxPsiSomeAvg10ElevatedPercent
   *   Linux: `some avg10` above this is `Elevated`. Design §9 estimates ≈10 %, to be measured.
@@ -153,8 +156,8 @@ object PressureThresholds {
 
   /** The design's estimates, pending measurement (§11). Named "provisional" so no call site mistakes them for tuned values. */
   val provisional: PressureThresholds = PressureThresholds(
-    macOsChurnElevatedPagesPerSecond = 25_000.0,
-    macOsChurnCriticalPagesPerSecond = 100_000.0,
+    macOsChurnElevatedPagesPerSecond = 75_000.0,
+    macOsChurnCriticalPagesPerSecond = 150_000.0,
     linuxPsiSomeAvg10ElevatedPercent = 10.0,
     windowsMemoryLoadElevatedPercent = 90,
     windowsCommitElevatedFraction = 0.90

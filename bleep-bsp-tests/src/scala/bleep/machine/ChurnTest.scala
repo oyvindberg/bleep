@@ -28,11 +28,16 @@ class ChurnTest extends AnyFunSuite with Matchers {
     s2.rate shouldBe Churn.Rate.PagesPerSecond(20_000.0)
   }
 
-  test("run 2: every row before free memory ran out is Normal, and the row where compression started is Elevated") {
+  test("run 2: every row is Normal — compression starting at 40.5k/s is a calm machine's p90 in the one-hour log, not pressure") {
     // held GB → churn/s per 7 s interval: 0.0 1.5k, 1.0 5.3k, 2.5 1.1k, 3.5 6.6k, 4.0 2.9k (free 0.06 GB), 4.5 40.5k (compression has started)
     val pressures = drive(List(0.0 -> 0.0, 7.0 -> 1_500.0, 14.0 -> 5_300.0, 21.0 -> 1_100.0, 28.0 -> 6_600.0, 35.0 -> 2_900.0, 42.0 -> 40_500.0))
-    pressures.slice(1, 6) should contain only Pressure.Normal
-    pressures.last shouldBe Pressure.Elevated
+    pressures.drop(1) should contain only Pressure.Normal
+  }
+
+  test("the one-hour log's medians, each held one 3.5 s interval: calm 3k Normal, kernel_task 50–90 % 125k Elevated, above 90 % 249k Critical") {
+    drive(List(0.0 -> 0.0, 3.5 -> 3_000.0)).last shouldBe Pressure.Normal
+    drive(List(0.0 -> 0.0, 3.5 -> 125_000.0)).last shouldBe Pressure.Elevated
+    drive(List(0.0 -> 0.0, 3.5 -> 249_000.0)).last shouldBe Pressure.Critical
   }
 
   test("run 1: the cliff — 20k/s one interval, 243k/s the next — is Critical at the very next sample, not after a long average") {
@@ -41,9 +46,10 @@ class ChurnTest extends AnyFunSuite with Matchers {
     pressures(2) shouldBe Pressure.Critical
   }
 
-  test("the first 90 % crossing, 98k/s, is Elevated; it is Critical from 100k/s") {
+  test("the first 90 % crossing, 98k/s, is Elevated; it is Critical from 150k/s") {
     drive(List(0.0 -> 0.0, 3.0 -> 98_000.0)).last shouldBe Pressure.Elevated
-    drive(List(0.0 -> 0.0, 3.0 -> 100_000.0)).last shouldBe Pressure.Critical
+    drive(List(0.0 -> 0.0, 3.0 -> 149_000.0)).last shouldBe Pressure.Elevated
+    drive(List(0.0 -> 0.0, 3.0 -> 150_000.0)).last shouldBe Pressure.Critical
   }
 
   test("at 10 ms ticks the rate is the mean over the window: a steady rate reads exactly, and a single burst does not lift a calm machine over the threshold") {
@@ -57,7 +63,7 @@ class ChurnTest extends AnyFunSuite with Matchers {
     pages += 20_000L
     state = Some(Churn.update(state, 3010L, pages))
     val Churn.Rate.PagesPerSecond(afterBurst) = state.get.rate: @unchecked
-    afterBurst should be < 25_000.0
+    afterBurst should be < 75_000.0
     afterBurst should be > 5_000.0
   }
 

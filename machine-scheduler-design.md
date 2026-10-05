@@ -370,10 +370,15 @@ crashes.** A dead server can never hold it. The remaining danger is a holder tha
   40.5k/s the step after free ran out. So the probe reports the cumulative counters (same `host_statistics64` call; swapins/swapouts too, for metrics),
   the scheduler rates them as the **mean over the last 2.5 s** (`Churn`: newest sample against the oldest inside the window, thinned to one per 100 ms;
   at 3 s slow checks the previous sample is the anchor, so a cliff is seen in full at the next check; a single 10 ms burst is averaged over the window
-  and cannot lift a calm machine over the threshold; a counter that went backwards restarts the baseline), and normalises: **Elevated ≥ 25,000
-  pages/s** (compression has started, free is gone), **Critical ≥ 100,000 pages/s** (at or past the kernel_task cliff) — `PressureThresholds`,
-  calibrated from these runs — or the kernel level as a floor (2 → at least Elevated, 4 → Critical). Until the second sample there is no rate:
-  `Pressure.Warming`, the brake off, said as such rather than as Normal.
+  and cannot lift a calm machine over the threshold; a counter that went backwards restarts the baseline), and normalises: **Elevated ≥ 75,000
+  pages/s, Critical ≥ 150,000 pages/s** (`PressureThresholds`) — or the kernel level as a floor (2 → at least Elevated, 4 → Critical). Until the
+  second sample there is no rate: `Pressure.Warming`, the brake off, said as such rather than as Normal.
+
+  The thresholds are calibrated from a one-hour passive log of the owner's Mac in ordinary use (1266 samples every ~3.5 s; kernel_task CPU > 90 % =
+  overloaded). Churn p10/p50/p90 by band: kernel_task < 50 % (1070 samples) 0.2k/3k/41k pages/s; 50–90 % (92) 49k/125k/186k; > 90 % (104)
+  116k/249k/410k. Recall of overloaded samples / false alarms among calm ones by threshold: 25k 100 %/17 %; 50k 100 %/9 %; 75k 98 %/4 %; 100k
+  94 %/2 %; 150k 85 %/0 %; 200k 62 %/0 %. In the sample before each of twenty onsets churn was already 85–200k. The allocation runs' 25k/100k
+  (compression has started) would have cried wolf on a sixth of a healthy hour: compression starting is how macOS lives, not a brake.
 - A probe call that fails throws. **A missing pressure source is not a failure**: `RawPressure.Unavailable(reason)` (e.g. a Linux kernel without PSI,
   or RHEL's `psi=0` default) — a warning once at startup and in `top`, and the pressure brake is off; room still works (§9.1).
 - On Windows the JDK's `OperatingSystemMXBean` returns the same `GlobalMemoryStatusEx` numbers (verified in CI); JNI is still needed for the low-memory

@@ -6,8 +6,8 @@ import org.scalatest.matchers.should.Matchers
 /** The per-OS mapping of raw pressure to Normal/Elevated/Critical (design §9). */
 class PressureTest extends AnyFunSuite with Matchers {
   private val t = PressureThresholds(
-    macOsChurnElevatedPagesPerSecond = 25_000.0,
-    macOsChurnCriticalPagesPerSecond = 100_000.0,
+    macOsChurnElevatedPagesPerSecond = 75_000.0,
+    macOsChurnCriticalPagesPerSecond = 150_000.0,
     linuxPsiSomeAvg10ElevatedPercent = 10.0,
     windowsMemoryLoadElevatedPercent = 90,
     windowsCommitElevatedFraction = 0.9
@@ -15,12 +15,15 @@ class PressureTest extends AnyFunSuite with Matchers {
   private val calm = Churn.Rate.PagesPerSecond(20_000.0)
 
   test("macOS: churn at or above the thresholds is Elevated then Critical, whatever the kernel's level says") {
-    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(24_999.0)) shouldBe Pressure.Normal
-    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(25_000.0)) shouldBe Pressure.Elevated
-    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(40_500.0)) shouldBe Pressure.Elevated
-    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(99_999.0)) shouldBe Pressure.Elevated
-    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(100_000.0)) shouldBe Pressure.Critical
-    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(243_000.0)) shouldBe Pressure.Critical
+    // The one-hour log's medians: calm 3k (p90 41k), kernel_task 50–90 % 125k, above 90 % 249k.
+    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(3_000.0)) shouldBe Pressure.Normal
+    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(41_000.0)) shouldBe Pressure.Normal
+    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(74_999.0)) shouldBe Pressure.Normal
+    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(75_000.0)) shouldBe Pressure.Elevated
+    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(125_000.0)) shouldBe Pressure.Elevated
+    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(149_999.0)) shouldBe Pressure.Elevated
+    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(150_000.0)) shouldBe Pressure.Critical
+    Pressure.normalise(RawPressure.MacOs(1, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(249_000.0)) shouldBe Pressure.Critical
     // The level is a floor: 2 keeps Elevated under calm churn, and does not hold Critical churn down.
     Pressure.normalise(RawPressure.MacOs(2, 0L, 0L, 0L, 0L), t, Churn.Rate.PagesPerSecond(236_000.0)) shouldBe Pressure.Critical
   }
@@ -116,11 +119,11 @@ class PressureTest extends AnyFunSuite with Matchers {
   }
 
   test("thresholds that are not percentages or fractions are rejected on construction") {
-    an[IllegalArgumentException] should be thrownBy PressureThresholds(25_000.0, 100_000.0, 101.0, 90, 0.9)
-    an[IllegalArgumentException] should be thrownBy PressureThresholds(25_000.0, 100_000.0, 10.0, 101, 0.9)
-    an[IllegalArgumentException] should be thrownBy PressureThresholds(25_000.0, 100_000.0, 10.0, 90, 1.5)
+    an[IllegalArgumentException] should be thrownBy PressureThresholds(75_000.0, 150_000.0, 101.0, 90, 0.9)
+    an[IllegalArgumentException] should be thrownBy PressureThresholds(75_000.0, 150_000.0, 10.0, 101, 0.9)
+    an[IllegalArgumentException] should be thrownBy PressureThresholds(75_000.0, 150_000.0, 10.0, 90, 1.5)
     // The churn thresholds must be positive and ordered, or Critical could never follow Elevated.
-    an[IllegalArgumentException] should be thrownBy PressureThresholds(0.0, 100_000.0, 10.0, 90, 0.9)
-    an[IllegalArgumentException] should be thrownBy PressureThresholds(100_000.0, 25_000.0, 10.0, 90, 0.9)
+    an[IllegalArgumentException] should be thrownBy PressureThresholds(0.0, 150_000.0, 10.0, 90, 0.9)
+    an[IllegalArgumentException] should be thrownBy PressureThresholds(150_000.0, 75_000.0, 10.0, 90, 0.9)
   }
 }
