@@ -5,6 +5,7 @@ package tui
 
 import bleep.bsp.{AdminError, ServerDirInfo, ServerState}
 import bleep.bsp.protocol.DaemonStatus
+import bleep.machine.StateJson
 
 /** One server as the dashboard knows it: what the directory scan found, what the daemon last said about itself, and what its processes cost, measured from
   * outside.
@@ -17,6 +18,10 @@ import bleep.bsp.protocol.DaemonStatus
   * @param isOutdated
   *   recorded with a different bleep version than this client, and not the server this build uses. Nothing new connects to it; only clients pinned to that
   *   version — an editor, an MCP server — keep it busy.
+  * @param published
+  *   the server's `state.json`: what it tells the other schedulers about itself (design §6.2), read from disk without the lock, as they read it. `None` for a
+  *   server from before the scheduler, or one that has not ticked yet. It is there whether or not the daemon answers, which is what makes it worth reading
+  *   alongside `status`: a wedged server's forks still count against the machine.
   */
 case class ServerRow(
     info: ServerDirInfo,
@@ -25,7 +30,8 @@ case class ServerRow(
     isCurrent: Boolean,
     processes: Option[List[ProcessTree.Sample]],
     parent: Option[ProcessTree.Parent],
-    isOutdated: Boolean
+    isOutdated: Boolean,
+    published: Option[StateJson]
 ) {
   def hash: String = info.hash
 

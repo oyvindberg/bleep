@@ -14,8 +14,11 @@ import io.circe.generic.semiauto.deriveCodec
   */
 object BleepServerAdmin {
 
-  /** Bumped only when the payload shape changes incompatibly. Additive fields ride along on the absent-tolerant decoders. */
-  val ProtocolVersion = 1
+  /** Bumped only when the payload shape changes incompatibly. Additive fields ride along on the absent-tolerant decoders.
+    *
+    * v2: the resource governor's `machine` ledger became the machine scheduler's `scheduler` view.
+    */
+  val ProtocolVersion = 2
 
   val StatusMethod = "bleep/status"
   val ShutdownMethod = "bleep/shutdown"
@@ -61,26 +64,149 @@ object StatusRequest {
   implicit val codec: Codec[StatusRequest] = deriveCodec
 }
 
-/** One entry in the machine governor's ledger — a running or queued piece of work. */
-case class MachineEntryDto(kind: String, label: String, cpu: Int, memoryMb: Long, ageMs: Long)
-
-object MachineEntryDto {
-  implicit val codec: Codec[MachineEntryDto] = deriveCodec
-}
-
-/** The resource governor's view: what the daemon is doing right now, and what is queued behind it. `waiting` is the queue depth `top` needs. */
-case class MachineSnapshotDto(
-    totalCpu: Int,
-    usedCpu: Int,
-    totalMemoryMb: Long,
-    usedMemoryMb: Long,
-    activeCompiles: Int,
-    active: List[MachineEntryDto],
-    waiting: List[MachineEntryDto]
+/** What the machine looked like on the scheduler's last probing tick (design §6.1): the probe's reading, not an estimate.
+  *
+  * @param usedMb
+  *   memory in use machine-wide, every process included; the forks the scheduler has measured are in here already
+  * @param pressure
+  *   `normal`, `elevated`, `critical` or `no-signal` — the OS's memory pressure, normalised (design §9)
+  * @param pressureReason
+  *   why there is no pressure signal, when `pressure` is `no-signal` or `warming-up`
+  * @param sampledAgoMs
+  *   how old this reading is: a server that has had nothing to claim has not probed since
+  * @param churnPagesPerSecond
+  *   macOS: the compressor's churn (compressions + decompressions per second, smoothed) — what the pressure is judged from (design §9)
+  * @param pressureLevel
+  *   the kernel's own level where it reports one (macOS: 1, 2, 4)
+  * @param availableMb
+  *   what the platform reports a new process could take now without reclaim (design §5 rule 1). With `roomBasis` `available-memory` room for forks is this less
+  *   the reserve and the starting forks' charges; with `starting-forks-cap` it is for display only
+  * @param roomBasis
+  *   how this platform admits forks beyond the guarantee: `available-memory` (Linux, Windows) or `starting-forks-cap` (macOS — at most `maxStartingForks`
+  *   unmeasured forks machine-wide, churn decides capacity)
+  */
+case class MachineViewDto(
+    physicalMb: Long,
+    usedMb: Long,
+    availableMb: Long,
+    roomBasis: String,
+    pressure: String,
+    pressureReason: Option[String],
+    sampledAgoMs: Long,
+    churnPagesPerSecond: Option[Long],
+    pressureLevel: Option[Int]
 )
 
-object MachineSnapshotDto {
-  implicit val codec: Codec[MachineSnapshotDto] = deriveCodec
+object MachineViewDto {
+  implicit val codec: Codec[MachineViewDto] = deriveCodec
+
+  /** `roomBasis` values, as `bleep.machine.RoomBasis.json` spells them. */
+  val AvailableMemory = "available-memory"
+  val StartingForksCap = "starting-forks-cap"
+}
+
+/** The outcome of the scheduler's last try for `machine.lock`: `held`, `unavailable` (another server kept it past the wait, and the holder fields name it when
+  * it had announced itself) or `not-needed` (nothing to claim, or unconstrained).
+  */
+case class LockDto(state: String, holderPid: Option[Long], holderStartedAtEpochMs: Option[Long], holderHeldForMs: Option[Long])
+
+object LockDto {
+  implicit val codec: Codec[LockDto] = deriveCodec
+}
+
+/** A fork the scheduler charges the machine for — a test JVM, a sourcegen script, a linker and the processes its toolchain spawns — as the scheduler sees it.
+  *
+  * @param pids
+  *   the live processes under the grant as last reported; empty until the first exists
+  * @param boundMb
+  *   what it is charged while `measuredMb` is absent: its heap bound plus overhead
+  * @param measuredMb
+  *   its process tree's footprint once measured, what it is charged from then on
+  * @param busyCpu
+  *   cpu slots held by the work running on it; 0 for a warm fork between jobs
+  * @param evicting
+  *   told to exit, still counted until it has
+  */
+case class SchedulerForkDto(
+    id: Long,
+    pids: List[Long],
+    request: String,
+    kind: String,
+    key: String,
+    boundMb: Long,
+    measuredMb: Option[Long],
+    shared: Boolean,
+    busyCpu: Int,
+    evicting: Boolean,
+    ageMs: Long
+)
+
+object SchedulerForkDto {
+  implicit val codec: Codec[SchedulerForkDto] = deriveCodec
+}
+
+/** Work running in the server's own heap — a compile, a test discovery, annotation-processor resolution — holding `cpu` slots and no machine memory. */
+case class InHeapTaskDto(request: String, taskId: String, kind: String, cpu: Int)
+
+object InHeapTaskDto {
+  implicit val codec: Codec[InHeapTaskDto] = deriveCodec
+}
+
+/** Something a request could start that the scheduler has not admitted: it is waiting for a cpu slot, for machine memory (`boundMb` says how much, for a fork),
+  * for the lock, or for the heap gate.
+  */
+case class DemandDto(request: String, taskId: String, kind: String, cpu: Int, boundMb: Option[Long])
+
+object DemandDto {
+  implicit val codec: Codec[DemandDto] = deriveCodec
+}
+
+/** The machine scheduler's view, as of its last tick (design §10 step 12). This is what the server publishes to the other servers in its `state.json`, plus
+  * what only it knows: the machine reading, the lock, and the demands it is holding back.
+  *
+  * @param mode
+  *   `cooperative` — shares the machine's memory with the other servers through `machine.lock` — or `unconstrained`, with `unconstrainedReason` saying why
+  * @param parallelism
+  *   this server's cpu slots; per server, not machine-wide
+  * @param reserveMb
+  *   where the room basis is `available-memory`: what of the available memory is never given to forks, room being `availableMb - reserveMb - pending`
+  * @param maxStartingForks
+  *   where the room basis is `starting-forks-cap`: how many forks may be unmeasured at once across every server before a fork beyond the guarantee waits
+  * @param liveServers
+  *   servers counted on the last claiming tick, this one included
+  * @param wantsMore
+  *   it has demands it could not admit — the signal that makes idle servers yield and busy ones shed caches
+  * @param shuttingDown
+  *   it has decided to yield its memory and is on its way out; its forks still count until it is gone
+  */
+case class SchedulerDto(
+    mode: String,
+    unconstrainedReason: Option[String],
+    parallelism: Int,
+    reserveMb: Long,
+    maxStartingForks: Int,
+    machine: Option[MachineViewDto],
+    lock: LockDto,
+    liveServers: Int,
+    requests: Int,
+    cpuInUse: Int,
+    wantsMore: Boolean,
+    shuttingDown: Boolean,
+    inHeap: List[InHeapTaskDto],
+    forks: List[SchedulerForkDto],
+    waiting: List[DemandDto]
+) {
+  def compilesRunning: Int = inHeap.count(_.kind == SchedulerDto.CompileKind)
+}
+
+object SchedulerDto {
+  implicit val codec: Codec[SchedulerDto] = deriveCodec
+
+  val Cooperative = "cooperative"
+  val Unconstrained = "unconstrained"
+
+  /** `InHeapTaskDto.kind` of a compile, as `bleep.machine.InHeapKind.Compile.json` spells it. */
+  val CompileKind = "compile"
 }
 
 case class ConnectionDto(
@@ -148,7 +274,9 @@ case class ServerConfigDto(
     bspReadTimeoutMillis: Long,
     compileServerIdleTimeoutMillis: Long,
     testIdleTimeoutMinutes: Int,
-    heapPressureThreshold: Double
+    heapPressureThreshold: Double,
+    /** `cooperative` or `unconstrained` (see `bleep.model.MachineScheduling`). `Option` so a status from a server without the field still decodes. */
+    machineScheduling: Option[String]
 )
 
 object ServerConfigDto {
@@ -157,7 +285,7 @@ object ServerConfigDto {
 
 /** Everything `bleep server status` and the `top` TUI render, in one round trip.
   *
-  * Assembled from state the daemon already held but could never expose: the governor snapshot, the two caches, the JVM sampler, the connection registry, and
+  * Assembled from state the daemon already held but could never expose: the scheduler's snapshot, the two caches, the JVM sampler, the connection registry, and
   * the config it booted with.
   */
 case class DaemonStatus(
@@ -167,7 +295,7 @@ case class DaemonStatus(
     startedAtEpochMs: Long,
     socketDir: String,
     jvm: JvmStats,
-    machine: MachineSnapshotDto,
+    scheduler: SchedulerDto,
     connections: List[ConnectionDto],
     workspaces: List[WorkspaceDto],
     buildCache: BuildCacheDto,

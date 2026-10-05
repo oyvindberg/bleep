@@ -78,7 +78,7 @@ object BspRifleConfig {
     * deterministic per machine, so it is safe to include in the JvmKey hash. Overridable via `bleep config compile-server max-memory`.
     */
   val defaultMaxHeapMb: Long = {
-    val physicalMb = bleep.MachineResources.physicalMemoryMb(fallbackMb = 16 * 1024L)
+    val physicalMb = bleep.MemorySizes.physicalMemoryMb(fallbackMb = 16 * 1024L)
     math.min(16 * 1024L, math.max(4 * 1024L, physicalMb / 4))
   }
 

@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.bsp.protocol.{BleepServerAdmin, DaemonStatus}
+import bleep.bsp.protocol.{BleepServerAdmin, DaemonStatus, SchedulerDto}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import ryddig.{LogPatterns, Loggers}
@@ -42,14 +42,15 @@ class BleepStatusEndpointTest extends AnyFunSuite with Matchers {
       requestDaemonShutdown = () => shutdownRequested.set(true)
     )
 
+    private val scheduling = DaemonScheduling.unconstrained(parallelism = 4, reason = "test", heapGate = bleep.machine.HeapGate.alwaysAdmit, logger = logger)
+
     private val server = new MultiWorkspaceBspServer(
       clientToServer.source,
       serverToClient.sink,
       logger,
-      machine = bleep.MachineResources.forThisMachine(totalCpu = 4, logger = logger),
-      heapMonitor = HeapMonitor.system,
+      scheduling = scheduling,
       kspMutexes = new KspMutexes,
-      buildCache = new BuildCache(4, analysisCache),
+      buildCache = new BuildCache(4, analysisCache, scheduling.requests),
       analysisCache = analysisCache,
       daemonInfo = daemonInfo,
       connId = 17,
@@ -129,15 +130,23 @@ class BleepStatusEndpointTest extends AnyFunSuite with Matchers {
     jvm.gc should not be empty
   }
 
-  test("the governor's view comes through, including its capacity") {
+  test("the scheduler's view comes through: its mode and why, its slots, and that nothing is running") {
     val f = new Fixture
-    val machine = f.status(observer = true).machine
+    val scheduler = f.status(observer = true).scheduler
 
-    machine.totalCpu shouldBe 4
-    machine.activeCompiles shouldBe 0
-    withClue("an idle server has nothing running and nothing queued: ") {
-      machine.active shouldBe empty
-      machine.waiting shouldBe empty
+    scheduler.mode shouldBe SchedulerDto.Unconstrained
+    scheduler.unconstrainedReason shouldBe Some("test")
+    scheduler.parallelism shouldBe 4
+    scheduler.cpuInUse shouldBe 0
+    scheduler.compilesRunning shouldBe 0
+    withClue("unconstrained means no machine reading and no lock: ") {
+      scheduler.machine shouldBe None
+      scheduler.lock.state shouldBe "not-needed"
+    }
+    withClue("an idle server has nothing running and nothing waiting: ") {
+      scheduler.inHeap shouldBe empty
+      scheduler.forks shouldBe empty
+      scheduler.waiting shouldBe empty
     }
   }
 

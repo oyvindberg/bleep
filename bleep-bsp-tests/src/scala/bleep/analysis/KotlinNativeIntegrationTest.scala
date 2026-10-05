@@ -205,7 +205,8 @@ class KotlinNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with
           outputPath = outputPath,
           config = config,
           diagnosticListener = DiagnosticListener.noop,
-          cancellation = CancellationToken.never
+          cancellation = CancellationToken.never,
+          onStarted = bleep.bsp.ProcessRunner.NoStartHook
         )
         .unsafeRunSync()
 
@@ -233,7 +234,8 @@ class KotlinNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with
           outputPath = outputPath,
           config = config,
           diagnosticListener = DiagnosticListener.noop,
-          cancellation = CancellationToken.never
+          cancellation = CancellationToken.never,
+          onStarted = bleep.bsp.ProcessRunner.NoStartHook
         )
         .unsafeRunSync()
 
@@ -261,7 +263,8 @@ class KotlinNativeAdvancedIntegrationTest extends AnyFunSuite with Matchers with
           outputPath = outputPath,
           config = config,
           diagnosticListener = DiagnosticListener.noop,
-          cancellation = CancellationToken.never
+          cancellation = CancellationToken.never,
+          onStarted = bleep.bsp.ProcessRunner.NoStartHook
         )
         .unsafeRunSync()
 

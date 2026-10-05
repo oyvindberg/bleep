@@ -27,16 +27,28 @@ object SessionSharing {
   */
 case class TestSessionRequest(
     label: String,
+    /** The project this suite belongs to: the group whose still-unstarted suites keep a warm fork of this classpath alive. */
+    group: String,
+    /** The `java` to fork. Part of the request because a fork is only reusable for a request that would have started it with the same JVM. */
+    jvmCommand: Path,
     classpath: List[Path],
     jvmOptions: List[String],
     /** Heap for a fork whose `jvmOptions` state no `-Xmx`. Meaningless without a fork: in process the tests share the server's heap. */
     defaultHeapMb: Long,
     runnerClass: String,
     environment: Map[String, String],
+    /** Where the fork runs when `workingDirectory` says nothing: the build directory. Meaningless in process. */
+    defaultWorkingDirectory: Path,
     workingDirectory: Option[Path],
     /** Exclusive (a fork to this suite alone) or Shared (this suite's project runs all its suites in one fork). See [[SessionSharing]]. */
-    sharing: SessionSharing
-)
+    sharing: SessionSharing,
+    /** The cpu slots this work holds on the fork while it runs: one for a suite, as many as classes run at once for a batch. What the scheduler charges. */
+    cpu: Int
+) {
+  require(cpu >= 1, s"$label: a session request must hold at least one cpu slot, asked for $cpu")
+
+  def effectiveWorkingDirectory: Path = workingDirectory.getOrElse(defaultWorkingDirectory)
+}
 
 /** Hands out somewhere to run a test suite.
   *

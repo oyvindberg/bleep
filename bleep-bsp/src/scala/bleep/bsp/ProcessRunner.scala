@@ -104,10 +104,15 @@ object ProcessRunner {
     */
   def runWithOutput(
       pb: ProcessBuilder,
-      killSignal: Deferred[IO, KillReason]
+      killSignal: Deferred[IO, KillReason],
+      /** Called with the process the moment it exists, before any of its output is read. The machine scheduler's forks report themselves through this (see
+        * `GrantedFork.onStarted`); a caller running a process the scheduler does not account for passes [[NoStartHook]], explicitly.
+        */
+      onStarted: Process => Unit
   ): IO[RunOutcome] =
     start(pb).use { process =>
       for {
+        _ <- IO(onStarted(process))
         // Limit captured lines to prevent OOM from verbose/crashing processes
         stdoutFiber <- lines(process.getInputStream).take(MaxOutputLines).compile.toList.start
         stderrFiber <- lines(process.getErrorStream).take(MaxOutputLines).compile.toList.start
@@ -125,6 +130,9 @@ object ProcessRunner {
           RunOutcome.Killed(reason, stdoutStr, stderrStr)
       }
     }
+
+  /** For processes the machine scheduler does not account for: test runners the DAG already charged through their fork, toolchain version probes. */
+  val NoStartHook: Process => Unit = _ => ()
 
   /** Create a kill signal that can be completed to request process termination. */
   def createKillSignal: IO[Deferred[IO, KillReason]] =

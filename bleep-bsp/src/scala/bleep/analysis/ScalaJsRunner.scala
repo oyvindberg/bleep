@@ -53,7 +53,7 @@ object ScalaJsRunner {
       .directory(workingDir.toFile)
     env.foreach { case (k, v) => pb.environment().put(k, v) }
 
-    ProcessRunner.runWithOutput(pb, killSignal)
+    ProcessRunner.runWithOutput(pb, killSignal, ProcessRunner.NoStartHook)
   }
 
   /** Run a Scala.js-generated JavaScript file with Node.js, inheriting IO.

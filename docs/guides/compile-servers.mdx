@@ -262,9 +262,9 @@ want, say so explicitly — that is exactly what `max-memory` is for.
 
 Reach for it when you're hitting `OutOfMemoryError` during compile, or
 when you have plenty of RAM and want to give the compiler room to
-breathe. Raising it is not free, though: the server's footprint is
-subtracted from the budget your test forks draw on, so a bigger server
-means fewer forks running at once. [Memory &
+breathe. Raising it is not free, though: the server's heap is part of
+the machine's used memory, which every fork on the machine is admitted
+against, so a bigger server means fewer forks running at once. [Memory &
 Parallelism](/docs/usage/resource-management#small-machines-and-ci) does
 that arithmetic properly, with a table of what fits.
 
@@ -279,19 +279,23 @@ bleep versions are deleted automatically at server start.
 
 ### How much runs at once
 
-Compiles, links, tests and sourcegen all draw from one budget:
-**`parallelism`** — see
+Compiles, links, tests and sourcegen all hold CPU slots from one per-server
+number: **`parallelism`** — see
 [Memory & Parallelism](/docs/usage/resource-management#how-many-run-at-once).
+Memory is not part of it: forks are admitted against the machine's memory by
+the machine scheduler, shared with every other bleep server on the machine,
+and compiles never wait for memory room at all.
 
 There is deliberately no separate cap for compiles. One existed briefly and
 was removed: holding capacity back for test forks that might not exist is a
-static partition inside an otherwise work-conserving governor, so a
+static partition inside an otherwise work-conserving scheduler, so a
 compile-only run left half the machine idle. Instead the scheduler does two
-distinct things, and it is worth knowing they are distinct because both show
-up as a compile that didn't start immediately:
+distinct things for the work in its own heap, and it is worth knowing they are
+distinct because both show up as a compile that didn't start immediately:
 
 - it **staggers** a project's first admission attempt whenever something else
-  is already compiling, so a wave of projects doesn't all allocate at once;
+  is already compiling or linking in the server's heap, so a wave of projects
+  doesn't all allocate at once;
 - it **defers under heap pressure**, watching the live heap rather than
   guessing from a count.
 
@@ -302,6 +306,29 @@ doing](#what-the-events-mean).
 ```bash
 bleep server config parallelism 4
 ```
+
+### Sharing the machine with other servers
+
+Several servers on one machine — one per bleep version and JVM — run the
+same machine scheduler and share its memory through one lock, so the sum of
+their forks never exceeds what the machine can hold. Two things follow that
+you may notice:
+
+- A **busy** server drops the cached builds and analyses of workspaces it
+  has no request for when memory is needed elsewhere — the OS reports
+  pressure, or another server has work it could not admit. The next use of
+  that workspace pays a cold load.
+- An **idle** server — nothing connected, nothing scheduled, idle for five
+  minutes — shuts itself down under the same conditions, ahead of its idle
+  timeout, so a fresh server starts on the next command. A connected IDE keeps
+  its server; `bleep mcp-server` reconnects per call and needs no such
+  protection.
+
+A server can stand outside the arrangement with
+`bleep server config machine-scheduling unconstrained`; `bleep server top`
+names any server that does, and why. [Memory &
+Parallelism](/docs/usage/resource-management#how-the-machines-memory-is-shared)
+has the rules in full.
 
 ### Cached builds
 
@@ -421,7 +448,12 @@ Each line has a `type`. The ones worth knowing:
 | --- | --- |
 | `compile_start` / `compile_end` | a project compiled, and for how long |
 | `compile_allocation` | how much that compile allocated — the biggest lever on heap |
-| `machine` | every 15s: cores in use, queue depth, fork budget, RAM, heap cap |
+| `machine` | every 15s: this server's CPU slots in use and `parallelism`, work running and waiting, the machine's used memory and the fork ceiling, RAM, heap cap |
+| `scheduler` | one per busy second: ticks, lock claims and holds (longest, and per step), forks spawned and reused, in-heap admissions, evictions by reason, heap deferrals |
+| `pressure` | the OS's memory pressure level changed (`normal`, `elevated`, `critical`) |
+| `lock_unavailable` | another server held `machine.lock` past the wait; names the holder |
+| `cache_shed` | this server dropped idle workspaces' caches for a memory need elsewhere |
+| `yield` | this server shut itself down to give its memory to another |
 | `jvm` | every 15s: heap used, GC counts and cycle times, threads |
 | `analysis_cache` | how much Zinc analysis is held, and how well it's shared |
 | `admission_defer` | a compile the scheduler declined to start, **and why** |

@@ -30,6 +30,20 @@ class BspServerConfigTest extends AnyFunSuite with Matchers {
     a[RuntimeException] should be thrownBy config.effectiveBspReadTimeoutMillis
   }
 
+  test("machineScheduling reads cooperative or unconstrained, defaults to cooperative, and rejects anything else") {
+    decode[BspServerConfig]("""{}""").fold(throw _, identity).effectiveMachineScheduling shouldBe bleep.model.MachineScheduling.Cooperative
+    decode[BspServerConfig]("""{"machineScheduling": "unconstrained"}""").fold(throw _, identity).machineScheduling shouldBe Some(
+      bleep.model.MachineScheduling.Unconstrained
+    )
+    decode[BspServerConfig]("""{"machineScheduling": "cooperative"}""").fold(throw _, identity).machineScheduling shouldBe Some(
+      bleep.model.MachineScheduling.Cooperative
+    )
+    decode[BspServerConfig]("""{"machineScheduling": "fast"}""").isLeft shouldBe true
+    decode[BspServerConfig](BspServerConfig.default.copy(machineScheduling = Some(bleep.model.MachineScheduling.Unconstrained)).asJson.noSpaces)
+      .fold(throw _, identity)
+      .machineScheduling shouldBe Some(bleep.model.MachineScheduling.Unconstrained)
+  }
+
   // Guards docs/guides/compile-servers.mdx, which tells people to hand-edit this file. The keys
   // are silently ignored when wrong, so a docs typo is invisible until someone wonders why their
   // setting does nothing — which is exactly how `bspServer:` survived in the docs for so long.

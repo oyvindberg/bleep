@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 1.0.0-M14
+$version: 1.0.0-M15
 jvm:
   name: graalvm-community:25.0.2
 projects:
@@ -16,6 +16,7 @@ projects:
     - org.scala-lang::scala3-compiler:3.9.0
     dependsOn:
     - bleep-core
+    - bleep-machine-probes
     - bleep-zinc
     extends:
     - template-common
@@ -141,6 +142,32 @@ projects:
     - ../liberated/sbt-pgp/sbt-pgp/src/main/scala
     - ../liberated/sbt-sonatype/src/main/scala
     - ../liberated/sbt-tpolecat/plugin/src/main/scala
+  # The OS memory probes behind the machine-wide scheduler (bleep.machine): /proc reads on Linux, a small JNI library on macOS and
+  # Windows. Its own module so that bleep-core, which build scripts depend on, carries no native code; bleep-core keeps the
+  # MachineProbe contract and the pure scheduler. Published, because the compile server (bleep-bsp) depends on it.
+  bleep-machine-probes:
+    dependsOn: bleep-core
+    extends:
+    - template-common
+    - template-scala-3
+    # The JNI libraries are checked in under src/resources, built by CI from src/c; rebuild them with
+    # `bleep build-machine-native` after editing the C file (see that script).
+  # The machine probes' suites (bleep.machine), in a project that needs nothing beyond bleep-machine-probes. That is the point of it: the
+  # probes are the one part of bleep that is different code on every OS, and the `machine-probes` CI job compiles and runs
+  # this project on Linux, macOS and Windows within minutes instead of after a full build and a native image.
+  bleep-machine-tests:
+    dependencies:
+    - org.scalatest::scalatest:3.2.20
+    dependsOn: bleep-machine-probes
+    extends:
+    - template-common
+    - template-scala-3
+    - template-test
+    isTestProject: true
+    platform:
+      # The macOS and Windows probes load a JNI library, a restricted method from JDK 24 on (JEP 472). The compile server
+      # passes the same flag to itself.
+      jvmOptions: --enable-native-access=ALL-UNNAMED
   bleep-model:
     dependencies:
     - io.circe::circe-generic:0.14.16
@@ -554,6 +581,11 @@ projects:
     sources: ./src/main/java
 resolvers: https://packages.jetbrains.team/maven/p/ij/intellij-dependencies
 scripts:
+  # Rebuilds the checked-in machine-probe JNI libraries after an edit to bleep-machine-probes/src/c, or with --check
+  # verifies they were built from the current source.
+  build-machine-native:
+    main: bleep.scripts.BuildMachineNative
+    project: scripts-init
   bsp-stress:
     main: bleep.scripts.dev.BspStress
     project: scripts-dev

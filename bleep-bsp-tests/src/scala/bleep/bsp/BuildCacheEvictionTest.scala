@@ -52,6 +52,13 @@ class BuildCacheEvictionTest extends AnyFunSuite with Matchers {
     select(present, keep = "keep", bound = 3, busy = Set("busy1", "busy2", "busy3")) shouldBe Vector("idle1")
   }
 
+  // ── memory needed elsewhere ────────────────────────────────────
+
+  test("a shed drops every idle entry and keeps every busy one, whatever the bound") {
+    BuildCache.selectIdle[String](Vector("idle1", "busy", "idle2"), isBusy = _ == "busy") shouldBe Vector("idle1", "idle2")
+    BuildCache.selectIdle[String](Vector.empty, isBusy = _ => false) shouldBe empty
+  }
+
   // ── workspaces that no longer exist ────────────────────────────
 
   test("a cached build whose workspace directory is gone is evicted, whatever the bound") {
@@ -70,12 +77,12 @@ class BuildCacheEvictionTest extends AnyFunSuite with Matchers {
     val alive = java.nio.file.Files.createDirectories(root.resolve("alive"))
     val deleted = java.nio.file.Files.createDirectories(root.resolve("deleted"))
     val classpath = bleep.analysis.CompilerResolver.resolveScalaLibrary("3.7.4").toList
-    val (analysisCache, buildCache) = bleep.analysis.BspTestHarness.freshCaches()
+    val (analysisCache, buildCache, scheduling) = bleep.analysis.BspTestHarness.freshCaches()
 
     List(alive, deleted).foreach { workspace =>
       java.nio.file.Files.createDirectories(workspace.resolve("src"))
       val config = bleep.analysis.BspTestHarness.ProjectConfig.scala("p", Set(workspace.resolve("src")), "3.7.4", classpath, isTest = false)
-      bleep.analysis.BspTestHarness.withProjectAndCaches(workspace, config, analysisCache, buildCache) { client =>
+      bleep.analysis.BspTestHarness.withProjectAndCaches(workspace, config, analysisCache, buildCache, scheduling) { client =>
         client.initialize(): Unit
         client.buildTargets(): Unit
       }

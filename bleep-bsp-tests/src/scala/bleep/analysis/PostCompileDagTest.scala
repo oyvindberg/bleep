@@ -48,9 +48,6 @@ class PostCompileDagTest extends AnyFunSuite with Matchers with org.scalatest.Lo
     postCompile = Map(lib -> Set(input, script))
   )
 
-  private def machine: bleep.MachineResources =
-    bleep.MachineResources.create(totalCpu = 4, totalMemoryMb = 64 * 1024, logger = ryddig.TypedLogger.DevNull, longWaitWarnMs = 60000L)
-
   test("the compile waits only for its own dependencies; the step waits for the compile and what it reads; consumers wait for the step") {
     val dag = TaskDag.buildCompileDag(Set(app), ctx)
 
@@ -80,20 +77,19 @@ class PostCompileDagTest extends AnyFunSuite with Matchers with org.scalatest.Lo
             (if (t.project == input) libCompiled.get else IO.unit) >>
               IO(order.add(s"compile:${t.project.value}"): Unit) >>
               (if (t.project == lib) libCompiled.complete(()).void else IO.unit).as(TaskResult.Success),
-          postCompile = (t, _) => IO(order.add(s"post-compile:${t.project.value}"): Unit).as(TaskResult.Success),
-          link = (_, _) => sys.error("LinkTask should not appear here"),
-          discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
+          postCompile = (t, _, _) => IO(order.add(s"post-compile:${t.project.value}"): Unit).as(TaskResult.Success),
+          link = (_, _, _) => sys.error("LinkTask should not appear here"),
+          discover = (_, _, _, _) => sys.error("DiscoverTask should not appear here"),
           test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
           testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-          sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
+          sourcegen = (_, _, _) => sys.error("SourcegenTask should not appear here"),
           annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-          symbolProcessor = (_, _) => sys.error("RunSymbolProcessorsTask should not appear here"),
-          mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit)
+          symbolProcessor = (_, _, _) => sys.error("RunSymbolProcessorsTask should not appear here")
         )
       )
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      finalDag <- executor.execute(dag, machine, TaskDag.ForkHeaps.default, eventQueue, killSignal)
+      finalDag <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield finalDag
 
     val finalDag = program.timeout(30.seconds).unsafeRunSync()

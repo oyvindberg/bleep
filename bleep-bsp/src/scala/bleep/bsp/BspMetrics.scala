@@ -260,16 +260,24 @@ object BspMetrics {
       usedCpu: Int,
       totalCpu: Int,
       usedMemoryMb: Long,
-      totalMemoryMb: Long,
+      availableMemoryMb: Long,
+      roomBasis: Option[String],
+      reserveMb: Long,
+      maxStartingForks: Int,
+      startingForks: Int,
       physicalMemoryMb: Long,
       serverHeapMb: Long,
       activeCompiles: Int,
       running: Int,
       waiting: Int
-  ): Unit =
+  ): Unit = {
+    // `room_basis` is absent before the first probe, like the machine reading it describes; `starting_forks` is this server's unmeasured forks, what a
+    // `starting-forks-cap` platform counts against `max_starting_forks` (summed across servers by the decision, per server here).
+    val basis = roomBasis.fold("")(b => s""","room_basis":"$b"""")
     writeEvent(
-      s"""{"type":"machine","ts":${now()},"used_cpu":$usedCpu,"total_cpu":$totalCpu,"used_memory_mb":$usedMemoryMb,"total_memory_mb":$totalMemoryMb,"physical_memory_mb":$physicalMemoryMb,"server_heap_mb":$serverHeapMb,"active_compiles":$activeCompiles,"running":$running,"waiting":$waiting}"""
+      s"""{"type":"machine","ts":${now()},"used_cpu":$usedCpu,"total_cpu":$totalCpu,"used_memory_mb":$usedMemoryMb,"available_memory_mb":$availableMemoryMb$basis,"reserve_mb":$reserveMb,"max_starting_forks":$maxStartingForks,"starting_forks":$startingForks,"physical_memory_mb":$physicalMemoryMb,"server_heap_mb":$serverHeapMb,"active_compiles":$activeCompiles,"running":$running,"waiting":$waiting}"""
     )
+  }
 
   /** What the Zinc analysis cache is holding after each sweep. The largest single retainer in the server heap, so its size is the first number to look at when
     * the live set is climbing.
@@ -402,6 +410,20 @@ object BspMetrics {
   /** Every bleep-initiated kill, so a fork's death can be attributed after the fact: a `fork_end` for a pid with no preceding `fork_kill` was not bleep's
     * doing. `was_alive=false` marks a redundant escalation over an already-dead fork.
     */
+  /** A line the machine scheduler's metrics built (`SchedulerMetrics`): already JSON, already rate-limited. */
+  def recordSchedulerLine(json: String): Unit = writeEvent(json)
+
+  /** A server shed the caches of its idle workspaces for a memory need elsewhere (design §5.2). */
+  def recordCacheShed(reason: String, builds: Int, analyses: Int, analysisMb: Long): Unit =
+    writeEvent(s"""{"type":"cache_shed","ts":${now()},"reason":"${esc(reason)}","builds":$builds,"analyses":$analyses,"analysis_mb":$analysisMb}""")
+
+  /** This server yielded its memory to another (design §5.1): the last thing it writes before the clean shutdown. */
+  def recordYield(reason: String, idleForMs: Long): Unit =
+    writeEvent(s"""{"type":"yield","ts":${now()},"reason":"${esc(reason)}","idle_for_ms":$idleForMs}""")
+
+  /** `esc`, for the one writer outside this object that spells its own JSON. */
+  def escape(s: String): String = esc(s)
+
   def recordForkKill(pid: Long, reason: String, wasAlive: Boolean, graceMillis: Long): Unit =
     writeEvent(
       s"""{"type":"fork_kill","ts":${now()},"pid":$pid,"reason":"${esc(reason)}","was_alive":$wasAlive,"grace_ms":$graceMillis}"""

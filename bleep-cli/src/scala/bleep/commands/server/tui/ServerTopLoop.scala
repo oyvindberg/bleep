@@ -119,7 +119,7 @@ class ServerTopLoop(userPaths: UserPaths, currentWorkspace: Option[Path]) {
   private def initialState(): ServerTopState =
     ServerTopState.initial(
       System.currentTimeMillis(),
-      ServerTopState.Machine(physicalMemoryMb = MachineResources.physicalMemoryMb(fallbackMb = 0L), cores = Runtime.getRuntime.availableProcessors())
+      ServerTopState.Machine(physicalMemoryMb = MemorySizes.physicalMemoryMb(fallbackMb = 0L), cores = Runtime.getRuntime.availableProcessors())
     )
 
   /** One path for everything the user does, mouse or keyboard: pure update, then run whatever effects it asked for. */
@@ -250,7 +250,9 @@ class ServerTopLoop(userPaths: UserPaths, currentWorkspace: Option[Path]) {
           processes = handle.map(ProcessTree.sample(_, ProcessMemory.system)),
           parent = handle.flatMap(ProcessTree.parentOf),
           // The server this build talks to is never the stray, whatever version it records — a snapshot client sees every server as "another version".
-          isOutdated = !currentHash.contains(info.hash) && info.identity.exists(_.bleepVersion != clientVersion)
+          isOutdated = !currentHash.contains(info.hash) && info.identity.exists(_.bleepVersion != clientVersion),
+          // Without the lock, like the servers read each other: the file is replaced atomically, so a read sees a whole state or none.
+          published = if (handle.isDefined) bleep.machine.StateFile.read(info.socketDir) else None
         )
       }
 

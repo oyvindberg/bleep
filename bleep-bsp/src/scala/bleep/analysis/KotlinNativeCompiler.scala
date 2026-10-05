@@ -43,7 +43,9 @@ object KotlinNativeCompiler {
       outputPath: Path,
       config: KotlinNativeCompilerConfig,
       diagnosticListener: DiagnosticListener,
-      cancellation: CancellationToken
+      cancellation: CancellationToken,
+      /** Told of the `konanc` process when that is how this compiles — the scheduler's fork reporting. The in-process K2Native path starts nothing. */
+      onStarted: Process => Unit
   ): IO[KotlinNativeCompileResult] =
     // Check cancellation before starting
     if (cancellation.isCancelled) {
@@ -53,7 +55,7 @@ object KotlinNativeCompiler {
       // uses kotlinx.coroutines runBlocking which crashes on Thread.interrupt.
       // Cancellation is handled via the CancellationToken instead.
       IO.blocking {
-        compileBlocking(sources, libraries, outputPath, config, diagnosticListener, cancellation)
+        compileBlocking(sources, libraries, outputPath, config, diagnosticListener, cancellation, onStarted)
       }.onCancel {
         IO.delay(cancellation.cancel())
       }.flatMap { result =>
@@ -115,7 +117,8 @@ object KotlinNativeCompiler {
       outputPath: Path,
       config: KotlinNativeCompilerConfig,
       diagnosticListener: DiagnosticListener,
-      cancellation: CancellationToken
+      cancellation: CancellationToken,
+      onStarted: Process => Unit
   ): KotlinNativeCompileResult = {
     val instance = CompilerResolver.getKotlinNativeCompiler(config.kotlinVersion)
     val loader = instance.loader
@@ -252,7 +255,7 @@ object KotlinNativeCompiler {
       case e: ClassNotFoundException =>
         // K2Native may not be available in all distributions
         // Try alternative approach using konanc if available
-        compileWithKonanc(sources, libraries, outputPath, config, diagnosticListener, cancellation)
+        compileWithKonanc(sources, libraries, outputPath, config, diagnosticListener, cancellation, onStarted)
       case e: Exception =>
         diagnosticListener.onDiagnostic(
           CompilerError(
@@ -337,7 +340,8 @@ object KotlinNativeCompiler {
       outputPath: Path,
       config: KotlinNativeCompilerConfig,
       diagnosticListener: DiagnosticListener,
-      cancellation: CancellationToken
+      cancellation: CancellationToken,
+      onStarted: Process => Unit
   ): KotlinNativeCompileResult = {
     val argList = mutable.ListBuffer[String]()
 
@@ -408,6 +412,7 @@ object KotlinNativeCompiler {
         .inheritIO()
 
       val process = pb.start()
+      onStarted(process)
       cancellation.onCancel { () => process.destroyForcibly(); () }
 
       val exitCode = process.waitFor()

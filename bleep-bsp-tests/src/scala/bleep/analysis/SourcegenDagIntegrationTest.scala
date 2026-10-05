@@ -32,10 +32,6 @@ import scala.jdk.CollectionConverters.*
   */
 class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
-  /** A machine for tests: enough CPU for the parallelism a case asks for, ample fork memory so admission never turns on it. */
-  private def testMachine(cpu: Int): bleep.MachineResources =
-    bleep.MachineResources.create(totalCpu = cpu, totalMemoryMb = 64 * 1024, logger = ryddig.TypedLogger.DevNull, longWaitWarnMs = 60000L)
-
   private def projectName(name: String): CrossProjectName =
     CrossProjectName(ProjectName(name), None)
 
@@ -353,23 +349,22 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
-        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+        postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (t, _) => IO(order.add(s"compile:${t.project.value}"): Unit).as(TaskResult.Success),
-        link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
+        link = (_, _, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (t, _) => IO(order.add(s"sourcegen:${t.main}"): Unit).as(TaskResult.Success),
+        sourcegen = (t, _, _) => IO(order.add(s"sourcegen:${t.main}"): Unit).as(TaskResult.Success),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
+        symbolProcessor = (_, _, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
     (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      _ <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
+      _ <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield ()).unsafeRunSync()
 
     val events = order.asScala.toList
@@ -404,26 +399,25 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
-        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+        postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (t, _) =>
           if (t.project == scriptsProject) IO.pure(TaskResult.Failure("compile error", Nil))
           else if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
           else IO.pure(TaskResult.Success),
-        link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
+        link = (_, _, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (_, _) => IO(sourcegenCalled.set(true)).as(TaskResult.Success),
+        sourcegen = (_, _, _) => IO(sourcegenCalled.set(true)).as(TaskResult.Success),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
+        symbolProcessor = (_, _, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
     val finalDag = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      d <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
+      d <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield d).unsafeRunSync()
 
     sourcegenCalled.get() shouldBe false
@@ -459,25 +453,24 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
-        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+        postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (t, _) =>
           if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
           else IO.pure(TaskResult.Success),
-        link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
+        link = (_, _, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (_, _) => IO.pure(TaskResult.Failure("script threw", Nil)),
+        sourcegen = (_, _, _) => IO.pure(TaskResult.Failure("script threw", Nil)),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
+        symbolProcessor = (_, _, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
     val finalDag = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      d <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
+      d <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield d).unsafeRunSync()
 
     targetCompileCalled.get() shouldBe false
@@ -512,25 +505,24 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
-        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+        postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (t, _) =>
           if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
           else IO.pure(TaskResult.Success),
-        link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
+        link = (_, _, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (_, _) => IO.pure(TaskResult.Success), // up-to-date fast path
+        sourcegen = (_, _, _) => IO.pure(TaskResult.Success), // up-to-date fast path
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
+        symbolProcessor = (_, _, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
     val finalDag = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      d <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
+      d <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield d).unsafeRunSync()
 
     targetCompileCalled.get() shouldBe true
@@ -565,23 +557,22 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
-        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+        postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (_, _) => IO.pure(TaskResult.Success),
-        link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
+        link = (_, _, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (_, _) => IO.pure(TaskResult.Success),
+        sourcegen = (_, _, _) => IO.pure(TaskResult.Success),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
+        symbolProcessor = (_, _, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
     val events = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      _ <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
+      _ <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
       _ <- eventQueue.offer(None)
       drained <- drainQueue(eventQueue)
     } yield drained).unsafeRunSync()
@@ -622,23 +613,22 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
-        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+        postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (_, _) => IO.pure(TaskResult.Success),
-        link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
+        link = (_, _, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (_, _) => IO.pure(TaskResult.Failure("boom", Nil)),
+        sourcegen = (_, _, _) => IO.pure(TaskResult.Failure("boom", Nil)),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
+        symbolProcessor = (_, _, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
     val events = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      _ <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
+      _ <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
       _ <- eventQueue.offer(None)
       drained <- drainQueue(eventQueue)
     } yield drained).unsafeRunSync()
@@ -675,18 +665,17 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
-        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+        postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (t, _) =>
           if (t.project == target) IO(targetCompileCalled.set(true)).as(TaskResult.Success)
           else IO.pure(TaskResult.Success),
-        link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
+        link = (_, _, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (_, taskKill) => taskKill.get.map(reason => TaskResult.Killed(reason)),
+        sourcegen = (_, _, taskKill) => taskKill.get.map(reason => TaskResult.Killed(reason)),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
+        symbolProcessor = (_, _, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
@@ -694,7 +683,7 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Deferred[IO, KillReason]
       _ <- (IO.sleep(scala.concurrent.duration.DurationInt(50).millis) >> killSignal.complete(KillReason.UserRequest)).start
-      d <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
+      d <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield d).unsafeRunSync()
 
     targetCompileCalled.get() shouldBe false
@@ -729,26 +718,25 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
-        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+        postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (t, _) => record(s"compile:${t.project.value}").as(TaskResult.Success),
-        link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
+        link = (_, _, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (_, _) =>
+        sourcegen = (_, _, _) =>
           record("sourcegen:start") >>
             IO.sleep(scala.concurrent.duration.DurationInt(100).millis) >>
             record("sourcegen:end").as(TaskResult.Success),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
+        symbolProcessor = (_, _, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
     (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      _ <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
+      _ <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
     } yield ()).unsafeRunSync()
 
     val tags = timeline.asScala.toList.map(_._1)
@@ -780,23 +768,22 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
-        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+        postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (_, _) => IO.raiseError(new RuntimeException("bleep-test-runner resolution returned no jars")),
-        link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
+        link = (_, _, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (_, _) => sys.error("SourcegenTask should not appear here"),
+        sourcegen = (_, _, _) => sys.error("SourcegenTask should not appear here"),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
+        symbolProcessor = (_, _, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
     val (finalDag, events) = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      d <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
+      d <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
       _ <- eventQueue.offer(None)
       drained <- drainQueue(eventQueue)
     } yield (d, drained)).unsafeRunSync()
@@ -837,23 +824,22 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
 
     val executor = TaskDag.executor(
       Handlers(
-        postCompile = (_, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
-        mayAdmitCompile = _ => IO.pure(TaskDag.CompileAdmission.Admit),
+        postCompile = (_, _, _) => IO.raiseError(new IllegalStateException("no post-compile step in this build")),
         compile = (_, _) => IO.pure(TaskResult.Success),
-        link = (_, _) => sys.error("LinkTask should not appear here"),
-        discover = (_, _, _) => sys.error("DiscoverTask should not appear here"),
+        link = (_, _, _) => sys.error("LinkTask should not appear here"),
+        discover = (_, _, _, _) => sys.error("DiscoverTask should not appear here"),
         test = (_, _, _) => sys.error("TestSuiteTask should not appear here"),
         testBatch = (_, _) => sys.error("TestBatchTask should not appear here"),
-        sourcegen = (_, _) => IO.raiseError(new RuntimeException("generator blew up")),
+        sourcegen = (_, _, _) => IO.raiseError(new RuntimeException("generator blew up")),
         annotationProcessor = (_, _) => sys.error("ResolveAnnotationProcessorsTask should not appear here"),
-        symbolProcessor = (_, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
+        symbolProcessor = (_, _, _) => sys.error("ResolveSymbolProcessorsTask should not appear here")
       )
     )
 
     val (finalDag, events) = (for {
       eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
-      d <- executor.execute(dag, testMachine(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
+      d <- executor.execute(dag, TestScheduling.openChannel(4), TaskDag.ForkHeaps.default, eventQueue, killSignal)
       _ <- eventQueue.offer(None)
       drained <- drainQueue(eventQueue)
     } yield (d, drained)).unsafeRunSync()

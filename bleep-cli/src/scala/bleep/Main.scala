@@ -260,7 +260,7 @@ object Main {
         "default heap for forked test runner JVMs (e.g. 512m, 2g). A project's own platform.jvmOptions -Xmx overrides it",
         "size"
       )(_ => ())((config, size) => config.copy(testRunnerHeap = Some(size))),
-      set("test-runner-heap-clear", s"remove the setting (back to bleep's default: ${MachineResources.DefaultForkHeapMb}m per test fork)")(
+      set("test-runner-heap-clear", s"remove the setting (back to bleep's default: ${MemorySizes.DefaultForkHeapMb}m per test fork)")(
         _.copy(testRunnerHeap = None)
       ),
       // Renamed because it never was a maximum: a project's own -Xmx has always outranked it, and calling it `max` had people believing a per-project heap
@@ -278,7 +278,15 @@ object Main {
       setValue[String]("ksp-runner-max-memory", "max heap for forked KSP runner JVMs (e.g. 512m, 1500m)", "size")(_ => ())((config, size) =>
         config.copy(kspRunnerMaxMemory = Some(size))
       ),
-      set("ksp-runner-max-memory-clear", "remove the KSP runner max heap setting (back to the JVM default)")(_.copy(kspRunnerMaxMemory = None))
+      set("ksp-runner-max-memory-clear", "remove the KSP runner max heap setting (back to the JVM default)")(_.copy(kspRunnerMaxMemory = None)),
+      setValue[String](
+        "machine-scheduling",
+        "cooperative (default): coordinate fork memory with every bleep server on this machine; unconstrained: schedule on this server's own parallelism only",
+        "mode"
+      )(mode => model.MachineScheduling.parse(mode).left.foreach(err => throw new BleepException.Text(err)))((config, mode) =>
+        config.copy(machineScheduling = Some(model.MachineScheduling.parse(mode).fold(err => throw new BleepException.Text(err), identity)))
+      ),
+      set("machine-scheduling-clear", "remove the setting (back to default: cooperative)")(_.copy(machineScheduling = None))
     ).foldK
   }
 

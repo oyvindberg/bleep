@@ -72,7 +72,7 @@ class Sip51Tests extends AnyFunSuite with TripleEqualsSupport {
           Prebootstrapped(storingLogger.zipWith(stdLogger), userPaths, buildPaths, existingBuild, ec),
           ResolveProjects.ReplaceBleepDependencies(
             lazyBleepBuild,
-            BspServerClasspathSource.InProcess(InProcessBspServer.connect(testConfig, IntegrationTestHarness.sharedMachine))
+            BspServerClasspathSource.InProcess(InProcessBspServer.connect(testConfig, IntegrationTestHarness.sharedScheduling))
           ),
           Nil,
           testConfig,

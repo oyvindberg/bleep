@@ -53,9 +53,14 @@ object ServerAdminClient {
   /** `observer = true` always: reading a daemon's status must never extend its life or reset its idle clock. */
   def status(socketDir: Path): Either[AdminError, DaemonStatus] =
     call(socketDir, BleepServerAdmin.StatusMethod, StatusRequest(observer = true).asJson).flatMap { json =>
-      json.as[DaemonStatus] match {
-        case Left(err)     => Left(AdminError.Failed(socketDir, s"could not decode status: ${err.getMessage}"))
-        case Right(status) => Right(status)
+      // The version first, on its own: a daemon from before the current payload shape is "too old", said plainly, not a circe path into a field it never had.
+      json.hcursor.get[Int]("adminProtocolVersion") match {
+        case Right(version) if version < BleepServerAdmin.ProtocolVersion => Left(AdminError.TooOld(socketDir))
+        case _                                                            =>
+          json.as[DaemonStatus] match {
+            case Left(err)     => Left(AdminError.Failed(socketDir, s"could not decode status: ${err.getMessage}"))
+            case Right(status) => Right(status)
+          }
       }
     }
 

@@ -73,7 +73,7 @@ today. The CLI surface above the BSP layer is unchanged.
 cases.** Its 83 commits are dominated by exactly the areas flagged
 here as rough: concurrent workspaces (one client's disconnect no
 longer kills another's forks; locks and KSP mutexes are scoped
-correctly), scheduling under contention (one machine-wide governor,
+correctly), scheduling under contention (one machine scheduler,
 three reproduced deadlocks fixed, every fork bounded), heap
 retention (Zinc analyses interned and owned by their workspace),
 crash recovery (readiness by connect rather than by grepping a

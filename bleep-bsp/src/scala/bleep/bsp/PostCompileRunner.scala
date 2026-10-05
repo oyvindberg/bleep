@@ -72,7 +72,13 @@ object PostCompileRunner {
     * @return
     *   None on success, the reason otherwise
     */
-  def run(started: Started, project: CrossProjectName, killSignal: Deferred[IO, KillReason], onLog: String => Unit): IO[Option[String]] =
+  def run(
+      started: Started,
+      project: CrossProjectName,
+      killSignal: Deferred[IO, KillReason],
+      onLog: String => Unit,
+      onStarted: Process => Unit
+  ): IO[Option[String]] =
     IO.blocking(plan(started, project)).flatMap { p =>
       if (upToDateFor(p)) IO.pure(None)
       else {
@@ -88,12 +94,12 @@ object PostCompileRunner {
         val args =
           List("--from", p.paths.compilerOutput.toString, "--to", scratch.toString, "--classpath", p.compileClasspath.mkString(File.pathSeparator)) ++
             p.inputs.flatMap { case (name, dir) => List("--input", s"${name.value}=$dir") }
-        val jvmOptions = List(s"-Xmx${MachineResources.forkHeapMb(started.config.bspServerConfigOrDefault.sourcegenMaxMemory)}m")
+        val jvmOptions = List(s"-Xmx${MemorySizes.forkHeapMb(started.config.bspServerConfigOrDefault.sourcegenMaxMemory)}m")
         val cmd = jvmRunCommand.cmd(started.resolvedJvm.forceGet, jvmOptions, p.scriptClasspath, p.postCompile.main, args)
         val pb = new ProcessBuilder(cmd*)
         pb.directory(started.buildPaths.buildDir.toFile)
 
-        (prepare >> ProcessRunner.runWithOutput(pb, killSignal).flatMap {
+        (prepare >> ProcessRunner.runWithOutput(pb, killSignal, onStarted).flatMap {
           case RunOutcome.Completed(0, stdout, _) =>
             IO.blocking {
               if (stdout.nonEmpty) stdout.linesIterator.foreach(onLog)

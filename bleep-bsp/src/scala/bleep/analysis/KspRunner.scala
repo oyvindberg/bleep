@@ -34,7 +34,9 @@ object KspRunner {
       javaBin: Path,
       maxMemory: Option[String],
       cancellation: CancellationToken,
-      logger: Logger
+      logger: Logger,
+      /** Told of the KSP process the moment it exists — the scheduler's fork reporting. */
+      onStarted: Process => Unit
   ): IO[RunResult] =
     // Bail before forking if the build is already being cancelled. A KSP fork is ~150MB resident — not worth spinning one up just to destroy it.
     if (cancellation.isCancelled) IO.pure(RunResult.Cancelled)
@@ -68,7 +70,7 @@ object KspRunner {
         // child if the Deferred fires. Output is captured up to `ProcessRunner.MaxOutputLines` (50k lines), more than enough for KSP's normal "a few warnings
         // and processor logs" output.
         Outcome.fromCancellationToken(cancellation).flatMap { kill =>
-          ProcessRunner.runWithOutput(pb, kill).map { outcome =>
+          ProcessRunner.runWithOutput(pb, kill, onStarted).map { outcome =>
             def combined(stdout: String, stderr: String): String =
               if (stdout.nonEmpty && stderr.nonEmpty) s"$stdout\n$stderr" else stdout + stderr
             outcome match {

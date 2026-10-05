@@ -6,21 +6,17 @@ import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.*
 
-/** Tracks active operations per workspace in server memory.
+/** The daemon's register of in-flight user requests ("operations"), per workspace.
   *
-  * Multiple operations can run concurrently on the same workspace. This registry is for visibility and debugging — it does NOT block. Fine-grained per-project
-  * serialization is handled by ProjectLock.
+  * One per daemon, constructed in `BspServerDaemon.runWithLock` and passed to every connection's `MultiWorkspaceBspServer` and to the `BuildCache` — never a
+  * global: a daemon serves many workspaces and connections, and what each sees must come through the call chain. For visibility (`bleep/status`), the
+  * "workspace busy" notice, cache-eviction safety, and cancellation/force-kill; it does NOT block — per-project serialisation is `ProjectLock`'s.
+  *
+  * In the machine scheduler (design §3.2, §10 step 9) this becomes the scheduler's request list: an [[RequestRegistry.ActiveWork]] already carries what a
+  * scheduler `Request` needs — id, kind, start time — plus the means to stop it.
   */
-object SharedWorkspaceState {
-
-  case class ActiveWork(
-      operationId: String,
-      operation: String,
-      projects: Set[String],
-      cancellationToken: CancellationToken,
-      startTimeMs: Long,
-      forceKill: Runnable
-  )
+final class RequestRegistry {
+  import RequestRegistry.ActiveWork
 
   // workspace -> (operationId -> work)
   private val activeWork = new ConcurrentHashMap[Path, ConcurrentHashMap[String, ActiveWork]]()
@@ -74,4 +70,16 @@ object SharedWorkspaceState {
       }
     }
   }
+}
+
+object RequestRegistry {
+
+  case class ActiveWork(
+      operationId: String,
+      operation: String,
+      projects: Set[String],
+      cancellationToken: CancellationToken,
+      startTimeMs: Long,
+      forceKill: Runnable
+  )
 }

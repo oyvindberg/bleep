@@ -17,6 +17,32 @@ import java.nio.file.Files
   */
 class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with PlatformTestHelper {
 
+  /** The fork grant a Native link runs under here. The scheduler is not what is under test, so one that records nothing stands in for it; what matters is that
+    * `LinkExecutor` gets the grant shape `TaskDag.demandFor` gives a Native link, and is loud if it does not.
+    */
+  private def nativeLinkGrant: TaskDag.TaskGrant = {
+    val silent: bleep.machine.MachineScheduler = new bleep.machine.MachineScheduler {
+      def registerRequest(id: bleep.machine.RequestId, kind: bleep.machine.RequestKind): Unit = ()
+      def unregisterRequest(id: bleep.machine.RequestId): Unit = ()
+      def submitReady(request: bleep.machine.RequestId, ready: List[bleep.machine.Demand], unstartedSuitesByKey: Map[bleep.machine.ForkKey, Int]): Unit = ()
+      def inHeapFinished(request: bleep.machine.RequestId, taskId: bleep.machine.TaskId): Unit = ()
+      def forkSpawned(fork: bleep.machine.ForkId, pid: Long): Unit = ()
+      def forkWorkFinished(fork: bleep.machine.ForkId, cpu: Int): Unit = ()
+      def forkExited(fork: bleep.machine.ForkId): Unit = ()
+    }
+    val registry = new bleep.machine.ForkRegistry
+    TaskDag.TaskGrant.Fork(
+      new bleep.bsp.GrantedFork(
+        bleep.machine.ForkId(1L),
+        "link:test",
+        bleep.machine.ForkKey("link:test"),
+        silent,
+        registry,
+        new bleep.bsp.ChildWatch(registry, ryddig.TypedLogger.DevNull)
+      )
+    )
+  }
+
   // ==========================================================================
   // Scala Native test linking
   // ==========================================================================
@@ -67,7 +93,8 @@ class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with Platfor
           mainClass = None,
           baseOutputDir = baseOutputDir,
           logger = LinkExecutor.LinkLogger.Silent,
-          killSignal = killSignal
+          killSignal = killSignal,
+          grant = nativeLinkGrant
         )
       } yield outcome).unsafeRunSync()
 
@@ -105,7 +132,8 @@ class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with Platfor
             mainClass = None,
             baseOutputDir = baseOutputDir,
             logger = LinkExecutor.LinkLogger.Silent,
-            killSignal = killSignal
+            killSignal = killSignal,
+            grant = nativeLinkGrant
           )
         } yield outcome).unsafeRunSync()
       }
@@ -147,7 +175,8 @@ class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with Platfor
           outputPath = klibPath,
           config = config,
           diagnosticListener = DiagnosticListener.noop,
-          cancellation = CancellationToken.never
+          cancellation = CancellationToken.never,
+          onStarted = bleep.bsp.ProcessRunner.NoStartHook
         )
         .unsafeRunSync()
 
@@ -181,7 +210,8 @@ class LinkExecutorIntegrationTest extends AnyFunSuite with Matchers with Platfor
           mainClass = None,
           baseOutputDir = baseOutputDir,
           logger = LinkExecutor.LinkLogger.Silent,
-          killSignal = killSignal
+          killSignal = killSignal,
+          grant = nativeLinkGrant
         )
       } yield outcome).unsafeRunSync()
 

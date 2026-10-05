@@ -40,7 +40,7 @@ case class BspServerConfig(
     parallelismRatio: Option[Double],
     /** Idle timeout for test suites in minutes — resets each time a test completes */
     testIdleTimeoutMinutes: Option[Int],
-    /** Default heap for forked test runner JVMs, e.g. "512m", "2g". None = [[bleep.MachineResources.DefaultForkHeapMb]].
+    /** Default heap for forked test runner JVMs, e.g. "512m", "2g". None = [[bleep.MemorySizes.DefaultForkHeapMb]].
       *
       * A default, not a ceiling: a project that states its own `-Xmx` in `platform.jvmOptions` runs with that instead, and this number does not apply. That is
       * the right way round, because how much heap a suite needs is a property of the code, which lives in the build, while this setting belongs to whoever owns
@@ -81,8 +81,14 @@ case class BspServerConfig(
       *
       * Only idle workspaces are evicted, so this is a cache size, not a limit on how many workspaces a daemon can serve. Default: 4. None = default.
       */
-    maxCachedWorkspaces: Option[Int]
+    maxCachedWorkspaces: Option[Int],
+    /** Whether this server coordinates its forks' memory with every other bleep server on the machine, or schedules on its own. See [[MachineScheduling]].
+      * Default: cooperative.
+      */
+    machineScheduling: Option[MachineScheduling]
 ) {
+  def effectiveMachineScheduling: MachineScheduling = machineScheduling.getOrElse(MachineScheduling.Cooperative)
+
   def effectiveParallelism: Int = {
     val cores = Runtime.getRuntime.availableProcessors
     parallelism
@@ -173,7 +179,8 @@ object BspServerConfig {
     heapPressureThreshold = None,
     bspReadTimeoutMinutes = None,
     compileServerIdleTimeoutMinutes = None,
-    maxCachedWorkspaces = None
+    maxCachedWorkspaces = None,
+    machineScheduling = None
   )
 
   /** `testRunnerHeap` was called `testRunnerMaxMemory` until it was renamed to say what it does. Config files on disk outlive a rename, so the old key is read

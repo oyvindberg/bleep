@@ -1,8 +1,8 @@
 package bleep.testing
 
-import bleep.{MachineResources, ProcessMemory}
+import bleep.machine.{ForkAcquirer, ForkDemand, ForkGrant, ForkId, ForkKey, ForkKind, ForkLifecycle, ForkRegistry, TaskId}
 import cats.effect._
-import cats.effect.std.{Queue, Semaphore}
+import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2.Stream
 
@@ -18,62 +18,19 @@ import scala.concurrent.duration._
 import scala.util.Properties
 import scala.util.control.NonFatal
 
-/** A pool of reusable JVM processes for running tests.
+/** The daemon's pool of forked test JVMs.
   *
-  * JVMs are expensive to start, so we pool them by classpath hash. When a test needs a JVM with a particular classpath, we either return an existing idle JVM
-  * or spawn a new one.
-  *
-  * Key features:
-  *   - JVMs keyed by classpath + options hash for reuse
-  *   - Bounded concurrency via semaphore
-  *   - Explicit shutdown (no shutdown hooks)
-  *   - Health checks before reuse
+  * One per daemon, not per request: a fork outlives the request that started it when another request's suite reuses it, and the machine scheduler decides which
+  * fork runs what (design §3.2, §10 step 11). This class keeps only the process mechanics — spawn, handshake, protocol, kill — and reports every fork's life to
+  * the scheduler through [[bleep.machine.ForkLifecycle]]; it decides nothing. A request obtains its view with [[forRequest]] and asks for a fork through that
+  * view, which asks the scheduler, which answers `Reuse` or `Spawn`.
   */
-trait JvmPool extends TestExecutor {
+trait JvmPool {
 
-  /** Acquire a JVM suitable for the given classpath and options.
-    *
-    * `defaultHeapMb` is the heap this fork gets if `jvmOptions` states no `-Xmx` of its own — the caller's configured default, not a ceiling over what the
-    * caller asked for. See [[MachineResources.withHeapBound]].
-    *
-    * Returns a Resource that will release the JVM back to the pool when done.
+  /** This pool, acting for one request: every fork it hands out was granted to that request by the scheduler. Its `shutdown` is a no-op — the pool shuts down
+    * with the daemon, and the scheduler evicts idle forks nothing wants.
     */
-  def acquire(
-      label: String,
-      classpath: List[Path],
-      jvmOptions: List[String],
-      defaultHeapMb: Long,
-      runnerClass: String,
-      environment: Map[String, String],
-      workingDirectory: Option[Path]
-  ): Resource[IO, TestJvm]
-
-  /** The [[TestExecutor]] shape of the above: same call, with the arguments gathered into the request every executor is handed.
-    *
-    * The one branch a pool makes on the way in: an [[SessionSharing.Exclusive]] request gets a fork of its own (the classic path above), a
-    * [[SessionSharing.Shared]] one joins the single fork its project shares (`acquireShared`). Everything past this point — `TestRunner`, the event stream, the
-    * idle timeout — is handed a [[TestSession]] and cannot tell which it got.
-    */
-  final override def acquire(request: TestSessionRequest): Resource[IO, TestSession] =
-    request.sharing match {
-      case SessionSharing.Exclusive =>
-        acquire(
-          request.label,
-          request.classpath,
-          request.jvmOptions,
-          request.defaultHeapMb,
-          request.runnerClass,
-          request.environment,
-          request.workingDirectory
-        )
-      case SessionSharing.Shared(key) =>
-        acquireShared(request, key)
-    }
-
-  /** Join (or, as the first of a project's suites, create) the one fork the project named by `key` shares. The fork is torn down when the last suite holding it
-    * releases. The returned session's `runSuite` may be called concurrently by different suites; how many do so at once is bounded by admission, not here.
-    */
-  def acquireShared(request: TestSessionRequest, key: String): Resource[IO, TestSession]
+  def forRequest(acquirer: ForkAcquirer): TestExecutor
 
   /** Shutdown all JVMs in the pool.
     *
@@ -169,68 +126,19 @@ object JvmPool {
     */
   private val ProtocolPollInterval: FiniteDuration = 250.millis
 
-  /** Create a new JVM pool with the given maximum concurrency.
+  /** The daemon's pool. One per daemon; shut down with it.
     *
-    * IMPORTANT: The returned pool has an explicit shutdown method that MUST be called when done. Use guarantee to ensure cleanup: {{{
-    * JvmPool.create(maxConcurrency, jvmCommand, workingDirectory).use { pool => // pool.shutdown is called automatically when this scope ends runTests(pool) }
-    * }}}
-    *
-    * No shutdown hooks are used - caller is responsible for ensuring shutdown is called.
-    *
-    * @param maxConcurrency
-    *   Maximum number of JVMs to run concurrently
-    * @param jvmCommand
-    *   Path to the java binary (e.g., started.jvmCommand)
+    * @param lifecycle
+    *   where every fork's start, idle and exit is reported — the scheduler
+    * @param forks
+    *   the daemon's register of live forks, where every fork this pool starts is registered for as long as it lives, with the means to kill it
     */
-  def create(
-      maxConcurrency: Int,
-      jvmCommand: Path,
-      workingDirectory: Path,
-      machine: MachineResources,
-      listener: JvmPoolListener
-  ): Resource[IO, JvmPool] =
+  def create(listener: JvmPoolListener, lifecycle: ForkLifecycle, forks: ForkRegistry): Resource[IO, JvmPool] =
     Resource.make(
       for {
-        semaphore <- Semaphore[IO](maxConcurrency.toLong)
-        startLimiter <- Semaphore[IO](maxConcurrentStarts(maxConcurrency).toLong)
-        pool <- IO(new TrieMap[JvmKey, Queue[IO, ManagedJvm]]())
-        allJvms <- Ref.of[IO, Set[ManagedJvm]](Set.empty)
-        // Learn what forks cost only where we can actually measure one; elsewhere keep charging the
-        // declared bound, which is what the pool did before any of this existed.
-        costs <-
-          if (ProcessMemory.system eq ProcessMemory.Unavailable) IO.pure(ForkCostModel.static)
-          else ForkCostModel.create
-      } yield new JvmPoolImpl(
-        listener,
-        semaphore,
-        startLimiter,
-        machine,
-        pool,
-        allJvms,
-        new TrieMap[JvmKey, Int](),
-        jvmCommand,
-        workingDirectory,
-        costs,
-        ProcessMemory.system
-      )
+        allJvms <- Ref.of[IO, Map[ForkId, ManagedJvm]](Map.empty)
+      } yield new JvmPoolImpl(listener, allJvms, new TrieMap[ForkId, ManagedJvm](), new TrieMap[JvmKey, Int](), lifecycle, forks)
     )(_.shutdown)
-
-  /** How many forks may be in the middle of STARTING at any one time, as a function of how wide the run is allowed to go.
-    *
-    * Not a limit on how many run — that is the governor's job — but on how many may be between `spawn` and a healthy handshake. The two are different problems,
-    * and this one is invisible to any budget: a JVM's memory arrives over the seconds AFTER it starts, as classes load, the classpath is paged in and the JIT
-    * warms. A burst of spawns is therefore a burst of demand that no measurement has seen yet. Staggering starts buys the feedback loop time to see a fork's
-    * real cost before the next admission is decided on it.
-    *
-    * A QUARTER of the run's parallelism, at least two. Deliberately proportional rather than a fixed number: a flat constant tuned on an 18-core machine would
-    * throttle a 64-core one and over-commit a 4-core one. So a wide run staggers in wider batches, a narrow run barely staggers at all.
-    */
-  private[testing] def maxConcurrentStarts(maxConcurrency: Int): Int = math.max(2, maxConcurrency / 4)
-
-  /** Parse a `-Xmx` value (e.g. `-Xmx2g`, `-Xmx512m`) from JVM options into MB. Last one wins (JVM semantics). None if no `-Xmx` is present.
-    */
-  private[testing] def parseXmxMb(jvmOptions: List[String]): Option[Long] =
-    jvmOptions.reverse.collectFirst { case o if o.startsWith("-Xmx") => o }.flatMap(MachineResources.parseMemoryMb)
 
   private[testing] case class ExitDescription(summary: String, detail: Option[String])
 
@@ -343,21 +251,22 @@ object JvmPool {
   }
 
   /** Key for pooling JVMs */
-  private case class JvmKey(classpathHash: String, optionsHash: String, envHash: String, cwdHash: String) {
+  private case class JvmKey(jvmHash: String, classpathHash: String, optionsHash: String, envHash: String, cwdHash: String) {
 
-    /** Identity under which this kind of fork's observed cost is remembered. Same key means same classpath, same options, same environment — so what one of
-      * them cost is genuinely evidence about the next.
+    /** What makes one fork reusable for another request's suite: same `java`, same classpath, same options, same environment, same working directory. The
+      * scheduler's `ForkKey` is this plus the sharing flavour — see `JvmPoolImpl.forkKey`.
       */
-    def costKey: String = s"$classpathHash-$optionsHash-$envHash-$cwdHash"
+    def costKey: String = s"$jvmHash-$classpathHash-$optionsHash-$envHash-$cwdHash"
   }
 
   private object JvmKey {
-    def apply(classpath: List[Path], options: List[String], environment: Map[String, String], cwd: Option[Path]): JvmKey = {
+    def apply(jvmCommand: Path, classpath: List[Path], options: List[String], environment: Map[String, String], cwd: Option[Path]): JvmKey = {
+      val jvmHash = hashStrings(List(jvmCommand.toString))
       val cpHash = hashStrings(classpath.map(_.toString))
       val optHash = hashStrings(options)
       val envHash = hashStrings(environment.toList.sorted.map { case (k, v) => s"$k=$v" })
       val cwdHash = hashStrings(cwd.map(_.toString).toList)
-      JvmKey(cpHash, optHash, envHash, cwdHash)
+      JvmKey(jvmHash, cpHash, optHash, envHash, cwdHash)
     }
 
     private def hashStrings(strings: List[String]): String = {
@@ -374,6 +283,8 @@ object JvmPool {
     * parent's [[stdout]]-driven protocol loop hangs forever — no test events, no progress, idle timeout fires with zero diagnostic output.
     */
   private class ManagedJvm(
+      /** The scheduler's name for this fork, under which its life is reported and under which it is reused or evicted. */
+      val forkId: ForkId,
       val process: Process,
       /** Protocol channel to the fork — a loopback socket, deliberately not the process's stdin. */
       val stdin: PrintWriter,
@@ -387,11 +298,6 @@ object JvmPool {
       val protocolSocket: java.net.Socket,
       val key: JvmKey,
       val jvmCommand: Path,
-      /** Returns this process's memory reservation to the machine governor. Held for the lifetime of the PROCESS, not of the suite that happened to spawn it: a
-        * JVM sitting idle in the pool is still resident and still costing the machine its whole footprint, so the reservation is only released when the process
-        * is actually destroyed. Must be run exactly where the process is killed — see `JvmPoolImpl.destroy`.
-        */
-      val releaseMemory: IO[Unit],
       /** File the fork writes its exit diagnostic to (see [[ForkedTestRunnerProtocol.ExitLogProperty]]). Read by [[readExitLog]] after the fork dies, when it
         * is the only surviving account of an exit the parent otherwise sees as a bare "exited 0".
         */
@@ -593,85 +499,102 @@ object JvmPool {
 
   private class JvmPoolImpl(
       listener: JvmPoolListener,
-      semaphore: Semaphore[IO],
-      startLimiter: Semaphore[IO],
-      machine: MachineResources,
-      pool: TrieMap[JvmKey, Queue[IO, ManagedJvm]],
-      allJvms: Ref[IO, Set[ManagedJvm]],
+      allJvms: Ref[IO, Map[ForkId, ManagedJvm]],
+      /** Forks holding no work, by id — what a `Reuse` grant for an exclusive demand takes. A shared fork at refcount 0 is here too, its session kept. */
+      idle: TrieMap[ForkId, ManagedJvm],
       spawnFailures: TrieMap[JvmKey, Int],
-      jvmCommand: Path,
-      workingDirectory: Path,
-      costs: ForkCostModel,
-      processMemory: ProcessMemory
+      lifecycle: ForkLifecycle,
+      forks: ForkRegistry
   ) extends JvmPool {
+    private val demandCounter = new java.util.concurrent.atomic.AtomicLong(0L)
 
-    override def acquire(
-        label: String,
-        classpath: List[Path],
-        jvmOptions: List[String],
-        defaultHeapMb: Long,
-        runnerClass: String,
-        environment: Map[String, String],
-        workingDirectory: Option[Path]
-    ): Resource[IO, TestJvm] = {
-      // Bound the fork before anything else looks at these options. Everything downstream — the pool
-      // key, the spawn, and what the governor is told this costs — must agree on the heap the JVM
-      // will actually run with, and that is only true if the bound is applied once, here.
-      val boundedOptions = MachineResources.withHeapBound(jvmOptions, defaultHeapMb)
-      val key = JvmKey(classpath, boundedOptions, environment, workingDirectory)
+    /** One project's shared session on one fork, and how many suites hold it. Behind a Deferred so the suites that ask while the fork is starting wait on the
+      * creator rather than each starting their own.
+      */
+    private case class SharedSlot(session: Deferred[IO, Either[Throwable, SharedProjectSession]], refCount: Int)
 
-      // NO machine CPU reservation here. The caller already holds one.
-      //
-      // A TestSuiteTask is charged `Cost(TestFork, cpu = 1)` by the DAG interpreter at admission (see
-      // TaskDag.costOf), and this method runs INSIDE that admitted task. Reserving again here asked the
-      // same finite pool for a second permit while holding the first, so once admission had handed out
-      // every permit to test tasks, all of them queued for a permit that could not exist: `cpu 18/18,
-      // running 18, waiting 18`, no forks spawned, no thread doing anything, forever. Compiles in other
-      // workspaces starved behind it, because machine CPU is daemon-wide. The two entries were
-      // distinguishable in the queue dump only by their labels — `test:proj:Suite` from the interpreter
-      // and `test Suite` from here.
-      //
-      // The interpreter is the single authority on machine-wide capacity. What stays here is the local
-      // counter bounding THIS run's parallelism, which is not machine-wide and cannot deadlock against
-      // admission.
-      //
-      // Memory is different and is still taken below, not here: it belongs to the PROCESS, which outlives
-      // this scope. An idle pooled JVM is still resident and still costs its whole footprint, so its
-      // reservation is taken at spawn and returned at destroy (see `spawnJvm` / `destroy`). Tying memory
-      // to the suite is what let the governor believe memory was free while live JVMs still held it.
-      Resource.make(semaphore.acquire)(_ => semaphore.release).flatMap { _ =>
-        Resource
-          .make(
-            getOrCreate(label, key, classpath, boundedOptions, runnerClass, environment, workingDirectory).map(jvm => (jvm, new TestJvmImpl(jvm): TestJvm))
-          ) {
-            // Return JVM to pool (or destroy it); the semaphore is released by its own Resource.
-            case (jvm, _) => release(jvm)
-          }
-          .map(_._2)
-      }
+    /** The per-project shared sessions, by the fork they run on, alive for as long as the fork is. Allocated here rather than threaded through the constructor
+      * so `SharedProjectSession` can stay an inner class with direct access to `destroy`, `ManagedJvm` and the rest of the pool.
+      */
+    private val sharedSlots: Ref[IO, Map[ForkId, SharedSlot]] = Ref.unsafe(Map.empty)
+
+    override def forRequest(acquirer: ForkAcquirer): TestExecutor = new TestExecutor {
+      override def acquire(request: TestSessionRequest): Resource[IO, TestSession] =
+        request.sharing match {
+          case SessionSharing.Exclusive => acquireExclusive(acquirer, request)
+          case SessionSharing.Shared(_) => acquireShared(acquirer, request)
+        }
+
+      /** The pool is the daemon's; a request's view has nothing of its own to tear down. Forks the request leaves idle are the scheduler's to evict. */
+      override def shutdown: IO[Unit] = IO.unit
+      override def size: IO[Int] = allJvms.get.map(_.size)
     }
 
-    /** What to charge this fork: what forks of its kind have been measured to cost, falling back to the footprint implied by its heap bound until one has run.
-      *
-      * The bound is a ceiling, not a prediction. Charging it made the budget fill up at roughly a quarter of the machine's real capacity — measured median cost
-      * 610MB against 2560MB charged. `withHeapBound` guarantees an `-Xmx` is present by the time we get here, so the fallback is at least a bound the process
-      * is genuinely held to rather than a guess about an unbounded one.
+    /** What the scheduler is asked for. The key is the pool's own, plus the sharing flavour: a fork running a per-project shared session has a reader fiber on
+      * its socket that an exclusive suite's protocol would collide with, so the two kinds of fork are never substituted for one another.
       */
-    private def costOf(key: JvmKey, jvmOptions: List[String]): IO[Long] =
-      costs.estimateMb(
-        key.costKey,
-        parseXmxMb(jvmOptions).getOrElse(
-          throw new IllegalStateException(s"fork options reached the governor without a heap bound: ${jvmOptions.mkString(" ")}")
-        )
+    private def demandFor(acquirer: ForkAcquirer, request: TestSessionRequest, key: JvmKey, boundedOptions: List[String], shared: Boolean): ForkDemand =
+      ForkDemand(
+        request = acquirer.requestId,
+        taskId = TaskId(s"${request.label}#${demandCounter.incrementAndGet()}"),
+        kind = ForkKind.TestSuite,
+        key = forkKey(key, shared),
+        boundMb = bleep.MemorySizes.forkFootprintMb(
+          bleep.MemorySizes
+            .xmxMb(boundedOptions)
+            .getOrElse(throw new IllegalStateException(s"fork options reached the scheduler without a heap bound: ${boundedOptions.mkString(" ")}"))
+        ),
+        cpu = request.cpu,
+        shared = shared
       )
 
-    /** Destroy a JVM: learn what it cost, kill the process, stop tracking it, and only then return its memory to the governor. Ordering matters twice over —
-      * the measurement has to happen while the process still exists, and releasing before the kill would let a waiter be granted memory this process has not
-      * actually surrendered yet.
+    private def forkKey(key: JvmKey, shared: Boolean): ForkKey = ForkKey(s"${key.costKey}:${if (shared) "shared" else "exclusive"}")
+
+    private def acquireExclusive(acquirer: ForkAcquirer, request: TestSessionRequest): Resource[IO, TestSession] = {
+      val boundedOptions = bleep.MemorySizes.withHeapBound(request.jvmOptions, request.defaultHeapMb)
+      val key = JvmKey(request.jvmCommand, request.classpath, boundedOptions, request.environment, Some(request.effectiveWorkingDirectory))
+      Resource
+        .make(obtain(acquirer, request, key, boundedOptions))(jvm => release(jvm, request.cpu))
+        .map(jvm => new TestJvmImpl(jvm): TestSession)
+    }
+
+    /** Ask the scheduler, and act on its answer: run on the idle fork it names, or start the one it allots. A named fork found dead is destroyed — the
+      * scheduler hears of its exit — and the question is asked again.
+      */
+    private def obtain(acquirer: ForkAcquirer, request: TestSessionRequest, key: JvmKey, boundedOptions: List[String]): IO[ManagedJvm] =
+      acquirer.acquire(demandFor(acquirer, request, key, boundedOptions, shared = false), request.group).flatMap {
+        case ForkGrant.Reuse(id) =>
+          idle.remove(id) match {
+            case Some(jvm) if jvm.isAlive => IO(listener.onForkReused(jvm.process.pid(), request.label)).attempt.as(jvm)
+            case Some(dead)               => destroy(dead, "bleep: pooled JVM found dead") >> obtain(acquirer, request, key, boundedOptions)
+            case None                     =>
+              IO.raiseError(new IllegalStateException(s"the scheduler granted fork ${id.value} for reuse, but this pool holds no idle fork by that id"))
+          }
+        case ForkGrant.Spawn(id) =>
+          spawnJvm(
+            id,
+            request.label,
+            key,
+            request.jvmCommand,
+            request.classpath,
+            boundedOptions,
+            request.runnerClass,
+            request.environment,
+            request.effectiveWorkingDirectory
+          )
+      }
+
+    /** Destroy a JVM: kill the process, stop tracking it, and tell the scheduler it is gone. The kill comes first so that `exited` is never reported for a
+      * process that still exists. A shared session's reader, blocked in a socket read that no interrupt reaches, ends with the socket and is reaped after.
       */
     private def destroy(jvm: ManagedJvm, destroyReason: String): IO[Unit] =
-      observeCost(jvm).attempt >> IO.blocking(jvm.kill(destroyReason, graceMillis = 10000)).attempt >> announceEnd(jvm).attempt >> allJvms.update(_ - jvm) >>
-        jvm.releaseMemory
+      IO.blocking(jvm.kill(destroyReason, graceMillis = 10000)).attempt >> announceEnd(jvm).attempt >>
+        allJvms.update(_ - jvm.forkId) >> IO(idle.remove(jvm.forkId): Unit) >>
+        sharedSlots.modify(slots => (slots - jvm.forkId, slots.get(jvm.forkId))).flatMap {
+          case Some(slot) => slot.session.tryGet.flatMap { case Some(Right(session)) => session.reap; case _ => IO.unit }
+          case None       => IO.unit
+        } >>
+        IO(forks.unregister(jvm.forkId): Unit) >> IO(lifecycle.exited(jvm.forkId))
 
     /** Announced after `kill`, so the exit description is final and `killedByUs` is set — that flag is the only thing separating a fork bleep terminated from
       * one the OS killed, since both report exit 137.
@@ -684,87 +607,6 @@ object JvmPool {
         val exit = describeExit(jvm.process, jvm.killedByUs)
         listener.onForkEnd(jvm.process.pid(), System.currentTimeMillis() - jvm.startedAtMs, exit.summary, jvm.killedByUs)
       }
-
-    /** Record what this fork actually cost the machine, for the benefit of the next one of its kind.
-      *
-      * Prefers the platform's own high-water mark where it keeps one (macOS `phys_footprint_peak`), because a suite is as expensive as its worst moment and
-      * sampling would have to be lucky to catch it. Where there is no peak, the reading at destroy time is a floor on the truth — better than the
-      * `-Xmx`-derived guess it replaces, and it only ever revises the estimate upward.
-      */
-    private def observeCost(jvm: ManagedJvm): IO[Unit] =
-      IO.blocking(processMemory.peakFootprintMb(jvm.process.pid()).orElse(processMemory.footprintMb(jvm.process.pid())))
-        .flatMap {
-          case Some(mb) => costs.observe(jvm.key.costKey, mb)
-          case None     => IO.unit
-        }
-
-    /** Kill one idle pooled JVM (any key) so its memory returns to the governor. `false` when the pool holds nothing idle.
-      *
-      * This is what stops the pool deadlocking against itself. Now that a JVM's memory reservation lasts as long as the process, a pool full of idle cached
-      * JVMs can hold the entire budget, and a spawn needing memory would otherwise wait on processes that nothing will destroy until shutdown. Faced with that,
-      * the pool gives up a cached JVM rather than the build.
-      */
-    private def evictOneIdle: IO[Boolean] =
-      pool.values.toList
-        .foldLeft(IO.pure(Option.empty[ManagedJvm])) { (acc, queue) =>
-          acc.flatMap {
-            case found @ Some(_) => IO.pure(found)
-            case None            => queue.tryTake
-          }
-        }
-        .flatMap {
-          case Some(idle) => destroy(idle, "bleep: evicted from pool to free memory for a new fork").as(true)
-          case None       => IO.pure(false)
-        }
-
-    /** Reserve a new process's memory, trading cached JVMs for it before agreeing to wait.
-      *
-      * If it doesn't fit, evict an idle pooled JVM and retry — that memory is already ours, and a warm classloader is worth less than making progress. Only
-      * when nothing is left to evict do we park, and that wait terminates: at that point the budget is held by JVMs actively running suites, and when those
-      * finish `release` destroys rather than pools them, because the governor reports contention.
-      */
-    private def reserveMemoryForSpawn(label: String, footprintMb: Long): IO[IO[Unit]] =
-      machine.tryReserve(MachineResources.ResourceKind.TestFork, label, cpu = 0, memoryMb = footprintMb).flatMap {
-        case Some(release) => IO.pure(release)
-        case None          =>
-          evictOneIdle.flatMap {
-            case true  => reserveMemoryForSpawn(label, footprintMb)
-            case false => machine.reserveUntilReleased(MachineResources.ResourceKind.TestFork, label, cpu = 0, memoryMb = footprintMb)
-          }
-      }
-
-    private def getOrCreate(
-        label: String,
-        key: JvmKey,
-        classpath: List[Path],
-        jvmOptions: List[String],
-        runnerClass: String,
-        environment: Map[String, String],
-        cwd: Option[Path]
-    ): IO[ManagedJvm] =
-      for {
-        queue <- IO(
-          pool.getOrElseUpdate(
-            key, {
-              // Create queue synchronously to avoid race
-              import cats.effect.unsafe.implicits.global
-              Queue.unbounded[IO, ManagedJvm].unsafeRunSync()
-            }
-          )
-        )
-        maybeJvm <- queue.tryTake
-        jvm <- maybeJvm match {
-          case Some(existing) if existing.isAlive =>
-            IO(listener.onForkReused(existing.process.pid(), label)).attempt >> IO.pure(existing)
-          case Some(dead) =>
-            // JVM died while idle in the pool. `destroy` (not just untracking) so its memory
-            // reservation goes back to the governor — otherwise a dead process's footprint would be
-            // charged for the rest of the server's life.
-            destroy(dead, "bleep: pooled JVM found dead") >> spawnJvm(label, key, classpath, jvmOptions, runnerClass, environment, cwd)
-          case None =>
-            spawnJvm(label, key, classpath, jvmOptions, runnerClass, environment, cwd)
-        }
-      } yield jvm
 
     /** Wait for a freshly spawned fork to connect back, giving up the moment that becomes impossible rather than always serving the full sentence.
       *
@@ -814,123 +656,116 @@ object JvmPool {
     }
 
     private def spawnJvm(
+        forkId: ForkId,
         label: String,
         key: JvmKey,
+        jvmCommand: Path,
         classpath: List[Path],
         jvmOptions: List[String],
         runnerClass: String,
         environment: Map[String, String],
-        cwdOverride: Option[Path]
+        cwd: Path
     ): IO[ManagedJvm] = {
       val failures = spawnFailures.getOrElse(key, 0)
       if (failures >= MaxSpawnFailures) {
-        return IO.raiseError(
+        return IO(lifecycle.exited(forkId)) >> IO.raiseError(
           new IOException(
             s"Test JVM failed to start $failures consecutive times. This usually means the test runner jar " +
               s"is incompatible with the project's JVM. Check that bleep-test-runner is published for the correct Java version."
           )
         )
       }
-      // Reserve this process's memory BEFORE starting it, and hand the release action to the
-      // ManagedJvm so it lives exactly as long as the process does. If anything between here and a
-      // healthy handshake fails, the reservation must be handed back — hence the bracketCase.
-      //
-      // The whole spawn-through-handshake window is additionally held under `startLimiter`, so only
-      // MaxConcurrentStarts JVMs are ever climbing to their working set at the same time. See its
-      // docs: this is the demand no budget can see, because it does not exist yet at the moment the
-      // admission decision is made.
-      startLimiter.permit.use { _ =>
-        costOf(key, jvmOptions)
-          .flatMap(reserveMemoryForSpawn(s"jvm ${key.classpathHash}", _))
-          .bracketCase { releaseMemory =>
-            IO
-              .blocking {
-                val javaPath = jvmCommand
-                val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
+      // The scheduler already counts this fork as Starting under `forkId`. Whatever happens between here and a healthy handshake, it hears either that the
+      // process exists (so it can be measured) or that it is gone — hence the bracketCase.
+      IO.unit.bracketCase { _ =>
+        IO
+          .blocking {
+            val javaPath = jvmCommand
+            val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
 
-                // On Windows, command-line length is limited to 32,767 characters.
-                // When the classpath is too long, pass it via CLASSPATH environment variable instead.
-                val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
+            // On Windows, command-line length is limited to 32,767 characters.
+            // When the classpath is too long, pass it via CLASSPATH environment variable instead.
+            val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
 
-                // Quiet the JVM's own deprecation notice about `sun.misc.Unsafe`, which scala-library's `LazyVals` triggers on JDK 24+. Four lines of
-                // warning on stderr of every forked test run, about code the user does not own and cannot change, landing in their test output and in
-                // `<system-err>` of every report.
-                //
-                // Asked of the JVM rather than assumed, and never with `-XX:+IgnoreUnrecognizedVMOptions`. That flag does make an older JVM tolerate the
-                // option — and it makes it tolerate the *user's* mistakes too, silently, wherever they appear on the line: it is not positional. A project
-                // stating `-XX:+TypoedFlag` in `jvmOptions` would have its fork start anyway and its typo never mentioned. That is precisely the failure
-                // `SpawnFailureDiagnosticsIT` exists to prevent, and it caught this.
-                val quietUnsafe = if (JvmPool.acceptsUnsafeMemoryAccessFlag(javaPath)) List(UnsafeMemoryAccessFlag) else Nil
-                val cmd =
-                  if (useEnvClasspath)
-                    List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List(runnerClass)
-                  else
-                    List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List("-cp", cpString, runnerClass)
+            // Quiet the JVM's own deprecation notice about `sun.misc.Unsafe`, which scala-library's `LazyVals` triggers on JDK 24+. Four lines of
+            // warning on stderr of every forked test run, about code the user does not own and cannot change, landing in their test output and in
+            // `<system-err>` of every report.
+            //
+            // Asked of the JVM rather than assumed, and never with `-XX:+IgnoreUnrecognizedVMOptions`. That flag does make an older JVM tolerate the
+            // option — and it makes it tolerate the *user's* mistakes too, silently, wherever they appear on the line: it is not positional. A project
+            // stating `-XX:+TypoedFlag` in `jvmOptions` would have its fork start anyway and its typo never mentioned. That is precisely the failure
+            // `SpawnFailureDiagnosticsIT` exists to prevent, and it caught this.
+            val quietUnsafe = if (JvmPool.acceptsUnsafeMemoryAccessFlag(javaPath)) List(UnsafeMemoryAccessFlag) else Nil
+            val cmd =
+              if (useEnvClasspath)
+                List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List(runnerClass)
+              else
+                List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List("-cp", cpString, runnerClass)
 
-                // The fork talks protocol over a loopback socket, not over its stdout. Anything a test (or a subprocess a test starts with inherited IO —
-                // Scala Native's test binaries, Testcontainers, a plain ProcessBuilder) writes to file descriptor 1 would otherwise land inside the JSON
-                // stream, and the suite dies with "Protocol error: expected json value". Bound before the process starts so the child never races the listener.
-                val protocolListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress)
-                val protocolPort = protocolListener.getLocalPort
+            // The fork talks protocol over a loopback socket, not over its stdout. Anything a test (or a subprocess a test starts with inherited IO —
+            // Scala Native's test binaries, Testcontainers, a plain ProcessBuilder) writes to file descriptor 1 would otherwise land inside the JSON
+            // stream, and the suite dies with "Protocol error: expected json value". Bound before the process starts so the child never races the listener.
+            val protocolListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress)
+            val protocolPort = protocolListener.getLocalPort
 
-                val exitLogPath = Files.createTempFile("bleep-test-fork-exit-", ".log")
-                Files.delete(exitLogPath) // the fork (re)creates it only if it actually reaches its shutdown; its absence is a signal (see ExitLogProperty)
-                val cmdWithProtocol =
-                  cmd.head ::
-                    s"-D${ForkedTestRunnerProtocol.PortProperty}=$protocolPort" ::
-                    s"-D${ForkedTestRunnerProtocol.ExitLogProperty}=$exitLogPath" ::
-                    cmd.tail
-                val pb = new ProcessBuilder(cmdWithProtocol*)
-                pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
-                pb.redirectErrorStream(false)
-                if (useEnvClasspath) {
-                  pb.environment().put("CLASSPATH", cpString): Unit
-                }
-                // Default ANSI-off (no-color.org standard, honored by ScalaTest / JUnit / kotlinc / native-image / most JVM tooling). Set with putIfAbsent so any
-                // explicit caller override — including the parent JVM's inherited NO_COLOR — still wins.
-                pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
-                environment.foreach { case (k, v) => pb.environment().put(k, v) }
+            val exitLogPath = Files.createTempFile("bleep-test-fork-exit-", ".log")
+            Files.delete(exitLogPath) // the fork (re)creates it only if it actually reaches its shutdown; its absence is a signal (see ExitLogProperty)
+            val cmdWithProtocol =
+              cmd.head ::
+                s"-D${ForkedTestRunnerProtocol.PortProperty}=$protocolPort" ::
+                s"-D${ForkedTestRunnerProtocol.ExitLogProperty}=$exitLogPath" ::
+                cmd.tail
+            val pb = new ProcessBuilder(cmdWithProtocol*)
+            pb.directory(cwd.toFile)
+            pb.redirectErrorStream(false)
+            if (useEnvClasspath) {
+              pb.environment().put("CLASSPATH", cpString): Unit
+            }
+            // Default ANSI-off (no-color.org standard, honored by ScalaTest / JUnit / kotlinc / native-image / most JVM tooling). Set with putIfAbsent so any
+            // explicit caller override — including the parent JVM's inherited NO_COLOR — still wins.
+            pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
+            environment.foreach { case (k, v) => pb.environment().put(k, v) }
 
-                val process =
-                  try pb.start()
-                  catch {
-                    case e: Throwable =>
-                      protocolListener.close()
-                      throw e
-                  }
-
-                val protocolSocket =
-                  try awaitProtocolConnection(protocolListener, process, protocolPort)
-                  catch {
-                    case e: Throwable =>
-                      if (process.isAlive) process.destroyForcibly(): Unit
-                      throw e
-                  } finally protocolListener.close()
-                protocolSocket.setTcpNoDelay(true)
-
-                val stdin = new PrintWriter(new OutputStreamWriter(protocolSocket.getOutputStream, StandardCharsets.UTF_8), true)
-                val stdout = new BufferedReader(new InputStreamReader(protocolSocket.getInputStream, StandardCharsets.UTF_8))
-                val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
-                val processStdout = new BufferedReader(new InputStreamReader(process.getInputStream))
-
-                new ManagedJvm(process, stdin, stdout, stderr, processStdout, protocolSocket, key, jvmCommand, releaseMemory, exitLogPath, listener)
+            val process =
+              try pb.start()
+              catch {
+                case e: Throwable =>
+                  protocolListener.close()
+                  throw e
               }
-              .flatTap(jvm => allJvms.update(_ + jvm))
-              .flatTap(jvm =>
-                waitForReady(jvm).onError { case _ =>
-                  IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
-                }
-              )
-              .flatTap(jvm => IO(listener.onForkStart(jvm.process.pid(), label, parseXmxMb(jvmOptions))).attempt)
-              .flatTap(jvm => IO(spawnFailures.remove(jvm.key))) // Reset on success
-          } {
-            // On success the reservation now belongs to the ManagedJvm, which releases it when destroyed.
-            // On any failure — process never started, handshake failed, cancellation — nothing owns it,
-            // so hand it straight back rather than leaking the footprint of a JVM that isn't running.
-            case (_, Outcome.Succeeded(_))           => IO.unit
-            case (releaseMemory, Outcome.Errored(_)) => releaseMemory
-            case (releaseMemory, Outcome.Canceled()) => releaseMemory
+
+            val protocolSocket =
+              try awaitProtocolConnection(protocolListener, process, protocolPort)
+              catch {
+                case e: Throwable =>
+                  if (process.isAlive) process.destroyForcibly(): Unit
+                  throw e
+              } finally protocolListener.close()
+            protocolSocket.setTcpNoDelay(true)
+
+            val stdin = new PrintWriter(new OutputStreamWriter(protocolSocket.getOutputStream, StandardCharsets.UTF_8), true)
+            val stdout = new BufferedReader(new InputStreamReader(protocolSocket.getInputStream, StandardCharsets.UTF_8))
+            val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+            val processStdout = new BufferedReader(new InputStreamReader(process.getInputStream))
+
+            new ManagedJvm(forkId, process, stdin, stdout, stderr, processStdout, protocolSocket, key, jvmCommand, exitLogPath, listener)
           }
+          .flatTap(jvm => allJvms.update(_ + (forkId -> jvm)) >> IO(forks.register(liveFork(jvm, label))) >> IO(lifecycle.spawned(forkId, jvm.process.pid())))
+          .flatTap(jvm =>
+            waitForReady(jvm).onError { case _ =>
+              IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void >>
+                // A fork that never said Ready is no use to anyone: kill it and let the scheduler hear it is gone.
+                destroy(jvm, "bleep: fork failed its handshake")
+            }
+          )
+          .flatTap(jvm => IO(listener.onForkStart(jvm.process.pid(), label, bleep.MemorySizes.xmxMb(jvmOptions))).attempt)
+          .flatTap(jvm => IO(spawnFailures.remove(jvm.key))) // Reset on success
+      } {
+        // A process that never started, or a cancellation before the handshake: the scheduler counts a fork that does not exist until told otherwise.
+        // (A handshake failure is reported by `destroy` above, after which the pool no longer knows the id and `exited` is not repeated.)
+        case (_, Outcome.Succeeded(_)) => IO.unit
+        case (_, Outcome.Errored(_))   => allJvms.get.map(_.contains(forkId)).flatMap(known => if (known) IO.unit else IO(lifecycle.exited(forkId)))
+        case (_, Outcome.Canceled())   => allJvms.get.map(_.contains(forkId)).flatMap(known => if (known) IO.unit else IO(lifecycle.exited(forkId)))
       }
     }
 
@@ -974,7 +809,7 @@ object JvmPool {
       // CRITICAL: Use uncancelable to ensure cleanup completes even during cancellation
       IO.uncancelable { _ =>
         for {
-          jvms <- allJvms.get
+          jvms <- allJvms.get.map(_.values.toList)
           _ <- IO.blocking {
             jvms.foreach { jvm =>
               try {
@@ -1007,46 +842,44 @@ object JvmPool {
           // Shutdown kills directly rather than going through `destroy`, so without this the JVMs that survived to the end of a run — usually most of them —
           // would have a fork_start and never a fork_end, and their lifetimes would be unknowable.
           _ <- jvms.toList.traverse_(jvm => announceEnd(jvm).attempt)
-          _ <- allJvms.set(Set.empty)
-          _ <- IO(pool.clear())
-          // Backstop for the whole scheme: every process-lifetime reservation is returned here, so a
-          // pool that is torn down can never leave the machine's memory budget permanently consumed —
-          // which matters because these reservations are held outside any Resource scope.
-          _ <- jvms.toList.traverse_(_.releaseMemory.attempt)
+          _ <- allJvms.set(Map.empty)
+          _ <- IO(idle.clear())
+          slots <- sharedSlots.getAndSet(Map.empty)
+          _ <- slots.values.toList.traverse_(slot => slot.session.tryGet.flatMap { case Some(Right(session)) => session.reap.attempt.void; case _ => IO.unit })
+          _ <- IO(jvms.foreach(jvm => forks.unregister(jvm.forkId): Unit))
+          _ <- IO(jvms.foreach(jvm => lifecycle.exited(jvm.forkId)))
         } yield ()
       }
 
     override def size: IO[Int] =
       allJvms.get.map(_.size)
 
-    /** Return a JVM to the pool for reuse — or destroy it.
-      *
-      * Caching a JVM keeps its whole memory reservation held for a warm classloader we merely HOPE to reuse. That is a good trade on an idle machine and a bad
-      * one when something is queued for memory right now, so under contention we destroy instead of pooling. This is also half of the pool's liveness argument:
-      * a spawn that has run out of idle JVMs to evict parks on the governor, and the running suites it is waiting for hand their memory back here rather than
-      * squirreling it away in the pool.
+    /** The daemon's handle on a fork this pool started: added when the process exists, removed where it is destroyed or shut down. Its `kill` runs the same
+      * `destroy` the pool uses, so an eviction ordered by the scheduler and a death the pool notices itself are reported the same way.
       */
-    private def release(jvm: ManagedJvm): IO[Unit] =
-      if (jvm.isAlive && jvm.protocolClean && !jvm.suiteInFlight) {
-        machine.isContended.flatMap {
-          case true  => destroy(jvm, "bleep: not pooled because the machine is contended")
-          case false =>
-            for {
-              queue <- IO(
-                pool.getOrElseUpdate(
-                  jvm.key, {
-                    import cats.effect.unsafe.implicits.global
-                    Queue.unbounded[IO, ManagedJvm].unsafeRunSync()
-                  }
-                )
-              )
-              _ <- queue.offer(jvm)
-            } yield ()
+    private def liveFork(jvm: ManagedJvm, label: String): ForkRegistry.LiveFork =
+      ForkRegistry.LiveFork(
+        id = jvm.forkId,
+        pids = () => Set(jvm.process.pid()),
+        label = label,
+        key = forkKey(jvm.key, shared = false),
+        startedAtEpochMs = jvm.startedAtMs,
+        kill = reason => {
+          import cats.effect.unsafe.implicits.global
+          destroy(jvm, reason).unsafeRunSync()
         }
-      } else {
-        // Dead or protocol-dirty JVM — kill it and return its memory.
+      )
+
+    /** The suite is done with its fork: back to idle, and the scheduler hears the cpu is free. Whether the fork then stays warm or goes is the scheduler's call
+      * (design §5 rule 3), carried out through this pool's `destroy` when it decides to evict. A fork that died, or is protocol-dirty after a cancelled suite,
+      * is destroyed here: nothing could run on it.
+      */
+    private def release(jvm: ManagedJvm, cpu: Int): IO[Unit] =
+      if (jvm.isAlive && jvm.protocolClean && !jvm.suiteInFlight)
+        IO(idle.put(jvm.forkId, jvm): Unit) >> IO(lifecycle.workFinished(jvm.forkId, cpu))
+      else
+        // Dead or protocol-dirty JVM — kill it; `destroy` reports the exit, which is also how the scheduler learns its cpu is free.
         destroy(jvm, "bleep: JVM unhealthy or protocol-dirty after its suite")
-      }
 
     private class TestJvmImpl(jvm: ManagedJvm) extends TestJvm {
 
@@ -1196,68 +1029,88 @@ object JvmPool {
 
     // ============================ Shared per-project sessions ============================
 
-    /** One project's shared fork, and how many of its suites are currently holding it. The session is created behind a Deferred so that when several suites of
-      * a project ask at once, exactly one of them spawns the fork and the rest wait on it rather than each spawning their own.
+    private def acquireShared(acquirer: ForkAcquirer, request: TestSessionRequest): Resource[IO, TestSession] = {
+      val boundedOptions = bleep.MemorySizes.withHeapBound(request.jvmOptions, request.defaultHeapMb)
+      val key = JvmKey(request.jvmCommand, request.classpath, boundedOptions, request.environment, Some(request.effectiveWorkingDirectory))
+      Resource
+        .make(obtainShared(acquirer, request, key, boundedOptions))(session => releaseShared(session, request.cpu))
+        .map(s => s: TestSession)
+    }
+
+    /** Ask the scheduler for a place on the project's shared fork. It answers `Reuse` for a fork that already runs the project's suites — busy or idle — and
+      * `Spawn` when there is none; several suites asking at once get one `Spawn` and the rest `Reuse` on later ticks, so exactly one of them creates the
+      * session and the others join it. The slot is created before the spawn so a `Reuse` that lands while the fork is still starting waits on the same Deferred
+      * as the creator.
       */
-    private case class SharedSlot(session: Deferred[IO, Either[Throwable, SharedProjectSession]], refCount: Int)
-
-    // Allocated here rather than threaded through the constructor so `SharedProjectSession` can stay an inner class with direct access to `destroy`,
-    // `ManagedJvm` and the rest of the pool. Ref.unsafe is the same shortcut the pool's per-key queues take with `unsafeRunSync`.
-    private val sharedSlots: Ref[IO, Map[String, SharedSlot]] = Ref.unsafe(Map.empty)
-
-    override def acquireShared(request: TestSessionRequest, key: String): Resource[IO, TestSession] =
-      // One permit per suite, exactly as the exclusive path takes — this run's parallelism is bounded the same whether or not suites share a fork. The shared
-      // session underneath is refcounted separately, so the fork outlives any one suite and is torn down only when the last suite releases.
-      Resource.make(semaphore.acquire)(_ => semaphore.release).flatMap { _ =>
-        Resource.make(acquireSharedSession(request, key))(_ => releaseSharedSession(key)).map(s => s: TestSession)
-      }
-
-    private def acquireSharedSession(request: TestSessionRequest, key: String): IO[SharedProjectSession] =
-      Deferred[IO, Either[Throwable, SharedProjectSession]].flatMap { fresh =>
-        sharedSlots
-          .modify { slots =>
-            slots.get(key) match {
-              case Some(slot) => (slots.updated(key, slot.copy(refCount = slot.refCount + 1)), (slot.session, false))
-              case None       => (slots.updated(key, SharedSlot(fresh, refCount = 1)), (fresh, true))
-            }
-          }
-          .flatMap { case (deferred, isCreator) =>
-            if (isCreator)
-              // Drop the slot on failure so a later suite can try again; the waiters parked on this Deferred get the same failure and fail their own acquire,
-              // so none of them will release (Resource.make only releases what it acquired).
-              buildSharedSession(request, key).attempt.flatMap { outcome =>
-                val cleanup = outcome match {
-                  case Left(_)  => sharedSlots.update(_ - key)
-                  case Right(_) => IO.unit
+    private def obtainShared(acquirer: ForkAcquirer, request: TestSessionRequest, key: JvmKey, boundedOptions: List[String]): IO[SharedProjectSession] =
+      acquirer.acquire(demandFor(acquirer, request, key, boundedOptions, shared = true), request.group).flatMap {
+        case ForkGrant.Spawn(id) =>
+          Deferred[IO, Either[Throwable, SharedProjectSession]].flatMap { fresh =>
+            sharedSlots.update(_ + (id -> SharedSlot(fresh, refCount = 1))) >>
+              spawnJvm(
+                id,
+                request.label,
+                key,
+                request.jvmCommand,
+                request.classpath,
+                boundedOptions,
+                request.runnerClass,
+                request.environment,
+                request.effectiveWorkingDirectory
+              )
+                .flatMap(SharedProjectSession.start)
+                .attempt
+                .flatMap { outcome =>
+                  // Drop the slot on failure so a later suite can try again; the waiters parked on this Deferred get the same failure and fail their own acquire,
+                  // so none of them will release (Resource.make only releases what it acquired).
+                  val cleanup = outcome match {
+                    case Left(_)  => sharedSlots.update(_ - id)
+                    case Right(_) => IO.unit
+                  }
+                  cleanup >> fresh.complete(outcome) >> IO.fromEither(outcome)
                 }
-                cleanup >> deferred.complete(outcome) >> IO.fromEither(outcome)
+          }
+        case ForkGrant.Reuse(id) =>
+          awaitSlot(id).flatMap { slot =>
+            sharedSlots.update(_.updatedWith(id)(_.map(s => s.copy(refCount = s.refCount + 1)))) >>
+              IO(idle.remove(id): Unit) >>
+              slot.session.get.flatMap(IO.fromEither).flatMap { session =>
+                if (session.jvm.isAlive) IO(listener.onForkReused(session.jvm.process.pid(), request.label)).attempt.as(session)
+                else destroy(session.jvm, "bleep: pooled shared JVM found dead") >> obtainShared(acquirer, request, key, boundedOptions)
               }
-            else
-              deferred.get.flatMap(IO.fromEither)
           }
       }
 
-    private def releaseSharedSession(key: String): IO[Unit] =
+    /** The slot the creator registers before spawning. A `Reuse` is granted only for a fork the scheduler already counts, so the slot exists or is a few
+      * microseconds from existing; waiting out that window is bounded so a missing slot is a reported bug, not a hang.
+      */
+    private def awaitSlot(id: ForkId): IO[SharedSlot] = {
+      def loop(remaining: Int): IO[SharedSlot] =
+        sharedSlots.get.map(_.get(id)).flatMap {
+          case Some(slot)             => IO.pure(slot)
+          case None if remaining == 0 =>
+            IO.raiseError(new IllegalStateException(s"the scheduler granted shared fork ${id.value} for reuse, but this pool has no session on it"))
+          case None => IO.sleep(10.millis) >> loop(remaining - 1)
+        }
+      loop(1000)
+    }
+
+    /** A suite is done with the shared fork. The session stays alive — the next suite of the project joins it — and when the last suite leaves, the fork is
+      * idle: the scheduler keeps it warm while the project has suites still to start, and evicts it otherwise.
+      */
+    private def releaseShared(session: SharedProjectSession, cpu: Int): IO[Unit] =
       sharedSlots
         .modify { slots =>
-          slots.get(key) match {
-            case Some(slot) if slot.refCount > 1 => (slots.updated(key, slot.copy(refCount = slot.refCount - 1)), None)
-            case Some(slot)                      => (slots - key, Some(slot.session)) // last suite out
-            case None                            => (slots, None)
+          slots.get(session.jvm.forkId) match {
+            case Some(slot) => (slots.updated(session.jvm.forkId, slot.copy(refCount = slot.refCount - 1)), slot.refCount - 1)
+            case None       => (slots, 0) // destroyed under us
           }
         }
-        .flatMap {
-          case Some(deferred) => deferred.get.flatMap { case Right(s) => s.teardown; case Left(_) => IO.unit }
-          case None           => IO.unit
+        .flatMap { remaining =>
+          if (!session.jvm.isAlive) destroy(session.jvm, "bleep: shared JVM died under its suites")
+          else
+            (if (remaining == 0) IO(idle.put(session.jvm.forkId, session.jvm): Unit) else IO.unit) >> IO(lifecycle.workFinished(session.jvm.forkId, cpu))
         }
-
-    private def buildSharedSession(request: TestSessionRequest, key: String): IO[SharedProjectSession] = {
-      val _ = key
-      val boundedOptions = MachineResources.withHeapBound(request.jvmOptions, request.defaultHeapMb)
-      val jvmKey = JvmKey(request.classpath, boundedOptions, request.environment, request.workingDirectory)
-      getOrCreate(request.label, jvmKey, request.classpath, boundedOptions, request.runnerClass, request.environment, request.workingDirectory)
-        .flatMap(SharedProjectSession.start)
-    }
 
     /** A [[TestSession]] over one fork that runs several suites at once.
       *
@@ -1267,7 +1120,7 @@ object JvmPool {
       * suite's stream sends CancelSuite for it, interrupting just that suite's thread in the fork and leaving its siblings running.
       */
     private class SharedProjectSession private (
-        jvm: ManagedJvm,
+        val jvm: ManagedJvm,
         reader: FiberIO[Unit],
         queues: TrieMap[String, Queue[IO, TestProtocol.TestResponse]],
         threadDumps: Queue[IO, TestProtocol.TestResponse.ThreadDump]
@@ -1346,15 +1199,11 @@ object JvmPool {
         // reclaimed when the project's last suite releases the session.
         sendCommand(TestProtocol.TestCommand.CancelSuite(className)).attempt.void
 
-      /** Destroy the fork and reap the reader. Called once, when the last suite releases the session.
-        *
-        * Destroy FIRST, cancel second, and the order is load-bearing: the reader is blocked in a socket `readLine`, and a blocking socket read does not respond
-        * to `Thread.interrupt` — which is all `IO.interruptible`'s cancellation has. So cancelling first would hang forever on a still-open socket. Destroying
-        * closes the socket, the `readLine` returns end-of-stream, the reader loop ends on its own, and the `cancel` that follows just reaps an already-finished
-        * fiber.
+      /** Reap the reader once the fork is dead. Called from the pool's `destroy`, after the kill: the reader is blocked in a socket `readLine`, which no
+        * `Thread.interrupt` reaches, so cancelling first would hang on a still-open socket. Destroying closes the socket, the `readLine` returns end-of-stream,
+        * the reader loop ends on its own, and the `cancel` that follows just reaps an already-finished fiber.
         */
-      def teardown: IO[Unit] =
-        destroy(jvm, "bleep: last suite of the project's shared fork released it") >> reader.cancel
+      def reap: IO[Unit] = reader.cancel
     }
 
     private object SharedProjectSession {

@@ -148,7 +148,13 @@ object LinkExecutor {
       mainClass: Option[String],
       baseOutputDir: Path,
       logger: LinkLogger,
-      killSignal: Deferred[IO, KillReason]
+      killSignal: Deferred[IO, KillReason],
+      /** What the scheduler granted this link (see `TaskDag.demandFor`): an in-heap slot for the linkers that run in this JVM (Scala.js, Kotlin/JS), a fork for
+        * those that run a process. Kotlin/Native reports its `konanc` through the fork the moment it exists. Scala Native's toolchain spawns clang and lld
+        * itself, through `scala.sys.process`, many at once and with no hook to hand them out; the daemon's `ChildWatch` attributes them to this fork by the
+        * work directory every one of them names (design §5.3), and the fork is charged their trees summed.
+        */
+      grant: TaskDag.TaskGrant
   ): IO[(TaskResult, LinkResult)] =
     killSignal.tryGet.flatMap {
       case Some(reason) => IO.pure((TaskResult.Killed(reason), LinkResult.Cancelled))
@@ -158,9 +164,11 @@ object LinkExecutor {
 
         task.platform match {
           case platform: LinkPlatform.ScalaJs =>
+            TaskDag.TaskGrant.requireInHeap(grant, s"the Scala.js linker for ${task.project.value}")
             executeScalaJs(task.project.value, platform, classpath, mainClass, outputDir, logger, killSignal, task.isTest)
 
           case platform: LinkPlatform.ScalaNative =>
+            val fork = TaskDag.TaskGrant.forkFor(grant, s"the Scala Native linker for ${task.project.value}")
             val resolvedMainClass = mainClass.getOrElse {
               if (task.isTest) ScalaNativeTestRunner.TestMainClass
               else throw new IllegalArgumentException("Scala Native requires a main class")
@@ -172,17 +180,21 @@ object LinkExecutor {
               resolvedMainClass,
               outputDir,
               logger,
-              killSignal
+              killSignal,
+              fork
             )
 
           case platform: LinkPlatform.KotlinJs =>
+            TaskDag.TaskGrant.requireInHeap(grant, s"the Kotlin/JS linker for ${task.project.value}")
             executeKotlinJs(task.project.value, platform, classpath, outputDir, logger, killSignal)
 
           case platform: LinkPlatform.KotlinNative =>
-            executeKotlinNative(task.project.value, platform, classpath, mainClass, outputDir, logger, killSignal)
+            val fork = TaskDag.TaskGrant.forkFor(grant, s"the Kotlin/Native linker for ${task.project.value}")
+            executeKotlinNative(task.project.value, platform, classpath, mainClass, outputDir, logger, killSignal, fork.onStarted)
 
           case LinkPlatform.Jvm =>
             // JVM doesn't need linking
+            TaskDag.TaskGrant.requireInHeap(grant, s"the JVM no-op link for ${task.project.value}")
             IO.pure((TaskResult.Success, LinkResult.NotApplicable))
         }
     }
@@ -257,7 +269,8 @@ object LinkExecutor {
       mainClass: String,
       outputDir: Path,
       logger: LinkLogger,
-      killSignal: Deferred[IO, KillReason]
+      killSignal: Deferred[IO, KillReason],
+      fork: GrantedFork
   ): IO[(TaskResult, LinkResult)] = {
     val binaryPath = outputDir.resolve(projectName)
 
@@ -265,7 +278,7 @@ object LinkExecutor {
     if (isUpToDate(binaryPath, classpath, logger)) {
       IO.pure((TaskResult.Success, LinkResult.NativeSuccess(binaryPath, wasUpToDate = true)))
     } else {
-      doScalaNativeLink(platform, classpath, mainClass, binaryPath, outputDir, logger, killSignal)
+      doScalaNativeLink(platform, classpath, mainClass, binaryPath, outputDir, logger, killSignal, fork)
     }
   }
 
@@ -276,13 +289,17 @@ object LinkExecutor {
       binaryPath: Path,
       outputDir: Path,
       logger: LinkLogger,
-      killSignal: Deferred[IO, KillReason]
+      killSignal: Deferred[IO, KillReason],
+      fork: GrantedFork
   ): IO[(TaskResult, LinkResult)] =
     bridgeKillSignal(killSignal).use { cancellation =>
       val toolchain = ScalaNativeToolchain.forVersion(platform.version, platform.scalaVersion)
-      val workDir = outputDir.resolve("native-work")
+      // Absolute, so the paths the toolchain derives from it (`.abs` on its side) and the directory the child watch looks for are one string.
+      val workDir = outputDir.toAbsolutePath.normalize().resolve("native-work")
+      // Every clang, lld, dsymutil and ar the toolchain runs names a path under workDir: that is how its children are attributed to this fork (design §5.3).
+      val watching = cats.effect.Resource.make(IO(fork.observeChildrenUnder(workDir)))(claim => IO(claim.close()))
 
-      IO.blocking(Files.createDirectories(workDir)) >> {
+      IO.blocking(Files.createDirectories(workDir)) >> watching.use { _ =>
         val nativeLogger = LinkLogger.toScalaNativeLogger(logger)
 
         toolchain
@@ -450,7 +467,8 @@ object LinkExecutor {
       mainClass: Option[String],
       outputDir: Path,
       logger: LinkLogger,
-      killSignal: Deferred[IO, KillReason]
+      killSignal: Deferred[IO, KillReason],
+      onStarted: Process => Unit
   ): IO[(TaskResult, LinkResult)] = {
     val binaryPath = outputDir.resolve(projectName)
     val possiblePaths = Seq(
@@ -471,7 +489,7 @@ object LinkExecutor {
 
       case None =>
         // Need to link
-        doKotlinNativeLink(projectName, platform, classpath, mainClass, binaryPath, logger, killSignal)
+        doKotlinNativeLink(projectName, platform, classpath, mainClass, binaryPath, logger, killSignal, onStarted)
     }
   }
 
@@ -482,7 +500,8 @@ object LinkExecutor {
       mainClass: Option[String],
       binaryPath: Path,
       logger: LinkLogger,
-      killSignal: Deferred[IO, KillReason]
+      killSignal: Deferred[IO, KillReason],
+      onStarted: Process => Unit
   ): IO[(TaskResult, LinkResult)] =
     killSignal.tryGet.flatMap {
       case Some(reason) => IO.pure((TaskResult.Killed(reason), LinkResult.Cancelled))
@@ -589,7 +608,8 @@ object LinkExecutor {
                 outputPath = binaryPath,
                 config = nativeConfig,
                 diagnosticListener = diagnosticListener,
-                cancellation = cancellation
+                cancellation = cancellation,
+                onStarted = onStarted
               )
               .map { result =>
                 if (result.isSuccess) {
