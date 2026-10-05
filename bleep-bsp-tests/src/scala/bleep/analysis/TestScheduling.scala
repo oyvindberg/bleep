@@ -41,7 +41,7 @@ object TestScheduling {
     val scheduling = DaemonScheduling.create(
       mode = mode,
       identity = identity,
-      params = () => Params(reserveMb = 0L, parallelism = parallelism, maxNewForksPerTick = 1),
+      params = () => Params(reserveMb = 0L, maxStartingForks = 1, parallelism = parallelism, maxNewForksPerTick = 1),
       parallelism = () => parallelism,
       heapGate = HeapGate.alwaysAdmit,
       heapUsage = () => HeapUsage(usedMb = 0L, maxMb = 1024L),

@@ -59,6 +59,7 @@ object WindowsProbes {
       physicalMb = totalPhys / MB,
       usedMb = (totalPhys - availPhys) / MB,
       availableMb = availPhys / MB,
+      roomBasis = RoomBasis.AvailableMemory,
       pressure = RawPressure.Windows(
         memoryLoadPercent = out(2).toInt,
         commitTotalMb = (totalPageFile - availPageFile) / MB,

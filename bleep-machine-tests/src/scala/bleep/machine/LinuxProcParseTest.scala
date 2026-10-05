@@ -115,6 +115,7 @@ class LinuxProcParseTest extends AnyFunSuite with Matchers {
         physicalMb = 16374460L / 1024,
         usedMb = (16374460L - 11126808L) / 1024,
         availableMb = 11126808L / 1024,
+        roomBasis = RoomBasis.AvailableMemory,
         pressure = RawPressure.LinuxPsi(12.34, 1.5)
       )
     }
@@ -153,7 +154,8 @@ class LinuxProcParseTest extends AnyFunSuite with Matchers {
     "sys/fs/cgroup/docker/abc/memory.stat" -> s"anon ${2 * GiB}\nfile ${GiB}\nactive_file 0\ninactive_file ${GiB}\n",
     "sys/fs/cgroup/docker/abc/memory.pressure" -> cgroupPsi
   )
-  private val hostSample = MachineSample(16374460L / 1024, (16374460L - 11126808L) / 1024, 11126808L / 1024, RawPressure.LinuxPsi(12.34, 1.5))
+  private val hostSample =
+    MachineSample(16374460L / 1024, (16374460L - 11126808L) / 1024, 11126808L / 1024, RoomBasis.AvailableMemory, RawPressure.LinuxPsi(12.34, 1.5))
 
   test("cgroup v2 with a memory.max limit: the cgroup is the machine") {
     withProc(containerFiles((4 * GiB).toString)*) { root =>
@@ -161,6 +163,7 @@ class LinuxProcParseTest extends AnyFunSuite with Matchers {
         physicalMb = 4096,
         usedMb = 2048, // memory.current minus the inactive file cache it could drop
         availableMb = 2048, // memory.max less the working set
+        roomBasis = RoomBasis.AvailableMemory,
         pressure = RawPressure.LinuxPsi(40.0, 5.0)
       )
     }
@@ -175,7 +178,7 @@ class LinuxProcParseTest extends AnyFunSuite with Matchers {
       )*
     ) { root =>
       new LinuxMachineProbe(root, root.resolve("sys/fs/cgroup"))
-        .sample() shouldBe MachineSample(8192, 4096, 4096, RawPressure.LinuxPsi(40.0, 5.0))
+        .sample() shouldBe MachineSample(8192, 4096, 4096, RoomBasis.AvailableMemory, RawPressure.LinuxPsi(40.0, 5.0))
     }
   }
 

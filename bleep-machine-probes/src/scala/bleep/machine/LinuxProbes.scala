@@ -39,6 +39,7 @@ final class LinuxMachineProbe(procRoot: Path, cgroupRoot: Path) extends MachineP
           physicalMb = maxBytes / LinuxCgroup.MB,
           usedMb = workingSet / LinuxCgroup.MB,
           availableMb = math.max(0L, maxBytes - workingSet) / LinuxCgroup.MB,
+          roomBasis = RoomBasis.AvailableMemory,
           pressure = LinuxProc.readPsi(dir.resolve("memory.pressure"))
         )
       case None =>
@@ -46,6 +47,7 @@ final class LinuxMachineProbe(procRoot: Path, cgroupRoot: Path) extends MachineP
           physicalMb = mem.totalKb / 1024,
           usedMb = (mem.totalKb - mem.availableKb) / 1024,
           availableMb = mem.availableKb / 1024,
+          roomBasis = RoomBasis.AvailableMemory,
           pressure = LinuxProc.readPsi(psi)
         )
     }

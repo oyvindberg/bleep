@@ -78,13 +78,19 @@ object SchedulerFakes {
     // A Linux reading by default: Normal from the first sample. macOS's level needs the churn's two samples to settle (`Pressure.Warming`), which the tests about
     // churn cover on purpose and the rest should not trip over.
     val machineProbe = new FakeMachineProbe(
-      MachineSample(physicalMb = 16_384L, usedMb = 4_096L, availableMb = 12_288L, pressure = RawPressure.LinuxPsi(0.0, 0.0))
+      MachineSample(
+        physicalMb = 16_384L,
+        usedMb = 4_096L,
+        availableMb = 12_288L,
+        roomBasis = RoomBasis.AvailableMemory,
+        pressure = RawPressure.LinuxPsi(0.0, 0.0)
+      )
     )
     val forkProbe = new FakeForkProbe
     val lock = new FakeLock
     val effects = new RecordingEffects
     val clock = new AtomicLong(1_000_000L)
-    val params = new AtomicReference[Params](Params(reserveMb = 2_048L, parallelism = 4, maxNewForksPerTick = 1))
+    val params = new AtomicReference[Params](Params(reserveMb = 2_048L, maxStartingForks = 1, parallelism = 4, maxNewForksPerTick = 1))
     val heap = new AtomicReference[HeapUsage](HeapUsage(usedMb = 100L, maxMb = 1_000L))
 
     /** The slow check's cadence against the fake clock. */

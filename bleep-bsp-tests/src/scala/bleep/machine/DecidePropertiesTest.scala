@@ -17,13 +17,42 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
   private def reclaimed(in: Inputs, d: Decision): Long =
     d.evict.map(e => in.me.forks.find(_.id == e.fork).get.reclaimableMb).sum
 
-  test("Σ bound of new forks never exceeds room — available − reserve − pending — once anything beyond the guarantee is spawned") {
+  test(
+    "where available memory measures room, Σ bound of new forks never exceeds it — available − reserve − pending — once anything beyond the guarantee is spawned"
+  ) {
     forAll(Runs, Seed) { in =>
       val d = run(in)
-      if (d.spawn.exists(!_.guaranteed))
+      if (in.view.roomBasis == RoomBasis.AvailableMemory && d.spawn.exists(!_.guaranteed))
         withClue(s"spawns ${d.spawn}, room before ${in.roomBefore}, reclaimed ${reclaimed(in, d)}: ")(
           d.spawn.map(_.demand.boundMb).sum should be <= (in.roomBefore + reclaimed(in, d))
         )
+    }
+  }
+
+  test(
+    "where the starting forks are capped, a spawn beyond the guarantee never takes the unmeasured forks machine-wide past the cap, and evicts nothing for room"
+  ) {
+    forAll(Runs, Seed + 20) { in =>
+      val d = run(in)
+      if (in.view.roomBasis == RoomBasis.StartingForksCap) {
+        if (d.spawn.exists(!_.guaranteed))
+          withClue(s"spawns ${d.spawn}, starting before ${in.startingBefore}, cap ${in.params.maxStartingForks}: ")(
+            in.startingBefore + d.spawn.size should be <= in.params.maxStartingForks
+          )
+        d.evict.map(_.reason) should not contain Decision.EvictReason.RoomShortage
+      }
+    }
+  }
+
+  test("the room basis changes nothing but rule 1: with unlimited room and nothing starting anywhere, both bases decide alike") {
+    forAll(Runs, Seed + 21) { in =>
+      val roomy = in.copy(
+        view = in.view.copy(availableMb = Long.MaxValue / 4),
+        others = in.others.map(o => o.copy(forks = o.forks.filter(_.state != StateForkState.Starting))),
+        me = in.me.copy(forks = in.me.forks.filter(_.state != ForkState.Starting))
+      )
+      run(roomy.copy(view = roomy.view.copy(roomBasis = RoomBasis.AvailableMemory))) shouldBe
+        run(roomy.copy(view = roomy.view.copy(roomBasis = RoomBasis.StartingForksCap)))
     }
   }
 
@@ -160,7 +189,13 @@ class DecidePropertiesTest extends AnyFunSuite with Matchers {
   test("unconstrained is cooperative with unlimited room, no pressure, a held lock and nobody else: nothing else is taken away") {
     forAll(Runs, Seed + 16) { in =>
       val boundless = in.copy(
-        view = in.view.copy(physicalMb = Long.MaxValue / 4, usedMb = 0L, availableMb = Long.MaxValue / 4, pressure = Pressure.Normal),
+        view = in.view.copy(
+          physicalMb = Long.MaxValue / 4,
+          usedMb = 0L,
+          availableMb = Long.MaxValue / 4,
+          roomBasis = RoomBasis.AvailableMemory,
+          pressure = Pressure.Normal
+        ),
         others = Nil,
         lock = LockState.Held
       )

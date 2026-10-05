@@ -43,6 +43,7 @@ class MachineSchedulingSetupTest extends AnyFunSuite with Matchers {
         try {
           coop.machineProbe.sample().physicalMb should be > 0L
           selected.reserveMb shouldBe MachineSchedulingSetup.ProvisionalReserveMb
+          selected.maxStartingForks shouldBe MachineSchedulingSetup.ProvisionalMaxStartingForks
           Files.exists(paths.cacheDir.resolve("machine.lock")) shouldBe true
           coop.forkProbe.footprintMb(ProcessHandle.current().pid()).isDefined shouldBe true
         } finally coop.lock.asInstanceOf[FileMachineLock].close()

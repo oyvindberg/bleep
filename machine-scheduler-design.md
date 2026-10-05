@@ -150,15 +150,23 @@ def decide(view: MachineView, others: List[StateJson], me: MyState, lock: LockSt
 
 In order. Every rule is a pure function of the inputs above.
 
-1. **Room.** `room = availableMb − reserve − Σ boundMb(forks in Starting, all servers)`, on every platform. *Available* is what a new process can take
-   now without the OS reclaiming anything — Linux `MemAvailable` (or a cgroup's `memory.max − working set`), Windows available physical, macOS free +
-   speculative + purgeable pages (§9). Not `ceiling − used`: on macOS the used figure stayed 42.4–42.8 GB from a calm machine to one at 300 % kernel_task,
-   while free pages going to zero was the precursor of every cliff — compression and kernel_task took off within one 512 MB step of free running out,
-   with inactive (~17 GB) and file-backed pages standing still (they are not a reserve that gets reclaimed first). `reserve` is ONE named value,
-   provisional **1 GB** (`MachineSchedulingSetup.ProvisionalReserveMb`, calibrated from that run: 3–4 GB free + speculative at calm). `usedMb` is kept
-   for display and metrics only.
-   A fork is charged its bound from admission until it has run one full second; then it is measured and it has left "available" on its own, and it is
-   remeasured at most once a second (measurements are for display and eviction choice, never for prediction).
+1. **Room.** Memory admits a fork beyond the guarantee by the rule the platform's probe says applies — `RoomBasis`, a field of every sample, so that the
+   rule is a fact about the machine being read and not a flag on the scheduler. Two bases:
+   - **`AvailableMemory`** (Linux, Windows): `room = availableMb − reserve − Σ boundMb(forks in Starting, all servers)`. *Available* is what a new process
+     can take now without the OS reclaiming anything — Linux `MemAvailable` (or a cgroup's `memory.max − working set`), Windows available physical.
+     `reserve` is ONE named value, provisional **1 GB** (`MachineSchedulingSetup.ProvisionalReserveMb`), unmeasured on these platforms. Under shortage,
+     idle forks are evicted for room (rule 3).
+   - **`StartingForksCap`** (macOS): available memory is no measure of room. macOS keeps free memory low while perfectly healthy — in a one-hour passive
+     log of the owner's 48 GB Mac in ordinary use the calm samples (kernel_task < 50 %) had a median 994 MB free + speculative + purgeable, and a 2560 MB
+     fork would have been refused in 68–74 % of them whatever the reserve, even zero; the earlier allocation runs, which made free pages look like the
+     precursor, were misleading (§9). So beyond the guarantee a fork may start only while **no fork on any server is still unmeasured**:
+     `Σ Starting(all servers) + 1 ≤ maxStartingForks`, ONE named value, **1** (`MachineSchedulingSetup.ProvisionalMaxStartingForks`). One fork starts,
+     is measured a second later, and the compressor's churn (rule 2) says whether the machine can take the next. A count rather than megabytes: there is
+     no one "largest fork bound" — bounds come from each project's test heap and jvmOptions — so a megabyte cap would admit two small forks or no large
+     one, and neither is the intent. There is no reserve, and no eviction for room: an idle fork is measured, and evicting it frees nothing the cap counts.
+   On both, `usedMb` and `availableMb` are shown in `top`, status and metrics; neither is decided on where its basis does not apply.
+   A fork is charged its bound (and counted as starting) from admission until it has run one full second; then it is measured and it has left "available"
+   on its own, and it is remeasured at most once a second (measurements are for display and eviction choice, never for prediction).
 2. **Pressure.** `Elevated` → no *new* forks beyond guarantees; a fork that already exists is reused as usual (an idle warm fork, or this request's busy
    shared fork), subject to the cpu slot — its memory is spent whether or not it works, unless rule 3 decides to evict it, which comes first. `Critical`
    → additionally evict every idle fork of this server, so nothing idle is left to reuse.
@@ -366,8 +374,9 @@ crashes.** A dead server can never hold it. The remaining danger is a holder tha
   the pages moved, the sum did not), the kernel's level went to 2 forty seconds after the 90 % crossing, swapins exploded only late; compressions plus
   decompressions went 6k–50k pages/s calm → 98k/s at 95 % → 236k/s at 111 % → 338k/s at 160 % → 411–508k/s at 268–296 %. Two later runs showed the
   shape: a **cliff, not a slope** — in 1 GB steps, +6 GB held read 20k/s and 6 % kernel_task, +7 GB read 243k/s and 154 %, and a ten-second
-  exponential average read 91k at that moment, after the damage; in 512 MB steps, free pages were the precursor (room, rule 1) and churn went 2.9k/s →
-  40.5k/s the step after free ran out. So the probe reports the cumulative counters (same `host_statistics64` call; swapins/swapouts too, for metrics),
+  exponential average read 91k at that moment, after the damage; in 512 MB steps, churn went 2.9k/s → 40.5k/s the step after free ran out — which made
+  free pages look like a precursor, until the one-hour passive log showed a healthy Mac living with under 1 GB free (rule 1: available is shown on
+  macOS, not decided on; the starting forks are capped instead). So the probe reports the cumulative counters (same `host_statistics64` call; swapins/swapouts too, for metrics),
   the scheduler rates them as the **mean over the last 2.5 s** (`Churn`: newest sample against the oldest inside the window, thinned to one per 100 ms;
   at 3 s slow checks the previous sample is the anchor, so a cliff is seen in full at the next check; a single 10 ms burst is averaged over the window
   and cannot lift a calm machine over the threshold; a counter that went backwards restarts the baseline), and normalises: **Elevated ≥ 75,000
@@ -468,9 +477,11 @@ own footprint in the retune), deleted again at step 11. The stopgap available to
 
 ## 11. Open questions
 
-- **Reserve** (was headroom; the ceiling is gone, room is `available − reserve`): **provisional 1 GB** in one place
-  (`MachineSchedulingSetup.ProvisionalReserveMb`), calibrated from one 48 GB Mac (3–4 GB free + speculative at calm; one 512 MB step from free = 0 to
-  compression). No user setting. Still the design's single tunable input; revisit after step 17.
+- **Reserve** (Linux, Windows; room is `available − reserve`): **provisional 1 GB** in one place (`MachineSchedulingSetup.ProvisionalReserveMb`),
+  unmeasured on those platforms — carried over from the macOS allocation runs, where available has since proven no measure of room at all. No user
+  setting; revisit on a real Linux machine.
+- **Starting-forks cap** (macOS): **1** in one place (`MachineSchedulingSetup.ProvisionalMaxStartingForks`), from the owner's one-hour log (§9). No user
+  setting. Revisit if a measured fork plus churn turns out to leave capacity on the table on a large Mac.
 - **Linux PSI thresholds** for `Elevated`/`Critical` — **provisional** (`PressureThresholds.provisional`: some > 10 %); measure on a real Linux machine.
 - **Windows thresholds** for memory load / commit — **provisional** (load > 90 %, commit > 0.90).
 - **`idleYieldAfter`** — **provisional**: 5 minutes (`Yield.IdleYieldAfterMs`), one named value.

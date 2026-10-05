@@ -10,9 +10,14 @@ object DecideGen {
   case class Inputs(view: MachineView, others: List[StateJson], me: MyState, lock: LockState, params: Params) {
     def machine: Machine = Machine.Cooperative(view, others, lock)
 
-    /** Rule 1's room before this tick admits or evicts anything: available − reserve − every Starting fork's bound, here and elsewhere. */
+    /** Rule 1's room before this tick admits or evicts anything, where available memory measures it: available − reserve − every Starting fork's bound, here
+      * and elsewhere.
+      */
     def roomBefore: Long =
       view.availableMb - params.reserveMb - others.map(_.startingBoundMb).sum - me.forks.collect { case f if f.state == ForkState.Starting => f.boundMb }.sum
+
+    /** Rule 1's count before this tick, where the starting forks are capped: every unmeasured fork, here and elsewhere. */
+    def startingBefore: Int = others.map(_.startingForks).sum + me.forks.count(_.state == ForkState.Starting)
   }
 
   val keys: List[ForkKey] = List("k1", "k2", "k3").map(ForkKey.apply)
@@ -105,6 +110,7 @@ object DecideGen {
       physicalMb = physical,
       usedMb = physical - available,
       availableMb = available,
+      roomBasis = pick(r, RoomBasis.all),
       pressure = pressure(r),
       nowMs = now,
       churnPagesPerSecond = None,
@@ -121,7 +127,7 @@ object DecideGen {
       nextForkId = 100L,
       shuttingDown = r.nextInt(4) == 0
     )
-    val params = Params(reserveMb = r.nextLong(2048L), parallelism = 1 + r.nextInt(8), maxNewForksPerTick = 1)
+    val params = Params(reserveMb = r.nextLong(2048L), maxStartingForks = 1 + r.nextInt(3), parallelism = 1 + r.nextInt(8), maxNewForksPerTick = 1)
     Inputs(view, others, me, lock(r), params)
   }
 

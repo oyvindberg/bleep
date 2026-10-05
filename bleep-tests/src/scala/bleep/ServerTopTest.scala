@@ -36,17 +36,19 @@ class ServerTopTest extends AnyFunSuite with Matchers {
     openFileDescriptors = Some(383L)
   )
 
-  /** A cooperative scheduler on a 48 GB machine with 8 GB headroom: a 40 GB ceiling, 12 GB in use, nothing running. */
+  /** A cooperative scheduler on a 48 GB machine where available memory measures room (Linux's rule): 36 GB available, 1 GB reserve, nothing running. */
   private val idleScheduler: SchedulerDto = SchedulerDto(
     mode = SchedulerDto.Cooperative,
     unconstrainedReason = None,
     parallelism = 18,
     reserveMb = 1024L,
+    maxStartingForks = 1,
     machine = Some(
       MachineViewDto(
         physicalMb = 49152L,
         usedMb = 12288L,
         availableMb = 36864L,
+        roomBasis = MachineViewDto.AvailableMemory,
         pressure = "normal",
         pressureReason = None,
         sampledAgoMs = 500L,
@@ -573,12 +575,45 @@ class ServerTopTest extends AnyFunSuite with Matchers {
   }
 
   test("the summary shows churn and the kernel's level with the pressure where the platform reports them, and the overview the room arithmetic") {
-    val mac = withScheduler(
+    val churning = withScheduler(
       running("aaaa1111", isCurrent = true),
       s => s.copy(machine = s.machine.map(_.copy(churnPagesPerSecond = Some(12_345L), pressureLevel = Some(1))))
     )
-    draw(stateWith(List(mac))) should include("pressure normal (churn 12k pages/s, level 1)")
-    drawOverview(stateWith(List(mac))) should include("36864 MB available − 1024 MB reserve = 35840 MB for new forks")
+    draw(stateWith(List(churning))) should include("pressure normal (churn 12k pages/s, level 1)")
+    drawOverview(stateWith(List(churning))) should include("36864 MB available − 1024 MB reserve = 35840 MB for new forks")
+  }
+
+  /** On macOS available memory is no measure of room (design §5 rule 1): the summary shows the forks still unmeasured against their cap, never a room figure.
+    * The owner's one-hour log: a calm Mac with 994 MB available, one 2560 MB fork just started.
+    */
+  test("on macOS the summary shows the starting forks against the cap instead of room, and the overview says why") {
+    val starting = fork(id = 7L, pid = None, measuredMb = None, busyCpu = 0)
+    val published = bleep.machine.StateJson(
+      version = 1,
+      pid = 4242L,
+      startedAtEpochMs = NowMs - 600_000L,
+      bleepVersion = "1.0.0-M15",
+      updatedAtEpochMs = NowMs,
+      requests = 1,
+      cpuInUse = 0,
+      wantsMore = false,
+      shuttingDown = false,
+      idleSinceEpochMs = None,
+      forks = List(bleep.machine.StateFork(7L, Nil, bleep.machine.ForkKind.TestSuite, 2560L, bleep.machine.StateForkState.Starting, NowMs - 1000L))
+    )
+    val mac = withScheduler(
+      running("aaaa1111", isCurrent = true, scheduler = working(Nil, List(starting))).copy(published = Some(published)),
+      s =>
+        s.copy(machine =
+          s.machine.map(_.copy(availableMb = 994L, roomBasis = MachineViewDto.StartingForksCap, churnPagesPerSecond = Some(3_000L), pressureLevel = Some(1)))
+        )
+    )
+    val screen = draw(stateWith(List(mac)))
+    screen should include("994 MB available of 48.0 GB: 1 starting fork (2.5 GB), cap 1 — pressure normal (churn 3k pages/s, level 1)")
+    screen should not include "room"
+    val overview = drawOverview(stateWith(List(mac)))
+    overview should include("1 unmeasured fork(s) on this server, cap 1 across 2 live server(s)")
+    overview should include("available memory is no measure of room on macOS")
   }
 
   test("a server without a pressure signal says so and why, instead of reporting normal") {

@@ -453,8 +453,10 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     }
 
     // ---- Machine memory: used, available, and the reserve forks never get ----
-    // `used_memory_mb` is what the probe counts as in use (display only; on macOS it does not move under overload), `available_memory_mb` what a new process
-    // can take without reclaim — room for forks is that less `reserve_mb` and the starting forks' charges (design §5 rule 1).
+    // `used_memory_mb` is what the probe counts as in use (display only; on macOS it does not move under overload), `available_memory_mb` what the platform
+    // reports a new process could take without reclaim. Where `room_basis` is `available-memory` (Linux, Windows) room for forks is that less `reserve_mb`
+    // and the starting forks' charges; where it is `starting-forks-cap` (macOS) neither figure is decided on — `starting_forks` against `max_starting_forks`
+    // is (design §5 rule 1).
     if (events.machine.nonEmpty) {
       val t = ArrayBuffer.empty[String]
       val xArr = fmtDoubles(events.machine.map(e => relS(e.get("ts").getAsLong)))

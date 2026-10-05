@@ -157,8 +157,8 @@ object ServerTopView {
     }
   }
 
-  /** The machine scheduler across every server (design §10 step 12): what the machine has available against the reserve, what is pending for forks still
-    * starting, the OS's pressure, and the servers standing outside the arrangement — running unconstrained, or kept out by the lock.
+  /** The machine scheduler across every server (design §10 step 12): how memory admits forks on this platform — available against the reserve, or the forks
+    * still unmeasured against their cap — the OS's pressure, and the servers standing outside the arrangement — running unconstrained, or kept out by the lock.
     *
     * The machine reading comes from whichever server probed most recently: there is one machine, and every cooperative server reads the same probe under the
     * same lock. Pending is summed from every server's `state.json`, read here without the lock — the same files the servers read about each other, so the
@@ -168,28 +168,30 @@ object ServerTopView {
     val live = state.live
     val schedulers = live.flatMap(row => row.status.map(status => row -> status.scheduler))
     val cooperative = schedulers.filter(_._2.mode == SchedulerDto.Cooperative)
-    val pendingMb = live.flatMap(_.published).map(_.startingBoundMb).sum
-    val freshest =
-      cooperative.flatMap { case (_, scheduler) => scheduler.machine.map(view => (view, scheduler.reserveMb)) }.sortBy(_._1.sampledAgoMs).headOption
+    val published = live.flatMap(_.published)
+    val pendingMb = published.map(_.startingBoundMb).sum
+    val startingForks = published.map(_.startingForks).sum
+    val freshest = cooperative.flatMap { case (_, scheduler) => scheduler.machine.map(view => (view, scheduler)) }.sortBy(_._1.sampledAgoMs).headOption
 
     val machine = freshest match {
-      case Some((view, reserveMb)) =>
-        val room = view.availableMb - reserveMb - pendingMb
-        val pending = if (pendingMb > 0) s", ${mb(pendingMb)} pending" else ""
+      case Some((view, scheduler)) =>
         val age = if (view.sampledAgoMs >= 5000) s", read ${humanDuration(view.sampledAgoMs)} ago" else ""
         // One line, and a short one: the summary sits above the server list, every line here is one fewer for the detail below, and the pane cuts at its
-        // width rather than wrapping. Room is what the machine has available less the reserve and what starting forks are charged (design §5 rule 1); the
-        // used figure is on the Overview tab, for scale.
-        val roomText = if (room >= 0) s"room ${mb(room)}" else s"no room (${mb(-room)} short)"
-        List(
-          Line.from(
-            Span.styled(s"  ${"Machine".padTo(8, ' ')}", bold(Palette.text)),
-            Span.styled(
-              s"${mb(view.availableMb)} available of ${mb(view.physicalMb)}, ${mb(reserveMb)} reserved$pending: $roomText — ${pressureText(view)}$age",
-              style(Palette.text)
-            )
-          )
-        )
+        // width rather than wrapping. What it says is the admission rule the platform uses (design §5 rule 1): room from available memory less the reserve
+        // and the starting forks' charges, or — where available is no measure, macOS — the forks still unmeasured against their machine-wide cap. The used
+        // figure is on the Overview tab, for scale.
+        val text = view.roomBasis match {
+          case MachineViewDto.StartingForksCap =>
+            val starting =
+              if (startingForks == 0) "no forks starting" else s"$startingForks starting fork${if (startingForks == 1) "" else "s"} (${mb(pendingMb)})"
+            s"${mb(view.availableMb)} available of ${mb(view.physicalMb)}: $starting, cap ${scheduler.maxStartingForks} — ${pressureText(view)}$age"
+          case _ =>
+            val room = view.availableMb - scheduler.reserveMb - pendingMb
+            val pending = if (pendingMb > 0) s", ${mb(pendingMb)} pending" else ""
+            val roomText = if (room >= 0) s"room ${mb(room)}" else s"no room (${mb(-room)} short)"
+            s"${mb(view.availableMb)} available of ${mb(view.physicalMb)}, ${mb(scheduler.reserveMb)} reserved$pending: $roomText — ${pressureText(view)}$age"
+        }
+        List(Line.from(Span.styled(s"  ${"Machine".padTo(8, ' ')}", bold(Palette.text)), Span.styled(text, style(Palette.text))))
       case None if cooperative.nonEmpty =>
         val pending = if (pendingMb > 0) s"; ${mb(pendingMb)} pending for starting forks" else ""
         List(lineOf(s"  Machine no reading yet — no server has had to claim memory$pending", Palette.textDim))
@@ -806,20 +808,31 @@ object ServerTopView {
   private def machineLines(scheduler: SchedulerDto): List[Line] =
     scheduler.machine match {
       case Some(view) =>
-        val room = view.availableMb - scheduler.reserveMb
         val age = if (view.sampledAgoMs >= 5000) s", read ${humanDuration(view.sampledAgoMs)} ago" else ""
         // Two lines, like the gauge-and-field pairs around it: the Activity tab shares this pane with the client list.
+        val admission = view.roomBasis match {
+          case MachineViewDto.StartingForksCap =>
+            val starting = scheduler.forks.count(_.measuredMb.isEmpty)
+            fieldOf(
+              "Starting",
+              s"$starting unmeasured fork(s) on this server, cap ${scheduler.maxStartingForks} across ${scheduler.liveServers} live server(s): " +
+                "available memory is no measure of room on macOS; a fork beyond the guarantee waits until every starting fork is measured, and churn decides"
+            )
+          case _ =>
+            val room = view.availableMb - scheduler.reserveMb
+            fieldOf(
+              "Room",
+              s"${view.availableMb} MB available − ${scheduler.reserveMb} MB reserve = ${math.max(0L, room)} MB for new forks, " +
+                s"shared by ${scheduler.liveServers} live server(s); starting forks' charges come off it"
+            )
+        }
         List(
           gaugeLine(
             "Machine memory",
             ratio(view.usedMb, view.physicalMb),
             s"${view.usedMb} MB of ${view.physicalMb} MB in use, ${view.availableMb} MB available, ${pressureText(view)}$age"
           ),
-          fieldOf(
-            "Room",
-            s"${view.availableMb} MB available − ${scheduler.reserveMb} MB reserve = ${math.max(0L, room)} MB for new forks, " +
-              s"shared by ${scheduler.liveServers} live server(s); starting forks' charges come off it"
-          )
+          admission
         )
       case None if scheduler.mode == SchedulerDto.Unconstrained =>
         List(fieldOf("Machine memory", s"not scheduled — unconstrained: ${scheduler.unconstrainedReason.getOrElse("no reason given")}"))

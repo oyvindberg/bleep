@@ -61,9 +61,10 @@ object MacOsProbes {
     MachineSample(
       physicalMb = out(0) / MB,
       usedMb = (out(2) - out(6) + out(3) + out(4)) * pageSize / MB,
-      // Free, speculative and purgeable pages: what a new process can take before the kernel starts compressing anything (design §5 rule 1, §9). The owner's
-      // run showed compression — and kernel_task — taking off exactly as free pages ran out, while inactive and file-backed pages stood still.
+      // Free, speculative and purgeable pages: shown, not decided on. A healthy Mac keeps them low — a one-hour log had a median of under 1 GB with
+      // kernel_task calm — so they are no measure of room here; the forks still unmeasured are capped instead, and churn is the brake (design §5 rule 1, §9).
       availableMb = (out(11) + out(12) + out(6)) * pageSize / MB,
+      roomBasis = RoomBasis.StartingForksCap,
       pressure = RawPressure.MacOs(level = out(5).toInt, compressions = out(7), decompressions = out(8), swapins = out(9), swapouts = out(10))
     )
   }

@@ -61,10 +61,16 @@ case class ServerStatus(logger: Logger, userPaths: UserPaths, id: Option[String]
         val detail = List(view.churnPagesPerSecond.map(c => s"churn $c pages/s"), view.pressureLevel.map(l => s"level $l")).flatten
         val pressure =
           view.pressureReason.fold(view.pressure)(reason => s"${view.pressure} ($reason)") + (if (detail.isEmpty) "" else detail.mkString(" [", ", ", "]"))
-        val room = view.availableMb - scheduler.reserveMb
+        val admission = view.roomBasis match {
+          case bleep.bsp.protocol.MachineViewDto.StartingForksCap =>
+            val starting = scheduler.forks.count(_.measuredMb.isEmpty)
+            s"$starting starting fork(s) on this server of cap ${scheduler.maxStartingForks} machine-wide (available memory is no measure of room on macOS)"
+          case _ =>
+            s"${scheduler.reserveMb}MB reserved: room for new forks ${view.availableMb - scheduler.reserveMb}MB before starting forks' charges"
+        }
         logger.info(
-          s"  machine  ${view.availableMb}MB available of ${view.physicalMb}MB (${view.usedMb}MB used), ${scheduler.reserveMb}MB reserved: " +
-            s"room for new forks ${room}MB before starting forks' charges, pressure $pressure, read ${view.sampledAgoMs / 1000}s ago"
+          s"  machine  ${view.availableMb}MB available of ${view.physicalMb}MB (${view.usedMb}MB used), $admission, " +
+            s"pressure $pressure, read ${view.sampledAgoMs / 1000}s ago"
         )
       case None if scheduler.mode == bleep.bsp.protocol.SchedulerDto.Unconstrained => ()
       case None => logger.info("  machine  no reading yet — this server has not had to claim memory")

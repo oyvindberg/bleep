@@ -72,7 +72,13 @@ object DaemonScheduling {
     create(
       mode = selected.mode,
       identity = identity,
-      params = () => Params(reserveMb = selected.reserveMb, parallelism = config().effectiveParallelism, maxNewForksPerTick = 1),
+      params = () =>
+        Params(
+          reserveMb = selected.reserveMb,
+          maxStartingForks = selected.maxStartingForks,
+          parallelism = config().effectiveParallelism,
+          maxNewForksPerTick = 1
+        ),
       parallelism = () => config().effectiveParallelism,
       heapGate = HeapPressureGate.asHeapGate(() => config().effectiveHeapPressureThreshold),
       heapUsage = heapUsage,
@@ -92,7 +98,7 @@ object DaemonScheduling {
     create(
       mode = Ticker.SchedulingMode.Unconstrained(reason),
       identity = StateFile.selfIdentity(bleep.model.BleepVersion.current.value),
-      params = () => Params(reserveMb = 0L, parallelism = parallelism, maxNewForksPerTick = 1),
+      params = () => Params(reserveMb = 0L, maxStartingForks = 1, parallelism = parallelism, maxNewForksPerTick = 1),
       parallelism = () => parallelism,
       heapGate = heapGate,
       heapUsage = () => {

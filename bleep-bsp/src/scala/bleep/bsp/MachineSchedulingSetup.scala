@@ -12,17 +12,19 @@ import java.nio.file.Path
   */
 object MachineSchedulingSetup {
 
-  /** The ceiling's headroom: `ceiling = physical − headroom` (design §5 rule 1).
-    *
-    * PROVISIONAL and owner-undecided (design §11, "Headroom"): `max(4 GB, RAM/8)` — enough for an OS, a browser and an IDE on a small machine, and a
-    * proportionate share on a large one. The design's single tunable input, deliberately not a user setting yet. Defined here and nowhere else, so that
-    * deciding it later is a one-line change.
-    */
-  /** What of the machine's available memory is never handed to forks (design §5 rule 1): the OS's own cushion before it starts compressing or swapping.
-    * PROVISIONAL, CALIBRATED FROM ONE MACHINE: the owner's 48 GB Mac had 3–4 GB free + speculative at calm, and compression took off within one 512 MB step of
-    * free pages reaching zero (§9). One gigabyte leaves the kernel that step. One named value, no user setting.
+  /** Where available memory is a measure of room (Linux, Windows — `RoomBasis.AvailableMemory`): what of it is never handed to forks (design §5 rule 1), the
+    * OS's own cushion before it starts reclaiming. PROVISIONAL and UNMEASURED on those platforms: one gigabyte, carried over from the macOS allocation runs
+    * that have since shown available to be no measure at all there (§9). One named value, no user setting; not consulted on macOS.
     */
   val ProvisionalReserveMb: Long = 1024L
+
+  /** Where available memory is no measure of room (macOS — `RoomBasis.StartingForksCap`): how many forks may be unmeasured at once across every server before a
+    * fork beyond the guarantee waits (design §5 rule 1). ONE: a fork is measured a second after it starts, and the compressor's churn — the brake that does
+    * work on macOS — needs that second to show what the last fork cost before the next is let in. A count rather than megabytes because there is no one
+    * "largest fork bound": bounds come from each project's test heap and jvmOptions, so a megabyte cap would admit two small forks or no large one, and neither
+    * is the intent. Calibrated from the owner's one-hour log (§9); one named value, no user setting; not consulted where room is measured.
+    */
+  val ProvisionalMaxStartingForks: Int = 1
 
   /** How long a claiming tick waits for `machine.lock` before deciding with `LockState.Unavailable` (design §8 point 5). */
   val LockWaitMs: Long = 1000L
@@ -32,12 +34,14 @@ object MachineSchedulingSetup {
 
   /** @param mode
     *   what the ticker runs with
-    * @param headroomMb
-    *   for `Params`: from the probes' physical memory in cooperative mode, from the JDK's figure otherwise (where it only feeds a display)
+    * @param reserveMb
+    *   for `Params`: [[ProvisionalReserveMb]], consulted where the probe says available memory measures room
+    * @param maxStartingForks
+    *   for `Params`: [[ProvisionalMaxStartingForks]], consulted where it says it does not
     * @param reason
     *   why the server runs unconstrained, when it does: the user's config, or the OS/architecture bleep cannot measure
     */
-  case class Selected(mode: Ticker.SchedulingMode, reserveMb: Long, reason: Option[String])
+  case class Selected(mode: Ticker.SchedulingMode, reserveMb: Long, maxStartingForks: Int, reason: Option[String])
 
   /** Choose the mode for this server.
     *
@@ -53,7 +57,7 @@ object MachineSchedulingSetup {
     config.effectiveMachineScheduling match {
       case MachineScheduling.Unconstrained =>
         val reason = "machineScheduling is `unconstrained` in the user config"
-        Selected(Ticker.SchedulingMode.Unconstrained(reason), ProvisionalReserveMb, Some(reason))
+        Selected(Ticker.SchedulingMode.Unconstrained(reason), ProvisionalReserveMb, ProvisionalMaxStartingForks, Some(reason))
 
       case MachineScheduling.Cooperative =>
         val probes: Either[Throwable, Probes] =
@@ -70,12 +74,12 @@ object MachineSchedulingSetup {
               ownSocketDir = ownSocketDir,
               discovery = new ServerDiscovery(userPaths.bspSocketDir, identity, () => System.currentTimeMillis(), DiscoveryListingTtlMs)
             )
-            Selected(mode, ProvisionalReserveMb, None)
+            Selected(mode, ProvisionalReserveMb, ProvisionalMaxStartingForks, None)
           case Left(t) =>
             val reason = s"bleep cannot measure this machine (${t.getClass.getSimpleName}: ${t.getMessage}), so this server schedules unconstrained: " +
               "its forks are bounded by parallelism alone, not by the machine's memory, and it does not coordinate with other bleep servers"
             logger.warn(reason)
-            Selected(Ticker.SchedulingMode.Unconstrained(reason), ProvisionalReserveMb, Some(reason))
+            Selected(Ticker.SchedulingMode.Unconstrained(reason), ProvisionalReserveMb, ProvisionalMaxStartingForks, Some(reason))
         }
     }
 }

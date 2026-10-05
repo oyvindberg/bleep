@@ -79,13 +79,17 @@ object StatusRequest {
   * @param pressureLevel
   *   the kernel's own level where it reports one (macOS: 1, 2, 4)
   * @param availableMb
-  *   what a new process can take now without the OS reclaiming anything (design §5 rule 1); room for forks is this less the reserve and the starting forks'
-  *   charges
+  *   what the platform reports a new process could take now without reclaim (design §5 rule 1). With `roomBasis` `available-memory` room for forks is this less
+  *   the reserve and the starting forks' charges; with `starting-forks-cap` it is for display only
+  * @param roomBasis
+  *   how this platform admits forks beyond the guarantee: `available-memory` (Linux, Windows) or `starting-forks-cap` (macOS — at most `maxStartingForks`
+  *   unmeasured forks machine-wide, churn decides capacity)
   */
 case class MachineViewDto(
     physicalMb: Long,
     usedMb: Long,
     availableMb: Long,
+    roomBasis: String,
     pressure: String,
     pressureReason: Option[String],
     sampledAgoMs: Long,
@@ -95,6 +99,10 @@ case class MachineViewDto(
 
 object MachineViewDto {
   implicit val codec: Codec[MachineViewDto] = deriveCodec
+
+  /** `roomBasis` values, as `bleep.machine.RoomBasis.json` spells them. */
+  val AvailableMemory = "available-memory"
+  val StartingForksCap = "starting-forks-cap"
 }
 
 /** The outcome of the scheduler's last try for `machine.lock`: `held`, `unavailable` (another server kept it past the wait, and the holder fields name it when
@@ -161,7 +169,9 @@ object DemandDto {
   * @param parallelism
   *   this server's cpu slots; per server, not machine-wide
   * @param reserveMb
-  *   what of the available memory is never given to forks: room is `availableMb - reserveMb - pending`
+  *   where the room basis is `available-memory`: what of the available memory is never given to forks, room being `availableMb - reserveMb - pending`
+  * @param maxStartingForks
+  *   where the room basis is `starting-forks-cap`: how many forks may be unmeasured at once across every server before a fork beyond the guarantee waits
   * @param liveServers
   *   servers counted on the last claiming tick, this one included
   * @param wantsMore
@@ -174,6 +184,7 @@ case class SchedulerDto(
     unconstrainedReason: Option[String],
     parallelism: Int,
     reserveMb: Long,
+    maxStartingForks: Int,
     machine: Option[MachineViewDto],
     lock: LockDto,
     liveServers: Int,

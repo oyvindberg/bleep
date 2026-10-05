@@ -261,16 +261,23 @@ object BspMetrics {
       totalCpu: Int,
       usedMemoryMb: Long,
       availableMemoryMb: Long,
+      roomBasis: Option[String],
       reserveMb: Long,
+      maxStartingForks: Int,
+      startingForks: Int,
       physicalMemoryMb: Long,
       serverHeapMb: Long,
       activeCompiles: Int,
       running: Int,
       waiting: Int
-  ): Unit =
+  ): Unit = {
+    // `room_basis` is absent before the first probe, like the machine reading it describes; `starting_forks` is this server's unmeasured forks, what a
+    // `starting-forks-cap` platform counts against `max_starting_forks` (summed across servers by the decision, per server here).
+    val basis = roomBasis.fold("")(b => s""","room_basis":"$b"""")
     writeEvent(
-      s"""{"type":"machine","ts":${now()},"used_cpu":$usedCpu,"total_cpu":$totalCpu,"used_memory_mb":$usedMemoryMb,"available_memory_mb":$availableMemoryMb,"reserve_mb":$reserveMb,"physical_memory_mb":$physicalMemoryMb,"server_heap_mb":$serverHeapMb,"active_compiles":$activeCompiles,"running":$running,"waiting":$waiting}"""
+      s"""{"type":"machine","ts":${now()},"used_cpu":$usedCpu,"total_cpu":$totalCpu,"used_memory_mb":$usedMemoryMb,"available_memory_mb":$availableMemoryMb$basis,"reserve_mb":$reserveMb,"max_starting_forks":$maxStartingForks,"starting_forks":$startingForks,"physical_memory_mb":$physicalMemoryMb,"server_heap_mb":$serverHeapMb,"active_compiles":$activeCompiles,"running":$running,"waiting":$waiting}"""
     )
+  }
 
   /** What the Zinc analysis cache is holding after each sweep. The largest single retainer in the server heap, so its size is the first number to look at when
     * the live set is climbing.

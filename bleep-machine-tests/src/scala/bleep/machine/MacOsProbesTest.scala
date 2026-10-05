@@ -57,6 +57,11 @@ class MacOsProbesTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("a macOS reading says available memory is no measure of room: forks beyond the guarantee are capped while unmeasured") {
+    assume(onMac)
+    probes.sample().roomBasis shouldBe RoomBasis.StartingForksCap
+  }
+
   test("available memory is vm_stat's free + speculative + purgeable, and within physical") {
     assume(onMac)
     val before = probes.sample()

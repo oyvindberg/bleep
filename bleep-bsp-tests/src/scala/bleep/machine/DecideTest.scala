@@ -7,23 +7,31 @@ import org.scalatest.matchers.should.Matchers
 class DecideTest extends AnyFunSuite with Matchers {
   private val now = 50_000L
   private val identity = ServerIdentity(pid = 1L, startedAtEpochMs = 1L, bleepVersion = "test")
-  private val params = Params(reserveMb = 1000L, parallelism = 4, maxNewForksPerTick = 1)
+  private val params = Params(reserveMb = 1000L, maxStartingForks = 1, parallelism = 4, maxNewForksPerTick = 1)
   private val k = ForkKey("k")
   private val r1 = Request(RequestId("r1"), RequestKind.Test, startedAtMs = 1L)
   private val r2 = Request(RequestId("r2"), RequestKind.Test, startedAtMs = 2L)
 
   private val blank = MyState.empty.copy(nextForkId = 101L)
 
-  /** A 10 GB machine with `availableMb` free for a new process; room = available − the 1000 MB reserve. Used is display only and set for scale. */
-  private def view(availableMb: Long, pressure: Pressure = Pressure.Normal): MachineView =
+  /** A 10 GB machine with `availableMb` free for a new process. Where available measures room (the default, Linux's rule) room = available − the 1000 MB
+    * reserve; where the starting forks are capped (macOS) available is display only. Used is display only and set for scale.
+    */
+  private def view(
+      availableMb: Long,
+      pressure: Pressure = Pressure.Normal,
+      basis: RoomBasis = RoomBasis.AvailableMemory,
+      churn: Option[Long] = None
+  ): MachineView =
     MachineView(
       physicalMb = 10_000L,
       usedMb = 10_000L - availableMb,
       availableMb = availableMb,
+      roomBasis = basis,
       pressure = pressure,
       nowMs = now,
-      churnPagesPerSecond = None,
-      pressureLevel = None
+      churnPagesPerSecond = churn,
+      pressureLevel = churn.map(_ => 1)
     )
 
   private def fork(
@@ -255,29 +263,73 @@ class DecideTest extends AnyFunSuite with Matchers {
     d.next.forks.find(_.id == ForkId(2L)).map(_.evicting) shouldBe Some(false) // its owner lives and a suite still wants it
   }
 
-  /** The owner's run 2 — 512 MB steps on a 48 GB Mac (held GB, kernel_task %, free GB, churn/s): room runs out BEFORE the compressor starts churning. At the
-    * 4.0 GB row free is 0.06 GB and churn still 2.9k/s, and that is where new forks beyond the guarantee must already be withheld; a row later churn is 40k/s
-    * and kernel_task 22 %; one more GB and it is the cliff (run 1: 243k/s, 154 %). Available here is free plus the ~0.25 GB speculative + purgeable that
-    * machine showed.
+  /** The owner's one-hour passive log of a 48 GB Mac in ordinary use (design §9), by kernel_task band — churn p50, available (free + speculative + purgeable)
+    * p50: calm (< 50 %) 3k pages/s, 994 MB; 50–90 % 125k, 223 MB; > 90 % 249k, 134 MB. A 2560 MB fork would have been refused by available memory in 68–74 % of
+    * the calm samples whatever the reserve: on macOS available is no measure of room, the unmeasured forks are capped instead, and churn decides.
     */
-  test("run 2: forks beyond the guarantee are withheld once available memory is gone, while churn is still calm") {
-    val reserve1Gb = params.copy(reserveMb = 1024L)
-    def wanting = blank.copy(
-      requests = List(r1),
-      ready = List(demand(r1, "t1", boundMb = 2560L), demand(r1, "t2", boundMb = 2560L)),
-      unstartedSuitesByKey = Map(k -> 2)
+  private val macCalm = view(availableMb = 994L, basis = RoomBasis.StartingForksCap, churn = Some(3_000L))
+  private val macBusy = view(availableMb = 223L, pressure = Pressure.Elevated, basis = RoomBasis.StartingForksCap, churn = Some(125_000L))
+  private val macOverloaded = view(availableMb = 134L, pressure = Pressure.Critical, basis = RoomBasis.StartingForksCap, churn = Some(249_000L))
+  private def wantingTwo = blank.copy(
+    requests = List(r1),
+    ready = List(demand(r1, "t1", boundMb = 2560L), demand(r1, "t2", boundMb = 2560L)),
+    unstartedSuitesByKey = Map(k -> 2)
+  )
+
+  test("macOS, calm: a fork beyond the guarantee starts with under 1 GB available, since available is no measure of room there") {
+    val working = wantingTwo.copy(forks = List(fork(1L, r1, busyCpu = 1)), ready = List(demand(r1, "t2", boundMb = 2560L)))
+    decide(working, v = macCalm).spawn.map(_.demand.taskId.value) shouldBe List("t2")
+    // The same machine read by a platform where available does measure room refuses it: 994 − 1000 < 2560.
+    decide(working, v = view(availableMb = 994L)).spawn shouldBe Nil
+  }
+
+  test("macOS, calm: the second fork beyond the guarantee waits until the first has been measured, not just started") {
+    val first = decide(wantingTwo, v = macCalm)
+    first.spawn.map(_.demand.taskId.value) shouldBe List("t1") // the guarantee; t2 waits on the one-spawn-per-tick slot
+    val started = first.next.copy(ready = List(demand(r1, "t2", boundMb = 2560L)))
+    started.forks.map(_.state) shouldBe List(ForkState.Starting)
+    decide(started, v = macCalm).spawn shouldBe Nil // one unmeasured fork on the machine already: the cap is 1
+    val measured = started.copy(forks = started.forks.map(_.copy(state = ForkState.Measured(900L, now))))
+    decide(measured, v = macCalm).spawn.map(_.demand.taskId.value) shouldBe List("t2")
+    // It is the count of unmeasured forks, not room: a cap of two admits it at once.
+    decide(started, v = macCalm, p = params.copy(maxStartingForks = 2)).spawn.map(_.demand.taskId.value) shouldBe List("t2")
+  }
+
+  test("macOS: the cap is machine-wide — another server's starting fork holds this one's second fork back, its measured fork does not") {
+    val working = wantingTwo.copy(forks = List(fork(1L, r1, busyCpu = 1)), ready = List(demand(r1, "t2", boundMb = 2560L)))
+    val starting = other(StateFork(9L, List(9009L), ForkKind.TestSuite, 2560L, StateForkState.Starting, now - 500L))
+    val measured = other(StateFork(9L, List(9009L), ForkKind.TestSuite, 2560L, StateForkState.Measured(700L), now - 5000L))
+    decide(working, v = macCalm, others = List(starting)).spawn shouldBe Nil
+    decide(working, v = macCalm, others = List(measured)).spawn.map(_.demand.taskId.value) shouldBe List("t2")
+  }
+
+  test("macOS: Elevated churn withholds forks beyond the guarantee with nothing starting anywhere; Critical also evicts the warm ones; the guarantee stands") {
+    val working = wantingTwo.copy(forks = List(fork(1L, r1, busyCpu = 1)), ready = List(demand(r1, "t2", boundMb = 2560L)))
+    decide(working, v = macBusy).spawn shouldBe Nil
+    decide(working, v = macOverloaded).spawn shouldBe Nil
+    val warm = working.copy(forks = working.forks :+ fork(2L, r1, busyCpu = 0))
+    decide(warm, v = macOverloaded).evict shouldBe List(Decision.Evict(ForkId(2L), Decision.EvictReason.CriticalPressure))
+    decide(wantingTwo, v = macOverloaded).spawn.map(_.demand.taskId.value) shouldBe List("t1")
+  }
+
+  test("macOS: no fork is evicted for room — an idle fork is measured, so evicting it frees nothing the cap counts") {
+    val warm = wantingTwo.copy(
+      forks = List(fork(1L, r1, busyCpu = 1), fork(2L, r1, key = ForkKey("other"), busyCpu = 0)),
+      ready = List(demand(r1, "t2", boundMb = 2560L))
     )
-    // held 0.0: free 3.22 GB → room for both (the second waits only on the one-spawn-per-tick slot, not on room)
-    val calm = decide(wanting, v = view(3220L + 256L), p = reserve1Gb)
-    calm.spawn.map(_.demand.taskId.value) shouldBe List("t1")
-    calm.next.wantsMore shouldBe true // t2 is ready and unadmitted this tick: the slot, not room
-    // held 4.0: free 0.06 GB, churn 2.9k/s — Normal pressure, and yet no room: 316 − 1024 < 0.
-    val atFour =
-      decide(wanting.copy(forks = List(fork(1L, r1, busyCpu = 1)), ready = List(demand(r1, "t2", boundMb = 2560L))), v = view(60L + 256L), p = reserve1Gb)
-    atFour.spawn shouldBe Nil
-    atFour.next.wantsMore shouldBe true
-    // The guarantee is not room's to withhold: a request with nothing working still gets its one fork at the 4.0 GB row.
-    decide(wanting, v = view(60L + 256L), p = reserve1Gb).spawn.map(_.demand.taskId.value) shouldBe List("t1")
+    val d = decide(
+      warm.copy(unstartedSuitesByKey = Map(k -> 1, ForkKey("other") -> 1)),
+      v = macCalm,
+      others = List(other(StateFork(9L, Nil, ForkKind.TestSuite, 2560L, StateForkState.Starting, now)))
+    )
+    d.spawn shouldBe Nil
+    d.evict shouldBe Nil
+  }
+
+  test("Linux is unchanged by the cap: with room, a second fork starts while the first is still unmeasured") {
+    val first = decide(wantingTwo, v = view(availableMb = 8000L))
+    val started = first.next.copy(ready = List(demand(r1, "t2", boundMb = 2560L)))
+    decide(started, v = view(availableMb = 8000L)).spawn.map(_.demand.taskId.value) shouldBe List("t2") // 8000 − 1000 − 2560 ≥ 2560
   }
 
   test("discovery and processor resolution bypass the heap gate") {

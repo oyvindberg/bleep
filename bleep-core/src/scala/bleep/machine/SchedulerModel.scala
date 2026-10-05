@@ -204,8 +204,14 @@ object MyState {
   )
 }
 
-/** One reading of the machine, taken under the lock on a claiming tick so it includes every earlier claim. */
-/** @param churnPagesPerSecond
+/** One reading of the machine, taken under the lock on a claiming tick so it includes every earlier claim.
+  *
+  * @param availableMb
+  *   what the platform reports a new process could take now without reclaim. Under [[RoomBasis.AvailableMemory]] room is this less the reserve and the starting
+  *   forks' charges; under [[RoomBasis.StartingForksCap]] it is shown and not decided on (design §5 rule 1)
+  * @param roomBasis
+  *   which rule admits forks beyond the guarantee on this platform
+  * @param churnPagesPerSecond
   *   macOS's compressor churn as rated so far (design §9); absent on other platforms and before the second sample
   * @param pressureLevel
   *   the kernel's own level where it reports one (macOS: 1, 2, 4)
@@ -213,8 +219,8 @@ object MyState {
 case class MachineView(
     physicalMb: Long,
     usedMb: Long,
-    /** What a new process can take now without reclaim (design §5 rule 1); room is this less the reserve and the starting forks' charges. */
     availableMb: Long,
+    roomBasis: RoomBasis,
     pressure: Pressure,
     nowMs: Long,
     churnPagesPerSecond: Option[Long],
@@ -294,10 +300,15 @@ object Machine {
   *   may take several ticks to be met. Reusing a warm fork is not a spawn and is not counted.
   */
 /** @param reserveMb
-  *   what of the available memory is never given to forks (design §5 rule 1): the OS's own cushion before it compresses or swaps
+  *   under [[RoomBasis.AvailableMemory]]: what of the available memory is never given to forks (design §5 rule 1), the OS's own cushion before it compresses or
+  *   swaps. Not consulted under [[RoomBasis.StartingForksCap]].
+  * @param maxStartingForks
+  *   under [[RoomBasis.StartingForksCap]]: how many forks may be unmeasured at once across every server before a fork beyond the guarantee waits (design §5
+  *   rule 1; `MachineSchedulingSetup.ProvisionalMaxStartingForks`). Not consulted under [[RoomBasis.AvailableMemory]].
   */
-case class Params(reserveMb: Long, parallelism: Int, maxNewForksPerTick: Int) {
+case class Params(reserveMb: Long, maxStartingForks: Int, parallelism: Int, maxNewForksPerTick: Int) {
   require(reserveMb >= 0L, s"reserveMb $reserveMb is negative")
+  require(maxStartingForks >= 1, s"maxStartingForks $maxStartingForks is below 1: no fork beyond the guarantee could ever start")
   require(parallelism >= 1, s"parallelism $parallelism is below 1")
   require(maxNewForksPerTick >= 0, s"maxNewForksPerTick $maxNewForksPerTick is negative")
 }
@@ -367,6 +378,9 @@ case class StateJson(
 
   /** What the next lock holder must count: forks still charged at their bound. */
   def startingBoundMb: Long = forks.collect { case f if f.state == StateForkState.Starting => f.boundMb }.sum
+
+  /** How many forks are still unmeasured — what a [[RoomBasis.StartingForksCap]] platform counts against the cap. */
+  def startingForks: Int = forks.count(_.state == StateForkState.Starting)
 }
 
 object StateJson {

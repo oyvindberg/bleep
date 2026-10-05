@@ -289,6 +289,7 @@ final class Ticker(deps: Ticker.Deps) {
       physicalMb = sample.physicalMb,
       usedMb = sample.usedMb,
       availableMb = sample.availableMb,
+      roomBasis = sample.roomBasis,
       pressure = Pressure.normalise(sample.pressure, coop.thresholds, rate),
       nowMs = now,
       churnPagesPerSecond = rate match {

@@ -20,21 +20,30 @@ object Decide {
     me.ready.foreach(d => require(registered.contains(d.request), s"ready demand ${d.taskId.value} belongs to unregistered request ${d.request.value}"))
     require(me.ready.map(d => (d.request, d.taskId)).distinct.size == me.ready.size, "ready demands must be unique per request and task")
 
-    // ---- rule 1: room is what the machine has available — what a new process can take before the OS reclaims anything — less a reserve, less every fork
-    // still charged at its bound on every server (the measured ones have left "available" already). Available, not ceiling − used: on macOS the used figure
-    // never moved between a calm machine and one at 300 % kernel_task, while free pages going to zero was the precursor of every cliff (design §9).
+    // ---- rule 1: memory admits a fork beyond the guarantee by the rule the platform's probe says applies (design §5 rule 1, §9).
+    // AvailableMemory (Linux, Windows): room is what the machine has available — what a new process can take before the OS reclaims anything — less a
+    // reserve, less every fork still charged at its bound on every server (the measured ones have left "available" already).
+    // StartingForksCap (macOS): available says nothing — a healthy Mac keeps free memory low — so the forks still unmeasured are capped machine-wide, and
+    // the compressor's churn (rule 2) says whether the machine can take the next one.
     // Unconstrained has no room to run out of, no pressure to brake on and no lock to hold: the three machine-wide clauses below are simply absent.
-    val (roomLimited, critical, spawnsAllowed, lockHeld) = machine match {
+    val (basis, critical, spawnsAllowed, lockHeld) = machine match {
       case Machine.Cooperative(view, _, lock) =>
-        (true, view.pressure == Pressure.Critical, !Pressure.withholdsNewForks(view.pressure), lock == LockState.Held)
-      case Machine.Unconstrained(_) => (false, false, true, true)
+        (Some(view.roomBasis), view.pressure == Pressure.Critical, !Pressure.withholdsNewForks(view.pressure), lock == LockState.Held)
+      case Machine.Unconstrained(_) => (None, false, true, true)
     }
+    val ownStarting = me.forks.filter(_.state == ForkState.Starting)
     var room: Long = machine match {
-      case Machine.Cooperative(view, others, _) =>
-        view.availableMb - params.reserveMb - others.map(_.startingBoundMb).sum - me.forks.collect {
-          case f if f.state == ForkState.Starting => f.boundMb
-        }.sum
-      case Machine.Unconstrained(_) => 0L // never consulted
+      case Machine.Cooperative(view, others, _) => view.availableMb - params.reserveMb - others.map(_.startingBoundMb).sum - ownStarting.map(_.boundMb).sum
+      case Machine.Unconstrained(_)             => 0L // never consulted
+    }
+    var starting: Int = machine match {
+      case Machine.Cooperative(_, others, _) => others.map(_.startingForks).sum + ownStarting.size
+      case Machine.Unconstrained(_)          => 0 // never consulted
+    }
+    def memoryAdmits(d: ForkDemand): Boolean = basis match {
+      case None                             => true
+      case Some(RoomBasis.AvailableMemory)  => d.boundMb <= room
+      case Some(RoomBasis.StartingForksCap) => starting + 1 <= params.maxStartingForks
     }
 
     // ---- the working set this tick admits into. Local mutation only; the function is pure from outside.
@@ -90,6 +99,7 @@ object Decide {
         pidSinceMs = now
       )
       room -= d.boundMb
+      starting += 1
       cpuInUse += d.cpu
       spawns = spawns :+ Spawn(d, id, guaranteed)
       granted += ((d.request, d.taskId))
@@ -181,16 +191,18 @@ object Decide {
             case Some(fork) => takeReuse(d, fork, guaranteed = false)
             case None       =>
               if (spawnsAllowed && lockHeld && spawnedThisTick < params.maxNewForksPerTick) {
-                if (roomLimited && d.boundMb > room) {
+                if (basis.contains(RoomBasis.AvailableMemory) && d.boundMb > room) {
                   // Rule 3 under shortage: idle forks, oldest first, before anything new — but only as many as make this admission possible. Decision: when
                   // even all of them would not make it fit, none is evicted; the demand waits for room, and warm forks for keys still in use stay warm.
+                  // Only where room is measured: under the starting-forks cap an idle fork is measured, not starting, and evicting it frees nothing the cap
+                  // counts.
                   val idle = forks.filter(_.available).sortBy(_.startedAtMs)
                   val needed = d.boundMb - room
                   val chosen =
                     idle.scanLeft((List.empty[RunningFork], 0L)) { case ((acc, freed), f) => (acc :+ f, freed + f.reclaimableMb) }.find(_._2 >= needed)
                   chosen.foreach { case (toEvict, _) => toEvict.foreach(f => evict(f, EvictReason.RoomShortage)) }
                 }
-                if (!roomLimited || d.boundMb <= room) {
+                if (memoryAdmits(d)) {
                   takeSpawn(d, guaranteed = false)
                   spawnedThisTick += 1
                 }

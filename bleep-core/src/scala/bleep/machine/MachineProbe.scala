@@ -26,10 +26,37 @@ trait MachineProbe {
   *   memory in use as the platform counts it — for display and metrics, never for room (design §5 rule 1): on macOS it does not move between a calm machine and
   *   an overloaded one (anonymous pages become compressor pages, §9)
   * @param availableMb
-  *   what a new process can take now without the OS reclaiming anything: Linux `MemAvailable` (or a cgroup's limit less its working set), Windows available
-  *   physical, macOS free + speculative + purgeable pages. Room for forks is this, less a reserve, less what starting forks are charged.
+  *   what the platform reports a new process could take now without reclaim: Linux `MemAvailable` (or a cgroup's limit less its working set), Windows available
+  *   physical, macOS free + speculative + purgeable pages. Whether that is a measure of room is `roomBasis`'s to say.
+  * @param roomBasis
+  *   how forks beyond the guarantee are admitted on this platform — from `availableMb`, or by capping the forks still unmeasured (design §5 rule 1)
   */
-case class MachineSample(physicalMb: Long, usedMb: Long, availableMb: Long, pressure: RawPressure)
+case class MachineSample(physicalMb: Long, usedMb: Long, availableMb: Long, roomBasis: RoomBasis, pressure: RawPressure)
+
+/** Which measure of the machine's memory admits forks beyond the guarantee (design §5 rule 1). A property of the platform, reported by its probe with every
+  * sample — so the rule a decision applies is a fact about the machine being read, not a flag someone set on the scheduler.
+  */
+sealed abstract class RoomBasis(val json: String)
+object RoomBasis {
+
+  /** `availableMb` is what a new process can take: room = available − reserve − the bounds of every fork still unmeasured, on every server. Linux
+    * (`MemAvailable`, or a cgroup's limit less its working set) and Windows (available physical memory).
+    */
+  case object AvailableMemory extends RoomBasis("available-memory")
+
+  /** `availableMb` says nothing about room. macOS keeps free memory low while perfectly healthy: in a one-hour passive log of a 48 GB Mac in ordinary use the
+    * calm samples had a median 994 MB free + speculative + purgeable, and a 2560 MB fork would have been refused in 68–74 % of them whatever the reserve, even
+    * zero (design §9). What the machine can take is told afterwards, by the compressor's churn — so beyond the guarantee a fork may start only while no fork on
+    * any server is still unmeasured (`Params.maxStartingForks`): one at a time, measured a second later, with churn deciding whether there is capacity for the
+    * next.
+    */
+  case object StartingForksCap extends RoomBasis("starting-forks-cap")
+
+  val all: List[RoomBasis] = List(AvailableMemory, StartingForksCap)
+
+  def fromJson(s: String): RoomBasis =
+    all.find(_.json == s).getOrElse(throw new IllegalArgumentException(s"unknown room basis '$s'; known: ${all.map(_.json).mkString(", ")}"))
+}
 
 /** The OS's own judgement of memory trouble, as the OS reports it. Each variant carries exactly what its platform exposes. */
 sealed trait RawPressure
