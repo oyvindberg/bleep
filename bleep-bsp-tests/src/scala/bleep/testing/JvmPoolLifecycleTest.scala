@@ -53,6 +53,29 @@ class JvmPoolLifecycleTest extends AnyFunSuite with Matchers {
     prog.timeout(20.seconds).unsafeRunSync()
   }
 
+  test("a spawn queued for memory is withdrawn when its run is cancelled, and is not granted later") {
+    // The wait used to be uncancelable, so a cancelled run's queued spawns sat it out, were granted once
+    // the run's own JVMs gave their memory back, and started JVMs for a run that no longer existed.
+    val workDir = Files.createTempDirectory("jvm-pool-lifecycle")
+    val m = machine(memMb = 1024)
+    val prog = pool(m, workDir).use { p =>
+      for {
+        busy <- m.leaseUntilReleased(MachineResources.ResourceKind.TestFork, "someone-else", cpu = 0, memoryMb = 1024)
+        spawn <- p.acquire(request("queued-suite")).use_.start
+        _ <- (IO.sleep(20.millis) >> m.snapshot.map(_.waiting.nonEmpty)).iterateUntil(identity).timeout(10.seconds)
+        _ <- spawn.cancel.timeout(5.seconds)
+        afterCancel <- m.snapshot
+        _ <- busy.release
+        afterRelease <- m.snapshot
+      } yield {
+        afterCancel.waiting shouldBe empty
+        afterRelease.usedMemoryMb shouldBe 0 // nothing was left queued to take the memory and spawn
+        afterRelease.active shouldBe empty
+      }
+    }
+    prog.timeout(30.seconds).unsafeRunSync()
+  }
+
   test("a shared session asked of a pool that has shut down is refused the same way") {
     val workDir = Files.createTempDirectory("jvm-pool-lifecycle")
     val m = machine(memMb = 8192)
