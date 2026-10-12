@@ -723,13 +723,13 @@ object JvmPool {
       * when nothing is left to evict do we park, and that wait terminates: at that point the budget is held by JVMs actively running suites, and when those
       * finish `release` destroys rather than pools them, because the governor reports contention.
       */
-    private def reserveMemoryForSpawn(label: String, footprintMb: Long): IO[IO[Unit]] =
-      machine.tryReserve(MachineResources.ResourceKind.TestFork, label, cpu = 0, memoryMb = footprintMb).flatMap {
-        case Some(release) => IO.pure(release)
-        case None          =>
+    private def reserveMemoryForSpawn(label: String, footprintMb: Long): IO[MachineResources.Lease] =
+      machine.tryLease(MachineResources.ResourceKind.TestFork, label, cpu = 0, memoryMb = footprintMb).flatMap {
+        case Some(lease) => IO.pure(lease)
+        case None        =>
           evictOneIdle.flatMap {
             case true  => reserveMemoryForSpawn(label, footprintMb)
-            case false => machine.reserveUntilReleased(MachineResources.ResourceKind.TestFork, label, cpu = 0, memoryMb = footprintMb)
+            case false => machine.leaseUntilReleased(MachineResources.ResourceKind.TestFork, label, cpu = 0, memoryMb = footprintMb)
           }
       }
 
@@ -842,7 +842,7 @@ object JvmPool {
       startLimiter.permit.use { _ =>
         costOf(key, jvmOptions)
           .flatMap(reserveMemoryForSpawn(s"jvm ${key.classpathHash}", _))
-          .bracketCase { releaseMemory =>
+          .bracketCase { lease =>
             IO
               .blocking {
                 val javaPath = jvmCommand
@@ -913,8 +913,11 @@ object JvmPool {
                 val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
                 val processStdout = new BufferedReader(new InputStreamReader(process.getInputStream))
 
-                new ManagedJvm(process, stdin, stdout, stderr, processStdout, protocolSocket, key, jvmCommand, releaseMemory, exitLogPath, listener)
+                new ManagedJvm(process, stdin, stdout, stderr, processStdout, protocolSocket, key, jvmCommand, lease.release, exitLogPath, listener)
               }
+              // From here the governor knows which process this memory belongs to, and takes it back by itself if the process is gone and the release
+              // below (or in `destroy`) never comes.
+              .flatTap(jvm => lease.bindTo(jvm.process.toHandle))
               .flatTap(jvm => allJvms.update(_ + jvm))
               .flatTap(jvm =>
                 waitForReady(jvm).onError { case _ =>
@@ -927,9 +930,9 @@ object JvmPool {
             // On success the reservation now belongs to the ManagedJvm, which releases it when destroyed.
             // On any failure — process never started, handshake failed, cancellation — nothing owns it,
             // so hand it straight back rather than leaking the footprint of a JVM that isn't running.
-            case (_, Outcome.Succeeded(_))           => IO.unit
-            case (releaseMemory, Outcome.Errored(_)) => releaseMemory
-            case (releaseMemory, Outcome.Canceled()) => releaseMemory
+            case (_, Outcome.Succeeded(_))   => IO.unit
+            case (lease, Outcome.Errored(_)) => lease.release
+            case (lease, Outcome.Canceled()) => lease.release
           }
       }
     }
