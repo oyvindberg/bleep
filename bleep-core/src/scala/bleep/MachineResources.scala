@@ -76,10 +76,15 @@ final class MachineResources private (
     * when it destroys the process.
     *
     * The safety net a `Resource` would give you is gone: whoever takes this MUST run the release action, including on the failure paths, or the reservation
-    * leaks for the life of the server. [[JvmPool.shutdown]] is the backstop.
+    * leaks until [[reclaimDeadProcesses]] notices the process is gone — and only if the holder bound it ([[leaseUntilReleased]]); unbound, it leaks for the
+    * life of the server.
     */
   def reserveUntilReleased(kind: ResourceKind, label: String, cpu: Int, memoryMb: Long): IO[IO[Unit]] =
-    reserve(kind, label, cpu, memoryMb).allocated.map { case (_, release) => release }
+    leaseUntilReleased(kind, label, cpu, memoryMb).map(_.release)
+
+  /** [[reserveUntilReleased]], returning a [[Lease]] the holder can bind to the process it pays for. */
+  def leaseUntilReleased(kind: ResourceKind, label: String, cpu: Int, memoryMb: Long): IO[Lease] =
+    Resource.makeFull[IO, Long](poll => acquire(poll, kind, label, cpu, memoryMb))(id => dispose(id)).allocated.map { case (id, _) => new Lease(id, this) }
 
   /** Reserve only if it fits RIGHT NOW; never queues. `Some(release)` when granted, `None` when it doesn't currently fit.
     *
@@ -87,7 +92,11 @@ final class MachineResources private (
     * responds to `None` by evicting an idle pooled JVM (whose memory it is itself holding) and retrying, which is what keeps the pool from deadlocking against
     * its own cached processes.
     */
-  def tryReserve(kind: ResourceKind, label: String, cpu: Int, memoryMb: Long): IO[Option[IO[Unit]]] = {
+  def tryReserve(kind: ResourceKind, label: String, cpu: Int, memoryMb: Long): IO[Option[IO[Unit]]] =
+    tryLease(kind, label, cpu, memoryMb).map(_.map(_.release))
+
+  /** [[tryReserve]], returning a [[Lease]] the holder can bind to the process it pays for. */
+  def tryLease(kind: ResourceKind, label: String, cpu: Int, memoryMb: Long): IO[Option[Lease]] = {
     val cpuReq = math.max(0, math.min(cpu, totalCpu))
     for {
       now <- IO.realTime.map(_.toMillis)
@@ -99,18 +108,52 @@ final class MachineResources private (
             nextId = id + 1,
             freeCpu = st.freeCpu - cpuReq,
             freeMemoryMb = st.freeMemoryMb - memReq,
-            active = st.active.updated(id, Reservation(id, kind, label, cpuReq, memReq, now))
+            active = st.active.updated(id, Reservation(id, kind, label, cpuReq, memReq, now, process = None, seenDead = false))
           )
           (next, Some(id))
         } else (st, None)
       }
-    } yield maybeId.map(id => dispose(id))
+    } yield maybeId.map(id => new Lease(id, this))
   }
+
+  /** Record that reservation `id` pays for `process`, so [[reclaimDeadProcesses]] can tell when nothing is left for it to pay for. */
+  private[bleep] def bind(id: Long, process: ProcessHandle): IO[Unit] =
+    state.update(st => st.active.get(id).fold(st)(r => st.copy(active = st.active.updated(id, r.copy(process = Some(process))))))
+
+  /** Return the resources of every reservation whose process has exited, logging each one at WARN.
+    *
+    * A process-lifetime reservation is released by whoever holds it, when it destroys the process ([[reserveUntilReleased]]). When that holder is lost — a test
+    * run cancelled while its pool was still spawning left six JVMs' reservations owned by a pool nothing would ever shut down again — the reservation outlives
+    * the process, and since nothing else returns it, it outlives everything: 30GB of memory belonging to processes that no longer existed held every later test
+    * run on the daemon in the queue for hours. The memory of an exited process IS free, so this is the accounting catching up with the machine, not a guess.
+    *
+    * A reservation is reclaimed only once its process has been seen dead on two consecutive sweeps. An ordinary destroy kills the process a few milliseconds
+    * before it releases the reservation; reclaiming in that window would be harmless (release is idempotent) but would log a leak that is not one.
+    */
+  def reclaimDeadProcesses: IO[Unit] =
+    for {
+      bound <- state.get.map(_.active.values.toList.flatMap(r => r.process.map(p => (r.id, p))))
+      dead <- IO.blocking(bound.collect { case (id, p) if !p.isAlive => id }.toSet)
+      now <- IO.realTime.map(_.toMillis)
+      reclaim <- state.modify { st =>
+        val marked = st.active.map { case (id, r) => id -> (if (r.process.isDefined) r.copy(seenDead = dead(id)) else r) }
+        val toReclaim = st.active.values.toList.collect { case r @ Reservation(_, _, _, _, _, _, Some(p), true) if dead(r.id) => (r, p) }
+        (st.copy(active = marked), toReclaim)
+      }
+      _ <- reclaim.traverse_ { case (r, process) =>
+        IO(
+          logger.warn(
+            s"[machine] reclaiming ${r.memoryMb}MB / ${r.cpu} cpu from '${r.label}' (${r.kind}): its process ${process.pid} exited " +
+              s"${(now - r.sinceMs) / 1000}s after the reservation was taken, but nothing released it"
+          )
+        ) >> dispose(r.id)
+      }
+    } yield ()
 
   /** Release or cancel reservation `id`, then grant whoever was waiting on the freed resources. Idempotent, and handles both states: still-queued (drop from
     * the wait queue, nothing was held) and already-granted (return the resources).
     */
-  private def dispose(id: Long): IO[Unit] =
+  private[MachineResources] def dispose(id: Long): IO[Unit] =
     state
       .modify { st =>
         if (st.waiting.exists(_.id == id))
@@ -193,6 +236,16 @@ final class MachineResources private (
 
 object MachineResources {
 
+  /** A reservation held until [[release]] runs, rather than for a lexical scope — see [[MachineResources.reserveUntilReleased]]. */
+  final class Lease private[MachineResources] (id: Long, owner: MachineResources) {
+
+    /** Return the resources. Idempotent. */
+    val release: IO[Unit] = owner.dispose(id)
+
+    /** Name the process this reservation pays for. From then on the governor reclaims it by itself if the process exits and nobody released it. */
+    def bindTo(process: ProcessHandle): IO[Unit] = owner.bind(id, process)
+  }
+
   sealed trait ResourceKind
   object ResourceKind {
     case object Compile extends ResourceKind
@@ -201,7 +254,21 @@ object MachineResources {
     case object KspFork extends ResourceKind
   }
 
-  private case class Reservation(id: Long, kind: ResourceKind, label: String, cpu: Int, memoryMb: Long, sinceMs: Long)
+  /** @param process
+    *   the process this reservation pays for, once its holder has said so ([[Lease.bindTo]]). Only process-lifetime reservations are bound.
+    * @param seenDead
+    *   `process` had exited at the last [[MachineResources.reclaimDeadProcesses]] sweep.
+    */
+  private case class Reservation(
+      id: Long,
+      kind: ResourceKind,
+      label: String,
+      cpu: Int,
+      memoryMb: Long,
+      sinceMs: Long,
+      process: Option[ProcessHandle],
+      seenDead: Boolean
+  )
   private case class Waiter(id: Long, kind: ResourceKind, label: String, cpu: Int, memoryMb: Long, sinceMs: Long, gate: Deferred[IO, Unit])
 
   /** All governor state, held in one Ref. */
@@ -238,7 +305,7 @@ object MachineResources {
       if (fits(w.cpu, memReq, freeCpu, freeMem)) {
         freeCpu -= w.cpu
         freeMem -= memReq
-        active = active.updated(w.id, Reservation(w.id, w.kind, w.label, w.cpu, memReq, w.sinceMs))
+        active = active.updated(w.id, Reservation(w.id, w.kind, w.label, w.cpu, memReq, w.sinceMs, process = None, seenDead = false))
         granted += w
       } else stillWaiting += w
     }
@@ -316,6 +383,9 @@ object MachineResources {
     * slack" and self-corrects without us modelling any of the other processes.
     *
     * A platform that cannot answer leaves the budget exactly as configured, which is the behaviour that existed before this.
+    *
+    * Each sweep also returns what exited processes still hold ([[MachineResources.reclaimDeadProcesses]]): the budget is only worth tracking if what is charged
+    * against it is real.
     */
   def retuneLoop(machine: MachineResources, memory: MachineMemory, logger: Logger): IO[Unit] = {
     val physicalMb = physicalMemoryMb(fallbackMb = 4096)
@@ -345,7 +415,7 @@ object MachineResources {
           } yield ()
         case _ => IO.unit
       }
-    (once.attempt >> IO.sleep(BudgetRetuneInterval)).foreverM
+    (machine.reclaimDeadProcesses.attempt >> once.attempt >> IO.sleep(BudgetRetuneInterval)).foreverM
   }
 
   def create(

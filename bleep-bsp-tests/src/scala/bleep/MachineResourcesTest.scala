@@ -235,6 +235,47 @@ class MachineResourcesTest extends AnyFunSuite with Matchers {
     prog.timeout(20.seconds).unsafeRunSync()
   }
 
+  private val exitAtOnce = if (scala.util.Properties.isWin) List("cmd", "/c", "exit 0") else List("/bin/sh", "-c", "exit 0")
+  private val staysUp = if (scala.util.Properties.isWin) List("cmd", "/c", "ping -n 31 127.0.0.1 >NUL") else List("sleep", "30")
+
+  test("a lease bound to a process that exited without releasing is reclaimed, and wakes whoever waits on it") {
+    // The leak this exists for: a cancelled test run's pool lost track of six JVMs, their processes
+    // exited, and the 30GB they had reserved stayed charged for the life of the daemon.
+    val m = machine(cpu = 4, memMb = 4096)
+    val prog = for {
+      exited <- IO.blocking { val p = new ProcessBuilder(exitAtOnce*).start(); p.waitFor(); p.toHandle }
+      lost <- m.leaseUntilReleased(TestFork, "lost-jvm", cpu = 0, memoryMb = 4096)
+      _ <- lost.bindTo(exited)
+      waiter <- m.reserve(TestFork, "next-run", cpu = 0, memoryMb = 4096).use_.start
+      _ <- m.reclaimDeadProcesses
+      firstSweep <- m.snapshot
+      _ = firstSweep.active.map(_.label) shouldBe List("lost-jvm") // seen dead once: could still be a destroy about to release it
+      _ <- m.reclaimDeadProcesses
+      _ <- waiter.joinWithNever.timeout(5.seconds)
+      after <- m.snapshot
+      _ <- lost.release // the holder turning up late must not free anything twice
+      afterLateRelease <- m.snapshot
+    } yield {
+      after.usedMemoryMb shouldBe 0
+      afterLateRelease.usedMemoryMb shouldBe 0
+    }
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
+
+  test("a lease bound to a live process is never reclaimed") {
+    val m = machine(cpu = 4, memMb = 4096)
+    val prog = for {
+      live <- IO.blocking(new ProcessBuilder(staysUp*).start())
+      lease <- m.leaseUntilReleased(TestFork, "live-jvm", cpu = 0, memoryMb = 2048)
+      _ <- lease.bindTo(live.toHandle)
+      _ <- m.reclaimDeadProcesses >> m.reclaimDeadProcesses >> m.reclaimDeadProcesses
+      held <- m.snapshot
+      _ <- IO.blocking(live.destroyForcibly().waitFor())
+      _ <- lease.release
+    } yield held.usedMemoryMb shouldBe 2048
+    prog.timeout(20.seconds).unsafeRunSync()
+  }
+
   test("a request larger than the machine is clamped so it still eventually runs") {
     val m = machine(cpu = 2, memMb = 1024)
     val prog = m.reserve(TestFork, "greedy", cpu = 99, memoryMb = 1_000_000).use(_ => m.snapshot.map(_.usedCpu shouldBe 2))

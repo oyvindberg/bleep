@@ -195,6 +195,7 @@ object JvmPool {
         startLimiter <- Semaphore[IO](maxConcurrentStarts(maxConcurrency).toLong)
         pool <- IO(new TrieMap[JvmKey, Queue[IO, ManagedJvm]]())
         allJvms <- Ref.of[IO, Set[ManagedJvm]](Set.empty)
+        closed <- Ref.of[IO, Boolean](false)
         // Learn what forks cost only where we can actually measure one; elsewhere keep charging the
         // declared bound, which is what the pool did before any of this existed.
         costs <-
@@ -207,6 +208,7 @@ object JvmPool {
         machine,
         pool,
         allJvms,
+        closed,
         new TrieMap[JvmKey, Int](),
         jvmCommand,
         workingDirectory,
@@ -588,6 +590,9 @@ object JvmPool {
       catch { case NonFatal(_) => "" }
   }
 
+  /** A JVM was asked of a pool whose [[JvmPool.shutdown]] has begun — in practice, a cancelled test run whose remaining suites were still being scheduled. */
+  final class PoolClosed extends IllegalStateException("test JVM pool has shut down; no further test JVMs are started for this run")
+
   /** Max consecutive spawn failures per key before refusing to spawn. Prevents infinite retry when test runner jar is incompatible. */
   private val MaxSpawnFailures = 3
 
@@ -598,6 +603,11 @@ object JvmPool {
       machine: MachineResources,
       pool: TrieMap[JvmKey, Queue[IO, ManagedJvm]],
       allJvms: Ref[IO, Set[ManagedJvm]],
+      /** Set first thing in [[shutdown]], and never cleared. Shutdown can only account for the JVMs it can see when it runs; anything that would add one after
+        * that — a spawn that was still waiting for memory, a suite handing its JVM back — checks this and destroys instead. Without it, a cancelled run's late
+        * spawns ended up owned by a pool nothing would ever shut down again, holding their memory reservations for the life of the server.
+        */
+      closed: Ref[IO, Boolean],
       spawnFailures: TrieMap[JvmKey, Int],
       jvmCommand: Path,
       workingDirectory: Path,
@@ -639,10 +649,16 @@ object JvmPool {
       // this scope. An idle pooled JVM is still resident and still costs its whole footprint, so its
       // reservation is taken at spawn and returned at destroy (see `spawnJvm` / `destroy`). Tying memory
       // to the suite is what let the governor believe memory was free while live JVMs still held it.
-      Resource.make(semaphore.acquire)(_ => semaphore.release).flatMap { _ =>
+      //
+      // `permit` and `makeFull` rather than `make`: `make` runs its acquire uncancelably, and both acquires
+      // here can wait — for a permit, and for the memory to spawn a JVM. Waits a cancelled run cannot
+      // withdraw are how it went on spawning JVMs after its pool had shut down. The `poll` is handed all
+      // the way down to the memory wait in `spawnJvm`.
+      semaphore.permit.flatMap { _ =>
         Resource
-          .make(
-            getOrCreate(label, key, classpath, boundedOptions, runnerClass, environment, workingDirectory).map(jvm => (jvm, new TestJvmImpl(jvm): TestJvm))
+          .makeFull[IO, (ManagedJvm, TestJvm)](poll =>
+            getOrCreate(poll, label, key, classpath, boundedOptions, runnerClass, environment, workingDirectory)
+              .map(jvm => (jvm, new TestJvmImpl(jvm): TestJvm))
           ) {
             // Return JVM to pool (or destroy it); the semaphore is released by its own Resource.
             case (jvm, _) => release(jvm)
@@ -670,8 +686,15 @@ object JvmPool {
       * actually surrendered yet.
       */
     private def destroy(jvm: ManagedJvm, destroyReason: String): IO[Unit] =
-      observeCost(jvm).attempt >> IO.blocking(jvm.kill(destroyReason, graceMillis = 10000)).attempt >> announceEnd(jvm).attempt >> allJvms.update(_ - jvm) >>
-        jvm.releaseMemory
+      // Uncancelable as a whole: cancelled between the kill and the release, a destroy would leave a dead process's memory charged.
+      IO.uncancelable { _ =>
+        observeCost(jvm).attempt >> IO.blocking(jvm.kill(destroyReason, graceMillis = 10000)).attempt >> announceEnd(jvm).attempt >>
+          allJvms.update(_ - jvm) >> jvm.releaseMemory
+      }
+
+    /** Fail with [[JvmPool.PoolClosed]] once [[shutdown]] has begun. */
+    private val ensureOpen: IO[Unit] =
+      closed.get.flatMap(isClosed => if (isClosed) IO.raiseError(new JvmPool.PoolClosed) else IO.unit)
 
     /** Announced after `kill`, so the exit description is final and `killedByUs` is set — that flag is the only thing separating a fork bleep terminated from
       * one the OS killed, since both report exit 137.
@@ -723,17 +746,18 @@ object JvmPool {
       * when nothing is left to evict do we park, and that wait terminates: at that point the budget is held by JVMs actively running suites, and when those
       * finish `release` destroys rather than pools them, because the governor reports contention.
       */
-    private def reserveMemoryForSpawn(label: String, footprintMb: Long): IO[IO[Unit]] =
-      machine.tryReserve(MachineResources.ResourceKind.TestFork, label, cpu = 0, memoryMb = footprintMb).flatMap {
-        case Some(release) => IO.pure(release)
-        case None          =>
+    private def reserveMemoryForSpawn(label: String, footprintMb: Long): IO[MachineResources.Lease] =
+      machine.tryLease(MachineResources.ResourceKind.TestFork, label, cpu = 0, memoryMb = footprintMb).flatMap {
+        case Some(lease) => IO.pure(lease)
+        case None        =>
           evictOneIdle.flatMap {
             case true  => reserveMemoryForSpawn(label, footprintMb)
-            case false => machine.reserveUntilReleased(MachineResources.ResourceKind.TestFork, label, cpu = 0, memoryMb = footprintMb)
+            case false => machine.leaseUntilReleased(MachineResources.ResourceKind.TestFork, label, cpu = 0, memoryMb = footprintMb)
           }
       }
 
     private def getOrCreate(
+        poll: Poll[IO],
         label: String,
         key: JvmKey,
         classpath: List[Path],
@@ -743,6 +767,7 @@ object JvmPool {
         cwd: Option[Path]
     ): IO[ManagedJvm] =
       for {
+        _ <- ensureOpen
         queue <- IO(
           pool.getOrElseUpdate(
             key, {
@@ -760,9 +785,9 @@ object JvmPool {
             // JVM died while idle in the pool. `destroy` (not just untracking) so its memory
             // reservation goes back to the governor — otherwise a dead process's footprint would be
             // charged for the rest of the server's life.
-            destroy(dead, "bleep: pooled JVM found dead") >> spawnJvm(label, key, classpath, jvmOptions, runnerClass, environment, cwd)
+            destroy(dead, "bleep: pooled JVM found dead") >> spawnJvm(poll, label, key, classpath, jvmOptions, runnerClass, environment, cwd)
           case None =>
-            spawnJvm(label, key, classpath, jvmOptions, runnerClass, environment, cwd)
+            spawnJvm(poll, label, key, classpath, jvmOptions, runnerClass, environment, cwd)
         }
       } yield jvm
 
@@ -813,7 +838,11 @@ object JvmPool {
       connected
     }
 
+    /** @param poll
+      *   the caller's: the acquire this runs inside is masked, and only its `poll` can make the memory wait and the handshake cancelable.
+      */
     private def spawnJvm(
+        poll: Poll[IO],
         label: String,
         key: JvmKey,
         classpath: List[Path],
@@ -833,104 +862,127 @@ object JvmPool {
       }
       // Reserve this process's memory BEFORE starting it, and hand the release action to the
       // ManagedJvm so it lives exactly as long as the process does. If anything between here and a
-      // healthy handshake fails, the reservation must be handed back — hence the bracketCase.
+      // healthy handshake fails, the reservation must be handed back.
+      //
+      // Masked throughout, with exactly two cancelable points: the wait for memory and the handshake.
+      // The wait used to be the acquire of a bracketCase, which runs uncancelably — `makeFull`'s own
+      // `poll` inside it cannot unmask an outer region — so a cancelled test run could not withdraw a
+      // spawn that was queued for memory. It sat out the wait, was granted once the run's own JVMs gave
+      // their memory back, and started a JVM for a run that no longer existed.
       //
       // The whole spawn-through-handshake window is additionally held under `startLimiter`, so only
       // MaxConcurrentStarts JVMs are ever climbing to their working set at the same time. See its
       // docs: this is the demand no budget can see, because it does not exist yet at the moment the
-      // admission decision is made.
-      startLimiter.permit.use { _ =>
-        costOf(key, jvmOptions)
-          .flatMap(reserveMemoryForSpawn(s"jvm ${key.classpathHash}", _))
-          .bracketCase { releaseMemory =>
-            IO
-              .blocking {
-                val javaPath = jvmCommand
-                val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
+      // admission decision is made. Taken by hand rather than with `permit.use`, whose wait would run at
+      // this masked depth: waiting for a start slot must be as withdrawable as waiting for memory.
+      //
+      // `inner(poll(...))`, in that order: a Poll only unmasks at the depth it was made for, so the caller's `poll` has to be applied
+      // after `inner` has stepped back out to the caller's depth. Written the other way round both are silently no-ops.
+      IO.uncancelable { inner =>
+        inner(poll(startLimiter.acquire)) >>
+          inner(poll(costOf(key, jvmOptions).flatMap(reserveMemoryForSpawn(s"jvm ${key.classpathHash}", _))))
+            .flatMap { lease =>
+              IO
+                .blocking {
+                  val javaPath = jvmCommand
+                  val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
 
-                // On Windows, command-line length is limited to 32,767 characters.
-                // When the classpath is too long, pass it via CLASSPATH environment variable instead.
-                val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
+                  // On Windows, command-line length is limited to 32,767 characters.
+                  // When the classpath is too long, pass it via CLASSPATH environment variable instead.
+                  val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
 
-                // Quiet the JVM's own deprecation notice about `sun.misc.Unsafe`, which scala-library's `LazyVals` triggers on JDK 24+. Four lines of
-                // warning on stderr of every forked test run, about code the user does not own and cannot change, landing in their test output and in
-                // `<system-err>` of every report.
-                //
-                // Asked of the JVM rather than assumed, and never with `-XX:+IgnoreUnrecognizedVMOptions`. That flag does make an older JVM tolerate the
-                // option — and it makes it tolerate the *user's* mistakes too, silently, wherever they appear on the line: it is not positional. A project
-                // stating `-XX:+TypoedFlag` in `jvmOptions` would have its fork start anyway and its typo never mentioned. That is precisely the failure
-                // `SpawnFailureDiagnosticsIT` exists to prevent, and it caught this.
-                val quietUnsafe = if (JvmPool.acceptsUnsafeMemoryAccessFlag(javaPath)) List(UnsafeMemoryAccessFlag) else Nil
-                val cmd =
-                  if (useEnvClasspath)
-                    List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List(runnerClass)
-                  else
-                    List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List("-cp", cpString, runnerClass)
+                  // Quiet the JVM's own deprecation notice about `sun.misc.Unsafe`, which scala-library's `LazyVals` triggers on JDK 24+. Four lines of
+                  // warning on stderr of every forked test run, about code the user does not own and cannot change, landing in their test output and in
+                  // `<system-err>` of every report.
+                  //
+                  // Asked of the JVM rather than assumed, and never with `-XX:+IgnoreUnrecognizedVMOptions`. That flag does make an older JVM tolerate the
+                  // option — and it makes it tolerate the *user's* mistakes too, silently, wherever they appear on the line: it is not positional. A project
+                  // stating `-XX:+TypoedFlag` in `jvmOptions` would have its fork start anyway and its typo never mentioned. That is precisely the failure
+                  // `SpawnFailureDiagnosticsIT` exists to prevent, and it caught this.
+                  val quietUnsafe = if (JvmPool.acceptsUnsafeMemoryAccessFlag(javaPath)) List(UnsafeMemoryAccessFlag) else Nil
+                  val cmd =
+                    if (useEnvClasspath)
+                      List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List(runnerClass)
+                    else
+                      List(javaPath.toString) ++ quietUnsafe ++ jvmOptions ++ List("-cp", cpString, runnerClass)
 
-                // The fork talks protocol over a loopback socket, not over its stdout. Anything a test (or a subprocess a test starts with inherited IO —
-                // Scala Native's test binaries, Testcontainers, a plain ProcessBuilder) writes to file descriptor 1 would otherwise land inside the JSON
-                // stream, and the suite dies with "Protocol error: expected json value". Bound before the process starts so the child never races the listener.
-                val protocolListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress)
-                val protocolPort = protocolListener.getLocalPort
+                  // The fork talks protocol over a loopback socket, not over its stdout. Anything a test (or a subprocess a test starts with inherited IO —
+                  // Scala Native's test binaries, Testcontainers, a plain ProcessBuilder) writes to file descriptor 1 would otherwise land inside the JSON
+                  // stream, and the suite dies with "Protocol error: expected json value". Bound before the process starts so the child never races the listener.
+                  val protocolListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress)
+                  val protocolPort = protocolListener.getLocalPort
 
-                val exitLogPath = Files.createTempFile("bleep-test-fork-exit-", ".log")
-                Files.delete(exitLogPath) // the fork (re)creates it only if it actually reaches its shutdown; its absence is a signal (see ExitLogProperty)
-                val cmdWithProtocol =
-                  cmd.head ::
-                    s"-D${ForkedTestRunnerProtocol.PortProperty}=$protocolPort" ::
-                    s"-D${ForkedTestRunnerProtocol.ExitLogProperty}=$exitLogPath" ::
-                    cmd.tail
-                val pb = new ProcessBuilder(cmdWithProtocol*)
-                pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
-                pb.redirectErrorStream(false)
-                if (useEnvClasspath) {
-                  pb.environment().put("CLASSPATH", cpString): Unit
-                }
-                // Default ANSI-off (no-color.org standard, honored by ScalaTest / JUnit / kotlinc / native-image / most JVM tooling). Set with putIfAbsent so any
-                // explicit caller override — including the parent JVM's inherited NO_COLOR — still wins.
-                pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
-                environment.foreach { case (k, v) => pb.environment().put(k, v) }
-
-                val process =
-                  try pb.start()
-                  catch {
-                    case e: Throwable =>
-                      protocolListener.close()
-                      throw e
+                  val exitLogPath = Files.createTempFile("bleep-test-fork-exit-", ".log")
+                  Files.delete(exitLogPath) // the fork (re)creates it only if it actually reaches its shutdown; its absence is a signal (see ExitLogProperty)
+                  val cmdWithProtocol =
+                    cmd.head ::
+                      s"-D${ForkedTestRunnerProtocol.PortProperty}=$protocolPort" ::
+                      s"-D${ForkedTestRunnerProtocol.ExitLogProperty}=$exitLogPath" ::
+                      cmd.tail
+                  val pb = new ProcessBuilder(cmdWithProtocol*)
+                  pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
+                  pb.redirectErrorStream(false)
+                  if (useEnvClasspath) {
+                    pb.environment().put("CLASSPATH", cpString): Unit
                   }
+                  // Default ANSI-off (no-color.org standard, honored by ScalaTest / JUnit / kotlinc / native-image / most JVM tooling). Set with putIfAbsent so any
+                  // explicit caller override — including the parent JVM's inherited NO_COLOR — still wins.
+                  pb.environment().putIfAbsent("NO_COLOR", "1"): Unit
+                  environment.foreach { case (k, v) => pb.environment().put(k, v) }
 
-                val protocolSocket =
-                  try awaitProtocolConnection(protocolListener, process, protocolPort)
-                  catch {
-                    case e: Throwable =>
-                      if (process.isAlive) process.destroyForcibly(): Unit
-                      throw e
-                  } finally protocolListener.close()
-                protocolSocket.setTcpNoDelay(true)
+                  val process =
+                    try pb.start()
+                    catch {
+                      case e: Throwable =>
+                        protocolListener.close()
+                        throw e
+                    }
 
-                val stdin = new PrintWriter(new OutputStreamWriter(protocolSocket.getOutputStream, StandardCharsets.UTF_8), true)
-                val stdout = new BufferedReader(new InputStreamReader(protocolSocket.getInputStream, StandardCharsets.UTF_8))
-                val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
-                val processStdout = new BufferedReader(new InputStreamReader(process.getInputStream))
+                  val protocolSocket =
+                    try awaitProtocolConnection(protocolListener, process, protocolPort)
+                    catch {
+                      case e: Throwable =>
+                        if (process.isAlive) process.destroyForcibly(): Unit
+                        throw e
+                    } finally protocolListener.close()
+                  protocolSocket.setTcpNoDelay(true)
 
-                new ManagedJvm(process, stdin, stdout, stderr, processStdout, protocolSocket, key, jvmCommand, releaseMemory, exitLogPath, listener)
-              }
-              .flatTap(jvm => allJvms.update(_ + jvm))
-              .flatTap(jvm =>
-                waitForReady(jvm).onError { case _ =>
-                  IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
+                  val stdin = new PrintWriter(new OutputStreamWriter(protocolSocket.getOutputStream, StandardCharsets.UTF_8), true)
+                  val stdout = new BufferedReader(new InputStreamReader(protocolSocket.getInputStream, StandardCharsets.UTF_8))
+                  val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+                  val processStdout = new BufferedReader(new InputStreamReader(process.getInputStream))
+
+                  new ManagedJvm(process, stdin, stdout, stderr, processStdout, protocolSocket, key, jvmCommand, lease.release, exitLogPath, listener)
                 }
-              )
-              .flatTap(jvm => IO(listener.onForkStart(jvm.process.pid(), label, parseXmxMb(jvmOptions))).attempt)
-              .flatTap(jvm => IO(spawnFailures.remove(jvm.key))) // Reset on success
-          } {
-            // On success the reservation now belongs to the ManagedJvm, which releases it when destroyed.
-            // On any failure — process never started, handshake failed, cancellation — nothing owns it,
-            // so hand it straight back rather than leaking the footprint of a JVM that isn't running.
-            case (_, Outcome.Succeeded(_))           => IO.unit
-            case (releaseMemory, Outcome.Errored(_)) => releaseMemory
-            case (releaseMemory, Outcome.Canceled()) => releaseMemory
-          }
+                // The process never started, or the failed start already killed it: nothing owns the reservation, so hand it straight back.
+                .onError { case _ => lease.release }
+                .flatMap { jvm =>
+                  // From here the governor knows which process this memory belongs to, and takes it back by itself if the process is gone and the
+                  // release in `destroy` never comes.
+                  val handshake =
+                    lease.bindTo(jvm.process.toHandle) >>
+                      allJvms.update(_ + jvm) >>
+                      // Registered first, checked second: either shutdown's snapshot of `allJvms` already holds this JVM, or this check sees `closed` — never
+                      // neither.
+                      closed.get.flatMap(isClosed => if (isClosed) IO.raiseError(new JvmPool.PoolClosed) else IO.unit) >>
+                      inner(poll(waitForReady(jvm))).onError { case _ =>
+                        IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
+                      } >>
+                      IO(listener.onForkStart(jvm.process.pid(), label, parseXmxMb(jvmOptions))).attempt >>
+                      IO(spawnFailures.remove(jvm.key)).void // Reset on success
+                  // On success the reservation now belongs to the ManagedJvm, which releases it when destroyed. On any failure there is a process that nothing
+                  // will ever use, so it is destroyed — which kills it, stops tracking it and returns its memory.
+                  handshake
+                    .guaranteeCase {
+                      case Outcome.Succeeded(_)                   => IO.unit
+                      case Outcome.Errored(_: JvmPool.PoolClosed) => destroy(jvm, "bleep: pool shut down while this fork was starting")
+                      case Outcome.Errored(_)                     => destroy(jvm, "bleep: fork failed before completing its startup handshake")
+                      case Outcome.Canceled()                     => destroy(jvm, "bleep: fork's spawn was cancelled before it finished starting")
+                    }
+                    .as(jvm)
+                }
+            }
+            .guarantee(startLimiter.release)
       }
     }
 
@@ -974,6 +1026,7 @@ object JvmPool {
       // CRITICAL: Use uncancelable to ensure cleanup completes even during cancellation
       IO.uncancelable { _ =>
         for {
+          _ <- closed.set(true)
           jvms <- allJvms.get
           _ <- IO.blocking {
             jvms.foreach { jvm =>
@@ -1028,9 +1081,10 @@ object JvmPool {
       */
     private def release(jvm: ManagedJvm): IO[Unit] =
       if (jvm.isAlive && jvm.protocolClean && !jvm.suiteInFlight) {
-        machine.isContended.flatMap {
-          case true  => destroy(jvm, "bleep: not pooled because the machine is contended")
-          case false =>
+        (closed.get, machine.isContended).tupled.flatMap {
+          case (true, _)      => destroy(jvm, "bleep: not pooled because the pool has shut down")
+          case (false, true)  => destroy(jvm, "bleep: not pooled because the machine is contended")
+          case (false, false) =>
             for {
               queue <- IO(
                 pool.getOrElseUpdate(
@@ -1208,11 +1262,11 @@ object JvmPool {
     override def acquireShared(request: TestSessionRequest, key: String): Resource[IO, TestSession] =
       // One permit per suite, exactly as the exclusive path takes — this run's parallelism is bounded the same whether or not suites share a fork. The shared
       // session underneath is refcounted separately, so the fork outlives any one suite and is torn down only when the last suite releases.
-      Resource.make(semaphore.acquire)(_ => semaphore.release).flatMap { _ =>
-        Resource.make(acquireSharedSession(request, key))(_ => releaseSharedSession(key)).map(s => s: TestSession)
+      semaphore.permit.flatMap { _ =>
+        Resource.makeFull[IO, SharedProjectSession](poll => acquireSharedSession(poll, request, key))(_ => releaseSharedSession(key)).map(s => s: TestSession)
       }
 
-    private def acquireSharedSession(request: TestSessionRequest, key: String): IO[SharedProjectSession] =
+    private def acquireSharedSession(poll: Poll[IO], request: TestSessionRequest, key: String): IO[SharedProjectSession] =
       Deferred[IO, Either[Throwable, SharedProjectSession]].flatMap { fresh =>
         sharedSlots
           .modify { slots =>
@@ -1225,25 +1279,39 @@ object JvmPool {
             if (isCreator)
               // Drop the slot on failure so a later suite can try again; the waiters parked on this Deferred get the same failure and fail their own acquire,
               // so none of them will release (Resource.make only releases what it acquired).
-              buildSharedSession(request, key).attempt.flatMap { outcome =>
-                val cleanup = outcome match {
-                  case Left(_)  => sharedSlots.update(_ - key)
-                  case Right(_) => IO.unit
+              buildSharedSession(poll, request, key).attempt
+                .flatMap { outcome =>
+                  val cleanup = outcome match {
+                    case Left(_)  => sharedSlots.update(_ - key)
+                    case Right(_) => IO.unit
+                  }
+                  cleanup >> deferred.complete(outcome) >> IO.fromEither(outcome)
                 }
-                cleanup >> deferred.complete(outcome) >> IO.fromEither(outcome)
-              }
+                // Cancelled mid-build is a failure too, as far as the waiters are concerned: left parked on the Deferred they would wait forever.
+                .onCancel(
+                  sharedSlots.update(_ - key) >>
+                    deferred.complete(Left(new java.util.concurrent.CancellationException(s"the suite starting the shared fork for $key was cancelled"))).void
+                )
             else
-              deferred.get.flatMap(IO.fromEither)
+              // A waiter cancelled here never acquired, so its Resource will not release; give its share of the refcount back itself.
+              poll(deferred.get).onCancel(leaveSharedSlot(key, deferred)).flatMap(IO.fromEither)
           }
       }
 
     private def releaseSharedSession(key: String): IO[Unit] =
+      sharedSlots.get.flatMap(_.get(key).fold(IO.unit)(slot => leaveSharedSlot(key, slot.session)))
+
+    /** Drop one reference to the slot holding `session`, tearing the fork down if it was the last. A slot under `key` holding some OTHER session is a later
+      * generation (the one `session` belonged to failed and was replaced) and is left alone.
+      */
+    private def leaveSharedSlot(key: String, session: Deferred[IO, Either[Throwable, SharedProjectSession]]): IO[Unit] =
       sharedSlots
         .modify { slots =>
           slots.get(key) match {
-            case Some(slot) if slot.refCount > 1 => (slots.updated(key, slot.copy(refCount = slot.refCount - 1)), None)
-            case Some(slot)                      => (slots - key, Some(slot.session)) // last suite out
-            case None                            => (slots, None)
+            case Some(slot) if !(slot.session eq session) => (slots, None)
+            case Some(slot) if slot.refCount > 1          => (slots.updated(key, slot.copy(refCount = slot.refCount - 1)), None)
+            case Some(slot)                               => (slots - key, Some(slot.session)) // last suite out
+            case None                                     => (slots, None)
           }
         }
         .flatMap {
@@ -1251,11 +1319,11 @@ object JvmPool {
           case None           => IO.unit
         }
 
-    private def buildSharedSession(request: TestSessionRequest, key: String): IO[SharedProjectSession] = {
+    private def buildSharedSession(poll: Poll[IO], request: TestSessionRequest, key: String): IO[SharedProjectSession] = {
       val _ = key
       val boundedOptions = MachineResources.withHeapBound(request.jvmOptions, request.defaultHeapMb)
       val jvmKey = JvmKey(request.classpath, boundedOptions, request.environment, request.workingDirectory)
-      getOrCreate(request.label, jvmKey, request.classpath, boundedOptions, request.runnerClass, request.environment, request.workingDirectory)
+      getOrCreate(poll, request.label, jvmKey, request.classpath, boundedOptions, request.runnerClass, request.environment, request.workingDirectory)
         .flatMap(SharedProjectSession.start)
     }
 
