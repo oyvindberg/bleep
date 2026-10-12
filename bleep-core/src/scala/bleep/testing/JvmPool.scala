@@ -195,6 +195,7 @@ object JvmPool {
         startLimiter <- Semaphore[IO](maxConcurrentStarts(maxConcurrency).toLong)
         pool <- IO(new TrieMap[JvmKey, Queue[IO, ManagedJvm]]())
         allJvms <- Ref.of[IO, Set[ManagedJvm]](Set.empty)
+        closed <- Ref.of[IO, Boolean](false)
         // Learn what forks cost only where we can actually measure one; elsewhere keep charging the
         // declared bound, which is what the pool did before any of this existed.
         costs <-
@@ -207,6 +208,7 @@ object JvmPool {
         machine,
         pool,
         allJvms,
+        closed,
         new TrieMap[JvmKey, Int](),
         jvmCommand,
         workingDirectory,
@@ -588,6 +590,9 @@ object JvmPool {
       catch { case NonFatal(_) => "" }
   }
 
+  /** A JVM was asked of a pool whose [[JvmPool.shutdown]] has begun — in practice, a cancelled test run whose remaining suites were still being scheduled. */
+  final class PoolClosed extends IllegalStateException("test JVM pool has shut down; no further test JVMs are started for this run")
+
   /** Max consecutive spawn failures per key before refusing to spawn. Prevents infinite retry when test runner jar is incompatible. */
   private val MaxSpawnFailures = 3
 
@@ -598,6 +603,11 @@ object JvmPool {
       machine: MachineResources,
       pool: TrieMap[JvmKey, Queue[IO, ManagedJvm]],
       allJvms: Ref[IO, Set[ManagedJvm]],
+      /** Set first thing in [[shutdown]], and never cleared. Shutdown can only account for the JVMs it can see when it runs; anything that would add one after
+        * that — a spawn that was still waiting for memory, a suite handing its JVM back — checks this and destroys instead. Without it, a cancelled run's late
+        * spawns ended up owned by a pool nothing would ever shut down again, holding their memory reservations for the life of the server.
+        */
+      closed: Ref[IO, Boolean],
       spawnFailures: TrieMap[JvmKey, Int],
       jvmCommand: Path,
       workingDirectory: Path,
@@ -670,8 +680,15 @@ object JvmPool {
       * actually surrendered yet.
       */
     private def destroy(jvm: ManagedJvm, destroyReason: String): IO[Unit] =
-      observeCost(jvm).attempt >> IO.blocking(jvm.kill(destroyReason, graceMillis = 10000)).attempt >> announceEnd(jvm).attempt >> allJvms.update(_ - jvm) >>
-        jvm.releaseMemory
+      // Uncancelable as a whole: cancelled between the kill and the release, a destroy would leave a dead process's memory charged.
+      IO.uncancelable { _ =>
+        observeCost(jvm).attempt >> IO.blocking(jvm.kill(destroyReason, graceMillis = 10000)).attempt >> announceEnd(jvm).attempt >>
+          allJvms.update(_ - jvm) >> jvm.releaseMemory
+      }
+
+    /** Fail with [[JvmPool.PoolClosed]] once [[shutdown]] has begun. */
+    private val ensureOpen: IO[Unit] =
+      closed.get.flatMap(isClosed => if (isClosed) IO.raiseError(new JvmPool.PoolClosed) else IO.unit)
 
     /** Announced after `kill`, so the exit description is final and `killedByUs` is set — that flag is the only thing separating a fork bleep terminated from
       * one the OS killed, since both report exit 137.
@@ -743,6 +760,7 @@ object JvmPool {
         cwd: Option[Path]
     ): IO[ManagedJvm] =
       for {
+        _ <- ensureOpen
         queue <- IO(
           pool.getOrElseUpdate(
             key, {
@@ -919,6 +937,13 @@ object JvmPool {
               // below (or in `destroy`) never comes.
               .flatTap(jvm => lease.bindTo(jvm.process.toHandle))
               .flatTap(jvm => allJvms.update(_ + jvm))
+              // Registered first, checked second: either shutdown's snapshot of `allJvms` already holds this JVM, or this check sees `closed` — never neither.
+              .flatTap(jvm =>
+                closed.get.flatMap {
+                  case true  => destroy(jvm, "bleep: pool shut down while this fork was starting") >> IO.raiseError(new JvmPool.PoolClosed)
+                  case false => IO.unit
+                }
+              )
               .flatTap(jvm =>
                 waitForReady(jvm).onError { case _ =>
                   IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) }).void
@@ -977,6 +1002,7 @@ object JvmPool {
       // CRITICAL: Use uncancelable to ensure cleanup completes even during cancellation
       IO.uncancelable { _ =>
         for {
+          _ <- closed.set(true)
           jvms <- allJvms.get
           _ <- IO.blocking {
             jvms.foreach { jvm =>
@@ -1031,9 +1057,10 @@ object JvmPool {
       */
     private def release(jvm: ManagedJvm): IO[Unit] =
       if (jvm.isAlive && jvm.protocolClean && !jvm.suiteInFlight) {
-        machine.isContended.flatMap {
-          case true  => destroy(jvm, "bleep: not pooled because the machine is contended")
-          case false =>
+        (closed.get, machine.isContended).tupled.flatMap {
+          case (true, _)      => destroy(jvm, "bleep: not pooled because the pool has shut down")
+          case (false, true)  => destroy(jvm, "bleep: not pooled because the machine is contended")
+          case (false, false) =>
             for {
               queue <- IO(
                 pool.getOrElseUpdate(
