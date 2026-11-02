@@ -33,7 +33,7 @@ jobs:
           # published under, and what a bleep.yaml would have had to name to ask for one.
           fetch-depth: 0
       - uses: bleep-build/bleep-setup-action@v0.0.3
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         with:
           extraFiles: bleep.yaml
 
@@ -275,7 +275,7 @@ jobs:
           ./cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json "bleep:$BLEEP_VERSION" --install-dir /usr/local/bin
           rm cs
 
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         with:
           extraFiles: bleep.yaml
 
@@ -446,7 +446,7 @@ jobs:
         with:
           submodules: true
       - uses: bleep-build/bleep-setup-action@v0.0.3
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
         with:
           extraFiles: bleep.yaml
       - id: get_version
