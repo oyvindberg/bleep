@@ -82,6 +82,8 @@ object bootstrap {
               Some(chosen).filter(_.nonEmpty)
             }
 
+          internal.CheckMisplacedSources(pre.logger, pre.buildPaths, finalBuild)
+
           val td = System.currentTimeMillis() - t0
           pre.logger.info(s"bootstrapped in $td ms")
 
