@@ -102,10 +102,10 @@ object PostCompileRunner {
               Files.writeString(p.paths.postCompileStamp, p.fingerprint)
               None
             }
-          case RunOutcome.Completed(exitCode, _, stderr) =>
-            IO.pure(Some(SourceGenRunner.forkFailureMessage(what, s"exit code $exitCode", stderr)))
-          case RunOutcome.Crashed(signal, _, _, stderr) =>
-            IO.pure(Some(SourceGenRunner.forkFailureMessage(what, SourceGenRunner.describeSignal(signal), stderr)))
+          case RunOutcome.Completed(exitCode, stdout, stderr) =>
+            IO.pure(Some(SourceGenRunner.forkFailureMessage(what, s"exit code $exitCode", stdout, stderr)))
+          case RunOutcome.Crashed(signal, _, stdout, stderr) =>
+            IO.pure(Some(SourceGenRunner.forkFailureMessage(what, SourceGenRunner.describeSignal(signal), stdout, stderr)))
           case RunOutcome.Killed(reason, _, _) =>
             IO.pure(Some(s"$what killed: $reason"))
         }).guarantee(IO.blocking(if (Files.exists(scratch)) FileUtils.deleteDirectory(scratch)))

@@ -1722,7 +1722,9 @@ class MultiWorkspaceBspServer(
     */
   private def makeSourcegenHandler(
       started: Started,
-      originId: Option[String]
+      originId: Option[String],
+      /** Consumers to regenerate even when up to date: the targets of a [[BleepBspProtocol.SourcegenOnlyArgument]] request, none for a compile or test. */
+      regardless: Set[CrossProjectName]
   ): (TaskDag.SourcegenTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] = {
     val _ = originId
     val listener = new SourceGenRunner.SourceGenListener {
@@ -1756,7 +1758,7 @@ class MultiWorkspaceBspServer(
               .foldLeft(IO.pure(Option.empty[String])) { case (acc, (script, forProjects)) =>
                 acc.flatMap {
                   case failed @ Some(_) => IO.pure(failed)
-                  case None             => SourceGenRunner.runOne(started, script, forProjects, killSignal, listener)
+                  case None             => SourceGenRunner.runOne(started, script, forProjects, regardless, killSignal, listener)
                 }
               }
               .map {
@@ -1778,6 +1780,9 @@ class MultiWorkspaceBspServer(
     val linkOpts = parseLinkOptions(args)
     val isLink = linkOpts.isLink
     val isRelease = linkOpts.isRelease
+    val sourcegenOnly = args.contains(BleepBspProtocol.SourcegenOnlyArgument)
+    if (sourcegenOnly && isLink)
+      throw BspException(JsonRpcErrorCodes.InvalidParams, s"${BleepBspProtocol.SourcegenOnlyArgument} cannot be combined with --link")
 
     val projectsToCompile = params.targets.flatMap { targetId =>
       crossNameFromTargetId(started, targetId)
@@ -1935,9 +1940,11 @@ class MultiWorkspaceBspServer(
           testProjects = allProjectDeps.keySet.filter(p => started.build.explodedProjects(p).isTestProject.getOrElse(false)),
           postCompile = started.build.resolvedPostCompileReads.map { case (p, reads) => (p, reads.toSet) }
         )
-        val initialDag = TaskDag.buildDag(projectsToCompile, buildCtx, buildMode)
+        val initialDag =
+          if (sourcegenOnly) TaskDag.buildSourcegenDag(projectsToCompile, buildCtx)
+          else TaskDag.buildDag(projectsToCompile, buildCtx, buildMode)
         debugLog(
-          s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode, sourcegen-scripts=${sourcegenPlan.allScripts.size}, ap-projects=${apPlan.projects.size}, ksp-projects=${kspPlan.projects.size})"
+          s"Built compile DAG (sourcegenOnly=$sourcegenOnly) with ${initialDag.tasks.size} tasks (mode=$buildMode, sourcegen-scripts=${sourcegenPlan.allScripts.size}, ap-projects=${apPlan.projects.size}, ksp-projects=${kspPlan.projects.size})"
         )
 
         val startTime = System.currentTimeMillis()
@@ -1950,7 +1957,7 @@ class MultiWorkspaceBspServer(
 
         val compileHandler =
           makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker, recorder, Stamps.pass(started, publishingAs = None))
-        val sourcegenHandler = makeSourcegenHandler(started, params.originId)
+        val sourcegenHandler = makeSourcegenHandler(started, params.originId, regardless = if (sourcegenOnly) projectsToCompile else Set.empty)
 
         // Create link handler
         val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] = { (linkTask, taskKillSignal) =>
@@ -2523,7 +2530,7 @@ class MultiWorkspaceBspServer(
 
           val compileHandler =
             makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker, recorder, Stamps.pass(started, publishingAs = None))
-          val sourcegenHandler = makeSourcegenHandler(started, params.originId)
+          val sourcegenHandler = makeSourcegenHandler(started, params.originId, regardless = Set.empty)
 
           val includeTagsSet = testOptions.includeTags.toSet
           val excludeTagsSet = testOptions.excludeTags.toSet

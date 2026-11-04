@@ -56,7 +56,11 @@ case class ReactiveBsp(
       * can inject values that are provably not in the running JVM's own environment — the only way to prove the value travelled over BSP rather than being
       * inherited by the fork.
       */
-    clientEnv: Map[String, String]
+    clientEnv: Map[String, String],
+    /** [[BuildMode.Compile]] only: run the projects' sourcegen — after what it reads is built, as a compile would — without compiling the projects. See
+      * [[BleepBspProtocol.SourcegenOnlyArgument]].
+      */
+    sourcegenOnly: Boolean
 ) extends BleepBuildCommand {
 
   /** Persists across watch cycles for per-project diff (only used in DiffWatch mode) */
@@ -743,7 +747,8 @@ case class ReactiveBsp(
       case BuildMode.Compile =>
         compileEmittingHistoryId {
           val params = new bsp4j.CompileParams(targets.asJava)
-          if (commonArgs.nonEmpty) params.setArguments(commonArgs.asJava)
+          val args = (if (sourcegenOnly) List(BleepBspProtocol.SourcegenOnlyArgument) else Nil) ++ commonArgs
+          if (args.nonEmpty) params.setArguments(args.asJava)
           params
         }
 
@@ -1024,7 +1029,33 @@ object ReactiveBsp {
     showOutput = false,
     diffBase = diffBase,
     diffOutput = diffOutput,
-    clientEnv = Map.empty
+    clientEnv = Map.empty,
+    sourcegenOnly = false
+  )
+
+  /** Run the sourcegen `projects` declare through the compile server, ordered after what it reads exactly as in a compile, without compiling `projects`. Their
+    * generators run even when up to date — see [[BleepBspProtocol.SourcegenOnlyArgument]].
+    */
+  def sourcegen(projects: Array[model.CrossProjectName], displayMode: DisplayMode): ReactiveBsp = ReactiveBsp(
+    watch = false,
+    projects = projects,
+    mode = BuildMode.Compile,
+    displayMode = displayMode,
+    jvmOptions = Nil,
+    testArgs = Nil,
+    only = Nil,
+    exclude = Nil,
+    includeTags = Nil,
+    excludeTags = Nil,
+    linkOptions = None,
+    flamegraph = false,
+    cancel = false,
+    junitReportDir = None,
+    showOutput = false,
+    diffBase = None,
+    diffOutput = OutputMode.Text,
+    clientEnv = Map.empty,
+    sourcegenOnly = true
   )
 
   /** Create test-bsp command */
@@ -1063,7 +1094,8 @@ object ReactiveBsp {
     showOutput = showOutput,
     diffBase = diffBase,
     diffOutput = diffOutput,
-    clientEnv = clientEnv
+    clientEnv = clientEnv,
+    sourcegenOnly = false
   )
 
   /** Create link-bsp command */
@@ -1092,6 +1124,7 @@ object ReactiveBsp {
     showOutput = false,
     diffBase = None,
     diffOutput = OutputMode.Text,
-    clientEnv = Map.empty
+    clientEnv = Map.empty,
+    sourcegenOnly = false
   )
 }

@@ -204,6 +204,31 @@ class SourcegenDagIntegrationTest extends AnyFunSuite with Matchers {
     compileTasks(b).dependencies should contain(TaskId.Sourcegen(withInput))
   }
 
+  test("buildSourcegenDag: the target's sourcegen and what it reads, cut from the compile DAG — not the target's compile, nor its other deps") {
+    val target = projectName("target")
+    val targetDep = projectName("target-dep")
+    val input = projectName("input")
+    val inputDep = projectName("input-dep")
+    val scriptsProject = projectName("scripts")
+    val s = ScriptDef.Main(scriptsProject, "gen.Tool", JsonSet.empty, JsonSet(input), None)
+
+    val ctx = BuildContext(
+      allProjectDeps = Map(target -> Set(targetDep), input -> Set(inputDep)),
+      platforms = Map.empty,
+      sourcegen = SourcegenPlan(perProject = Map(target -> Set(s)), scriptProjectDeps = Map(s -> Set(scriptsProject, input, inputDep))),
+      apPlan = AnnotationProcessorPlan.empty,
+      kspPlan = SymbolProcessorPlan.empty,
+      testProjects = Set.empty,
+      postCompile = Map.empty
+    )
+    val dag = TaskDag.buildSourcegenDag(Set(target), ctx)
+
+    dag.tasks.keySet shouldBe Set[TaskId](TaskId.Sourcegen(s), TaskId.Compile(scriptsProject), TaskId.Compile(input), TaskId.Compile(inputDep))
+    // Ordering is the compile DAG's own: the sourcegen waits on the input, the input on its dependency.
+    dag.tasks(TaskId.Sourcegen(s)).dependencies shouldBe TaskDag.buildCompileDag(Set(target), ctx).tasks(TaskId.Sourcegen(s)).dependencies
+    dag.tasks(TaskId.Compile(input)).dependencies should contain(TaskId.Compile(inputDep))
+  }
+
   test("mixed DAG: project with sourcegen + project without — only the one with sourcegen gets a SourcegenTask dep") {
     val withSg = projectName("with-sg")
     val withoutSg = projectName("without-sg")
