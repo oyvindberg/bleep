@@ -56,7 +56,7 @@ class YourFirstKotlinProjectIT extends IntegrationTestHarness {
       |})
       |""".stripMargin
 
-  integrationTest("bleep new myapp --lang kotlin") { ws =>
+  integrationTest("bleep build new myapp --lang kotlin") { ws =>
     ws.bleepNew(BuildCreateNew.Language.Kotlin, "myapp")
     ws.attachSnippet("bleep.yaml", "your-first-kotlin-project/bleep.yaml")
     ws.attachSnippet("myapp/src/kotlin/com/example/Main.kt", "your-first-kotlin-project/Main.kt")

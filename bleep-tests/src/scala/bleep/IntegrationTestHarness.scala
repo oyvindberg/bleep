@@ -243,8 +243,8 @@ class Workspace(
     commands.compile(started.build.explodedProjects.keys.toList)
   }
 
-  /** Run `bleep new` against [[root]] to scaffold a fresh build for the given language. Writes bleep.yaml + Main + MainTest. Idempotent w.r.t. [[start]] — call
-    * [[start]] afterwards to bootstrap.
+  /** Run `bleep build new` against [[root]] to scaffold a fresh build for the given language. Writes bleep.yaml + Main + MainTest. Idempotent w.r.t. [[start]]
+    * — call [[start]] afterwards to bootstrap.
     *
     * The scaffolded `bleep.yaml` gets `$version: dev` rather than the running bleep's current version, so the inner workspace's `bleep-test-runner` dep
     * resolves to `dev:<workspaceDir>` and short-circuits through `BleepDevDeps.resolveFromJvmClasspath` to the same `bleep-test-runner/classes` directory

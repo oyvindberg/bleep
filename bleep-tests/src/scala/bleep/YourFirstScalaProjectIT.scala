@@ -6,7 +6,7 @@ class YourFirstScalaProjectIT extends IntegrationTestHarness {
   // Split into two `integrationTest` blocks: each gets its own workspace + setup, but more importantly each gets its own suite-idle-timer reset window. The
   // combined run+test version was one slow test method and routinely tripped the 2-minute idle timeout under parallel-suite CPU contention even though the
   // underlying work itself runs in ~5s standalone.
-  integrationTest("bleep new myapp --lang scala (run the app)") { ws =>
+  integrationTest("bleep build new myapp --lang scala (run the app)") { ws =>
     ws.bleepNew(BuildCreateNew.Language.Scala, "myapp")
     ws.attachSnippet("bleep.yaml", "your-first-scala-project/bleep.yaml")
     ws.attachSnippet("myapp/src/scala/com/example/Main.scala", "your-first-scala-project/Main.scala")
@@ -17,7 +17,7 @@ class YourFirstScalaProjectIT extends IntegrationTestHarness {
     assert(storingLogger.underlying.exists(_.message.plainText == "Hello, World!"))
   }
 
-  integrationTest("bleep new myapp --lang scala (run the tests)") { ws =>
+  integrationTest("bleep build new myapp --lang scala (run the tests)") { ws =>
     ws.bleepNew(BuildCreateNew.Language.Scala, "myapp")
     ws.attachSnippet("bleep.yaml", "your-first-scala-project/bleep.yaml")
     ws.attachSnippet("myapp/src/scala/com/example/Main.scala", "your-first-scala-project/Main.scala")
