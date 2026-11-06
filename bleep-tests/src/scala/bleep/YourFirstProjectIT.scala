@@ -3,7 +3,7 @@ package bleep
 import bleep.commands.BuildCreateNew
 
 class YourFirstProjectIT extends IntegrationTestHarness {
-  integrationTest("bleep new myapp --lang java") { ws =>
+  integrationTest("bleep build new myapp --lang java") { ws =>
     ws.bleepNew(BuildCreateNew.Language.Java, "myapp")
     ws.attachSnippet("bleep.yaml", "your-first-project/bleep.yaml")
     ws.attachSnippet("myapp/src/java/com/example/Main.java", "your-first-project/Main.java")
