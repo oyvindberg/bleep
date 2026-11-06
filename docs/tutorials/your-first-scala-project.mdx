@@ -21,10 +21,10 @@ project into IntelliJ IDEA or VS Code with Metals.
 ```bash
 mkdir my-first-bleep-project
 cd my-first-bleep-project
-bleep new myapp
+bleep build new myapp
 ```
 
-[`bleep new`](/docs/reference/cli/build/new/) defaults to Scala 3 on the JVM. It writes a complete,
+[`bleep build new`](/docs/reference/cli/build/new/) defaults to Scala 3 on the JVM. It writes a complete,
 ready-to-run workspace: a `bleep.yaml`, a `myapp` project with a
 hello-world `Main.scala`, and a `myapp-test` project wired up with
 MUnit.
@@ -108,7 +108,7 @@ Scaffold a cross-built project with multiple `--scala` and `--platform`
 flags:
 
 ```bash
-bleep new mylib --scala 213 --scala 3 --platform jvm --platform js
+bleep build new mylib --scala 213 --scala 3 --platform jvm --platform js
 ```
 
 This produces one `mylib` project per (scala, platform) combination.
