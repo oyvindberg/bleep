@@ -1,7 +1,7 @@
 package bleep.history
 
 import bleep.BleepException
-import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, CompileStatus, DiagnosticSeverity, SuiteOutcome, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, CompileStatus, DiagnosticSeverity, OutputChannel, SuiteOutcome, TestStatus}
 import bleep.model.{CrossProjectName, ProjectName, SuiteName, TestName}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -57,7 +57,7 @@ class TranscriptFormatTest extends AnyFunSuite with Matchers {
   )
 
   test("details carries the transcript header alongside the formatted result") {
-    val json = TranscriptFormat.details(compileTranscript, project = None, query = None, limit = None, offset = None)
+    val json = TranscriptFormat.details(compileTranscript, project = None, query = None, limit = None, offset = None, maxTraceLines = None)
     json.hcursor.get[Long]("historyId") shouldBe Right(7L)
     json.hcursor.get[String]("mode") shouldBe Right("compile")
     json.hcursor.get[String]("workspace") shouldBe Right("/ws")
@@ -68,7 +68,7 @@ class TranscriptFormatTest extends AnyFunSuite with Matchers {
   }
 
   test("query narrows the diagnostics array while summary counts keep describing the full run") {
-    val json = TranscriptFormat.details(compileTranscript, project = None, query = Some("frobnicate"), limit = None, offset = None)
+    val json = TranscriptFormat.details(compileTranscript, project = None, query = Some("frobnicate"), limit = None, offset = None, maxTraceLines = None)
     json.hcursor.get[Int]("totalDiagnostics") shouldBe Right(1)
     json.hcursor.get[Int]("errors") shouldBe Right(1)
     json.hcursor.get[Int]("warnings") shouldBe Right(1) // full-run count, not narrowed
@@ -77,7 +77,7 @@ class TranscriptFormatTest extends AnyFunSuite with Matchers {
 
   test("an invalid query regex fails loudly") {
     a[BleepException.Text] should be thrownBy
-      TranscriptFormat.details(compileTranscript, project = None, query = Some("["), limit = None, offset = None)
+      TranscriptFormat.details(compileTranscript, project = None, query = Some("["), limit = None, offset = None, maxTraceLines = None)
   }
 
   test("test-mode details include collapsed stack traces and filter by project") {
@@ -105,7 +105,7 @@ class TranscriptFormatTest extends AnyFunSuite with Matchers {
         location = None
       )
     )
-    val json = TranscriptFormat.details(transcript("test", events), project = Some("app"), query = None, limit = None, offset = None)
+    val json = TranscriptFormat.details(transcript("test", events), project = Some("app"), query = None, limit = None, offset = None, maxTraceLines = None)
     json.hcursor.get[Int]("totalFailures") shouldBe Right(1)
     val failure = json.hcursor.downField("failures").downArray
     failure.get[String]("suite") shouldBe Right("MySuite")
@@ -122,6 +122,7 @@ class TranscriptFormatTest extends AnyFunSuite with Matchers {
       testRunResult = None,
       includeThrowables = false,
       includePassedSuiteOutput = false,
+      maxTraceLines = None,
       query = None,
       limit = None,
       offset = None
@@ -133,6 +134,7 @@ class TranscriptFormatTest extends AnyFunSuite with Matchers {
       testRunResult = Some(trr),
       includeThrowables = false,
       includePassedSuiteOutput = false,
+      maxTraceLines = None,
       query = None,
       limit = None,
       offset = None
@@ -204,8 +206,27 @@ class TranscriptFormatTest extends AnyFunSuite with Matchers {
     json.hcursor.get[Int]("compileErrors") shouldBe Right(1)
     json.hcursor.downField("topErrors").downArray.get[String]("message").toOption.get should include("Clause")
     val skippedProject = json.hcursor.downField("skippedProjects").downArray
-    skippedProject.get[String]("project") shouldBe Right("tests")
+    skippedProject.get[List[String]]("projects") shouldBe Right(List("tests"))
+    skippedProject.get[Int]("count") shouldBe Right(1)
     skippedProject.get[String]("reason").toOption.get should include("core")
+  }
+
+  test("skipped projects are grouped by reason: compact names the first few, details names them all") {
+    val downstream = (1 to 40).map(i => f"p$i%02d").toList
+    val events: List[E] =
+      E.CompileFinished(proj("core"), CompileStatus.Failed, durationMs = 1L, diagnostics = Nil, skippedBecause = None, timestamp = 1L) ::
+        downstream.map(p =>
+          E.CompileFinished(proj(p), CompileStatus.Skipped, durationMs = 0L, diagnostics = Nil, skippedBecause = Some(proj("core")), timestamp = 2L)
+        )
+
+    val compact = TranscriptFormat.formatCompileResult(events, verbose = false, query = None, limit = None, offset = None)
+    val groups = compact.hcursor.downField("skippedProjects").values.get.toList
+    groups should have size 1
+    groups.head.hcursor.get[Int]("count") shouldBe Right(40)
+    groups.head.hcursor.get[List[String]]("projects") shouldBe Right(downstream.take(TranscriptFormat.SkippedProjectsShownPerReason))
+
+    val verbose = TranscriptFormat.formatCompileResult(events, verbose = true, query = None, limit = None, offset = None)
+    verbose.hcursor.downField("skippedProjects").downArray.get[List[String]]("projects") shouldBe Right(downstream)
   }
 
   test("an errored suite fails the run with a synthetic failure entry even though no test failed") {
@@ -232,6 +253,93 @@ class TranscriptFormatTest extends AnyFunSuite with Matchers {
     val cancelled = json.hcursor.downField("cancelledSuites").downArray
     cancelled.get[String]("suite") shouldBe Right("NeverRan")
     cancelled.get[String]("reason").toOption.get should include("core")
+  }
+
+  private def failedTest(name: String, message: String): E =
+    E.TestFinished(
+      proj("app"),
+      SuiteName("Many"),
+      TestName(name),
+      TestStatus.Failed,
+      durationMs = 1L,
+      message = Some(message),
+      throwable = None,
+      timestamp = 1L,
+      location = None
+    )
+
+  test("the compact result lists at most CompactFailures failures, messages cut at CompactMessageChars; details lists them whole") {
+    val longMessage = "x" * 2000
+    val events = (1 to 30).map(i => failedTest(f"t$i%02d", longMessage)).toList
+
+    val compact = formatTest(events)
+    compact.hcursor.get[Int]("totalFailures") shouldBe Right(30)
+    compact.hcursor.get[Int]("failuresOmitted") shouldBe Right(30 - TranscriptFormat.CompactFailures)
+    val failures = compact.hcursor.downField("failures").values.get.toList
+    failures should have size TranscriptFormat.CompactFailures
+    failures.head.hcursor.get[String]("message").map(_.length) shouldBe Right(TranscriptFormat.CompactMessageChars)
+    failures.head.hcursor.get[Boolean]("messageTruncated") shouldBe Right(true)
+
+    val details = TranscriptFormat.details(transcript("test", events), project = None, query = None, limit = None, offset = None, maxTraceLines = None)
+    details.hcursor.downField("failures").values.get.toList should have size 30
+    details.hcursor.downField("failures").downArray.get[String]("message").map(_.length) shouldBe Right(2000)
+  }
+
+  test("passed suite output is one string per line, stderr marked, only the tail of each suite") {
+    val output = (1 to 80).map(i => E.Output(proj("app"), SuiteName("OkSuite"), s"line $i", OutputChannel.Stdout, timestamp = i.toLong)).toList :+
+      E.Output(proj("app"), SuiteName("OkSuite"), "oops", OutputChannel.Stderr, timestamp = 81L)
+    val events = output ++ List(
+      passedTest("app"),
+      E.SuiteFinished(proj("app"), SuiteName("OkSuite"), SuiteOutcome.Executed(1, 0, 0, 0), durationMs = 1L, timestamp = 100L)
+    )
+    val json = TranscriptFormat.formatTestResult(
+      events,
+      testRunResult = None,
+      includeThrowables = false,
+      includePassedSuiteOutput = true,
+      maxTraceLines = None,
+      query = None,
+      limit = None,
+      offset = None
+    )
+    val suite = json.hcursor.downField("passedSuiteOutput").downArray
+    suite.get[Int]("lines") shouldBe Right(81)
+    suite.get[Int]("omittedLines") shouldBe Right(81 - TranscriptFormat.PassedSuiteOutputTailLines)
+    val lines = suite.get[List[String]]("output").toOption.get
+    lines should have size TranscriptFormat.PassedSuiteOutputTailLines
+    lines.last shouldBe "! oops"
+    lines.init.last shouldBe "line 80"
+  }
+
+  test("details cuts each stack trace to maxTraceLines, pages with nextOffset, and names only the first targets") {
+    val dump = (1 to 500).map(i => s"  at Frame$i.run(Frame.java:$i)").mkString("java.lang.AssertionError: timed out\n", "\n", "")
+    val events = (1 to 7).map { i =>
+      E.TestFinished(
+        proj("app"),
+        SuiteName("Slow"),
+        TestName(s"t$i"),
+        TestStatus.Failed,
+        durationMs = 1L,
+        message = Some("timed out"),
+        throwable = Some(dump),
+        timestamp = 1L,
+        location = None
+      )
+    }.toList
+    val wide = transcript("test", events).copy(targets = (1 to 30).map(i => s"p$i").toList)
+
+    val json = TranscriptFormat.details(wide, project = None, query = None, limit = Some(5), offset = None, maxTraceLines = Some(60))
+    json.hcursor.get[Int]("targetCount") shouldBe Right(30)
+    json.hcursor.get[List[String]]("targets").map(_.size) shouldBe Right(TranscriptFormat.TargetsShown)
+    json.hcursor.get[Int]("totalFailures") shouldBe Right(7)
+    json.hcursor.get[Int]("nextOffset") shouldBe Right(5)
+    val first = json.hcursor.downField("failures").downArray
+    first.get[String]("throwable").map(_.linesIterator.size) shouldBe Right(60)
+    first.get[Int]("throwableLinesOmitted") shouldBe Right(501 - 60)
+
+    val lastPage = TranscriptFormat.details(wide, project = None, query = None, limit = Some(5), offset = Some(5), maxTraceLines = None)
+    lastPage.hcursor.get[Int]("nextOffset").toOption shouldBe None
+    lastPage.hcursor.downField("failures").downArray.get[String]("throwable").map(_.linesIterator.size) shouldBe Right(501)
   }
 
   test("a run where nothing at all happened never claims tests passed") {

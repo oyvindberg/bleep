@@ -289,7 +289,13 @@ object TranscriptDiff {
           "identical" -> Json.fromBoolean(differenceCount == 0),
           "summary" -> Json.fromString(summary)
         )
-        ++ sections.collect { case (name, items) if items.nonEmpty => name -> Json.arr(items*) })*
+        ++ sections.flatMap {
+          // added/removed can be every test in a suite that one side did not run at all ("304 added"): capped. The failure transitions are what the agent
+          // acts on, so they are never cut.
+          case (name @ ("added" | "removed"), items) => capped(name, items)
+          case (name, items) if items.nonEmpty       => List(name -> Json.arr(items*))
+          case _                                     => Nil
+        })*
     )
   }
 
@@ -301,6 +307,7 @@ object TranscriptDiff {
     val projectsAdded = List.newBuilder[Json]
     val projectsRemoved = List.newBuilder[Json]
     val changed = List.newBuilder[Json]
+    val modeOnly = scala.collection.mutable.TreeMap.empty[String, Int]
 
     // Display uses each side's own absolute path — new diagnostics the target's, resolved ones the base's — so diff output stays greppable and clickable.
     def diagJson(key: DiagKey, display: DiagDisplay): Json =
@@ -339,21 +346,36 @@ object TranscriptDiff {
 
           val invalidatedAdded = (tf.invalidatedFiles -- bf.invalidatedFiles).toList.sorted
           val invalidatedRemoved = (bf.invalidatedFiles -- tf.invalidatedFiles).toList.sorted
-          if (invalidatedAdded.nonEmpty) fields += "invalidatedFilesAdded" -> Json.arr(invalidatedAdded.map(Json.fromString)*)
-          if (invalidatedRemoved.nonEmpty) fields += "invalidatedFilesRemoved" -> Json.arr(invalidatedRemoved.map(Json.fromString)*)
+          fields ++= capped("invalidatedFilesAdded", invalidatedAdded.map(Json.fromString))
+          fields ++= capped("invalidatedFilesRemoved", invalidatedRemoved.map(Json.fromString))
 
           val depsAdded = (tf.changedDependencies -- bf.changedDependencies).toList.sorted
           val depsRemoved = (bf.changedDependencies -- tf.changedDependencies).toList.sorted
-          if (depsAdded.nonEmpty) fields += "changedDependenciesAdded" -> Json.arr(depsAdded.map(Json.fromString)*)
-          if (depsRemoved.nonEmpty) fields += "changedDependenciesRemoved" -> Json.arr(depsRemoved.map(Json.fromString)*)
+          fields ++= capped("changedDependenciesAdded", depsAdded.map(Json.fromString))
+          fields ++= capped("changedDependenciesRemoved", depsRemoved.map(Json.fromString))
 
           val newDiags = (tf.diagnostics.keySet -- bf.diagnostics.keySet).toList.sorted
           val resolvedDiags = (bf.diagnostics.keySet -- tf.diagnostics.keySet).toList.sorted
           if (newDiags.nonEmpty) fields += "newDiagnostics" -> Json.arr(newDiags.map(k => diagJson(k, tf.diagnostics(k)))*)
           if (resolvedDiags.nonEmpty) fields += "resolvedDiagnostics" -> Json.arr(resolvedDiags.map(k => diagJson(k, bf.diagnostics(k)))*)
 
+          // What an agent acts on: diagnostics that came or went, a project that started or stopped failing, or a project that recompiled because its own
+          // inputs changed. Everything else — `incremental → up-to-date` on the run after an edit, `skipped → success` when a failed dependency is fixed — is
+          // the build settling, and in a large build it is most of the projects. Those are counted by transition instead of listed.
+          val failureTransition = List(bf.status, tf.status).flatten.exists(s => s == "failed" || s == "error")
+          val meaningful = newDiags.nonEmpty || resolvedDiags.nonEmpty || failureTransition || invalidatedAdded.nonEmpty || depsAdded.nonEmpty
+
           val result = fields.result()
-          if (result.nonEmpty) changed += Json.obj((("project" -> Json.fromString(project)) +: result)*)
+          if (result.nonEmpty) {
+            if (meaningful) changed += Json.obj((("project" -> Json.fromString(project)) +: result)*)
+            else {
+              val label =
+                if (bf.status != tf.status) s"${bf.status.getOrElse("-")} → ${tf.status.getOrElse("-")}"
+                else if (bf.reason != tf.reason) s"${bf.reason.getOrElse("-")} → ${tf.reason.getOrElse("-")}"
+                else "inputs no longer changed"
+              modeOnly.update(label, modeOnly.getOrElse(label, 0) + 1)
+            }
+          }
         case (None, None) => ()
       }
     }
@@ -361,10 +383,12 @@ object TranscriptDiff {
     val addedList = projectsAdded.result()
     val removedList = projectsRemoved.result()
     val changedList = changed.result()
-    val differenceCount = addedList.size + removedList.size + changedList.size
+    val modeOnlyCount = modeOnly.values.sum
+    val differenceCount = addedList.size + removedList.size + changedList.size + modeOnlyCount
 
     val summaryParts = List.newBuilder[String]
     if (changedList.nonEmpty) summaryParts += s"${plural(changedList.size, "project")} changed"
+    if (modeOnlyCount > 0) summaryParts += s"${plural(modeOnlyCount, "project")} changed mode only"
     if (addedList.nonEmpty) summaryParts += s"${addedList.size} only in target"
     if (removedList.nonEmpty) summaryParts += s"${removedList.size} only in base"
     val summary = if (differenceCount == 0) "No logical differences." else summaryParts.result().mkString(", ")
@@ -376,10 +400,19 @@ object TranscriptDiff {
           "summary" -> Json.fromString(summary)
         )
         ++ (if (changedList.nonEmpty) List("changed" -> Json.arr(changedList*)) else Nil)
-        ++ (if (addedList.nonEmpty) List("projectsAdded" -> Json.arr(addedList*)) else Nil)
-        ++ (if (removedList.nonEmpty) List("projectsRemoved" -> Json.arr(removedList*)) else Nil))*
+        ++ (if (modeOnly.nonEmpty) List("modeOnly" -> Json.obj(modeOnly.toList.map { case (k, n) => k -> Json.fromInt(n) }*)) else Nil)
+        ++ capped("projectsAdded", addedList)
+        ++ capped("projectsRemoved", removedList))*
     )
   }
+
+  /** Lists that can be as long as the build (every project, every test) are cut to their first [[ListCap]] entries; `<name>Total` says how many there were. */
+  val ListCap = 10
+
+  private def capped(name: String, items: List[Json]): List[(String, Json)] =
+    if (items.isEmpty) Nil
+    else if (items.sizeIs <= ListCap) List(name -> Json.arr(items*))
+    else List(name -> Json.arr(items.take(ListCap)*), s"${name}Total" -> Json.fromInt(items.size))
 
   // ==========================================================================
   // Timing diff

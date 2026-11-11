@@ -94,11 +94,11 @@ class TranscriptStoreIntegrationTest extends AnyFunSuite with Matchers with Time
         val finished1 = t1.events.collect { case e: BleepBspProtocol.Event.CompileFinished if e.project.value == "myproject" => e }
         finished1 should not be empty
 
-        // A clean build and a noop are logically DIFFERENT runs, and the mechanical diff says so — as exactly one fact, the reason transition.
+        // A clean build and a noop are logically DIFFERENT runs, and the mechanical diff says so — as exactly one fact, the reason transition. It is the
+        // build settling rather than something to act on, so it is counted under modeOnly instead of listed under changed.
         val cleanVsNoop = TranscriptDiff.mechanical(t1, t2)
         cleanVsNoop.hcursor.get[Boolean]("identical") shouldBe Right(false)
-        val reasonChange = cleanVsNoop.hcursor.downField("changed").downArray.downField("reason")
-        reasonChange.get[String]("to") shouldBe Right("up-to-date")
+        cleanVsNoop.hcursor.downField("modeOnly").get[Int]("clean-build → up-to-date") shouldBe Right(1)
 
         // Flagship determinism property, end-to-end through the real daemon: two noop runs have the same logical outcome,
         // so their mechanical diff is identical even though every duration differs between them.

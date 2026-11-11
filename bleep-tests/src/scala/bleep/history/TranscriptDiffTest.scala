@@ -247,6 +247,45 @@ class TranscriptDiffTest extends AnyFunSuite with Matchers {
     field(app, "invalidatedFilesAdded").asArray.get.map(_.asString.get) shouldBe Vector("App.scala")
   }
 
+  test("mechanical compile: the build settling is counted by transition, not listed per project") {
+    // The run after an edit: the edited project goes incremental -> up-to-date, and so does nearly everything else. None of that is something to act on.
+    val names = (1 to 30).map(i => f"p$i%02d").toList
+    val run1 = transcript("compile", names.flatMap(p => compiled(p, CompileReason.Incremental, List(s"$p.scala"))))
+    val run2 = transcript(
+      "compile",
+      names.flatMap(p => compiled(p, CompileReason.UpToDate, Nil)) ++ compiled("broken", CompileReason.Incremental, List("B.scala"))
+    )
+    val run3 = transcript(
+      "compile",
+      names.flatMap(p => compiled(p, CompileReason.UpToDate, Nil)) ++
+        compiled("broken", CompileReason.Incremental, List("B.scala"), status = CompileStatus.Failed)
+    )
+
+    val settled = TranscriptDiff.mechanical(run1, run2)
+    isIdentical(settled) shouldBe false
+    settled.hcursor.downField("changed").focus shouldBe None
+    settled.hcursor.downField("modeOnly").get[Int]("incremental → up-to-date") shouldBe Right(30)
+    withClue("a project only one side compiled is still listed, capped: ") {
+      arrayNames(settled, "projectsAdded", "project") shouldBe List("broken")
+    }
+
+    val broke = TranscriptDiff.mechanical(run2, run3)
+    withClue("a project that started failing is always listed in full: ") {
+      field(broke, "changed").asArray.get.map(j => field(j, "project").asString.get) shouldBe Vector("broken")
+    }
+  }
+
+  test("mechanical: lists as long as the build are cut to ListCap with a total") {
+    val tests = (1 to 25).map(i => f"t$i%02d").toList
+    val run1 = transcript("test", List(test("app", "S", "a", TestStatus.Passed)))
+    val run2 = transcript("test", test("app", "S", "a", TestStatus.Passed) :: tests.map(t => test("app", "Big", t, TestStatus.Passed)))
+    val d = TranscriptDiff.mechanical(run1, run2)
+    arrayNames(d, "added", "test") shouldBe tests.take(TranscriptDiff.ListCap)
+    d.hcursor.get[Int]("addedTotal") shouldBe Right(25)
+    d.hcursor.get[String]("summary").toOption.get should include("25 added")
+    TranscriptDiffRender.text(d) should include(s"… ${25 - TranscriptDiff.ListCap} more")
+  }
+
   test("mechanical compile: new and resolved diagnostics; a line-only move is neither") {
     val warnOld = diag(DiagnosticSeverity.Warning, "unused import", "/ws/main/src/A.scala", line = 3)
     val warnMoved = diag(DiagnosticSeverity.Warning, "unused import", "/ws/main/src/A.scala", line = 17) // same identity, different line

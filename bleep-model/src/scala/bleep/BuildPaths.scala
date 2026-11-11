@@ -62,6 +62,12 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
     */
   lazy val historyDir: Path = workspaceVariantDir / "history"
 
+  /** `<workspace>/.bleep/builds/<variant>/run-logs/` — one directory per program run through `bleep.run` over MCP: `run.json` plus the program's raw stdout and
+    * stderr with a line index each. Kept apart from [[historyDir]] so programs run by agents never crowd compile/test transcripts out of their retention, and
+    * private to the workspace for the same reasons.
+    */
+  lazy val runLogsDir: Path = workspaceVariantDir / "run-logs"
+
   /** `<workspace>/.bleep/import/` — scratch for one-shot import commands (`bleep import`, `bleep import-maven`). */
   lazy val bleepImportDir: Path = dotBleepDir / "import"
   lazy val bleepImportBloopDir: Path = bleepImportDir / "bloop"

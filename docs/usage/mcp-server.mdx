@@ -22,6 +22,11 @@ multiple checkouts of the same build at the same time:
 - **Compact by default.** Compile and test return a small JSON summary
   (error counts, failure suites) plus a `historyId`. The full
   transcript of that exact run is one `bleep.history.show` call away.
+- **Program output is recorded, not pasted.** `bleep.run` and
+  `bleep.sourcegen` write everything a program prints to disk and
+  return its *shape* — the repeated line patterns with counts, the few
+  lines that differ, when it went quiet. The lines themselves are one
+  `bleep.run.output` call away, by line number or by pattern.
 - **Errors stream.** Per-project compile errors land as MCP
   notifications the instant that project finishes, not at the end of
   the whole build. The latency floor for a real failure is
@@ -79,15 +84,16 @@ nothing else.
 | --------------------------- | ----------- | --------------------------- | -------------------------------------------------------- |
 | `bleep.compile`             | destructive | yes                         | Compile selected projects. Returns error counts and a `historyId`. Optional `diffBase` adds a `diff` section vs a previous run. |
 | `bleep.test`                | destructive | yes                         | Run tests. Returns pass/fail counts, failure summaries, and a `historyId`. Optional `diffBase` adds a `diff` section vs a previous run. |
-| `bleep.run`             | destructive | yes                         | Compile and run a project or script. Reports compile and run progress while it works. Returns `exitCode`, `timedOut`, `durationMs`, `pid` and bounded stdout/stderr. |
-| `bleep.sourcegen`       | destructive | yes                         | Run sourcegen scripts for selected projects.                                          |
+| `bleep.run`             | destructive | yes                         | Compile and run a project or script. Reports compile and run progress while it works. Records the output under a `runId` and returns `state`, `exitCode`, `durationMs` and the shape of each stream. |
+| `bleep.run.output`      | read-only   | no                          | Numbered lines of a recorded run's stdout or stderr, by range or by pattern. Works while the program is still running. |
+| `bleep.sourcegen`       | destructive | yes                         | Run sourcegen scripts for selected projects. Each script is recorded as a run, like `bleep.run`.  |
 | `bleep.test.suites`         | additive    | yes                         | List test suite class names without running them. Requires projects to be compiled.   |
 | `bleep.fmt`             | destructive | no                          | Format Scala and Java sources via scalafmt and google-java-format. Rewrites files in place. |
 | `bleep.clean`           | destructive | no                          | Delete compile output for selected projects.                                          |
 | `bleep.copy-state`      | additive    | no                          | Seed a fresh git worktree with the parent worktree's compiled state. Call once after forking. |
 | `bleep.restart`         | destructive | no                          | Exit the MCP server process. The client will relaunch it.                             |
-| `bleep.history.list`        | read-only   | no                          | List the workspace's recorded compile/test runs: `historyId`, time, mode, targets, client. |
-| `bleep.history.show`        | read-only   | no                          | The full transcript of a completed compile/test run, by `historyId`. Searchable (regex) and paginated. |
+| `bleep.history.list`        | read-only   | no                          | The workspace's 20 most recent compile/test runs: `historyId`, time, mode, target count and first targets, client. `limit`/`offset` page back, `mode` filters. |
+| `bleep.history.show`        | read-only   | no                          | The full transcript of a completed compile/test run, by `historyId`. Searchable (regex), 50 items per page, stack traces cut to 60 lines unless `fullTraces: true`. |
 | `bleep.history.diff`        | read-only   | no                          | What logically changed between two runs: newly failing/fixed tests, invalidations, new/resolved diagnostics. `baseDirectory` diffs across worktrees. |
 | `bleep.history.diff-timing` | read-only   | no                          | What got slower or faster between two runs, jitter suppressed, plus the target run's slowest items. |
 | `bleep.build.effective` | read-only   | no                          | The project config after templates apply, what bleep sees.                            |
@@ -105,8 +111,9 @@ So the column is a security statement, not a description of intent,
 and bleep sets it accordingly:
 
 - **`read-only` means bleep reads files and its own build model, and
-  nothing else happens.** Only the nine tools above qualify: the
-  history tools read transcript JSON off disk, and the listing tools
+  nothing else happens.** Only the ten tools above qualify: the
+  history tools read transcript JSON off disk, `bleep.run.output`
+  reads a recorded run's log files, and the listing tools
   parse `bleep.yaml` and expand templates. No build code runs, nothing
   is written.
 - **Building is not read-only.** A compile runs sourcegen scripts,
@@ -176,6 +183,27 @@ agent: bleep.history.show { directory: "/checkout", historyId: 7, query: "NullPo
          regex over messages, paths, suite/test names and stack traces
 ```
 
+Even the summary is bounded, because the cases that make it big are
+the ones agents hit:
+
+- A broken shared fixture can fail hundreds of tests with the same long
+  assertion. The test summary lists the first 20 failures, each message
+  cut at 500 characters (`messageTruncated: true`), and counts the rest
+  in `failuresOmitted`. `totalFailures` still counts all of them.
+- A failed core project skips everything downstream of it.
+  `skippedProjects` has one entry per reason, with a `count` and the
+  first five project names, rather than one entry per project.
+- Output of passing suites (`showOutput: true`) keeps the last 50
+  lines per suite, one string per line, stderr prefixed with `! `.
+
+`bleep.history.show` is bounded the same way: 50 items unless `limit`
+says otherwise (`nextOffset` when more remain), and each stack trace
+cut to its first 60 lines (`throwableLinesOmitted` says how many were
+cut). A test that timed out carries a thread dump per failure, so an
+uncut read of two failures could run to tens of thousands of
+characters. Pass `fullTraces: true` for the uncut traces. The CLI's
+`bleep history show` keeps uncut traces and no default limit.
+
 The `query` parameter exists because searching output is what agents
 do. Given a long log they will divert it to a file and grep it —
 losing structure, and often the answer. Searching the structured
@@ -190,6 +218,16 @@ a `"diff"` section — newly failing/fixed tests, new/resolved
 diagnostics — so the agent reads what its edit changed instead of
 re-reading full results. The CLI mirror is `bleep compile --diff` /
 `bleep test --diff`.
+
+The diff leaves out what an agent cannot act on. After an edit, most
+projects of a large build go from `incremental` to `up-to-date`, and
+fixing a failed dependency moves everything behind it from skipped to
+success. Those projects are counted per transition under `modeOnly`.
+`changed` keeps diagnostics that appeared or went away, projects that
+started or stopped failing, and projects that recompiled because their
+own inputs changed. Lists that can be as long as the build (added or
+removed projects and tests, invalidated files, changed dependencies)
+keep their first 10 entries plus a `<name>Total`.
 
 A transcript describes its own run, never current state — so it cannot
 go stale when someone compiles from the CLI in between. The current
@@ -271,7 +309,7 @@ takes time reports progress once a second. `bleep.compile` and
 total, which ones are still going and for how long, suites and tests
 done.
 
-`bleep.run` reports both of its phases. The compile in front of a run
+`bleep.run` and `bleep.sourcegen` report both of their phases. The compile in front of a run
 is usually the long part, and it now streams exactly what
 `bleep.compile` streams — including the diagnostics if it fails, which
 used to be swallowed in favour of a bare status code. Then the program
@@ -280,20 +318,91 @@ and the newest line. That last field is the one that matters, because
 elapsed time alone cannot separate a program doing work from one stuck
 on a socket, while the line it printed four seconds ago can.
 
-### A run that times out still returns its output
+### A program's output is recorded, and the result is its shape
+
+What a program prints used to be most of what bleep cost an agent's
+context: several thousand characters per `bleep.run` on average, and
+tens of thousands for a source generator printing the same warning for
+every file. So `bleep.run` returns no output lines. It records them, and
+returns what they look like:
+
+```json
+{
+  "runId": 14,
+  "project": "codegen",
+  "mainClass": "com.example.Generate",
+  "state": "exited",
+  "exitCode": 1,
+  "durationMs": 8312,
+  "pid": 41877,
+  "stdout": { "lines": 3, "text": ["reading schema", "4012 tables", "writing sources"] },
+  "stderr": {
+    "lines": 4005,
+    "patterns": ["p1 ×4000 L1–4000: WARNING: unresolved column # in <path>"],
+    "unpatternedLines": 5
+  },
+  "rareLines": ["stderr L4005: java.lang.IllegalStateException: vendor repo missing"],
+  "timing": { "longestSilenceMs": 6100, "longestSilenceBefore": "stderr L4001", "silentAtEndMs": 12 },
+  "read": "bleep.run.output {runId:14, stream, from, to} returns numbered lines (negative = from the end); pattern:<n> pages only pattern p<n>"
+}
+```
+
+- A stream of 10 lines or fewer comes back as `text`, verbatim.
+- A longer stream comes back as its **patterns**. Lines are masked for
+  numbers, paths, quoted strings and hashes, and grouped by their first
+  six tokens. Each pattern carries its id, count and line range, which
+  is everything needed to page to the lines it stands for.
+- **Rare lines**, the ones printed only once or twice, are quoted in
+  full: error-like lines first, then the most recent. That is usually
+  where the answer is.
+- **Timing** gives the longest silence and the line that ended it, and
+  how long the program had been quiet when it ended. A program stuck on
+  a socket shows up here.
+
+Everything is on disk under `.bleep/builds/normal/run-logs/<runId>/`.
+`bleep.run.output` returns numbered lines from it, with colour codes
+removed:
+
+```
+agent: bleep.run.output { directory: "/checkout", runId: 14, stream: "stderr", from: -5 }
+       → the last five lines of stderr
+
+agent: bleep.run.output { directory: "/checkout", runId: 14, stream: "stderr", pattern: 1, from: 1, to: 3 }
+       → the first three lines of pattern p1, with their line numbers
+```
+
+Without `from` it returns the last 20 lines, and at most 200 per call,
+with `nextFrom` when more remain. Negative line numbers count from the
+end. Without `runId` it reads the latest run, and a run that is still
+going can be read as it goes. Each stream is recorded up to 64MB, and
+lines past that are counted as `droppedLines`. Run logs are kept
+separately from compile/test history, so programs an agent runs never
+push transcripts out: the last 64 runs, up to 256MB, oldest removed
+first, and never a run that is still going.
 
 `timeoutSeconds` (default 60, covering the program and not the compile
-in front of it) kills the program, and the call still returns —
-`timedOut: true`, no `exitCode`, and everything the program printed
-before it was killed. A hung program's output is the reason to look at
-it at all, so throwing it away was exactly backwards.
+in front of it) kills the program, and the call still returns — `state:
+"timedOut"`, no `exitCode`, and the shape of everything the program
+printed before it was killed. A hung program's output is the reason to
+look at it at all. A run whose MCP server died before it finished reads
+as `abandoned`.
 
-Output is bounded: the first and last 200 lines of each stream, with
-`stdoutOmittedLines` / `stderrOmittedLines` counting what was dropped
-in between and `stdoutLines` / `stderrLines` giving the totals. Head
-and tail answer the two questions worth asking — how it started, and
-where it got to — without letting one chatty program crowd out
-everything else in the agent's context.
+The program runs with the same environment as `bleep run`, including
+the project's `platform.jvmEnvironment`.
+
+### Sourcegen scripts are runs too
+
+`bleep.sourcegen` compiles the projects its scripts live in, plus their
+declared `inputs`, then forks each script once with every project it
+generates for. Each fork is recorded exactly like a `bleep.run`. The
+result has `success` (every script exited 0) and one run result per
+script under `scripts`, where `mainClass` names the script and
+`sourcegenFor` the projects it generated for. A script still running
+after 600 seconds is killed.
+
+A sourcegen script never shares the MCP server's own stdin and stdout,
+which carry the protocol: a script that read stdin or printed freely
+used to be able to corrupt the connection.
 
 ## See also
 
