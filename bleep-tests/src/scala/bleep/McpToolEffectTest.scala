@@ -41,6 +41,8 @@ class McpToolEffectTest extends AnyFunSuite with Matchers {
     "bleep.history.show" -> (ReadOnly, false),
     "bleep.history.diff" -> (ReadOnly, false),
     "bleep.history.diff-timing" -> (ReadOnly, false),
+    // Reads of a run's recorded output files.
+    "bleep.run.output" -> (ReadOnly, false),
     // Reads of the build model. Dependency resolution stays lazy, so nothing is fetched and nothing runs.
     "bleep.build.effective" -> (ReadOnly, false),
     "bleep.projects" -> (ReadOnly, false),
@@ -81,6 +83,7 @@ class McpToolEffectTest extends AnyFunSuite with Matchers {
       "bleep.history.show",
       "bleep.history.diff",
       "bleep.history.diff-timing",
+      "bleep.run.output",
       "bleep.build.effective",
       "bleep.build.resolved",
       "bleep.projects",

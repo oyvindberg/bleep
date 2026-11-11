@@ -23,9 +23,19 @@ object TranscriptFormat {
     }
 
   /** The full "details" view of one transcript: verbose formatting (every diagnostic / stack trace) plus the transcript's header fields, with the same
-    * project/query/limit/offset narrowing everywhere.
+    * project/query/limit/offset narrowing everywhere. `maxTraceLines` cuts each stack trace to its first N lines; None keeps them whole.
+    *
+    * The header names the first [[TargetsShown]] targets plus `targetCount`: a whole-build run targets every project, and repeating that list on every read of
+    * the transcript cost more than the run's actual findings.
     */
-  def details(transcript: Transcript, project: Option[String], query: Option[String], limit: Option[Int], offset: Option[Int]): Json = {
+  def details(
+      transcript: Transcript,
+      project: Option[String],
+      query: Option[String],
+      limit: Option[Int],
+      offset: Option[Int],
+      maxTraceLines: Option[Int]
+  ): Json = {
     val events = project match {
       case Some(proj) => filterEventsByProject(transcript.events, proj)
       case None       => transcript.events
@@ -33,7 +43,7 @@ object TranscriptFormat {
     val pattern = query.map(compileQuery)
     val result =
       if (transcript.mode == "test")
-        formatTestResult(events, transcript.testRunResult, includeThrowables = true, includePassedSuiteOutput = false, pattern, limit, offset)
+        formatTestResult(events, transcript.testRunResult, includeThrowables = true, includePassedSuiteOutput = false, maxTraceLines, pattern, limit, offset)
       else formatCompileResult(events, verbose = true, pattern, limit, offset)
     result.deepMerge(
       Json.obj(
@@ -41,7 +51,8 @@ object TranscriptFormat {
         "mode" -> Json.fromString(transcript.mode),
         "workspace" -> Json.fromString(transcript.workspace),
         "timestampMs" -> Json.fromLong(transcript.timestampMs),
-        "targets" -> Json.arr(transcript.targets.map(Json.fromString)*),
+        "targetCount" -> Json.fromInt(transcript.targets.size),
+        "targets" -> Json.arr(transcript.targets.take(TargetsShown).map(Json.fromString)*),
         "client" -> Json.fromString(transcript.client)
       )
     )
@@ -71,6 +82,12 @@ object TranscriptFormat {
       case e: E.SuiteFinished       => e.project.value == project
       case _                        => false
     }
+  }
+
+  /** `nextOffset` when a limit/offset slice stopped before the end, so a reader can tell "that was everything" from "there is more". */
+  private def nextOffsetField(offset: Option[Int], shown: Int, total: Int): List[(String, Json)] = {
+    val next = offset.getOrElse(0) + shown
+    if (next < total) List("nextOffset" -> Json.fromInt(next)) else Nil
   }
 
   /** True if the pattern matches any of the given nullable/optional text fields. */
@@ -108,13 +125,28 @@ object TranscriptFormat {
     * symbol-processor failures, suites that never ran. Shared by the compile and test formatters so neither surface can under-report; compile failures
     * themselves are rendered by each formatter in its own diagnostics shape.
     */
+  val SkippedProjectsShownPerReason = 5
+  val TargetsShown = 10
+  val CompactFailures = 20
+  val CompactMessageChars = 500
+  val PassedSuiteOutputTailLines = 50
+
   private def infrastructureFields(summary: BuildSummary, events: List[BleepBspProtocol.Event], verbose: Boolean): List[(String, Json)] = {
     import BleepBspProtocol.{Event => E}
 
     val fields = List.newBuilder[(String, Json)]
     if (summary.skippedProjects.nonEmpty) {
-      val jsons = summary.skippedProjects.map { sp =>
-        Json.obj("project" -> Json.fromString(sp.project.value), "reason" -> Json.fromString(sp.reason))
+      // One entry per reason, not per project: a failed core dependency skips every project downstream of it, and listing each of them with the same
+      // "dependency X failed" sentence once cost more than everything else in the result. Compact mode names the first few; details names them all.
+      val byReason = summary.skippedProjects.groupBy(_.reason).toList.sortBy { case (reason, sps) => (-sps.size, reason) }
+      val jsons = byReason.map { case (reason, sps) =>
+        val names = sps.map(_.project.value).distinct.sorted
+        val shown = if (verbose) names else names.take(SkippedProjectsShownPerReason)
+        Json.obj(
+          "reason" -> Json.fromString(reason),
+          "count" -> Json.fromInt(names.size),
+          "projects" -> Json.arr(shown.map(Json.fromString)*)
+        )
       }
       fields += "skippedProjects" -> Json.arr(jsons*)
     }
@@ -212,6 +244,7 @@ object TranscriptFormat {
       resultFields += "warnings" -> Json.fromInt(warningCount)
       query.foreach(p => resultFields += "query" -> Json.fromString(p.pattern))
       resultFields += "totalDiagnostics" -> Json.fromInt(totalDiagnostics)
+      resultFields ++= nextOffsetField(offset, sliced.size, totalDiagnostics)
       resultFields += "diagnostics" -> Json.arr(sliced*)
       resultFields ++= infrastructureFields(summary, events, verbose = true)
       Json.obj(resultFields.result()*)
@@ -266,6 +299,7 @@ object TranscriptFormat {
       testRunResult: Option[BleepBspProtocol.TestRunResult],
       includeThrowables: Boolean,
       includePassedSuiteOutput: Boolean,
+      maxTraceLines: Option[Int],
       query: Option[java.util.regex.Pattern],
       limit: Option[Int],
       offset: Option[Int]
@@ -343,21 +377,39 @@ object TranscriptFormat {
       val totalFailures = failedTests.size
       query.foreach(p => fields += "query" -> Json.fromString(p.pattern))
       fields += "totalFailures" -> Json.fromInt(totalFailures)
+      // The compact result (no throwables) lists at most CompactFailures failures with messages cut at CompactMessageChars: a broken shared fixture fails
+      // hundreds of tests with the same long assertion message. The rest is one bleep.history.show away; totalFailures always counts all of them.
+      val compact = !includeThrowables
+      val effectiveLimit = limit.orElse(if (compact) Some(CompactFailures) else None)
       val slicedFailures = {
         val afterOffset = offset.map(o => failedTests.drop(o)).getOrElse(failedTests)
-        limit.map(l => afterOffset.take(l)).getOrElse(afterOffset)
+        effectiveLimit.map(l => afterOffset.take(l)).getOrElse(afterOffset)
       }
+      if (slicedFailures.size < totalFailures && limit.isEmpty && offset.isEmpty)
+        fields += "failuresOmitted" -> Json.fromInt(totalFailures - slicedFailures.size)
+      if (limit.isDefined || offset.isDefined) fields ++= nextOffsetField(offset, slicedFailures.size, totalFailures)
       val failureJsons = slicedFailures.map { case (f, status, throwable) =>
         val df = List.newBuilder[(String, Json)]
         df += "project" -> Json.fromString(f.project.value)
         df += "suite" -> Json.fromString(f.suite.value)
         df += "test" -> Json.fromString(f.test.value)
         df += "status" -> Json.fromString(status)
-        f.message.foreach(m => df += "message" -> Json.fromString(stripAnsi(m)))
+        f.message.foreach { m =>
+          val clean = stripAnsi(m)
+          if (compact && clean.length > CompactMessageChars) {
+            df += "message" -> Json.fromString(clean.take(CompactMessageChars))
+            df += "messageTruncated" -> Json.fromBoolean(true)
+          } else df += "message" -> Json.fromString(clean)
+        }
         throwable.foreach { t =>
           if (includeThrowables) {
-            val collapsed = bleep.testing.StackTraceCycles.collapse(stripAnsi(t)).mkString("\n")
-            df += "throwable" -> Json.fromString(collapsed)
+            val collapsed = bleep.testing.StackTraceCycles.collapse(stripAnsi(t))
+            maxTraceLines match {
+              case Some(max) if collapsed.sizeIs > max =>
+                df += "throwable" -> Json.fromString(collapsed.take(max).mkString("\n"))
+                df += "throwableLinesOmitted" -> Json.fromInt(collapsed.size - max)
+              case _ => df += "throwable" -> Json.fromString(collapsed.mkString("\n"))
+            }
           } else df += "throwable" -> Json.fromString("present. Use bleep.history.show with this historyId for the full stack trace")
         }
         Json.obj(df.result()*)
@@ -385,14 +437,17 @@ object TranscriptFormat {
     fields ++= infrastructureFields(summary, events, verbose = includeThrowables)
 
     if (includePassedSuiteOutput && summary.passedSuiteOutputs.nonEmpty) {
+      // One string per line, stderr marked with a leading "! " (as `bleep test --show-output` marks it), instead of a {channel, line} object per line: the
+      // object wrapper cost more than most lines. Only the tail of each suite is kept — what a passing suite printed last is what it is usually asked for.
       val outputJsons = summary.passedSuiteOutputs.map { so =>
-        Json.obj(
-          "project" -> Json.fromString(so.project.value),
-          "suite" -> Json.fromString(so.suite.value),
-          "output" -> Json.arr(so.lines.map { line =>
-            Json.obj("channel" -> Json.fromString(line.channel.wireValue), "line" -> Json.fromString(stripAnsi(line.text)))
-          }*)
-        )
+        val rendered = so.lines.map(line => (if (line.channel.isStderr) "! " else "") + stripAnsi(line.text))
+        val fs = List.newBuilder[(String, Json)]
+        fs += "project" -> Json.fromString(so.project.value)
+        fs += "suite" -> Json.fromString(so.suite.value)
+        fs += "lines" -> Json.fromInt(rendered.size)
+        if (rendered.sizeIs > PassedSuiteOutputTailLines) fs += "omittedLines" -> Json.fromInt(rendered.size - PassedSuiteOutputTailLines)
+        fs += "output" -> Json.arr(rendered.takeRight(PassedSuiteOutputTailLines).map(Json.fromString)*)
+        Json.obj(fs.result()*)
       }
       fields += "passedSuiteOutput" -> Json.arr(outputJsons*)
     }

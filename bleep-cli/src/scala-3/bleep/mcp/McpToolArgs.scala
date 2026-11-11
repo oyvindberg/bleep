@@ -169,7 +169,7 @@ object TestArgs {
         "showOutput" -> Json.obj(
           "type" -> Json.fromString("boolean"),
           "description" -> Json.fromString(
-            "Also return what passing suites wrote to stdout/stderr, as `passedSuiteOutput`. Off by default: only failing suites' output is kept (in history)."
+            "Also return what passing suites wrote to stdout/stderr, as `passedSuiteOutput`: the last 50 lines per suite, stderr lines prefixed \"! \". Off by default: only failing suites' output is kept (in history)."
           )
         ),
         diffBaseProperty
@@ -182,9 +182,17 @@ object TestArgs {
 /** Args for bleep.history.show: full transcript of a completed run by id. Requires `directory` like every other tool — history ids are per-workspace, so an id
   * means nothing without saying whose history to look in.
   */
-case class HistoryShowArgs(directory: String, historyId: Option[Long], project: Option[String], query: Option[String], limit: Option[Int], offset: Option[Int])
+case class HistoryShowArgs(
+    directory: String,
+    historyId: Option[Long],
+    project: Option[String],
+    query: Option[String],
+    limit: Option[Int],
+    offset: Option[Int],
+    fullTraces: Boolean
+)
 object HistoryShowArgs {
-  private val knownFields = Set("directory", "historyId", "project", "query", "limit", "offset")
+  private val knownFields = Set("directory", "historyId", "project", "query", "limit", "offset", "fullTraces")
   given Decoder[HistoryShowArgs] = Decoder.instance { c =>
     for {
       _ <- rejectUnknownFields(c, knownFields)
@@ -194,7 +202,8 @@ object HistoryShowArgs {
       query <- decodeOptional[String](c, "query")
       limit <- decodeOptional[Int](c, "limit")
       offset <- decodeOptional[Int](c, "offset")
-    } yield HistoryShowArgs(directory, historyId, project, query, limit, offset)
+      fullTraces <- decodeOptional[Boolean](c, "fullTraces").map(_.contains(true))
+    } yield HistoryShowArgs(directory, historyId, project, query, limit, offset, fullTraces)
   }
   given JsonSchemaEncoder[HistoryShowArgs] = schema(
     Json.obj(
@@ -217,16 +226,66 @@ object HistoryShowArgs {
         ),
         "limit" -> Json.obj(
           "type" -> Json.fromString("integer"),
-          "description" -> Json.fromString("Max number of items (diagnostics for compile, failures for test) to return.")
+          "description" -> Json.fromString(
+            "Max number of items (diagnostics for compile, failures for test) to return. Default 50; the response carries nextOffset when more remain."
+          )
         ),
         "offset" -> Json.obj(
           "type" -> Json.fromString("integer"),
           "description" -> Json.fromString("Skip the first N items before applying limit.")
+        ),
+        "fullTraces" -> Json.obj(
+          "type" -> Json.fromString("boolean"),
+          "description" -> Json.fromString(
+            "Return stack traces uncut. By default each is cut to its first 60 lines (a timeout's thread dump runs to thousands)."
+          )
         )
       ),
       "required" -> Json.arr(Json.fromString("directory"))
     )
   ).asInstanceOf[JsonSchemaEncoder[HistoryShowArgs]]
+}
+
+/** Args for bleep.history.list. */
+case class HistoryListArgs(directory: String, mode: Option[String], limit: Option[Int], offset: Option[Int])
+object HistoryListArgs {
+  private val knownFields = Set("directory", "mode", "limit", "offset")
+  given Decoder[HistoryListArgs] = Decoder.instance { c =>
+    for {
+      _ <- rejectUnknownFields(c, knownFields)
+      directory <- c.downField("directory").as[String]
+      mode <- decodeOptional[String](c, "mode")
+      _ <- mode match {
+        case Some(m) if m != "compile" && m != "test" =>
+          Left(DecodingFailure(s"mode must be \"compile\" or \"test\", got \"$m\"", c.downField("mode").history))
+        case _ => Right(())
+      }
+      limit <- decodeOptional[Int](c, "limit")
+      offset <- decodeOptional[Int](c, "offset")
+    } yield HistoryListArgs(directory, mode, limit, offset)
+  }
+  given JsonSchemaEncoder[HistoryListArgs] = schema(
+    Json.obj(
+      "type" -> Json.fromString("object"),
+      "properties" -> Json.obj(
+        directoryProperty,
+        "mode" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "enum" -> Json.arr(Json.fromString("compile"), Json.fromString("test")),
+          "description" -> Json.fromString("Only list runs of this mode.")
+        ),
+        "limit" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString("How many of the most recent runs to list. Default 20.")
+        ),
+        "offset" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString("Skip this many of the most recent runs first, to page back to older ones (the response's olderOffset).")
+        )
+      ),
+      "required" -> Json.arr(Json.fromString("directory"))
+    )
+  ).asInstanceOf[JsonSchemaEncoder[HistoryListArgs]]
 }
 
 /** Args for bleep.build.effective / bleep.build.resolved (project config inspection). */
@@ -400,11 +459,64 @@ object RunArgs {
         "timeoutSeconds" -> Json.obj(
           "type" -> Json.fromString("integer"),
           "description" -> Json.fromString(
-            "Timeout for the program itself in seconds, default 60. Does not cover the compile that precedes it. On timeout the program is killed and the call still returns, with timedOut=true and the output captured so far."
+            "Timeout for the program itself in seconds, default 60. Does not cover the compile that precedes it. On timeout the program is killed and the call still returns, with state timedOut and the shape of the output captured so far."
           )
         )
       ),
       "required" -> Json.arr(Json.fromString("directory"), Json.fromString("name"))
     )
   ).asInstanceOf[JsonSchemaEncoder[RunArgs]]
+}
+
+/** Args for bleep.run.output: a line range of one recorded stream of a run. */
+case class RunOutputArgs(directory: String, runId: Option[Long], stream: String, from: Option[Int], to: Option[Int], pattern: Option[Int])
+object RunOutputArgs {
+  private val knownFields = Set("directory", "runId", "stream", "from", "to", "pattern")
+  given Decoder[RunOutputArgs] = Decoder.instance { c =>
+    for {
+      _ <- rejectUnknownFields(c, knownFields)
+      directory <- c.downField("directory").as[String]
+      runId <- decodeOptional[Long](c, "runId")
+      stream <- c.downField("stream").as[String]
+      _ <-
+        if (stream == "stdout" || stream == "stderr") Right(())
+        else Left(DecodingFailure(s"stream must be \"stdout\" or \"stderr\", got \"$stream\"", c.downField("stream").history))
+      from <- decodeOptional[Int](c, "from")
+      to <- decodeOptional[Int](c, "to")
+      pattern <- decodeOptional[Int](c, "pattern")
+    } yield RunOutputArgs(directory, runId, stream, from, to, pattern)
+  }
+  given JsonSchemaEncoder[RunOutputArgs] = schema(
+    Json.obj(
+      "type" -> Json.fromString("object"),
+      "properties" -> Json.obj(
+        directoryProperty,
+        "runId" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString("The runId from a bleep.run result. Omit for the workspace's most recent run, including one still running.")
+        ),
+        "stream" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "enum" -> Json.arr(Json.fromString("stdout"), Json.fromString("stderr"))
+        ),
+        "from" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString(
+            "First line, 1-based; negative counts from the end (-20 = the last 20 lines). Default: the last 20 lines, or line 1 with pattern."
+          )
+        ),
+        "to" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString(
+            "Last line, inclusive; negative counts from the end. Default: the end. At most 200 lines per call; nextFrom says where to continue."
+          )
+        ),
+        "pattern" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString("Only lines of this pattern: the n of a p<n> in the run result's patterns for this stream.")
+        )
+      ),
+      "required" -> Json.arr(Json.fromString("directory"), Json.fromString("stream"))
+    )
+  ).asInstanceOf[JsonSchemaEncoder[RunOutputArgs]]
 }

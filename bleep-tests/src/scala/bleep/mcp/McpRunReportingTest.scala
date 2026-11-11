@@ -1,6 +1,7 @@
 package bleep.mcp
 
 import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, DiagnosticSeverity}
+import bleep.logs.{LogShape, StreamRecorder}
 import bleep.model.{CrossProjectName, ProjectName}
 import ch.epfl.scala.bsp4j
 import org.scalatest.funsuite.AnyFunSuite
@@ -36,6 +37,84 @@ class McpRunReportingTest extends AnyFunSuite with Matchers {
 
   test("-cp is collapsed the same as -classpath") {
     abbreviateCommand(List("java", "-cp", "/a/one.jar", "Main")) should include("<1 classpath entries>")
+  }
+
+  // ------------------------------------------------------------------ run result
+
+  private def recorded(stream: String, lines: Seq[String]): StreamRecorder.Result = {
+    val b = new LogShape.Builder(stream)
+    lines.foreach(b.add)
+    StreamRecorder.Result(b.result(), bytes = 0L, droppedLines = 0L, droppedBytes = 0L)
+  }
+
+  private val record = RunRecord(
+    id = 9L,
+    workspace = "/ws",
+    project = "gen",
+    script = Some("generate"),
+    sourcegenFor = Nil,
+    mainClass = "gen.Main",
+    args = Nil,
+    command = "java gen.Main",
+    timeoutSeconds = 60,
+    ownerPid = 1L,
+    pid = Some(2L),
+    startedAtMs = 0L,
+    state = RunState.Exited,
+    exitCode = Some(0),
+    durationMs = Some(1000L)
+  )
+
+  test("a run that printed thousands of lines returns their shape, not the lines, in a bounded result") {
+    // The measured cost this replaces: source generators printing ~20k characters of near-identical warnings per run, all of it in the tool result.
+    val stdout = recorded("stdout", (1 to 4000).map(i => s"WARNING: PNCompiler: $i unresolved in /src/F$i.sql") :+ "generated 12 files in 340ms")
+    val stderr = recorded("stderr", List("WARNING: sun.misc.Unsafe::allocateMemory has been called"))
+    val outcome = RunOutcome(Some(0), timedOut = false, 1000L, 2L, stdout, stderr, LogShape.Timing(38000L, Some(("stdout", 812)), 2000L, anyOutput = true))
+
+    val json = BleepMcpServer.runResult(record, outcome)
+    json.noSpaces.length should be < 1500
+    json.noSpaces should not include "F3999.sql"
+    json.hcursor.get[Long]("runId") shouldBe Right(9L)
+    withClue("a program started as a script says which script: ") {
+      json.hcursor.get[String]("script") shouldBe Right("generate")
+    }
+    json.hcursor.downField("stdout").get[Int]("lines") shouldBe Right(4001)
+    json.hcursor.downField("stderr").get[List[String]]("text") shouldBe Right(List("WARNING: sun.misc.Unsafe::allocateMemory has been called"))
+    json.hcursor.get[List[String]]("rareLines").toOption.get.head should include("generated 12 files")
+    json.hcursor.downField("timing").get[String]("longestSilenceBefore") shouldBe Right("stdout L812")
+    json.hcursor.get[String]("read").toOption.get should include("bleep.run.output")
+  }
+
+  test("a run with short output returns it verbatim and no paging hint") {
+    val outcome = RunOutcome(
+      Some(0),
+      timedOut = false,
+      5L,
+      2L,
+      recorded("stdout", List("hello")),
+      recorded("stderr", Nil),
+      LogShape.Timing(5L, Some(("stdout", 1)), 0L, anyOutput = true)
+    )
+    val json = BleepMcpServer.runResult(record.copy(script = None), outcome)
+    json.hcursor.downField("stdout").get[List[String]]("text") shouldBe Right(List("hello"))
+    json.hcursor.get[String]("script").toOption shouldBe None
+    json.hcursor.get[String]("read").toOption shouldBe None
+  }
+
+  test("bleep.sourcegen reports each script as a recorded run, and fails if any script did") {
+    def outcome(exit: Int) =
+      RunOutcome(Some(exit), timedOut = false, 5L, 2L, recorded("stdout", List("ok")), recorded("stderr", Nil), LogShape.Timing(5L, None, 0L, anyOutput = true))
+    val gen = record.copy(id = 3L, script = None, sourcegenFor = List("a", "b"))
+    val other = record.copy(id = 4L, script = None, sourcegenFor = List("c"))
+
+    val json = BleepMcpServer.sourcegenResult(List(gen -> outcome(0), other -> outcome(1)))
+
+    json.hcursor.get[Boolean]("success") shouldBe Right(false)
+    val scripts = json.hcursor.downField("scripts")
+    scripts.downN(0).get[Long]("runId") shouldBe Right(3L)
+    scripts.downN(0).get[List[String]]("sourcegenFor") shouldBe Right(List("a", "b"))
+    scripts.downN(1).get[Int]("exitCode") shouldBe Right(1)
+    BleepMcpServer.sourcegenResult(List(gen -> outcome(0))).hcursor.get[Boolean]("success") shouldBe Right(true)
   }
 
   // ------------------------------------------------------------------ compile failure

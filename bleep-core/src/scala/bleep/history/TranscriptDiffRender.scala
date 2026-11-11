@@ -83,6 +83,15 @@ object TranscriptDiffRender {
       case head :: rest => (prefix + head) :: rest.map(line => " " * prefix.length + line)
     }
 
+  /** How many entries a capped list really had: `<field>Total` when [[TranscriptDiff]] cut it, else the shown count. */
+  private def totalOf(c: ACursor, field: String, shown: Int): Int =
+    opt[Int](c, s"${field}Total").getOrElse(shown)
+
+  private def moreLine(c: ACursor, field: String, shown: Int): List[String] = {
+    val total = totalOf(c, field, shown)
+    if (total > shown) List(s"    … ${total - shown} more") else Nil
+  }
+
   private def transition(c: ACursor, field: String): Option[(Option[String], Option[String])] =
     c.downField(field).success.map(hc => (opt[String](hc, "from"), opt[String](hc, "to")))
 
@@ -126,8 +135,9 @@ object TranscriptDiffRender {
       opt[List[String]](pc, field).getOrElse(Nil) match {
         case Nil   => Nil
         case files =>
+          val total = totalOf(pc, field, files.size)
           val shown = files.take(8).map(f => s"      $sign ${relDisplay(workspace, f)}")
-          val more = if (files.size > 8) List(s"        … ${files.size - 8} more") else Nil
+          val more = if (total > 8) List(s"        … ${total - 8} more") else Nil
           s"    $field:" :: shown ++ more
       }
 
@@ -163,6 +173,13 @@ object TranscriptDiffRender {
       lines ++= fileList(pc, "changedDependenciesRemoved", "-", baseWs)
     }
 
+    c.downField("modeOnly").success.foreach { mc =>
+      val counts = mc.as[Map[String, Int]].fold(err => sys.error(s"not a diff document: malformed field 'modeOnly' ($err)"), identity)
+      lines += ""
+      lines += s"  mode changes only (${counts.values.sum} projects):"
+      counts.toList.sortBy(_._1).foreach { case (label, n) => lines += s"    $label: $n" }
+    }
+
     val added = arr(c, "projectsAdded")
     if (added.nonEmpty) {
       lines += ""
@@ -171,12 +188,14 @@ object TranscriptDiffRender {
         val reason = opt[String](pc, "reason").fold("")(r => s"  ($r)")
         lines += s"    ${C.GREEN}+${C.RESET} ${get[String](pc, "project")}$reason"
       }
+      lines ++= moreLine(c, "projectsAdded", added.size)
     }
     val removed = arr(c, "projectsRemoved")
     if (removed.nonEmpty) {
       lines += ""
       lines += s"  only in #${side(c, "base").historyId}:"
       removed.foreach(pc => lines += s"    ${C.RED}-${C.RESET} ${get[String](pc, "project")}")
+      lines ++= moreLine(c, "projectsRemoved", removed.size)
     }
 
     lines.result().mkString("\n")
@@ -221,6 +240,7 @@ object TranscriptDiffRender {
           lines += ""
           lines += title
           items.foreach(tc => lines ++= entry(tc, icon, extra))
+          lines ++= moreLine(c, field, items.size)
       }
 
     def message(tc: ACursor): Option[String] = opt[String](tc, "message")

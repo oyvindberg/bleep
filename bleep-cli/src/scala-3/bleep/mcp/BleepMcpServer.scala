@@ -6,8 +6,10 @@ import bleep.bsp.protocol.BleepBspProtocol
 import bleep.bsp.protocol.DiagnosticSeverity
 import bleep.internal.BspClientDisplayProgress
 import bleep.history.{DiffBase, Transcript, TranscriptDiff, TranscriptFormat, TranscriptStore}
+import bleep.logs.{LogShape, RunLogReader}
 import cats.effect._
 import cats.effect.std.Queue
+import cats.syntax.all.*
 import ch.epfl.scala.bsp4j
 import ch.linkyard.mcp.server.{CallContext, McpError, McpServer, ToolFunction}
 import ch.linkyard.mcp.protocol
@@ -169,6 +171,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         programsTool,
         scriptsTool,
         runTool,
+        runOutputTool,
         restartTool
       )
 
@@ -257,12 +260,12 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
       None
     )
 
-    private def historyListTool: ToolFunction[IO] = textTool[DirArgs](
+    private def historyListTool: ToolFunction[IO] = textTool[HistoryListArgs](
       ToolFunction.Info(
         "bleep.history.list",
         Some("List Run History"),
         Some(
-          "List `directory`'s recorded compile/test runs, oldest first: historyId, timestamp, mode, targets and which client ran it — the same listing `bleep history` prints, as JSON. Pure file read — no build, no daemon."
+          "List `directory`'s recorded compile/test runs: the 20 most recent by default (limit/offset page back, mode filters), oldest first, each with historyId, timestamp, mode, targetCount and its first 3 targets, and which client ran it. Pure file read — no build, no daemon."
         ),
         // Genuinely read-only: reads `<workspace>/.bleep/builds/<variant>/history/*.json` and nothing else. No bootstrap, no daemon, no network, no build code.
         ToolFunction.Effect.ReadOnly,
@@ -277,7 +280,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.history.show",
         Some("Show History Entry"),
         Some(
-          "Full transcript of a completed compile/test run in `directory`'s per-worktree history: every diagnostic, every test failure with stack trace. Pass the historyId from a compile/test response, or omit it for the workspace's most recent run. Search it with `query` (case-insensitive regex over messages, paths, suite/test names, stack traces) instead of paging; project/limit/offset paginate. Pure file read — no build, no daemon."
+          "Full transcript of a completed compile/test run in `directory`'s per-worktree history: every diagnostic, every test failure with stack trace. Pass the historyId from a compile/test response, or omit it for the workspace's most recent run. Search it with `query` (case-insensitive regex over messages, paths, suite/test names, stack traces) instead of paging; project/limit/offset paginate (50 items by default, nextOffset when more remain). Stack traces are cut to 60 lines unless fullTraces:true. Pure file read — no build, no daemon."
         ),
         // Genuinely read-only: one transcript file, parsed and filtered. No bootstrap, no daemon, no network, no build code.
         ToolFunction.Effect.ReadOnly,
@@ -369,31 +372,17 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.sourcegen",
         Some("Source Generate"),
         Some(
-          "Run source generators for bleep projects. Only affects projects that have sourcegen scripts defined. A sourcegen script is a program from the checkout: it runs with your privileges and overwrites the generated sources it owns."
+          s"Run source generators for bleep projects. Only affects projects that have sourcegen scripts defined. A sourcegen script is a program from the checkout: it runs with your privileges and overwrites the generated sources it owns. Each script is recorded like a bleep.run: the result gives per script its runId, state, exitCode and the shape of its output; read lines with bleep.run.output. A script still running after ${BleepMcpServer.SourcegenTimeoutSeconds}s is killed."
         ),
         // NOT read-only, and not merely additive: sourcegen forks the build's own scripts (arbitrary code) and overwrites previously generated sources.
         ToolFunction.Effect.Destructive(idempotent = false),
         isOpenWorld = true
       ),
-      (args, _) =>
+      (args, context) =>
         bootstrapFor(args.directory).flatMap { started =>
-          val allProjects = resolveProjects(started, args.projects)
-          val sourcegenProjects = allProjects.filter { crossName =>
-            started.build.explodedProjects(crossName).sourcegen.values.nonEmpty
-          }
-          if (sourcegenProjects.isEmpty) {
-            IO.pure("""{"success":true,"message":"No projects with sourcegen scripts found."}""")
-          } else {
-            IO.fromEither(commands.SourceGen(false, sourcegenProjects).run(started))
-              .as(
-                Json
-                  .obj(
-                    "success" -> Json.fromBoolean(true),
-                    "projects" -> Json.arr(sourcegenProjects.map(p => Json.fromString(p.value)).toList*)
-                  )
-                  .noSpaces
-              )
-          }
+          val invocations = commands.SourceGen.plan(started.build, resolveProjects(started, args.projects))
+          if (invocations.isEmpty) IO.pure("""{"success":true,"message":"No projects with sourcegen scripts found."}""")
+          else runSourcegen(started, invocations, context)
         },
       None
     )
@@ -557,7 +546,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         "bleep.run",
         Some("Run"),
         Some(
-          "Compile and run a project or script. Executes that program in a forked JVM with your privileges — whatever it does to the filesystem, the network or any system it reaches, it does for real. Checks scripts first, then projects. Progress is reported while it runs: compile progress per project, then elapsed time, output line counts and the program's newest line. Returns exitCode, timedOut, durationMs, pid and stdout/stderr (first and last 200 lines each, with omitted counts). Hitting timeoutSeconds kills the program and returns what it printed with timedOut=true, rather than failing."
+          "Compile and run a project or script. Executes that program in a forked JVM with your privileges — whatever it does to the filesystem, the network or any system it reaches, it does for real. Checks scripts first, then projects. Progress is reported while it runs: compile progress per project, then elapsed time, output line counts and the program's newest line. The output is recorded in full under a runId; the result gives state, exitCode, durationMs, and per stream either the text (10 lines or fewer) or its shape: repeated line patterns with counts and line ranges, the rare lines quoted, and the longest silence. Read any lines with bleep.run.output. Hitting timeoutSeconds kills the program and returns state timedOut, rather than failing."
         ),
         // NOT read-only: this is arbitrary code execution by definition, preceded by a compile (which runs sourcegen/annotation processors/macros).
         ToolFunction.Effect.Destructive(idempotent = false),
@@ -567,6 +556,30 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         bootstrapFor(args.directory).flatMap { started =>
           val timeoutSeconds = args.timeoutSeconds.getOrElse(60)
           runProjectOrScript(started, args.name, args.args, args.mainClass, timeoutSeconds, context)
+        },
+      None
+    )
+
+    private def runOutputTool: ToolFunction[IO] = textTool[RunOutputArgs](
+      ToolFunction.Info(
+        "bleep.run.output",
+        Some("Run Output"),
+        Some(
+          "Lines of a program run by bleep.run, from `directory`'s run logs: a numbered line range of stdout or stderr, colour codes removed. Works while the program is still running. Use the line numbers and pattern ids from the bleep.run result to read exactly the lines you need. Pure file read — no build, no daemon."
+        ),
+        // Genuinely read-only: reads `<workspace>/.bleep/builds/<variant>/run-logs/<id>/` and nothing else. No bootstrap, no daemon, no network, no build code.
+        ToolFunction.Effect.ReadOnly,
+        isOpenWorld = false
+      ),
+      (args, _) =>
+        IO.blocking {
+          val buildPaths = historyWorkspacePaths(args.directory, what = "directory")
+          val record = args.runId match {
+            case Some(id) => RunLogStore.read(buildPaths, id)
+            case None     => RunLogStore.readLatest(buildPaths)
+          }
+          val page = RunLogReader.read(RunLogStore.runDir(buildPaths, record.id), args.stream, args.from, args.to, args.pattern)
+          BleepMcpServer.runOutputPage(record, args.stream, args.pattern, page).noSpaces
         },
       None
     )
@@ -805,6 +818,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
             trr,
             includeThrowables = false,
             includePassedSuiteOutput = showOutput,
+            maxTraceLines = None,
             query = None,
             limit = None,
             offset = None
@@ -826,21 +840,17 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
         case None     => json
       }
 
-    /** The workspace's recorded runs, oldest first — the same listing `bleep history` prints, as JSON. A pure read of `directory`'s per-worktree history. */
-    private def historyList(args: DirArgs): IO[String] =
+    /** The workspace's most recent runs, oldest first. A pure read of `directory`'s per-worktree history.
+      *
+      * Each entry names only its first few targets: a whole-build run targets every project, and one listing repeated that for every entry.
+      */
+    private def historyList(args: HistoryListArgs): IO[String] =
       IO.blocking {
         val buildPaths = historyWorkspacePaths(args.directory, what = "directory")
-        val entries = TranscriptStore.list(buildPaths).map { id =>
-          val t = TranscriptStore.read(buildPaths, id)
-          Json.obj(
-            "historyId" -> Json.fromLong(t.id),
-            "timestampMs" -> Json.fromLong(t.timestampMs),
-            "mode" -> Json.fromString(t.mode),
-            "targets" -> Json.arr(t.targets.map(Json.fromString)*),
-            "client" -> Json.fromString(t.client)
-          )
-        }
-        Json.obj("entries" -> Json.arr(entries*)).noSpaces
+        val all = TranscriptStore.list(buildPaths).map(id => TranscriptStore.read(buildPaths, id))
+        BleepMcpServer
+          .historyListing(all, args.mode, args.limit.getOrElse(BleepMcpServer.HistoryListDefaultLimit), args.offset.getOrElse(0))
+          .noSpaces
       }
 
     /** Full transcript of one history entry, by id or most recent — a pure read of `directory`'s per-worktree history. */
@@ -851,7 +861,18 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
           case Some(id) => TranscriptStore.read(buildPaths, id)
           case None     => TranscriptStore.readLatest(buildPaths)
         }
-        TranscriptFormat.details(transcript, args.project, args.query, args.limit, args.offset).noSpaces
+        // Paged and trace-capped by default: a test run that timed out carries a thread dump per failure, thousands of lines each, and an agent that asked
+        // for two failures got 47k characters. limit/nextOffset and fullTraces get everything, deliberately.
+        TranscriptFormat
+          .details(
+            transcript,
+            args.project,
+            args.query,
+            Some(args.limit.getOrElse(BleepMcpServer.HistoryShowDefaultLimit)),
+            args.offset,
+            maxTraceLines = if (args.fullTraces) None else Some(BleepMcpServer.HistoryShowTraceLines)
+          )
+          .noSpaces
       }
 
     /** Show effective project configuration after templates have been applied. */
@@ -976,14 +997,14 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
           val scriptDefs = started.build.scripts(sn).values
           scriptDefs.headOption match {
             case Some(model.ScriptDef.Main(project, main, _, _, _)) =>
-              runProject(started, project, Some(main), args, timeoutSeconds, context)
+              runProject(started, project, Some(sn.value), Some(main), args, timeoutSeconds, context)
             case _ =>
               IO.raiseError(new BleepException.Text(s"Script '$name' has no main class definition"))
           }
         case None =>
           started.globs.exactProjectMap.get(name) match {
             case Some(projectName) =>
-              runProject(started, projectName, mainClassOverride, args, timeoutSeconds, context)
+              runProject(started, projectName, None, mainClassOverride, args, timeoutSeconds, context)
             case None =>
               IO.raiseError(new BleepException.Text(s"'$name' is not a valid project or script name"))
           }
@@ -1000,6 +1021,7 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
     private def runProject(
         started: Started,
         project: model.CrossProjectName,
+        script: Option[String],
         mainClassOverride: Option[String],
         args: List[String],
         timeoutSeconds: Int,
@@ -1014,46 +1036,108 @@ class BleepMcpServer(logger: Logger, userPaths: UserPaths, ec: ExecutionContext)
             .getOrElse(throw new BleepException.Text(s"No main class for ${project.value}. Specify with 'mainClass' parameter."))
         }
 
+        result <- forkRecorded(started, project, script, Nil, mainClass, args, timeoutSeconds, context)
+      } yield BleepMcpServer.runResult(result._1, result._2).noSpaces
+
+    /** Fork an already-compiled main class as a recorded run: it gets its run id before it starts, so its output can be paged with bleep.run.output while it is
+      * still running, and the record says how it ended even if the call is cancelled.
+      */
+    private def forkRecorded(
+        started: Started,
+        project: model.CrossProjectName,
+        script: Option[String],
+        sourcegenFor: List[String],
+        mainClass: String,
+        args: List[String],
+        timeoutSeconds: Int,
+        context: CallContext[IO]
+    ): IO[(RunRecord, RunOutcome)] =
+      for {
         cmd <- IO.fromEither(
           internal.jvmRunCommand(started.resolvedProject(project), started.resolvedJvm, project, Some(mainClass), args)
         )
 
         _ <- streamNotification(context, protocol.LoggingLevel.Info, s"[run] executing ${abbreviateCommand(cmd)}")
 
-        outcome <- SubprocessRunner.run(
-          cmd,
-          started.buildPaths.cwd,
-          timeoutSeconds,
-          status => streamNotification(context, protocol.LoggingLevel.Info, s"[run] $mainClass $status")
+        record <- IO.blocking(
+          RunLogStore.create(
+            started.buildPaths,
+            project = project.value,
+            script = script,
+            sourcegenFor = sourcegenFor,
+            mainClass = mainClass,
+            args = args,
+            command = abbreviateCommand(cmd),
+            timeoutSeconds = timeoutSeconds,
+            startedAtMs = System.currentTimeMillis()
+          )
         )
+        pidRef <- Ref.of[IO, Option[Long]](None)
+
+        outcome <- SubprocessRunner
+          .run(
+            cmd,
+            started.buildPaths.cwd,
+            commands.Run.environment(started, project),
+            timeoutSeconds,
+            RunLogStore.runDir(started.buildPaths, record.id),
+            SubprocessRunner.MaxStreamBytes,
+            pid => pidRef.set(Some(pid)) >> IO.blocking(RunLogStore.update(started.buildPaths, record.copy(pid = Some(pid)))),
+            status => streamNotification(context, protocol.LoggingLevel.Info, s"[run #${record.id}] $mainClass $status")
+          )
+          .guaranteeCase {
+            case cats.effect.kernel.Outcome.Succeeded(_) => IO.unit
+            case cats.effect.kernel.Outcome.Canceled()   =>
+              pidRef.get.flatMap(pid => IO.blocking(RunLogStore.update(started.buildPaths, record.copy(pid = pid, state = RunState.Cancelled))))
+            case cats.effect.kernel.Outcome.Errored(_) =>
+              pidRef.get.flatMap(pid => IO.blocking(RunLogStore.update(started.buildPaths, record.copy(pid = pid, state = RunState.Failed))))
+          }
+
+        finished = record.copy(
+          pid = Some(outcome.pid),
+          state = if (outcome.timedOut) RunState.TimedOut else RunState.Exited,
+          exitCode = outcome.exitCode,
+          durationMs = Some(outcome.durationMs)
+        )
+        _ <- IO.blocking(RunLogStore.update(started.buildPaths, finished))
 
         _ <-
           if (outcome.timedOut)
             streamNotification(
               context,
               protocol.LoggingLevel.Error,
-              s"[run] $mainClass (pid ${outcome.pid}) killed after ${timeoutSeconds}s; the output it produced up to that point is in the result"
+              s"[run #${record.id}] $mainClass (pid ${outcome.pid}) killed after ${timeoutSeconds}s; its output up to that point is in run #${record.id}"
             )
           else
             streamNotification(
               context,
               protocol.LoggingLevel.Info,
-              s"[run] $mainClass exited ${outcome.exitCode.get} after ${outcome.durationMs}ms"
+              s"[run #${record.id}] $mainClass exited ${outcome.exitCode.get} after ${outcome.durationMs}ms"
             )
-      } yield {
-        val fields = List(
-          "project" -> Json.fromString(project.value),
-          "mainClass" -> Json.fromString(mainClass),
-          "pid" -> Json.fromLong(outcome.pid),
-          "exitCode" -> outcome.exitCode.fold(Json.Null)(Json.fromInt),
-          "timedOut" -> Json.fromBoolean(outcome.timedOut),
-          "timeoutSeconds" -> Json.fromInt(timeoutSeconds),
-          "durationMs" -> Json.fromLong(outcome.durationMs),
-          "stdout" -> Json.fromString(outcome.stdout.render),
-          "stderr" -> Json.fromString(outcome.stderr.render)
-        )
-        Json.obj(fields ++ outcome.stdout.countsJson("stdout") ++ outcome.stderr.countsJson("stderr")*).noSpaces
-      }
+      } yield (finished, outcome)
+
+    /** `bleep.sourcegen`: the scripts `bleep sourcegen` would run, each forked as a recorded run instead of attached to the terminal — here the terminal is the
+      * MCP protocol channel. All script projects (and the projects their `inputs` name) compile first; then the scripts run one after another, every one of
+      * them even if an earlier one failed, as each owns different generated sources.
+      */
+    private def runSourcegen(started: Started, invocations: List[commands.SourceGen.Invocation], context: CallContext[IO]): IO[String] = {
+      val toCompile = invocations.flatMap(i => i.script.project :: i.script.inputs.values.toList).distinct.toArray
+      for {
+        _ <- compileForRun(started, toCompile, context)
+        results <- invocations.traverse { i =>
+          forkRecorded(
+            started,
+            i.script.project,
+            None,
+            i.forProjects.map(_.value),
+            i.script.main,
+            i.args,
+            BleepMcpServer.SourcegenTimeoutSeconds,
+            context
+          )
+        }
+      } yield BleepMcpServer.sourcegenResult(results).noSpaces
+    }
 
     /** The compile that precedes a run.
       *
@@ -1256,6 +1340,7 @@ object BleepMcpServer {
       |with that historyId. Run history is per-worktree: the compile daemon writes a transcript of every run
       |into the workspace itself, shared with the CLI (`bleep history`) and surviving MCP server restarts —
       |so the bleep.history.* tools take `directory` too.
+      |bleep.run returns its output's shape plus a runId; read lines with bleep.run.output.
       |
       |The agent inner loop: after an edit, pass diffBase:"previous" to bleep.compile/bleep.test to get a
       |"diff" section — newly failing/fixed tests, new/resolved diagnostics — instead of re-reading full
@@ -1263,6 +1348,18 @@ object BleepMcpServer {
       |the build starts, so a bad id fails without costing a build.""".stripMargin
 
   val MaxCompileFailureDiagnostics = 5
+
+  /** bleep.history.show returns this many diagnostics/failures unless the caller passes `limit`; `nextOffset` says when more remain. */
+  val HistoryShowDefaultLimit = 50
+
+  /** bleep.history.show cuts each stack trace to this many lines unless the caller passes `fullTraces: true`. */
+  val HistoryShowTraceLines = 60
+
+  /** bleep.history.list lists this many of the most recent runs unless the caller passes `limit`. */
+  val HistoryListDefaultLimit = 20
+
+  /** bleep.history.list names this many targets per entry, next to `targetCount`. */
+  val HistoryListTargetsShown = 3
 
   /** What a `bleep.test` call asks the daemon for. The caller's `env` goes over the MCP server's own environment: that one is whatever the server was started
     * with, often hours ago and from another shell, so the caller has no other way to set a variable for one run.
@@ -1278,6 +1375,80 @@ object BleepMcpServer {
       flamegraph = false,
       env = clientEnv ++ args.env
     )
+
+  /** One page of a workspace's history, oldest first: the `limit` most recent entries of `mode` after skipping `offset` of the most recent. */
+  def historyListing(transcripts: List[Transcript], mode: Option[String], limit: Int, offset: Int): Json = {
+    val all = transcripts.filter(t => mode.forall(_ == t.mode))
+    val newestFirst = all.reverse.drop(offset)
+    val entries = newestFirst.take(limit).reverse.map { t =>
+      Json.obj(
+        "historyId" -> Json.fromLong(t.id),
+        "timestampMs" -> Json.fromLong(t.timestampMs),
+        "mode" -> Json.fromString(t.mode),
+        "targetCount" -> Json.fromInt(t.targets.size),
+        "targets" -> Json.arr(t.targets.take(HistoryListTargetsShown).map(Json.fromString)*),
+        "client" -> Json.fromString(t.client)
+      )
+    }
+    val fields = List.newBuilder[(String, Json)]
+    fields += "total" -> Json.fromInt(all.size)
+    if (newestFirst.sizeIs > limit) fields += "olderOffset" -> Json.fromInt(offset + limit)
+    fields += "entries" -> Json.arr(entries*)
+    Json.obj(fields.result()*)
+  }
+
+  /** What `bleep.run` returns: how the program ended and the shape of what it printed, never the output itself — that is in run-logs, a bleep.run.output call
+    * away. Short streams come back verbatim; long ones as their repeated patterns, plus the few lines that are different and when the program went quiet.
+    */
+  /** One page of `bleep.run.output`. */
+  def runOutputPage(record: RunRecord, stream: String, pattern: Option[Int], page: RunLogReader.Page): Json = {
+    val fields = List.newBuilder[(String, Json)]
+    fields += "runId" -> Json.fromLong(record.id)
+    fields += "state" -> Json.fromString(record.state)
+    fields += "stream" -> Json.fromString(stream)
+    fields += "totalLines" -> Json.fromInt(page.totalLines)
+    pattern.foreach(p => fields += "pattern" -> Json.fromString(s"p$p"))
+    fields += "from" -> Json.fromInt(page.from)
+    fields += "to" -> Json.fromInt(page.to)
+    fields += "lines" -> Json.arr(page.lines.map { case (n, t) => Json.fromString(s"$n: $t") }*)
+    page.nextFrom.foreach(n => fields += "nextFrom" -> Json.fromInt(n))
+    Json.obj(fields.result()*)
+  }
+
+  /** A source generator that has not finished in this long is stuck, not slow. */
+  val SourcegenTimeoutSeconds = 600
+
+  /** `bleep.sourcegen`'s result: one recorded run per script. `success` only when every script exited 0. */
+  def sourcegenResult(results: List[(RunRecord, RunOutcome)]): Json =
+    Json.obj(
+      "success" -> Json.fromBoolean(results.forall { case (_, outcome) => outcome.exitCode.contains(0) }),
+      "scripts" -> Json.arr(results.map { case (record, outcome) => runResult(record, outcome) }*)
+    )
+
+  def runResult(record: RunRecord, outcome: RunOutcome): Json = {
+    val fields = List.newBuilder[(String, Json)]
+    fields += "runId" -> Json.fromLong(record.id)
+    fields += "project" -> Json.fromString(record.project)
+    record.script.foreach(s => fields += "script" -> Json.fromString(s))
+    if (record.sourcegenFor.nonEmpty) fields += "sourcegenFor" -> Json.arr(record.sourcegenFor.map(Json.fromString)*)
+    fields += "mainClass" -> Json.fromString(record.mainClass)
+    fields += "state" -> Json.fromString(record.state)
+    fields += "exitCode" -> outcome.exitCode.fold(Json.Null)(Json.fromInt)
+    if (outcome.timedOut) fields += "timeoutSeconds" -> Json.fromInt(record.timeoutSeconds)
+    fields += "durationMs" -> Json.fromLong(outcome.durationMs)
+    fields += "pid" -> Json.fromLong(outcome.pid)
+    fields += "stdout" -> LogShape.streamJson(outcome.stdout.shape, outcome.stdout.droppedLines)
+    fields += "stderr" -> LogShape.streamJson(outcome.stderr.shape, outcome.stderr.droppedLines)
+    val rare = LogShape.pickRare(List(outcome.stdout.shape, outcome.stderr.shape))
+    if (rare.nonEmpty) fields += "rareLines" -> LogShape.rareJson(rare)
+    fields += "timing" -> LogShape.timingJson(outcome.timing)
+    val summarized = outcome.stdout.shape.inline.isEmpty || outcome.stderr.shape.inline.isEmpty
+    if (summarized)
+      fields += "read" -> Json.fromString(
+        s"bleep.run.output {runId:${record.id}, stream, from, to} returns numbered lines (negative = from the end); pattern:<n> pages only pattern p<n>"
+      )
+    Json.obj(fields.result()*)
+  }
 
   /** Why the compile that precedes a `bleep.run` failed, in the failure itself.
     *

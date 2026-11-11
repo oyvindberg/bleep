@@ -47,7 +47,7 @@ object History {
         case Some(id) => TranscriptStore.read(buildPaths, id)
         case None     => TranscriptStore.readLatest(buildPaths)
       }
-      println(TranscriptFormat.details(transcript, project, query, limit, offset).spaces2)
+      println(TranscriptFormat.details(transcript, project, query, limit, offset, maxTraceLines = None).spaces2)
       Right(())
     }
   }

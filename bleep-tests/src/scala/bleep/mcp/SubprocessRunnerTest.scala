@@ -1,5 +1,6 @@
 package bleep.mcp
 
+import bleep.logs.{LogShape, RunLogReader, StreamRecorder}
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 
@@ -39,14 +40,24 @@ class SubprocessRunnerTest extends AnyFunSuite with Matchers with BeforeAndAfter
     if (compile.waitFor() != 0) throw new RuntimeException(s"could not compile the probe program:\n$output")
   }
 
-  /** Run, collecting every heartbeat line the runner emitted. */
-  private def runCollecting(cmd: List[String], timeoutSeconds: Int): (RunOutcome, List[String]) = {
+  /** Run into a fresh log directory, collecting every heartbeat line the runner emitted. */
+  private def runCollecting(cmd: List[String], timeoutSeconds: Int, maxStreamBytes: Long): (RunOutcome, List[String], Path) =
+    runCollecting(cmd, sys.env.toList, timeoutSeconds, maxStreamBytes)
+
+  private def runCollecting(cmd: List[String], env: List[(String, String)], timeoutSeconds: Int, maxStreamBytes: Long): (RunOutcome, List[String], Path) = {
+    val logDir = Files.createTempDirectory(cwd, "run")
     val seen = new java.util.concurrent.ConcurrentLinkedQueue[String]()
-    val outcome = SubprocessRunner.run(cmd, cwd, timeoutSeconds, line => IO(seen.add(line)).void).unsafeRunSync()
-    (outcome, seen.toArray.toList.map(_.asInstanceOf[String]))
+    val outcome =
+      SubprocessRunner.run(cmd, cwd, env, timeoutSeconds, logDir, maxStreamBytes, _ => IO.unit, line => IO(seen.add(line)).void).unsafeRunSync()
+    (outcome, seen.toArray.toList.map(_.asInstanceOf[String]), logDir)
   }
 
-  private def capture(lines: String*): StreamCapture = lines.foldLeft(StreamCapture.empty)(_.append(_))
+  private def runCollecting(cmd: List[String], timeoutSeconds: Int): (RunOutcome, List[String]) = {
+    val (outcome, heartbeats, _) = runCollecting(cmd, timeoutSeconds, SubprocessRunner.MaxStreamBytes)
+    (outcome, heartbeats)
+  }
+
+  private def text(result: StreamRecorder.Result): List[String] = result.shape.inline.getOrElse(fail(s"expected verbatim text, got ${result.shape}"))
 
   /** Wait for the probe to record its pid, i.e. for it to actually be running.
     *
@@ -78,8 +89,8 @@ class SubprocessRunnerTest extends AnyFunSuite with Matchers with BeforeAndAfter
 
     outcome.exitCode shouldBe Some(3)
     outcome.timedOut shouldBe false
-    outcome.stdout.render shouldBe "to-stdout"
-    outcome.stderr.render shouldBe "to-stderr"
+    text(outcome.stdout) shouldBe List("to-stdout")
+    text(outcome.stderr) shouldBe List("to-stderr")
     outcome.pid should be > 0L
     outcome.durationMs should be >= 0L
   }
@@ -90,8 +101,10 @@ class SubprocessRunnerTest extends AnyFunSuite with Matchers with BeforeAndAfter
 
     outcome.timedOut shouldBe true
     outcome.exitCode shouldBe None
-    outcome.stdout.render should include("starting-work")
-    outcome.stdout.render should include("about-to-hang")
+    text(outcome.stdout) shouldBe List("starting-work", "about-to-hang")
+    withClue("the hang is visible as the silence after the last line: ") {
+      outcome.timing.silentAtEndMs should be >= 4000L
+    }
   }
 
   test("a timed-out program is actually killed, not merely abandoned") {
@@ -108,7 +121,6 @@ class SubprocessRunnerTest extends AnyFunSuite with Matchers with BeforeAndAfter
   }
 
   test("progress is reported while the program is still running, not at the end") {
-    // The whole point of the change: the old code could emit nothing before exit, by construction.
     val (outcome, heartbeats) = runCollecting(probe("out", "first-line", "sleep", "5000"), timeoutSeconds = 60)
 
     outcome.exitCode shouldBe Some(0)
@@ -127,20 +139,24 @@ class SubprocessRunnerTest extends AnyFunSuite with Matchers with BeforeAndAfter
     val (outcome, heartbeats) = runCollecting(probe("sleep", "300000"), timeoutSeconds = 5)
 
     outcome.timedOut shouldBe true
-    outcome.stdout.totalLines shouldBe 0
+    outcome.stdout.shape.lines shouldBe 0
+    outcome.timing.anyOutput shouldBe false
     heartbeats should not be empty
   }
 
-  test("a flood of output is bounded, counted, and keeps both ends") {
-    val lines = StreamCapture.HeadLines + StreamCapture.TailLines + 1000
-    val (outcome, _) = runCollecting(probe("lines", lines.toString), timeoutSeconds = 120)
+  test("a flood is recorded whole on disk and summarized, with every line in the index") {
+    val lines = 5000
+    val (outcome, _, logDir) = runCollecting(probe("lines", lines.toString), timeoutSeconds = 120, SubprocessRunner.MaxStreamBytes)
 
     outcome.exitCode shouldBe Some(0)
-    outcome.stdout.totalLines shouldBe lines
-    outcome.stdout.omittedLines shouldBe 1000
-    outcome.stdout.render should include("line-1\n")
-    outcome.stdout.render should include(s"line-$lines")
-    outcome.stdout.countsJson("stdout").map(_._1) should contain("stdoutOmittedLines")
+    outcome.stdout.shape.lines shouldBe lines
+    outcome.stdout.shape.inline shouldBe None
+    outcome.stdout.shape.patterns.map(_.count) shouldBe List(lines)
+    Files.size(logDir.resolve("stdout.log")) shouldBe outcome.stdout.bytes
+    Files.size(logDir.resolve("stdout.idx")) shouldBe lines.toLong * StreamRecorder.IndexEntryBytes
+
+    val page = RunLogReader.read(logDir, "stdout", from = Some(-2), to = None, pattern = None)
+    page.lines shouldBe List(4999 -> "line-4999", 5000 -> "line-5000")
   }
 
   test("a program that outproduces the pipe buffer is not deadlocked by it") {
@@ -149,19 +165,53 @@ class SubprocessRunnerTest extends AnyFunSuite with Matchers with BeforeAndAfter
 
     outcome.timedOut shouldBe false
     outcome.exitCode shouldBe Some(0)
-    outcome.stdout.totalLines shouldBe 4000
+    outcome.stdout.shape.lines shouldBe 4000
   }
 
-  test("colour codes are stripped, because they are noise to a reader that is not a terminal") {
-    val (outcome, _) = runCollecting(probe("ansi"), timeoutSeconds = 60)
-    outcome.stdout.render shouldBe "red-text"
+  test("colour codes are kept on disk and stripped from what the agent reads") {
+    val (outcome, _, logDir) = runCollecting(probe("ansi"), timeoutSeconds = 60, SubprocessRunner.MaxStreamBytes)
+    text(outcome.stdout) shouldBe List("red-text")
+    Files.readString(logDir.resolve("stdout.log")) should include("\u001b[31m")
+    RunLogReader.read(logDir, "stdout", from = None, to = None, pattern = None).lines shouldBe List(1 -> "red-text")
+  }
+
+  test("the program sees exactly the environment it is given, not the server's") {
+    val env = List("PATH" -> sys.env("PATH"), "BLEEP_RUN_PROBE" -> "from-build")
+    val (outcome, _, _) = runCollecting(probe("env", "BLEEP_RUN_PROBE", "env", "HOME"), env, timeoutSeconds = 60, SubprocessRunner.MaxStreamBytes)
+    text(outcome.stdout) shouldBe List("BLEEP_RUN_PROBE=from-build", "HOME=null")
+  }
+
+  test("a last line without a newline is still a line") {
+    val (outcome, _) = runCollecting(probe("out", "first", "print", "no-newline"), timeoutSeconds = 60)
+    text(outcome.stdout) shouldBe List("first", "no-newline")
+  }
+
+  test("a runaway stream stops being recorded at the cap and counts what it dropped") {
+    val (outcome, _, logDir) = runCollecting(probe("lines", "1000"), timeoutSeconds = 60, maxStreamBytes = 1000L)
+
+    Files.size(logDir.resolve("stdout.log")) shouldBe 1000L
+    val recorded = outcome.stdout.shape.lines
+    (recorded + outcome.stdout.droppedLines) shouldBe 1000L
+    outcome.stdout.droppedLines should be > 0L
+    LogShape.streamJson(outcome.stdout.shape, outcome.stdout.droppedLines).hcursor.get[Long]("droppedLines") shouldBe Right(outcome.stdout.droppedLines)
   }
 
   test("cancelling the call kills the program rather than leaking it") {
     val started = cwd.resolve("cancel-started.txt")
     Files.deleteIfExists(started)
 
-    val program = SubprocessRunner.run(probe("touch", started.toString, "sleep", "600000"), cwd, timeoutSeconds = 300, _ => IO.unit)
+    val logDir = Files.createTempDirectory(cwd, "run")
+    val program =
+      SubprocessRunner.run(
+        probe("touch", started.toString, "sleep", "600000"),
+        cwd,
+        sys.env.toList,
+        300,
+        logDir,
+        SubprocessRunner.MaxStreamBytes,
+        _ => IO.unit,
+        _ => IO.unit
+      )
     val fiber = program.start.unsafeRunSync()
     val pid = awaitPid(started)
     fiber.cancel.unsafeRunSync()
@@ -169,67 +219,46 @@ class SubprocessRunnerTest extends AnyFunSuite with Matchers with BeforeAndAfter
     awaitDead(pid)
   }
 
-  // ------------------------------------------------------------------ output capture
+  // ------------------------------------------------------------------ reading recorded output
 
-  test("short output survives whole, with nothing elided") {
-    val out = capture("first", "second", "third")
-    out.render shouldBe "first\nsecond\nthird"
-    out.totalLines shouldBe 3
-    out.omittedLines shouldBe 0
-    out.countsJson("stdout").map(_._1) shouldBe List("stdoutLines")
-  }
+  test("line ranges: positive, negative, capped per call with nextFrom, and filtered by pattern") {
+    val (outcome, _, logDir) = runCollecting(probe("mixed", "300"), timeoutSeconds = 60, SubprocessRunner.MaxStreamBytes)
+    outcome.stdout.shape.lines shouldBe 600
 
-  test("long output keeps the beginning and the end, and says how much it dropped") {
-    val total = StreamCapture.HeadLines + StreamCapture.TailLines + 500
-    val out = capture((1 to total).map(i => s"line $i")*)
+    val middle = RunLogReader.read(logDir, "stdout", from = Some(10), to = Some(12), pattern = None)
+    middle.lines.map(_._1) shouldBe List(10, 11, 12)
 
-    out.totalLines shouldBe total
-    out.omittedLines shouldBe 500
+    val tail = RunLogReader.read(logDir, "stdout", from = None, to = None, pattern = None)
+    tail.lines.map(_._1) shouldBe (581 to 600).toList
 
-    val rendered = out.render
-    // How it started, and where it got to — the two questions an agent reading a run actually has.
-    rendered should include("line 1\n")
-    rendered should include(s"line $total")
-    rendered should include("[500 lines omitted]")
-    // The point of bounding at all: one chatty program must not be able to push everything else out of the agent's context.
-    rendered.linesIterator.size shouldBe (StreamCapture.HeadLines + StreamCapture.TailLines + 1)
-  }
+    val wide = RunLogReader.read(logDir, "stdout", from = Some(1), to = None, pattern = None)
+    wide.lines should have size RunLogReader.MaxLinesPerCall
+    wide.nextFrom shouldBe Some(RunLogReader.MaxLinesPerCall + 1)
 
-  test("a single enormous line is truncated rather than admitted whole") {
-    // A program printing one megabyte without a newline would otherwise defeat the line bound entirely.
-    val out = capture("x" * 100000)
-    out.render.length shouldBe StreamCapture.MaxLineChars
-    out.render should endWith("…")
-  }
-
-  test("lastLine follows the tail once the head is full, and the head while it is not") {
-    capture("only").lastLine shouldBe Some("only")
-    capture((1 to StreamCapture.HeadLines + 10).map(i => s"line $i")*).lastLine shouldBe Some(s"line ${StreamCapture.HeadLines + 10}")
+    val tickPattern = outcome.stdout.shape.patterns.find(_.text.startsWith("tick")).get.id
+    val ticks = RunLogReader.read(logDir, "stdout", from = None, to = Some(20), pattern = Some(tickPattern))
+    ticks.lines.map(_._2.takeWhile(_ != ' ')).distinct shouldBe List("tick")
+    ticks.lines.map(_._1) shouldBe List(1, 3, 5, 7, 9, 11, 13, 15, 17, 19)
   }
 
   // ------------------------------------------------------------------ heartbeat
 
   test("the heartbeat carries the program's newest line, which is the part that proves it is alive") {
     // Elapsed time alone cannot separate a program doing work from one deadlocked on a socket. The line it printed four seconds ago can.
-    val line = SubprocessRunner.statusLine(elapsedSeconds = 47L, stdout = capture("processing batch 14/50"), stderr = StreamCapture.empty)
+    val line = SubprocessRunner.statusLine(elapsedSeconds = 47L, stdoutLines = 1, stderrLines = 0, lastLine = Some("processing batch 14/50"))
     line should include("47s")
     line should include("1 lines stdout")
     line should include("last: processing batch 14/50")
   }
 
-  test("stderr wins the last-line slot, because that is where a program in trouble talks") {
-    val line = SubprocessRunner.statusLine(elapsedSeconds = 3L, stdout = capture("working"), stderr = capture("connection refused"))
-    line should include("last: connection refused")
-  }
-
   test("a silent program still produces an honest line rather than a bare elapsed count") {
-    val line = SubprocessRunner.statusLine(elapsedSeconds = 12L, stdout = StreamCapture.empty, stderr = StreamCapture.empty)
+    val line = SubprocessRunner.statusLine(elapsedSeconds = 12L, stdoutLines = 0, stderrLines = 0, lastLine = None)
     line should include("12s")
     line should include("no output yet")
   }
 
   test("an enormous last line is abbreviated so one heartbeat cannot flood the transcript") {
-    val line = SubprocessRunner.statusLine(elapsedSeconds = 1L, stdout = capture("y" * 5000), stderr = StreamCapture.empty)
+    val line = SubprocessRunner.statusLine(elapsedSeconds = 1L, stdoutLines = 1, stderrLines = 0, lastLine = Some("y" * 5000))
     line.length should be < (SubprocessRunner.MaxHeartbeatLineChars + 100)
   }
 }
@@ -254,6 +283,12 @@ object SubprocessRunnerTest {
        |      switch (args[i]) {
        |        case "out"   -> System.out.println(args[++i]);
        |        case "err"   -> System.err.println(args[++i]);
+       |        case "print" -> System.out.print(args[++i]);
+       |        case "env"   -> System.out.println(args[i + 1] + "=" + System.getenv(args[++i]));
+       |        case "mixed" -> {
+       |          int n = Integer.parseInt(args[++i]);
+       |          for (int k = 1; k <= n; k++) { System.out.println("tick " + k); System.out.println("tock " + k); }
+       |        }
        |        case "ansi"  -> System.out.println($Esc + "[31mred-text" + $Esc + "[0m");
        |        case "sleep" -> Thread.sleep(Long.parseLong(args[++i]));
        |        case "touch" -> {

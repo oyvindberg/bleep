@@ -101,6 +101,16 @@ and reason (`up-to-date` → `incremental`), `invalidatedFilesAdded`/`Removed`,
 an edit that only shifts a warning down the file does not report it as new plus
 resolved.
 
+A project is listed as changed only when there is something to act on: a
+diagnostic appeared or went away, the project started or stopped failing, or it
+recompiled because its own inputs changed. The rest of the build settling —
+projects going `incremental` → `up-to-date`, or everything behind a fixed
+dependency going from skipped to success — is counted per transition under
+`modeOnly` instead of listed. Lists that can be as long as the build (added or
+removed projects and tests, invalidated files, changed dependencies) keep their
+first 10 entries plus a `<name>Total`, and the text rendering prints the
+remainder as `... N more`.
+
 ## What got slower: `--timing`
 
 `bleep history diff <base> <target> --timing` is the other half: it compares
@@ -175,3 +185,9 @@ The [MCP server](/docs/usage/mcp-server) exposes the same records:
 `bleep.history.list` / `show` / `diff` / `diff-timing` mirror the CLI —
 including `baseDirectory` for cross-worktree diffs. The base is validated
 before the build starts, so a bad id fails without costing a build.
+
+Over MCP the reads are bounded for an agent's context: `bleep.history.list`
+returns the 20 most recent runs, each with its first 3 targets and a
+`targetCount`, and `bleep.history.show` returns 50 items per page with stack
+traces cut to 60 lines unless `fullTraces: true`. The CLI's
+`bleep history show` keeps uncut traces and no default limit.
