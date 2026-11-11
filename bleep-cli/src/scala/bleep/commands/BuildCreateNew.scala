@@ -67,7 +67,7 @@ case class BuildCreateNew(
 
 object BuildCreateNew {
 
-  /** Which language flavor `bleep new` produces. */
+  /** Which language flavor `bleep build new` produces. */
   sealed abstract class Language(val value: String)
   object Language {
     case object Java extends Language("java")
