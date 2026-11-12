@@ -1954,9 +1954,20 @@ class MultiWorkspaceBspServer(
         // ConcurrentHashMap rather than `Ref[IO, Map[...]]` because both handler factories are called synchronously here, before the IO program starts.
         // KSP doesn't need an equivalent map: the runner emits files to disk that the project's source set picks up directly; no compile-time data flow.
         val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
+        // Per-build map populated by the compile handler and read by the event consumer — see `projectBuiltEvent`.
+        val compileDiagnostics = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, List[BleepBspProtocol.Diagnostic]]()
 
         val compileHandler =
-          makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker, recorder, Stamps.pass(started, publishingAs = None))
+          makeCompileHandler(
+            started,
+            workspace,
+            params.originId,
+            apResults,
+            compileDiagnostics,
+            diagnosticTracker,
+            recorder,
+            Stamps.pass(started, publishingAs = None)
+          )
         val sourcegenHandler = makeSourcegenHandler(started, params.originId, regardless = if (sourcegenOnly) projectsToCompile else Set.empty)
 
         // Create link handler
@@ -2009,7 +2020,14 @@ class MultiWorkspaceBspServer(
 
           // Start event consumer fiber - use guarantee to ensure cleanup on cancellation/error
           consumerErrorRef <- Ref.of[IO, Option[Throwable]](None)
-          eventConsumerFiber <- consumeCompileEvents(eventQueue, params.originId, killSignal, traceRecorder, recorder).compile.drain.handleErrorWith { e =>
+          eventConsumerFiber <- consumeCompileEvents(
+            eventQueue,
+            params.originId,
+            compileDiagnostics,
+            killSignal,
+            traceRecorder,
+            recorder
+          ).compile.drain.handleErrorWith { e =>
             // Capture consumer error for later inspection
             IO(logger.error("Compile event consumer error", e)) >>
               consumerErrorRef.set(Some(e))
@@ -2527,9 +2545,20 @@ class MultiWorkspaceBspServer(
             // Per-test-run map populated by the AP DAG handler and read by the compile handler. KSP runs as a separate process and emits files directly; no
             // intermediate compile-time data flow, so no equivalent map.
             val apResults = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult]()
+            // Per-test-run map populated by the compile handler and read by the event consumer — see `projectBuiltEvent`.
+            val compileDiagnostics = new java.util.concurrent.ConcurrentHashMap[CrossProjectName, List[BleepBspProtocol.Diagnostic]]()
 
           val compileHandler =
-            makeCompileHandler(started, workspace, params.originId, apResults, diagnosticTracker, recorder, Stamps.pass(started, publishingAs = None))
+            makeCompileHandler(
+              started,
+              workspace,
+              params.originId,
+              apResults,
+              compileDiagnostics,
+              diagnosticTracker,
+              recorder,
+              Stamps.pass(started, publishingAs = None)
+            )
           val sourcegenHandler = makeSourcegenHandler(started, params.originId, regardless = Set.empty)
 
           val includeTagsSet = testOptions.includeTags.toSet
@@ -2851,6 +2880,7 @@ class MultiWorkspaceBspServer(
             eventConsumerFiber <- consumeEvents(
               eventQueue,
               params.originId,
+              compileDiagnostics,
               totalSuitesRef,
               suitesCompletedRef,
               suitesFailedRef,
@@ -3106,6 +3136,7 @@ class MultiWorkspaceBspServer(
       workspace: Path,
       originId: Option[String],
       apResults: java.util.concurrent.ConcurrentHashMap[CrossProjectName, AnnotationProcessorResult],
+      compileDiagnostics: java.util.concurrent.ConcurrentHashMap[CrossProjectName, List[BleepBspProtocol.Diagnostic]],
       diagnosticTracker: BspDiagnosticTracker,
       recorder: TranscriptRecorder,
       stamps: Stamps.Pass
@@ -3153,6 +3184,8 @@ class MultiWorkspaceBspServer(
               ),
               recorder
             )
+            // Nothing compiled, so nothing was reported
+            compileDiagnostics.put(compileTask.project, Nil): Unit
             IO.pure(TaskDag.TaskResult.Success)
           } else {
             // Cooperative cancellation: a background fiber waits for the task-level kill signal and trips the CancellationToken so the inner compile's
@@ -3173,7 +3206,7 @@ class MultiWorkspaceBspServer(
                 // which is not the quantity anything wants to know.
                 val compileStartTime = System.currentTimeMillis()
                 IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                  compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, stamps, diagnosticTracker, recorder)
+                  compileProject(started, compileTask.project, originId, token, depAnalyses, apFlags, stamps, compileDiagnostics, diagnosticTracker, recorder)
                     .guaranteeCase {
                       case cats.effect.Outcome.Succeeded(resultIO) =>
                         resultIO.flatMap { result =>
@@ -3216,6 +3249,7 @@ class MultiWorkspaceBspServer(
       dependencyAnalyses: Map[Path, Path],
       additionalJavaOptions: List[String],
       stamps: Stamps.Pass,
+      compileDiagnostics: java.util.concurrent.ConcurrentHashMap[CrossProjectName, List[BleepBspProtocol.Diagnostic]],
       diagnosticTracker: BspDiagnosticTracker,
       recorder: TranscriptRecorder
   ): IO[TaskDag.TaskResult] = {
@@ -3232,11 +3266,17 @@ class MultiWorkspaceBspServer(
     // precisely when the previous cycle's errors need clearing.
     diagnosticTracker.beginTarget(buildTargetId(started.buildPaths, project).uri.value)
 
+    // What this compile reported, for its CompileFinished. A failed compile's result carries its problems itself; a successful one's warnings would otherwise
+    // reach only the BSP client's publishDiagnostics, and never the event stream that `bleep.compile` and the run history read.
+    val reported = new java.util.concurrent.ConcurrentLinkedQueue[BleepBspProtocol.Diagnostic]()
+
     val diagnosticListener = new DiagnosticListener {
       def onDiagnostic(error: CompilerError): Unit = {
         // Suppress error diagnostics after cancellation — Zinc may emit spurious errors
         // (e.g. "duplicate class") when other compilations were cancelled mid-flight
         if (cancellation.isCancelled && error.severity == CompilerError.Severity.Error) return
+
+        reported.add(toDiagnostic(error)): Unit
 
         val diagnostic = Diagnostic(
           range = Range(
@@ -3425,6 +3465,7 @@ class MultiWorkspaceBspServer(
         case _ if cancellation.isCancelled =>
           TaskDag.TaskResult.Killed(KillReason.UserRequest)
         case _: ProjectCompileSuccess =>
+          compileDiagnostics.put(project, reported.asScala.toList): Unit
           TaskDag.TaskResult.Success
         case f: ProjectCompileFailure =>
           val errors = f.errors.map(toDiagnostic)
@@ -4294,16 +4335,22 @@ class MultiWorkspaceBspServer(
       project: CrossProjectName,
       result: TaskDag.TaskResult,
       durationMs: Long,
-      timestamp: Long
+      timestamp: Long,
+      compileDiagnostics: java.util.concurrent.ConcurrentHashMap[CrossProjectName, List[BleepBspProtocol.Diagnostic]]
   ): BleepBspProtocol.Event.CompileFinished =
     result match {
       case TaskDag.TaskResult.Success =>
-        BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Success, durationMs, Nil, skippedBecause = None, timestamp)
+        val diagnostics = Option(compileDiagnostics.remove(project)).getOrElse(
+          throw new IllegalStateException(s"compile of ${project.value} succeeded, but its handler recorded no diagnostics")
+        )
+        BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Success, durationMs, diagnostics, skippedBecause = None, timestamp)
       case TaskDag.TaskResult.Failure(errorMsg, diags) =>
         val effectiveDiags =
           if (diags.exists(d => d.severity == bleep.bsp.protocol.DiagnosticSeverity.Error && d.message.nonEmpty)) diags
           else List(BleepBspProtocol.Diagnostic.error(errorMsg))
-        BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Failed, durationMs, effectiveDiags, skippedBecause = None, timestamp)
+        // Recorded only when the compile succeeded and its post-compile step is what failed: a failed compile's own problems are already in `diags`
+        val compiled = Option(compileDiagnostics.remove(project)).toList.flatten
+        BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Failed, durationMs, compiled ++ effectiveDiags, skippedBecause = None, timestamp)
       case TaskDag.TaskResult.Error(error, _) =>
         BleepBspProtocol.Event.CompileFinished(
           project,
@@ -4324,30 +4371,34 @@ class MultiWorkspaceBspServer(
     * A project with a `postCompile` step is built by two tasks, and reports once: a successful compile only records how long it took, and the step then reports
     * for both. A failed compile reports itself, so the step it skipped stays quiet. `compilerDurations` carries the compile's time between the two events; the
     * step depends on the compile, so the compile's event always comes first.
+    *
+    * `compileDiagnostics` likewise carries what a successful compile reported — its warnings — from the compile handler to this event. A `Success` result has
+    * no room for them, and without them a clean build's warnings reached only the IDE's publishDiagnostics, never `bleep.compile` or the run history.
     */
   private def projectBuiltEvent(
       task: TaskDag.Task,
       result: TaskDag.TaskResult,
       durationMs: Long,
       timestamp: Long,
-      compilerDurations: java.util.concurrent.ConcurrentHashMap[CrossProjectName, java.lang.Long]
+      compilerDurations: java.util.concurrent.ConcurrentHashMap[CrossProjectName, java.lang.Long],
+      compileDiagnostics: java.util.concurrent.ConcurrentHashMap[CrossProjectName, List[BleepBspProtocol.Diagnostic]]
   ): Option[BleepBspProtocol.Event] =
     task match {
       case ct: TaskDag.CompileTask if ct.postCompile && result == TaskDag.TaskResult.Success =>
         compilerDurations.put(ct.project, durationMs): Unit
         None
       case ct: TaskDag.CompileTask =>
-        Some(compileTaskFinishedEvent(ct.project, result, durationMs, timestamp))
+        Some(compileTaskFinishedEvent(ct.project, result, durationMs, timestamp, compileDiagnostics))
       case pct: TaskDag.PostCompileTask =>
         result match {
           case TaskDag.TaskResult.Skipped(failedDep) if failedDep.id == TaskDag.TaskId.CompilerOutput(pct.project) => None
           case _: TaskDag.TaskResult.Skipped                                                                       =>
-            Some(compileTaskFinishedEvent(pct.project, result, durationMs, timestamp))
+            Some(compileTaskFinishedEvent(pct.project, result, durationMs, timestamp, compileDiagnostics))
           case _ =>
             val compilerMs = Option(compilerDurations.remove(pct.project)).getOrElse(
               throw new IllegalStateException(s"post-compile of ${pct.project.value} finished, but its compile reported no time")
             )
-            Some(compileTaskFinishedEvent(pct.project, result, compilerMs + durationMs, timestamp))
+            Some(compileTaskFinishedEvent(pct.project, result, compilerMs + durationMs, timestamp, compileDiagnostics))
         }
       case other => throw new IllegalArgumentException(s"not a compile task: ${other.id.value}")
     }
@@ -4497,6 +4548,7 @@ class MultiWorkspaceBspServer(
   private def consumeEvents(
       queue: Queue[IO, Option[TaskDag.DagEvent]],
       originId: Option[String],
+      compileDiagnostics: java.util.concurrent.ConcurrentHashMap[CrossProjectName, List[BleepBspProtocol.Diagnostic]],
       totalSuitesRef: Ref[IO, Int],
       suitesCompletedRef: Ref[IO, Int],
       suitesFailedRef: Ref[IO, Int],
@@ -4556,7 +4608,7 @@ class MultiWorkspaceBspServer(
             val (cat, name) = taskCatName(task)
             val protocolEvent: Option[BleepBspProtocol.Event] = task match {
               case _: TaskDag.CompileTask | _: TaskDag.PostCompileTask =>
-                projectBuiltEvent(task, result, durationMs, timestamp, compilerDurations)
+                projectBuiltEvent(task, result, durationMs, timestamp, compilerDurations, compileDiagnostics)
 
               case lt: TaskDag.LinkTask =>
                 // Success and Failure are conveyed by the LinkFinished event the task body emits; the
@@ -4713,6 +4765,7 @@ class MultiWorkspaceBspServer(
   private def consumeCompileEvents(
       queue: Queue[IO, Option[TaskDag.DagEvent]],
       originId: Option[String],
+      compileDiagnostics: java.util.concurrent.ConcurrentHashMap[CrossProjectName, List[BleepBspProtocol.Diagnostic]],
       killSignal: Deferred[IO, KillReason],
       traceRecorder: TraceRecorder,
       recorder: TranscriptRecorder
@@ -4736,7 +4789,7 @@ class MultiWorkspaceBspServer(
           val protocolEvent: Option[BleepBspProtocol.Event] = task match {
             case _: TaskDag.CompileTask | _: TaskDag.PostCompileTask =>
               logger.withContext("task", task.id.value).withContext("durationMs", durationMs).info("Compile finished")
-              projectBuiltEvent(task, result, durationMs, timestamp, compilerDurations)
+              projectBuiltEvent(task, result, durationMs, timestamp, compilerDurations, compileDiagnostics)
             case lt: TaskDag.LinkTask =>
               // Success and Failure are conveyed by the LinkFinished event the task body emits; the
               // abnormal results never reached that emit and would otherwise vanish.

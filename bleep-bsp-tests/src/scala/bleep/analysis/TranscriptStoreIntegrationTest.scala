@@ -107,4 +107,55 @@ class TranscriptStoreIntegrationTest extends AnyFunSuite with Matchers with Time
       } finally deleteRecursively(workspace)
     }
   }
+
+  test("a successful compile's warnings are recorded in its CompileFinished, at the column the compiler pointed at") {
+    failAfter(mediumTimeout) {
+      val workspace = Files.createTempDirectory("bsp-transcript-warnings-")
+      try {
+        Files.createDirectories(workspace.resolve("src"))
+        val matchLine = "  def f(o: Option[Int]): Int = o match {"
+        Files.writeString(
+          workspace.resolve("src/Warned.scala"),
+          s"""object Warned {
+             |$matchLine
+             |    case Some(x) => x
+             |  }
+             |}
+             |""".stripMargin
+        )
+
+        val config = BspTestHarness.ProjectConfig.scala(
+          name = "myproject",
+          sources = Set(workspace.resolve("src")),
+          scalaVersion = "3.3.3",
+          classpath = CompilerResolver.resolveScalaLibrary("3.3.3").toList,
+          isTest = false
+        )
+        val buildPaths = BuildPaths(
+          cwd = workspace,
+          bleepYamlFile = workspace.resolve(bleep.BuildLoader.BuildFileName),
+          variant = model.BuildVariant.Normal,
+          wantedBleepVersion = Some(model.BleepVersion.current)
+        )
+
+        BspTestHarness.withProject(workspace, config) { client =>
+          client.initialize()
+          client.compile(client.buildTargets().targets.map(_.id)).statusCode shouldBe ch.epfl.scala.bsp.StatusCode.Ok
+        }
+
+        val finished = TranscriptStore.read(buildPaths, 1L).events.collect {
+          case e: BleepBspProtocol.Event.CompileFinished if e.project.value == "myproject" => e
+        }
+        finished.map(_.status) shouldBe List(bleep.bsp.protocol.CompileStatus.Success)
+        val warnings = finished.head.diagnostics.filter(_.severity == bleep.bsp.protocol.DiagnosticSeverity.Warning)
+        withClue(s"diagnostics: ${finished.head.diagnostics}") {
+          warnings.size shouldBe 1
+          warnings.head.message should include("not be exhaustive")
+          warnings.head.line shouldBe Some(2)
+          // 1-based: the column names the scrutinee itself, not the space before it
+          warnings.head.column shouldBe Some(matchLine.indexOf("o match") + 1)
+        }
+      } finally deleteRecursively(workspace)
+    }
+  }
 }

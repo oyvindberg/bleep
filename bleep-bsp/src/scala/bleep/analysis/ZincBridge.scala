@@ -1429,7 +1429,8 @@ object ZincBridge {
         else p
       },
       line = pos.line().toScala.map(_.intValue).getOrElse(0),
-      column = pos.pointer().toScala.map(_.intValue).getOrElse(0),
+      // xsbti's pointer is 0-based; CompilerError's column is 1-based, with 0 meaning "no position"
+      column = pos.pointer().toScala.map(_.intValue + 1).getOrElse(0),
       message = problem.message(),
       rendered = problem.rendered().toScala,
       severity = severity
