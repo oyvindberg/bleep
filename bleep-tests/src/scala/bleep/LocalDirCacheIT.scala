@@ -190,4 +190,78 @@ class LocalDirCacheIT extends IntegrationTestHarness {
       succeed
     } finally FileUtils.deleteDirectory(cacheDir)
   }
+
+  /** Regression test for a real bug found while measuring this feature: the test above never actually crosses an absolute workspace path (`ws.root` is the same
+    * directory throughout), so it would pass even with the bug present. This one pushes from workspace A and seeds into an entirely separate workspace B — the
+    * actual scenario the feature exists for (CI, a sibling worktree, another machine) — and asserts Zinc's *real* incremental verdict
+    * (`BuildSummary.upToDateProjects`, not just "compile succeeded") on the unaffected project.
+    */
+  integrationTest("local dir cache: --unsafe-seed-ref across two real workspaces lets Zinc no-op the unaffected project") { wsA =>
+    val cacheDir = Files.createTempDirectory("bleep-cross-workspace-cache-")
+    val wsB = new Workspace("cross-workspace-seed-B", prelude, snippetsRoot, userPaths, logger0, ec, lazyBleepBuild, testConfig)
+    try {
+      val yaml =
+        s"""remote-cache:
+           |  uri: ${cacheDir.toUri}
+           |
+           |projects:
+           |  lib:
+           |    platform:
+           |      name: jvm
+           |    scala:
+           |      version: 3.3.3
+           |  app:
+           |    dependsOn: lib
+           |    platform:
+           |      name: jvm
+           |    scala:
+           |      version: 3.3.3
+           |""".stripMargin
+      val lib = model.CrossProjectName(model.ProjectName("lib"), None)
+      val app = model.CrossProjectName(model.ProjectName("app"), None)
+
+      // Workspace A: compile the baseline and push it.
+      wsA.yaml(yaml)
+      wsA.file("lib/src/scala/Lib.scala", "object Lib { val v = 1 }")
+      wsA.file("app/src/scala/App.scala", "object App { def main(args: Array[String]): Unit = println(Lib.v) }")
+      val (startedA, commandsA, _) = wsA.start()
+      commandsA.compile(List(lib, app))
+      RemoteCache
+        .Push(projects = Array.empty, force = false, allowUnsafeSeeded = false)
+        .run(startedA)
+        .fold(e => fail(s"push failed: ${e.getMessage}"), identity)
+
+      // Workspace B: a different absolute path, never compiled anything of its own. Same baseline content, so its digest-at-the-baseline-commit matches
+      // what A pushed, then the "PR": lib moves on, app's own source does not.
+      wsB.yaml(yaml)
+      wsB.file("lib/src/scala/Lib.scala", "object Lib { val v = 1 }")
+      wsB.file("app/src/scala/App.scala", "object App { def main(args: Array[String]): Unit = println(Lib.v) }")
+      git(wsB.root, "init")
+      val baseline = commitAll(wsB.root, "baseline")
+      wsB.file("lib/src/scala/Lib.scala", "object Lib { val v = 2 }")
+      commitAll(wsB.root, "lib v2")
+
+      val (startedB, commandsB, _) = wsB.start()
+      val libPathsB = startedB.projectPaths(lib)
+      assert(!Files.isDirectory(libPathsB.classes) || !Files.list(libPathsB.classes).findAny().isPresent, "workspace B must start genuinely cold")
+
+      RemoteCache
+        .Pull(projects = Array.empty, unsafeSeedRef = Some(baseline))
+        .run(startedB)
+        .fold(e => fail(s"seeded pull failed: ${e.getMessage}"), identity)
+
+      val summary = commandsB.compile(List(lib, app))
+      assert(!summary.upToDateProjects.contains(lib), s"lib's own source changed, it must actually recompile: upToDate=${summary.upToDateProjects}")
+      assert(
+        summary.upToDateProjects.contains(app),
+        s"app's own source and lib's public API are both unchanged — Zinc should no-op it. If this fails, the seeded analysis's MiniSetup " +
+          s"(e.g. -sourceroot) is carrying workspace A's absolute path into workspace B's equivalence check again. upToDate=${summary.upToDateProjects}"
+      )
+
+      succeed
+    } finally {
+      wsB.cleanup()
+      FileUtils.deleteDirectory(cacheDir)
+    }
+  }
 }
