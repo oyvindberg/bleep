@@ -2244,6 +2244,45 @@ private[analysis] object PortableAnalysisMappers {
     else p // Absolute path from same machine or unknown root — pass through
   }
 
+  /** `-sourceroot <path>` (two array tokens: flag, then its argument) and `-sourceroot:<path>` / `-targetroot:<path>` (one token, colon-joined, the semanticdb
+    * plugin's own syntax) both embed an absolute path directly into a scalac/javac option — unlike every path-typed field above, which goes through
+    * [[relativizePath]]/[[absolutizePath]], these were passed through as plain strings (`mapScalacOption`/`mapJavacOption` were identity). Zinc's `MiniSetup`
+    * equivalence check compares scalac options verbatim, so a workspace-A-baked absolute `-sourceroot` argument never matches workspace B's,
+    * `equivCompileSetup` fails, and Zinc discards the *entire* previous analysis for that project — not a targeted invalidation, a wholesale one — forcing a
+    * real full recompile regardless of whether anything the project actually depends on changed. This is why a remote-cache pull into a different absolute path
+    * than where it was pushed from defeats Zinc's own incremental compiler the moment any upstream project needs a genuine recompile.
+    *
+    * `mapOptionString`/`unmapOptionString` apply the same marker substitution to the colon-value or the whole token, whichever shape matches; a token that is
+    * not an absolute path (almost every other scalac/javac flag) is left untouched, since blindly resolving a non-path string to `cwd`-relative would corrupt
+    * it.
+    */
+  private val colonValueOption = raw"^(-[A-Za-z][\w-]*:)(.+)$$".r
+
+  private def isAbsolutePath(s: String): Boolean =
+    try Path.of(s).isAbsolute
+    catch { case _: java.nio.file.InvalidPathException => false }
+
+  private def mapOptionString(s: String, buildDir: Path): String =
+    s match {
+      case colonValueOption(prefix, value) if isAbsolutePath(value) =>
+        prefix + relativizePath(Path.of(value), buildDir).toString.replace('\\', '/')
+      case _ if isAbsolutePath(s) =>
+        relativizePath(Path.of(s), buildDir).toString.replace('\\', '/')
+      case _ => s
+    }
+
+  private def isMarkerValue(s: String): Boolean =
+    allMarkers.exists(m => s == m || s.startsWith(m + "/"))
+
+  private def unmapOptionString(s: String, buildDir: Path): String =
+    s match {
+      case colonValueOption(prefix, value) if isMarkerValue(value) =>
+        prefix + absolutizePath(Path.of(value), buildDir).toString
+      case _ if isMarkerValue(s) =>
+        absolutizePath(Path.of(s), buildDir).toString
+      case _ => s
+    }
+
   def writeMapper(buildDir: Path): xsbti.compile.analysis.WriteMapper = {
     val bd = buildDir.toAbsolutePath.normalize()
     new xsbti.compile.analysis.WriteMapper {
@@ -2255,9 +2294,10 @@ private[analysis] object PortableAnalysisMappers {
       override def mapOutputDir(outputDir: Path): Path = relativizePath(outputDir, bd)
       override def mapSourceDir(sourceDir: Path): Path = relativizePath(sourceDir, bd)
       override def mapClasspathEntry(classpathEntry: Path): Path = relativizePath(classpathEntry, bd)
-      // Everything else: identity
-      override def mapJavacOption(javacOption: String): String = javacOption
-      override def mapScalacOption(scalacOption: String): String = scalacOption
+      // javac/scalac options: most are not paths at all (left untouched); the few that embed one (-sourceroot, semanticdb's -sourceroot:/-targetroot:)
+      // get the same marker treatment as every other path field above — see mapOptionString.
+      override def mapJavacOption(javacOption: String): String = mapOptionString(javacOption, bd)
+      override def mapScalacOption(scalacOption: String): String = mapOptionString(scalacOption, bd)
       override def mapProductStamp(file: xsbti.VirtualFileRef, productStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = productStamp
       override def mapSourceStamp(file: xsbti.VirtualFileRef, sourceStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = sourceStamp
       override def mapBinaryStamp(file: xsbti.VirtualFileRef, binaryStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = binaryStamp
@@ -2276,9 +2316,9 @@ private[analysis] object PortableAnalysisMappers {
       override def mapOutputDir(outputDir: Path): Path = absolutizePath(outputDir, bd)
       override def mapSourceDir(sourceDir: Path): Path = absolutizePath(sourceDir, bd)
       override def mapClasspathEntry(classpathEntry: Path): Path = absolutizePath(classpathEntry, bd)
-      // Everything else: identity
-      override def mapJavacOption(javacOption: String): String = javacOption
-      override def mapScalacOption(scalacOption: String): String = scalacOption
+      // See writeMapper's mapScalacOption/mapJavacOption: the reverse of mapOptionString, rebasing a marker-prefixed option value to this workspace.
+      override def mapJavacOption(javacOption: String): String = unmapOptionString(javacOption, bd)
+      override def mapScalacOption(scalacOption: String): String = unmapOptionString(scalacOption, bd)
       override def mapProductStamp(file: xsbti.VirtualFileRef, productStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = productStamp
       override def mapSourceStamp(file: xsbti.VirtualFileRef, sourceStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = sourceStamp
       override def mapBinaryStamp(file: xsbti.VirtualFileRef, binaryStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = binaryStamp
