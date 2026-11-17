@@ -17,7 +17,18 @@ case class RemoteCacheConfig(
 )
 
 object RemoteCacheConfig {
-  implicit val uriDecoder: Decoder[URI] = Decoder[String].map(URI.create)
+
+  /** `uri:` is checked in to `bleep.yaml`, shared by every contributor, so it cannot bake in one person's absolute home directory — but a `file://` cache
+    * (built for git worktrees, see `docs/usage/remote-cache.mdx`) is inherently per-machine. `${HOME_DIR}` lets the shared config name a path under whoever's
+    * home it happens to run in: `file://${HOME_DIR}/.cache/bleep-remote-cache`.
+    *
+    * Plain string substitution before `URI.create`, not [[Replacements.fill]]: that needs a build directory to expand `${BUILD_DIR}`-style tokens, which this
+    * decoder — run before a build is even loaded — does not have. `${HOME_DIR}` alone needs nothing but a JVM system property, so it is handled directly.
+    * `URI.create` is also stricter about `{`/`}` than this scheme tolerates, so the substitution must happen first, on the raw string, not after parsing.
+    */
+  implicit val uriDecoder: Decoder[URI] = Decoder[String].map { raw =>
+    URI.create(raw.replace(Replacements.known.HomeDir, System.getProperty("user.home")))
+  }
   implicit val uriEncoder: Encoder[URI] = Encoder[String].contramap(_.toString)
 
   implicit val decoder: Decoder[RemoteCacheConfig] = deriveDecoder
