@@ -597,6 +597,119 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
     } finally deleteRecursively(workspace)
   }
 
+  /** `git rev-parse HEAD`, trimmed. */
+  private def currentCommit(workspace: Path): String =
+    scala.sys.process.Process(List("git", "rev-parse", "HEAD"), workspace.toFile).!!.trim
+
+  test("computeAllAt a ref that is HEAD, with a clean tree, agrees with computeAll") {
+    val workspace = Files.createTempDirectory("bleep-digest-at-head-")
+    try {
+      gitInit(workspace)
+      val srcDir = workspace.resolve("a/src/scala")
+      Files.createDirectories(srcDir)
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo")
+      gitCommitAll(workspace)
+
+      val p = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val atHead = ProjectDigest.computeAllAt(build, buildPaths, currentCommit(workspace))
+      val current = ProjectDigest.computeAll(build, buildPaths)
+
+      atHead(cpn("a")) shouldBe current(cpn("a"))
+    } finally deleteRecursively(workspace)
+  }
+
+  test("computeAllAt an ancestor commit reproduces the digest that commit actually had, even after a transitive dep moved on") {
+    // The whole point of --unsafe-seed-ref: `app` never touches its own source, but depends on `lib`. Once `lib`'s source
+    // changes, `app`'s CURRENT digest moves too (dependency propagation), so an exact-digest pull misses for both. The
+    // digest computed as of the ancestor commit must match what that commit's digest genuinely was, for both projects,
+    // so a cache entry pushed back then is found under the right key.
+    val workspace = Files.createTempDirectory("bleep-digest-ancestor-")
+    try {
+      gitInit(workspace)
+      val libSrc = workspace.resolve("lib/src/scala")
+      Files.createDirectories(libSrc)
+      Files.writeString(libSrc.resolve("Lib.scala"), "object Lib { val v = 1 }")
+      gitCommitAll(workspace)
+      val commit1 = currentCommit(workspace)
+
+      val lib = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val app = projectWithDeps("lib")
+      val build = makeBuild("lib" -> lib, "app" -> app)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val digestsAtCommit1 = ProjectDigest.computeAll(build, buildPaths)
+
+      // Move lib forward. `app`'s own files never change.
+      Files.writeString(libSrc.resolve("Lib.scala"), "object Lib { val v = 2 }")
+      gitCommitAll(workspace)
+
+      val digestsNow = ProjectDigest.computeAll(build, buildPaths)
+      // Sanity: both moved (the existing "transitive dep changes propagate" test covers this for `app`; repeated here
+      // because the rest of this test depends on it actually being true).
+      digestsNow(cpn("lib")) should not be digestsAtCommit1(cpn("lib"))
+      digestsNow(cpn("app")) should not be digestsAtCommit1(cpn("app"))
+
+      val digestsAsOfCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      digestsAsOfCommit1(cpn("lib")) shouldBe digestsAtCommit1(cpn("lib"))
+      digestsAsOfCommit1(cpn("app")) shouldBe digestsAtCommit1(cpn("app"))
+    } finally deleteRecursively(workspace)
+  }
+
+  test("computeAllAt omits a project whose source dir holds untracked content, rather than guessing at its historical bytes") {
+    // sourcegen output is exactly this: real content on disk right now that git never saw at any past commit. Silently
+    // hashing it under a historical ref's label would produce a digest matching no build that ever ran.
+    val workspace = Files.createTempDirectory("bleep-digest-untracked-")
+    try {
+      gitInit(workspace)
+      Files.writeString(workspace.resolve("README.md"), "placeholder")
+      gitCommitAll(workspace)
+      val commit1 = currentCommit(workspace)
+
+      val genDir = workspace.resolve("a/generated")
+      Files.createDirectories(genDir)
+      Files.writeString(genDir.resolve("Gen.scala"), "object Gen") // never committed
+
+      val p = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("generated"))))
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      atCommit1.get(cpn("a")) shouldBe None
+
+      // The ordinary, current-tree computation still sees it via the filesystem fallback.
+      ProjectDigest.computeAll(build, buildPaths).get(cpn("a")) should not be None
+    } finally deleteRecursively(workspace)
+  }
+
+  test("computeAllAt omits a project whose source dir did not exist yet at that commit") {
+    val workspace = Files.createTempDirectory("bleep-digest-new-project-")
+    try {
+      gitInit(workspace)
+      val aSrc = workspace.resolve("a/src/scala")
+      Files.createDirectories(aSrc)
+      Files.writeString(aSrc.resolve("A.scala"), "object A")
+      gitCommitAll(workspace)
+      val commit1 = currentCommit(workspace)
+
+      // `b` is created after commit1 — its source dir is untracked at that ref, but has real content on disk now.
+      val bSrc = workspace.resolve("b/src/scala")
+      Files.createDirectories(bSrc)
+      Files.writeString(bSrc.resolve("B.scala"), "object B")
+
+      val projA = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val projB = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val build = makeBuild("a" -> projA, "b" -> projB)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      atCommit1.get(cpn("a")) should not be None
+      atCommit1.get(cpn("b")) shouldBe None
+    } finally deleteRecursively(workspace)
+  }
+
   test("declaring stamps leaves the digest alone") {
     // `stamp:` only decides what gets written into the artifact, so like `publish` it is stripped from the config that is hashed. Turning a stamp on must not
     // evict the project's cache entry.

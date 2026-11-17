@@ -38,27 +38,11 @@ object BuildInvalidated {
     .orNone
 
   /** The ref an invalidation compares against. An explicit `--base` / `--invalidated=<ref>` wins; otherwise we ask git what this branch is based on —
-    * `@{upstream}`, git's own answer, not a guessed `origin/main`.
-    *
-    * No upstream (detached HEAD, a branch that was never pushed, a CI checkout of a bare ref) means git has no answer, and neither do we: this throws rather
-    * than quietly picking a ref and building the wrong set of projects.
+    * `@{upstream}`, git's own answer, not a guessed `origin/main`. See [[internal.gitOutput.resolveBase]] for the shared resolution logic (also used by
+    * `bleep remote-cache pull`'s `--unsafe-seed-ref`).
     */
   def resolveBase(started: Started, explicit: Option[String]): String =
-    explicit match {
-      case Some(ref) => ref
-      case None      =>
-        val out = new StringBuilder
-        val exitCode = scala.sys.process
-          .Process(List("git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"), started.buildPaths.buildDir.toFile)
-          .!(scala.sys.process.ProcessLogger(line => out.append(line), _ => ()))
-        val upstream = out.toString.trim
-        if (exitCode != 0 || upstream.isEmpty)
-          throw new BleepException.Text(
-            "no base ref to compare against: this branch has no upstream (`git rev-parse @{upstream}` found none). " +
-              "Name one explicitly, for instance `--base origin/main` or `--invalidated=origin/main`."
-          )
-        else upstream
-    }
+    internal.gitOutput.resolveBase(started.buildPaths.buildDir, explicit)
 
   /** The projects a diff against `base` invalidated: their config changed in `bleep.yaml`, a file under their sources/resources changed, or they transitively
     * depend on one that did. Shared by `bleep build invalidated`, `bleep compile --invalidated`, `bleep test --invalidated` and `bleep ci --invalidated`, so

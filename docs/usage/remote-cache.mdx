@@ -100,6 +100,24 @@ Neither command handles a project with [`postCompile`](/docs/appendix/post-compi
 
 Who is allowed to push decides what everyone else executes: see [Trust model](#trust-model) before wiring this into CI.
 
+## Seeding incremental compilation from an ancestor commit (`--unsafe-seed-ref`)
+
+Because a project's digest folds in every transitive dependency's digest (see [How it works](#how-it-works)), one source change in a widely-depended-on project moves the digest of everything downstream — even projects whose own code never changed. On a fresh CI checkout that turns one real change into dozens of cold compiles, each for a project that, had you asked Zinc, would mostly already be up to date.
+
+`bleep remote-cache pull --unsafe-seed-ref <ref>` adds a second attempt on an exact-digest miss: compute `git merge-base <ref> HEAD`, compute what each project's digest would have been as of that commit — the same content-addressed scheme, just read from git history instead of the working tree — and try that digest too. A hit there unpacks the entry as a **seed**: real classes and a real Zinc analysis, but not treated as a verified result. The following compile still runs, and Zinc's own incremental invalidation (API hashing, deletions) decides what actually needs recompiling against the real current sources.
+
+```bash
+bleep remote-cache pull --unsafe-seed-ref origin/main
+```
+
+### Why "unsafe"
+
+This trades a guarantee for speed. An exact hit is a cache entry produced by compiling exactly these inputs — there is nothing to verify. A seed hit is a cache entry produced by compiling *different* inputs, handed to Zinc and trusted to detect everything that changed. Zinc's incremental invalidation is good but not infallible; a bug in it means a seeded build can produce class files that are subtly wrong in a way a full recompile would not have been, and the build still looks green. Reserve this for fast-feedback lanes (PR checks) you can afford to be probabilistic about — not for the build that is the final word on whether a change is correct.
+
+### `push` refuses seeded output unless told otherwise
+
+A project pulled via a seed hit is marked (`.zinc/unsafe-seed` in its build directory). `bleep remote-cache push` refuses to publish a marked project under its current digest: publishing it would let every future puller trust an unverified result as a fully verified one, propagating whatever Zinc might have gotten wrong into the one cache everyone else relies on. Pass `--allow-unsafe-seeded` to push anyway, once you've decided that risk is acceptable for your pipeline. The marker is cleared only by `bleep clean`, so it persists across however many ordinary compiles run on top of the seed.
+
 ## Trust model
 
 Read this before pointing CI at a shared cache. A build cache is a
@@ -353,6 +371,13 @@ remote-cache:
 ```
 
 No credentials or region are needed. Cache entries land at `<dir>/<project>/<digest>.tar.gz`, written atomically so concurrent pushes from different checkouts are safe.
+
+`bleep.yaml` is shared by every contributor, so a hardcoded absolute path only works on whoever wrote it. `${HOME_DIR}` expands to whichever home directory is actually running the build, so the same checked-in config works for everyone:
+
+```yaml
+remote-cache:
+  uri: file://${HOME_DIR}/.cache/my-project-bleep-cache
+```
 
 The [trust model](#trust-model) applies unchanged: the cache is as trustworthy as the set of accounts that can write to that directory. A per-user directory trusts only you; one shared across a machine or an NFS mount trusts everyone who can write there.
 

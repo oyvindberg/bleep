@@ -13,7 +13,7 @@ title: bleep remote-cache pull
 ## Synopsis
 
 ```bash
-bleep remote-cache pull <project name...>
+bleep remote-cache pull <project name...> [flags]
 ```
 
 ## Arguments
@@ -21,4 +21,10 @@ bleep remote-cache pull <project name...>
 | Argument | Type |
 |----------|------|
 | `project name` | one or more |
+
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--unsafe-seed-ref <string>` | if a project's exact digest misses, also try a digest computed as of `git merge-base &lt;ref&gt; HEAD` and seed Zinc's incremental compiler from it on a hit. Trusts Zinc's own invalidation against a real content gap: the resulting class files are not guaranteed identical to a full recompile. |
 

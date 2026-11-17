@@ -126,6 +126,75 @@ object ProjectDigest {
     SortedMap.from(digests)
   }
 
+  /** Like [[computeAll]], but as of a historical commit rather than the working tree — used by `bleep remote-cache pull --unsafe-seed-ref` to find a cache
+    * entry pushed at an ancestor commit that can seed Zinc's incremental compiler after an exact-digest miss.
+    *
+    * Reuses the *current* exploded project model (config, dependency graph) for every project; only source/resource/sourceGlobs content is read as of `ref`
+    * instead of the working tree. This is a deliberate approximation, not a shortcut taken for lack of a better one: if a project's own config changed since
+    * `ref`, the digest computed here will not equal what was actually pushed back then — but a wrong digest only ever misses the lookup, since the cache is
+    * content-addressed. It can never produce a false hit. Reconstructing the historical build model (re-exploding `bleep.yaml` as it stood at `ref`, were it to
+    * have changed) is not attempted, because the only thing it would buy is a few more true hits, never a safer one.
+    *
+    * A project's digest is left out of the result (rather than guessed at) when any of its source/resource/sourceGlobs directories currently holds real content
+    * that git has nothing tracked under at `ref` — generated/gitignored output, or a project created after `ref`. There is no way to know what such a directory
+    * held at a past commit without checking it out, and silently hashing the current filesystem under a historical label would produce a digest that
+    * corresponds to no build that ever actually ran.
+    *
+    * @return
+    *   map from project name to hex-encoded SHA-256 digest, omitting projects whose digest-at-`ref` could not be determined
+    */
+  def computeAllAt(
+      build: model.Build,
+      buildPaths: BuildPaths,
+      ref: String
+  ): SortedMap[model.CrossProjectName, String] = {
+    val digests = mutable.Map.empty[model.CrossProjectName, Option[String]]
+
+    val jvm: model.Jvm = build.jvm.getOrElse(
+      throw new BleepException.Text(
+        s"no `jvm:` in ${BuildLoader.BuildFileName}. Compilation output depends on which JDK compiles it, so a build which leaves that to whatever `java` is on PATH cannot be given a content digest. Pin the toolchain, for instance:\n  jvm:\n    name: graalvm-community:24.0.1"
+      )
+    )
+    val jvmIndex: String = jvm.index.getOrElse(JvmChannel.gitHubIndexUrl)
+
+    def compute(crossName: model.CrossProjectName): Option[String] =
+      digests.getOrElseUpdate(
+        crossName, {
+          val project = build.explodedProjects(crossName)
+          val projectPaths = buildPaths.project(crossName, project, build.crossPlatforms(crossName.name))
+
+          val md = MessageDigest.getInstance("SHA-256")
+          md.update(build.$version.value.getBytes("UTF-8"))
+          md.update(jvm.name.getBytes("UTF-8"))
+          md.update(jvmIndex.getBytes("UTF-8"))
+
+          val configForDigest = project.copy(publish = None, stamp = model.JsonSet.empty, `extends` = model.JsonSet.empty)
+          md.update(yaml.encodeShortened(configForDigest).getBytes("UTF-8"))
+
+          val ownContentResolvable =
+            hashDirectoriesAt(md, buildPaths.buildDir, ref, projectPaths.sourcesDirs.all(Usage.Input)) &&
+              hashDirectoriesAt(md, buildPaths.buildDir, ref, projectPaths.resourcesDirs.all(Usage.Input)) &&
+              hashDirectoriesAt(md, buildPaths.buildDir, ref, ProjectInputs.declaredSourcegenInputs(project, projectPaths).toSet)
+
+          if (!ownContentResolvable) None
+          else {
+            val deps = build.resolvedDependsOn.getOrElse(crossName, Set.empty)
+            val depDigests = deps.toList.sorted.map(compute)
+            val indirectDigests = build.resolvedIndirectDependencies(crossName).toList.map(dep => compute(dep.project))
+
+            if ((depDigests ++ indirectDigests).exists(_.isEmpty)) None
+            else {
+              (depDigests ++ indirectDigests).foreach(d => md.update(d.get.getBytes("UTF-8")))
+              Some(Checksums.byteArrayToHexString(md.digest()))
+            }
+          }
+        }
+      )
+
+    build.explodedProjects.keys.foreach(compute)
+    SortedMap.from(digests.collect { case (crossName, Some(digest)) => crossName -> digest })
+  }
+
   /** Hash all files under the given directories into the MessageDigest.
     *
     * For each directory: if the working tree is clean (no dirty files under it), uses `git ls-tree` for precomputed content hashes (fast, no file I/O).
@@ -146,7 +215,7 @@ object ProjectDigest {
 
         if (!isDirty) {
           // Clean directory — use git blob hashes (fast, no file I/O)
-          val gitHashes = gitLsTree(buildDir, dir)
+          val gitHashes = gitLsTree(buildDir, "HEAD", dir)
           if (gitHashes.nonEmpty) {
             // git ls-tree returns paths relative to repo root with '/' separators on every OS.
             // Normalize the dir prefix so the strip works on Windows.
@@ -164,6 +233,41 @@ object ProjectDigest {
         } else {
           // Dirty directory — must read from filesystem to capture uncommitted changes
           hashFilesystem(md, dir)
+        }
+      }
+    }
+
+  /** Like [[hashDirectories]], but for a historical ref: no dirty-tree overlay, no filesystem fallback. Returns `false` the moment a directory currently holds
+    * real file content that git has nothing tracked under at `ref` — that content cannot be known as of a past commit, so the caller must discard whatever has
+    * been hashed into `md` so far rather than pass off current bytes as historical ones.
+    *
+    * @return
+    *   `true` if every directory's content as of `ref` was fully known (possibly empty)
+    */
+  private def hashDirectoriesAt(
+      md: MessageDigest,
+      buildDir: Path,
+      ref: String,
+      dirs: collection.Set[Path]
+  ): Boolean =
+    dirs.toList.sorted.forall { dir =>
+      if (!Files.isDirectory(dir)) true // doesn't exist in the current checkout either — contributes nothing, same as the working-tree computation
+      else {
+        val gitHashes = gitLsTree(buildDir, ref, dir)
+        if (gitHashes.nonEmpty) {
+          val dirRelToRepo = buildDir.relativize(dir).toString.replace('\\', '/')
+          val dirPrefix = if (dirRelToRepo.isEmpty) "" else dirRelToRepo + "/"
+          gitHashes.foreach { case (repoRelPath, hash) =>
+            val relPath = if (repoRelPath.startsWith(dirPrefix)) repoRelPath.substring(dirPrefix.length) else repoRelPath
+            md.update(relPath.getBytes("UTF-8"))
+            md.update(hash.getBytes("UTF-8"))
+          }
+          true
+        } else {
+          // Nothing tracked under `dir` at `ref`. Safe only if the directory is genuinely empty right now too — otherwise its current content is
+          // untracked/generated, and substituting it here would mislabel current bytes as historical ones.
+          val hasAnyFileNow = scala.util.Using.resource(Files.walk(dir))(_.toScala(List)).exists(Files.isRegularFile(_))
+          !hasAnyFileNow
         }
       }
     }
@@ -202,7 +306,7 @@ object ProjectDigest {
       paths.result()
     }
 
-  /** Use `git ls-tree -r -z HEAD -- <dir>` to get content hashes for all files under a directory.
+  /** Use `git ls-tree -r -z <ref> -- <dir>` to get content hashes for all files under a directory.
     *
     * `-z` for the same reason as in [[gitDirtyPaths]], and here it is worse than a missed dirty path: the quoted spelling of a file name goes *straight into
     * the digest*. Whether a path arrives as `café.txt` or as `"caf\303\251.txt"` is decided by `core.quotePath` — a setting in the developer's own
@@ -210,11 +314,11 @@ object ProjectDigest {
     * `ls-tree` do not quote alike, so there is no single unquoting rule to write even if we wanted one.
     *
     * @return
-    *   sorted list of (relative-path, blob-hash) pairs, or empty if the directory isn't tracked by git
+    *   sorted list of (relative-path, blob-hash) pairs, or empty if the directory isn't tracked by git at `ref`
     */
-  private def gitLsTree(buildDir: Path, dir: Path): List[(String, String)] =
+  private def gitLsTree(buildDir: Path, ref: String, dir: Path): List[(String, String)] =
     internal.gitOutput
-      .attempt(buildDir, List("git", "ls-tree", "-r", "-z", "HEAD", "--", dir.toString))
+      .attempt(buildDir, List("git", "ls-tree", "-r", "-z", ref, "--", dir.toString))
       .getOrElse("")
       .split('\u0000')
       .iterator

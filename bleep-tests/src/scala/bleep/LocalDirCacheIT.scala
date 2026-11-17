@@ -62,7 +62,7 @@ class LocalDirCacheIT extends IntegrationTestHarness {
       assert(Files.exists(analysisFile), s"compile should have produced $analysisFile")
 
       // === PUSH ===
-      RemoteCache.Push(projects = Array.empty, force = false).run(started).fold(e => fail(s"push failed: ${e.getMessage}"), identity)
+      RemoteCache.Push(projects = Array.empty, force = false, allowUnsafeSeeded = false).run(started).fold(e => fail(s"push failed: ${e.getMessage}"), identity)
 
       // Cache dir should contain exactly one object: <project>/<digest>.tar.gz (no prefix for file backend).
       val cached = listRelativeFiles(cacheDir)
@@ -83,14 +83,17 @@ class LocalDirCacheIT extends IntegrationTestHarness {
       } finally FileUtils.deleteDirectory(unpackDir)
 
       // Second push without --force skips: headObject sees the existing file.
-      RemoteCache.Push(projects = Array.empty, force = false).run(started).fold(e => fail(s"second push failed: ${e.getMessage}"), identity)
+      RemoteCache
+        .Push(projects = Array.empty, force = false, allowUnsafeSeeded = false)
+        .run(started)
+        .fold(e => fail(s"second push failed: ${e.getMessage}"), identity)
       assert(listRelativeFiles(cacheDir) == cached, "second push should not have written new keys")
 
       // === WIPE LOCAL, PULL ===
       FileUtils.deleteDirectory(projectPaths.targetDir)
       assert(!Files.exists(classFile), "wipe should have removed local classes")
 
-      RemoteCache.Pull(projects = Array.empty).run(started).fold(e => fail(s"pull failed: ${e.getMessage}"), identity)
+      RemoteCache.Pull(projects = Array.empty, unsafeSeedRef = None).run(started).fold(e => fail(s"pull failed: ${e.getMessage}"), identity)
 
       assert(Files.exists(classFile), s"pull should have restored $classFile")
       assert(Files.exists(analysisFile), s"pull should have restored $analysisFile")
@@ -99,6 +102,91 @@ class LocalDirCacheIT extends IntegrationTestHarness {
         val loaded = NoopManifestStore.load(analysisFile).getOrElse(fail("regenerated manifest must load"))
         assert(loaded.cachedResult.outputDir == projectPaths.classes, s"manifest outputDir wrong: ${loaded.cachedResult.outputDir}")
       }
+      succeed
+    } finally FileUtils.deleteDirectory(cacheDir)
+  }
+
+  /** `-c user.*`/`commit.gpgsign=false` so this doesn't depend on (or pollute) the machine's own git config — same trick as StampsIT/CiCommandIT. */
+  private def git(root: Path, args: String*): String =
+    scala.sys.process.Process("git" :: args.toList, root.toFile).!!.trim
+
+  private def commitAll(root: Path, message: String): String = {
+    git(root, "add", "-A")
+    git(root, "-c", "user.email=ci@bleep.build", "-c", "user.name=bleep", "-c", "commit.gpgsign=false", "commit", "-m", message)
+    git(root, "rev-parse", "HEAD")
+  }
+
+  integrationTest("local dir cache: --unsafe-seed-ref seeds an exact-digest miss, and push refuses the result without --allow-unsafe-seeded") { ws =>
+    val cacheDir = Files.createTempDirectory("bleep-local-cache-seed-")
+    try {
+      ws.yaml(
+        s"""remote-cache:
+           |  uri: ${cacheDir.toUri}
+           |
+           |projects:
+           |  lib:
+           |    platform:
+           |      name: jvm
+           |    scala:
+           |      version: 3.3.3
+           |  app:
+           |    dependsOn: lib
+           |    platform:
+           |      name: jvm
+           |    scala:
+           |      version: 3.3.3
+           |""".stripMargin
+      )
+      ws.file("lib/src/scala/Lib.scala", "object Lib { val v = 1 }")
+      ws.file("app/src/scala/App.scala", "object App { def main(args: Array[String]): Unit = println(Lib.v) }")
+
+      git(ws.root, "init")
+      val commit1 = commitAll(ws.root, "base")
+
+      val (started, _, _) = ws.start()
+      val lib = model.CrossProjectName(model.ProjectName("lib"), None)
+      val app = model.CrossProjectName(model.ProjectName("app"), None)
+      ws.compileAll()
+
+      // Push both under commit1's digest.
+      RemoteCache.Push(projects = Array.empty, force = false, allowUnsafeSeeded = false).run(started).fold(e => fail(s"push failed: ${e.getMessage}"), identity)
+
+      // Move `lib` forward. `app` never touches its own source — but depends on `lib`, so `app`'s digest moves too.
+      ws.file("lib/src/scala/Lib.scala", "object Lib { val v = 2 }")
+      commitAll(ws.root, "lib v2")
+
+      val libPaths = started.projectPaths(lib)
+      val appPaths = started.projectPaths(app)
+      FileUtils.deleteDirectory(libPaths.targetDir)
+      FileUtils.deleteDirectory(appPaths.targetDir)
+
+      // Exact digest misses for both (neither was ever pushed under its post-v2 digest). --unsafe-seed-ref should
+      // find commit1's entry for each and seed from it instead.
+      RemoteCache
+        .Pull(projects = Array.empty, unsafeSeedRef = Some(commit1))
+        .run(started)
+        .fold(e => fail(s"seeded pull failed: ${e.getMessage}"), identity)
+
+      assert(Files.isDirectory(libPaths.classes) && Files.list(libPaths.classes).findAny().isPresent, "lib should have been seeded")
+      assert(Files.isDirectory(appPaths.classes) && Files.list(appPaths.classes).findAny().isPresent, "app should have been seeded")
+      assert(Files.exists(libPaths.targetDir.resolve(".zinc/unsafe-seed")), "lib should carry the unsafe-seed marker")
+      assert(Files.exists(appPaths.targetDir.resolve(".zinc/unsafe-seed")), "app should carry the unsafe-seed marker")
+
+      // Zinc must be able to reconcile the seed against the real, current sources.
+      ws.compileAll()
+      assert(Files.exists(libPaths.targetDir.resolve(".zinc/unsafe-seed")), "the marker must survive a normal compile on top of the seed")
+
+      // Push without --allow-unsafe-seeded refuses both seeded projects.
+      val refused = RemoteCache.Push(projects = Array.empty, force = false, allowUnsafeSeeded = false).run(started)
+      assert(refused.isLeft, "push must refuse projects whose compiled state came from an unsafe seed")
+      refused.left.foreach(e => assert(e.getMessage.contains("unsafe seed"), s"refusal should name the reason: ${e.getMessage}"))
+
+      // Push with --allow-unsafe-seeded succeeds.
+      RemoteCache
+        .Push(projects = Array.empty, force = false, allowUnsafeSeeded = true)
+        .run(started)
+        .fold(e => fail(s"push with --allow-unsafe-seeded should have succeeded: ${e.getMessage}"), identity)
+
       succeed
     } finally FileUtils.deleteDirectory(cacheDir)
   }
