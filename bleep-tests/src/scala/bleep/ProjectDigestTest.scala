@@ -726,14 +726,20 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val scriptsSrc = workspace.resolve("scripts/src/scala")
       Files.createDirectories(scriptsSrc)
       Files.writeString(scriptsSrc.resolve("Gen.scala"), "object Gen")
+      val libSrc = workspace.resolve("lib/src/scala")
+      Files.createDirectories(libSrc)
+      Files.writeString(libSrc.resolve("Lib.scala"), "object Lib")
       Files.writeString(workspace.resolve("unrelated.txt"), "v1") // a tracked file `a` doesn't declare, so changing it moves nothing of a's
       gitCommitAll(workspace)
       val commit1 = currentCommit(workspace)
 
       val gen: model.ScriptDef = model.ScriptDef.Main(cpn("scripts"), "my.Gen", model.JsonSet.empty, model.JsonSet.empty, None)
       val scripts = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
-      val a = model.Project.empty.copy(sourcegen = model.JsonSet(SortedSet(gen)))
-      val build = makeBuild("scripts" -> scripts, "a" -> a)
+      val lib = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      // `dependsOn: lib` alongside `sourcegen:` mirrors the real shape that caught the fold-order bug: a project whose digest folds BOTH an ordinary
+      // transitive dependency AND a sourcegen declaration. A project with only one or the other can't tell two different fold orders apart.
+      val a = projectWithDeps("lib").copy(sourcegen = model.JsonSet(SortedSet(gen)))
+      val build = makeBuild("scripts" -> scripts, "lib" -> lib, "a" -> a)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
       // Generated output exists on disk (as it would after a real local run), but was never committed — this is the untracked content that used to cause
@@ -744,10 +750,15 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
       atCommit1.get(cpn("a")) should not be None
 
+      // The working tree is still exactly commit1, so this isn't just "resolvable" — it must equal what computeAll produces right now, directly pinning
+      // computeAllAt's whole documented job (reproduce a digest a real push could have produced). This caught a real bug: computeAll folds a project's
+      // sourcegen-declaration digests BEFORE its transitive/indirect deps, but computeAllAt folded them AFTER — same information, different
+      // MessageDigest.update order, so the two disagreed on every sourcegen-bearing project despite both being "correct" in isolation.
+      ProjectDigest.computeAll(build, buildPaths)(cpn("a")) shouldBe atCommit1(cpn("a"))
+
       // Move the repo on — the unrelated file changes, `a`'s and `scripts`' own content doesn't — then check that `atCommit1`'s digest for `a` still
-      // matches a direct computeAll at commit1 (asserted indirectly: computeAllAt's own doc-comment-documented job is to reproduce what computeAll would
-      // have produced back then, and the sibling ancestor-commit test above already pins that property for ordinary projects; this just confirms the
-      // refusal is gone for a sourcegen-bearing one too).
+      // matches a direct computeAll at commit1 (the sibling ancestor-commit test above already pins that property for ordinary projects; this just
+      // confirms the refusal is gone for a sourcegen-bearing one too).
       Files.writeString(workspace.resolve("unrelated.txt"), "v2")
       gitCommitAll(workspace)
       val atCommit1Again = ProjectDigest.computeAllAt(build, buildPaths, commit1)

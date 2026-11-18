@@ -197,8 +197,11 @@ object ProjectDigest {
 
             if ((depDigests ++ indirectDigests ++ sourcegenDigests).exists(_.isEmpty)) None
             else {
-              (depDigests ++ indirectDigests).foreach(d => md.update(d.get.getBytes("UTF-8")))
+              // Folded in the same order as computeAll's steps 5/6/7: sourcegen digests, then deps, then non-sourcegen indirect deps. MessageDigest is
+              // order-sensitive, so this isn't cosmetic — a different fold order here would make this function disagree with computeAll on identical
+              // inputs, which defeats the one thing it exists to do (reproduce a digest a real push could have produced).
               sourcegenDigests.foreach(d => md.update(d.get.getBytes("UTF-8")))
+              (depDigests ++ indirectDigests).foreach(d => md.update(d.get.getBytes("UTF-8")))
               Some(Checksums.byteArrayToHexString(md.digest()))
             }
           }
