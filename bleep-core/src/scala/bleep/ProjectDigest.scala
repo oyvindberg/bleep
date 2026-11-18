@@ -14,12 +14,15 @@ import scala.jdk.StreamConverters.*
   *   - The bleep version
   *   - The build-level toolchain JVM (`jvm:` in `bleep.yaml`) — the JDK that compiles and runs everything
   *   - Project configuration (deps, compiler flags, scala version, platform, etc.)
-  *   - Source file content hashes (via `git ls-tree` for clean dirs, filesystem for dirty/generated)
-  *   - Resource file content hashes (affects key but resources are NOT cached)
-  *   - Content hashes of directories declared under `sourceGlobs` on a `sourcegen:` entry, because a generator that reads them produces different sources when
-  *     they change
+  *   - Source file content hashes (via `git ls-tree` for clean dirs, filesystem for dirty content) — excluding sourcegen output, see below
+  *   - Resource file content hashes (affects key but resources are NOT cached) — excluding sourcegen output, see below
+  *   - Per `sourcegen:` declaration, a generator digest folded in place of that declaration's `generated-sources`/`generated-resources` directories: the script
+  *     project's own digest, each declared `inputs` project's digest, and the content of any `sourceGlobs` directories (see [[computeGeneratorDigest]]). A
+  *     generator's output is a deterministic function of those — never hashed directly, so computing this digest never requires the generator to have actually
+  *     run. This is also what [[RemoteCache]]'s generator-output cache keys its entries on.
   *   - Transitive dependency project digests (if B depends on A, B's digest includes A's digest)
-  *   - Indirect dependency project digests ([[model.IndirectDependency]]): whatever generates, compiles or rewrites this project's code
+  *   - Indirect dependency project digests ([[model.IndirectDependency]]): whatever compiles or rewrites this project's code, other than a sourcegen script —
+  *     those are folded via the generator digest above instead
   *
   * What goes in is content, never location: every file contributes its path *relative to the declared directory* plus a git blob hash of its bytes. That is
   * what makes the digest a portable cache key — two checkouts of the same commit at different absolute paths, on different operating systems, must agree. Any
@@ -95,16 +98,18 @@ object ProjectDigest {
           val configYaml = yaml.encodeShortened(configForDigest)
           md.update(configYaml.getBytes("UTF-8"))
 
-          // 3. Source file content hashes
-          hashDirectories(md, buildPaths.buildDir, projectPaths.sourcesDirs.all(Usage.Input), dirtyPaths)
+          // 3. Source file content hashes, excluding sourcegen output (folded via its own generator digest in step 5 instead — see below)
+          hashDirectories(md, buildPaths.buildDir, projectPaths.sourcesDirs.all(Usage.Input) -- projectPaths.sourcesDirs.generated.values, dirtyPaths)
 
-          // 4. Resource file content hashes (affects digest, but resources are not cached)
-          hashDirectories(md, buildPaths.buildDir, projectPaths.resourcesDirs.all(Usage.Input), dirtyPaths)
+          // 4. Resource file content hashes (affects digest, but resources are not cached), same exclusion as step 3
+          hashDirectories(md, buildPaths.buildDir, projectPaths.resourcesDirs.all(Usage.Input) -- projectPaths.resourcesDirs.generated.values, dirtyPaths)
 
-          // 5. Directories this project declared as sourcegen inputs via `sourceGlobs`.
-          // Kept as its own step rather than folded into 2/3 so the bytes fed for projects without
-          // `sourceGlobs` — which is nearly all of them — are byte-for-byte what they were before.
-          hashDirectories(md, buildPaths.buildDir, ProjectInputs.declaredSourcegenInputs(project, projectPaths).toSet, dirtyPaths)
+          // 5. Per sourcegen declaration, a generator digest folded in place of hashing `generated-sources`/`generated-resources` directly — see
+          // [[computeGeneratorDigest]]. Requires the generator to have actually run only when its output is actually missing from disk at compile time,
+          // never merely to compute this digest.
+          project.sourcegen.values.toList.foreach { case s: model.ScriptDef.Main =>
+            md.update(computeGeneratorDigest(buildPaths.buildDir, s, projectPaths, dirtyPaths, compute).getBytes("UTF-8"))
+          }
 
           // 6. Transitive dependency digests (sorted for determinism)
           val deps = build.resolvedDependsOn.getOrElse(crossName, Set.empty)
@@ -112,10 +117,11 @@ object ProjectDigest {
             md.update(compute(dep).getBytes("UTF-8"))
           }
 
-          // 7. Indirect dependency digests: a sourcegen script, a compiler, a post-compile script or its inputs each decide this project's output without
-          // reaching its classpath. Sourcegen scripts are listed first, so a project with nothing else feeds the same bytes as before the others existed.
-          build.resolvedIndirectDependencies(crossName).foreach { dep =>
-            md.update(compute(dep.project).getBytes("UTF-8"))
+          // 7. Indirect dependency digests other than a sourcegen script or its inputs (those are folded via step 5 instead): a compiler, a post-compile
+          // script, or its inputs, each decide this project's output without reaching its classpath.
+          build.resolvedIndirectDependencies(crossName).foreach {
+            case dep if isSourcegenReason(dep.reason) => ()
+            case dep                                  => md.update(compute(dep.project).getBytes("UTF-8"))
           }
 
           Checksums.byteArrayToHexString(md.digest())
@@ -171,20 +177,28 @@ object ProjectDigest {
           val configForDigest = project.copy(publish = None, stamp = model.JsonSet.empty, `extends` = model.JsonSet.empty)
           md.update(yaml.encodeShortened(configForDigest).getBytes("UTF-8"))
 
+          // Same exclusion as [[computeAll]]'s steps 3/4: generated output is folded via its own generator digest below, never hashed directly — which is
+          // exactly what lets a project whose generated output isn't git-tracked (every one of them) still get a historical digest at all.
           val ownContentResolvable =
-            hashDirectoriesAt(md, buildPaths.buildDir, ref, projectPaths.sourcesDirs.all(Usage.Input)) &&
-              hashDirectoriesAt(md, buildPaths.buildDir, ref, projectPaths.resourcesDirs.all(Usage.Input)) &&
-              hashDirectoriesAt(md, buildPaths.buildDir, ref, ProjectInputs.declaredSourcegenInputs(project, projectPaths).toSet)
+            hashDirectoriesAt(md, buildPaths.buildDir, ref, projectPaths.sourcesDirs.all(Usage.Input) -- projectPaths.sourcesDirs.generated.values) &&
+              hashDirectoriesAt(md, buildPaths.buildDir, ref, projectPaths.resourcesDirs.all(Usage.Input) -- projectPaths.resourcesDirs.generated.values)
 
           if (!ownContentResolvable) None
           else {
+            val sourcegenDigests: List[Option[String]] = project.sourcegen.values.toList.collect { case s: model.ScriptDef.Main =>
+              computeGeneratorDigestAt(buildPaths.buildDir, ref, s, projectPaths, compute)
+            }
+
             val deps = build.resolvedDependsOn.getOrElse(crossName, Set.empty)
             val depDigests = deps.toList.sorted.map(compute)
-            val indirectDigests = build.resolvedIndirectDependencies(crossName).toList.map(dep => compute(dep.project))
+            val indirectDigests = build.resolvedIndirectDependencies(crossName).toList.collect {
+              case dep if !isSourcegenReason(dep.reason) => compute(dep.project)
+            }
 
-            if ((depDigests ++ indirectDigests).exists(_.isEmpty)) None
+            if ((depDigests ++ indirectDigests ++ sourcegenDigests).exists(_.isEmpty)) None
             else {
               (depDigests ++ indirectDigests).foreach(d => md.update(d.get.getBytes("UTF-8")))
+              sourcegenDigests.foreach(d => md.update(d.get.getBytes("UTF-8")))
               Some(Checksums.byteArrayToHexString(md.digest()))
             }
           }
@@ -194,6 +208,105 @@ object ProjectDigest {
     build.explodedProjects.keys.foreach(compute)
     SortedMap.from(digests.collect { case (crossName, Some(digest)) => crossName -> digest })
   }
+
+  private def isSourcegenReason(reason: model.IndirectDependency.Reason): Boolean = reason match {
+    case _: model.IndirectDependency.Reason.Sourcegen      => true
+    case _: model.IndirectDependency.Reason.SourcegenInput => true
+    case _                                                 => false
+  }
+
+  /** Every `(consumer, declaration)` pair for sourcegen entries across the build. Declarations live on [[model.Project.sourcegen]] per-project, not in one
+    * global list, so this is the one place that walks every project asking "do you have one".
+    */
+  private def allSourcegenEntries(build: model.Build): List[(model.CrossProjectName, model.ScriptDef.Main)] =
+    build.explodedProjects.toList.flatMap { case (crossName, project) =>
+      project.sourcegen.values.toList.collect { case s: model.ScriptDef.Main => crossName -> s }
+    }
+
+  /** A digest for one sourcegen declaration's output, as consumed by `consumerPaths`'s project — what [[RemoteCache]] keys its generator-output cache entries
+    * on, and what [[computeAll]] folds in place of hashing that declaration's `generated-sources`/`generated-resources` directories directly.
+    *
+    * Deliberately independent of everything else about the consuming project: only the generator's own declared inputs decide what it produces — the script
+    * project's digest (recursively, via `resolveDigest`, so a change to the generator's own implementation busts this too), each declared `inputs` project's
+    * digest, and the content of any `sourceGlobs` directories (resolved against the consumer, since a declaration can point `sourceGlobs` at consumer-specific
+    * paths). This is a deliberate equivalence, not an approximation: a sourcegen script is required to be a deterministic function of exactly these inputs for
+    * any of bleep's existing digest-based invalidation to be sound at all (today's [[ProjectDigest]] already trusts that a generator produces the same output
+    * from the same inputs on every machine, just as it trusts the Scala/Java compiler to) — so hashing the inputs here is equivalent to hashing the real output
+    * bytes, and unlike the real bytes, never requires the generator to have actually run.
+    */
+  private def computeGeneratorDigest(
+      buildDir: Path,
+      script: model.ScriptDef.Main,
+      consumerPaths: ProjectPaths,
+      dirtyPaths: Option[Set[Path]],
+      resolveDigest: model.CrossProjectName => String
+  ): String = {
+    val md = MessageDigest.getInstance("SHA-256")
+    md.update(script.main.getBytes("UTF-8"))
+    md.update(resolveDigest(script.project).getBytes("UTF-8"))
+    script.inputs.values.toList.sorted.foreach(p => md.update(resolveDigest(p).getBytes("UTF-8")))
+    hashDirectories(md, buildDir, ProjectInputs.declaredSourcegenInputs(script, consumerPaths).toSet, dirtyPaths)
+    Checksums.byteArrayToHexString(md.digest())
+  }
+
+  /** Like [[computeGeneratorDigest]], but as of a historical ref — see [[computeAllAt]] for why this can come back empty rather than guessing. Unlike
+    * [[computeAllAt]]'s own refusal (which is unavoidable for actual generated content, never git-tracked), this one only fails when the generator's own
+    * declared inputs — ordinary projects and `sourceGlobs`, almost always git-tracked — cannot be resolved as of `ref`.
+    */
+  private def computeGeneratorDigestAt(
+      buildDir: Path,
+      ref: String,
+      script: model.ScriptDef.Main,
+      consumerPaths: ProjectPaths,
+      resolveDigest: model.CrossProjectName => Option[String]
+  ): Option[String] = {
+    val md = MessageDigest.getInstance("SHA-256")
+    md.update(script.main.getBytes("UTF-8"))
+
+    val depDigests = (script.project :: script.inputs.values.toList.sorted).map(resolveDigest)
+    if (depDigests.exists(_.isEmpty)) None
+    else {
+      depDigests.foreach(d => md.update(d.get.getBytes("UTF-8")))
+      if (hashDirectoriesAt(md, buildDir, ref, ProjectInputs.declaredSourcegenInputs(script, consumerPaths).toSet))
+        Some(Checksums.byteArrayToHexString(md.digest()))
+      else None
+    }
+  }
+
+  /** A generator digest (see [[computeGeneratorDigest]]) for every sourcegen declaration in the build, as of the working tree. Used by
+    * `bleep remote-cache pull`/`push` to populate or publish generated output *before* a consuming project's own digest is computed — which is what lets the
+    * cache serve a project with a sourcegen dependency without ever having run the generator locally first.
+    *
+    * `projectDigests` supplies already-computed project digests rather than recomputing them, so this never duplicates [[computeAll]]'s own bottom-up walk;
+    * pass it the result of a single prior call to [[computeAll]].
+    */
+  def computeSourcegenDigests(
+      build: model.Build,
+      buildPaths: BuildPaths,
+      projectDigests: model.CrossProjectName => String
+  ): Map[(model.CrossProjectName, model.ScriptDef.Main), String] = {
+    val dirtyPaths = gitDirtyPaths(buildPaths.buildDir)
+    allSourcegenEntries(build).map { case (crossName, script) =>
+      val project = build.explodedProjects(crossName)
+      val consumerPaths = buildPaths.project(crossName, project, build.crossPlatforms(crossName.name))
+      (crossName, script) -> computeGeneratorDigest(buildPaths.buildDir, script, consumerPaths, dirtyPaths, projectDigests)
+    }.toMap
+  }
+
+  /** Like [[computeSourcegenDigests]], but as of a historical ref — pass the result of a prior call to [[computeAllAt]] (as `.get`) as `projectDigestsAt`.
+    * Omits declarations whose digest-at-`ref` could not be determined, same convention as [[computeAllAt]] itself.
+    */
+  def computeSourcegenDigestsAt(
+      build: model.Build,
+      buildPaths: BuildPaths,
+      ref: String,
+      projectDigestsAt: model.CrossProjectName => Option[String]
+  ): Map[(model.CrossProjectName, model.ScriptDef.Main), String] =
+    allSourcegenEntries(build).flatMap { case (crossName, script) =>
+      val project = build.explodedProjects(crossName)
+      val consumerPaths = buildPaths.project(crossName, project, build.crossPlatforms(crossName.name))
+      computeGeneratorDigestAt(buildPaths.buildDir, ref, script, consumerPaths, projectDigestsAt).map(d => (crossName, script) -> d)
+    }.toMap
 
   /** Hash all files under the given directories into the MessageDigest.
     *

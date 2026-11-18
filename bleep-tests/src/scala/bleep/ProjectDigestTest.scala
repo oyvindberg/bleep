@@ -551,10 +551,14 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
     } finally deleteRecursively(workspace)
   }
 
-  test("sourcegen output IS an input: rewriting it moves the digest") {
-    // The other side of the line drawn above, pinned so nobody moves it by analogy. A sourcegen is the tool people use precisely to read outside the source
-    // tree — a schema, git, the network — which is why it can declare `sourceGlobs`. Hashing its output is what turns a generator reading something bleep does
-    // not know about into a cache miss, instead of a cache hit serving classes compiled from a stale value.
+  test("sourcegen output is not hashed directly: only its declared inputs are, via its own generator digest") {
+    // Unlike AP/KSP output (not an input at all, above), a sourcegen's output IS an input to the digest — but folded via its own generator digest
+    // (`ProjectDigest.computeGeneratorDigest`: the script project's digest, each declared `inputs` project's digest, and `sourceGlobs` content), never by
+    // hashing the output bytes directly. That equivalence is deliberate, not an approximation: a generator is required to be a deterministic function of
+    // exactly those inputs for any of this digest's existing invalidation to be sound at all (today's digest already trusts the Scala/Java compiler the
+    // same way). It's also what lets a project's digest be computed without the generator ever having run — see `bleep remote-cache`. So rewriting the
+    // output directly, with nothing about its declared inputs changing, must leave the digest alone — the opposite of what hashing the raw bytes would
+    // have done, and exactly why `sourceGlobs`/the script project's own sources moving the digest (covered in SourcegenInputsTest) is still true.
     val workspace = createTempWorkspace()
     try {
       val gen: model.ScriptDef = model.ScriptDef.Main(cpn("scripts"), "my.Gen", model.JsonSet.empty, model.JsonSet.empty, None)
@@ -569,7 +573,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       writeIn(genDir, "Version.java", "class Version { static String V = \"1.0.1\"; }")
       val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
 
-      after should not be before
+      after shouldBe before
     } finally deleteRecursively(workspace)
   }
 
@@ -707,6 +711,47 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
       atCommit1.get(cpn("a")) should not be None
       atCommit1.get(cpn("b")) shouldBe None
+    } finally deleteRecursively(workspace)
+  }
+
+  test("computeAllAt resolves a sourcegen-bearing project even though its generated output is untracked — the bug --unsafe-seed-ref was named to fix") {
+    // Before generated output was folded via its own generator digest instead of being hashed directly (see computeGeneratorDigest), this came back `None`
+    // for exactly the same reason as the untracked-content test above — generated-sources is never git-tracked. That refusal cascaded to every project
+    // downstream of a sourcegen dependency, which is what made --unsafe-seed-ref useless on any build that had one at all. It no longer needs to, because
+    // resolving the generator's digest never requires reading the generated directory's content, only the generator's own declared inputs (here: none
+    // beyond the script project itself, which is tracked like any other project).
+    val workspace = Files.createTempDirectory("bleep-digest-sourcegen-at-ref-")
+    try {
+      gitInit(workspace)
+      val scriptsSrc = workspace.resolve("scripts/src/scala")
+      Files.createDirectories(scriptsSrc)
+      Files.writeString(scriptsSrc.resolve("Gen.scala"), "object Gen")
+      Files.writeString(workspace.resolve("unrelated.txt"), "v1") // a tracked file `a` doesn't declare, so changing it moves nothing of a's
+      gitCommitAll(workspace)
+      val commit1 = currentCommit(workspace)
+
+      val gen: model.ScriptDef = model.ScriptDef.Main(cpn("scripts"), "my.Gen", model.JsonSet.empty, model.JsonSet.empty, None)
+      val scripts = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val a = model.Project.empty.copy(sourcegen = model.JsonSet(SortedSet(gen)))
+      val build = makeBuild("scripts" -> scripts, "a" -> a)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      // Generated output exists on disk (as it would after a real local run), but was never committed — this is the untracked content that used to cause
+      // the refusal.
+      val genDir = buildPaths.generatedSourcesDir(cpn("a"), gen.folderName)
+      writeIn(genDir, "Generated.scala", "object Generated")
+
+      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      atCommit1.get(cpn("a")) should not be None
+
+      // Move the repo on — the unrelated file changes, `a`'s and `scripts`' own content doesn't — then check that `atCommit1`'s digest for `a` still
+      // matches a direct computeAll at commit1 (asserted indirectly: computeAllAt's own doc-comment-documented job is to reproduce what computeAll would
+      // have produced back then, and the sibling ancestor-commit test above already pins that property for ordinary projects; this just confirms the
+      // refusal is gone for a sourcegen-bearing one too).
+      Files.writeString(workspace.resolve("unrelated.txt"), "v2")
+      gitCommitAll(workspace)
+      val atCommit1Again = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      atCommit1Again(cpn("a")) shouldBe atCommit1(cpn("a"))
     } finally deleteRecursively(workspace)
   }
 

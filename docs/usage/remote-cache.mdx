@@ -34,10 +34,8 @@ export BLEEP_REMOTE_CACHE_S3_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Generate sources first — see below for why
-bleep sourcegen
-
-# Pull cached classes before building
+# Pull cached classes before building — this also restores any sourcegen declaration's output, so
+# there is no need to run `bleep sourcegen` first (see below)
 bleep remote-cache pull
 
 # Build only what changed
@@ -60,11 +58,11 @@ That is deliberate — a pull must never clobber a build you are in the middle o
 - **A pull cannot repair state that is present but wrong.** Only `bleep clean` (or a fresh checkout) gets you back to a state a pull can populate.
 - **Switching branches in place does not earn a cache hit.** The cache pays off where workspaces start empty: CI checkouts, fresh clones, and new git worktrees.
 
-### Run `bleep sourcegen` before `pull` and `push`
+### Sourcegen output has its own cache entry, pulled/pushed automatically
 
-Generated sources are part of a project's digest. In a workspace where sourcegen has not run yet, every project that consumes a generator — and everything downstream of it — hashes as *"no generated file"*, which is a key nothing was ever pushed under. The pull silently misses, and you compile what you could have downloaded.
+A project's digest no longer depends on a [sourcegen script](/docs/concepts/sourcegen) having actually run: the generator's output is folded in via its own content-addressed digest — the script project's digest, its declared `inputs` projects' digests, and any `sourceGlobs` content — rather than by hashing the generated files directly. `pull` uses that to restore a generator's output from its own cache entry before touching any project's own classes, and `push` publishes it the same way. Either way, a (possibly slow) generator never has to run locally just to let the cache work — `bleep remote-cache pull` alone is enough, even on a fresh checkout that has never run `bleep sourcegen` at all.
 
-On a 169-project build this was the difference between 148 and 167 projects restored, and between 53 s and 25 s of compiling afterwards. `bleep sourcegen` is cheap and idempotent; put it ahead of `remote-cache pull` in CI.
+This relies on a generator being a deterministic function of exactly those inputs — which today's digest-based invalidation already assumes, the same way it trusts the Scala/Java compiler to be deterministic.
 
 ## How it works
 
@@ -72,7 +70,7 @@ Each project gets a SHA-256 **digest** computed from:
 - The bleep version
 - The build-level toolchain JVM — `jvm:` in `bleep.yaml`, name and index url (bump the JDK and every project's digest changes)
 - Project configuration (dependencies, compiler flags, Scala version, platform, etc.)
-- Source file contents (using git blob hashes for speed, with filesystem fallback), including what [sourcegen scripts](/docs/concepts/sourcegen) generate
+- Source file contents (using git blob hashes for speed, with filesystem fallback) — excluding [sourcegen](/docs/concepts/sourcegen) output, folded in via its own generator digest instead (see above)
 - Resource file contents (affects the digest but resources are NOT cached)
 - Transitive dependency project digests (changes propagate downstream)
 
@@ -136,11 +134,11 @@ Every project gets a SHA-256 **digest** over its compilation inputs
 3. the project's effective configuration as YAML — templates expanded,
    `publish` excluded because it doesn't affect compilation,
 4. content hashes of every source file under the project's source
-   directories,
+   directories, excluding sourcegen output (see step 7),
 5. content hashes of every resource file (resources are *not* stored in
-   the archive, but they change the key),
+   the archive, but they change the key), with the same sourcegen exclusion,
 6. the digests of all transitive project dependencies,
-7. the digests of the projects it is built with but not against: those backing its sourcegen scripts, and any others the build names (see [post-compile](/docs/appendix/post-compile)).
+7. per sourcegen declaration, a generator digest folded in place of hashing that declaration's output directly — the script project's digest, each declared `inputs` project's digest, and `sourceGlobs` content — plus the digests of any other projects it is built with but not against (see [post-compile](/docs/appendix/post-compile)).
 
 `resolvers:` is deliberately **not** part of the key. A coordinate is
 expected to resolve to the same bytes from any repository, and an
@@ -153,15 +151,18 @@ coordinate is a supply-chain incident, and a cache key is the wrong
 place to defend against it.
 
 File content hashes are git blob hashes: `git ls-tree -r HEAD` supplies
-them for directories with no uncommitted changes, and directories that
-are dirty or untracked (generated sources) are hashed from the
-filesystem with the same `SHA-1("blob <size>\0" + content)` formula, so
-both paths agree on the same content.
+them for directories with no uncommitted changes, and dirty or untracked
+directories (other than sourcegen output, which is never hashed
+directly — see step 7 above) are hashed from the filesystem with the
+same `SHA-1("blob <size>\0" + content)` formula, so both paths agree on
+the same content.
 
 The resulting key is
 `<prefix>/<project>/<digest>.tar.gz` (slashes in a cross-project name
 become dashes). The archive holds the classes directory and the Zinc
-analysis.
+analysis. A sourcegen declaration's own output is archived separately,
+under `<prefix>/sourcegen/<project>/<script main class>/<generator
+digest>.tar.gz`.
 
 **The digest describes the inputs, never the bytes stored under it.**
 `bleep remote-cache pull` asks the backend whether that key exists,

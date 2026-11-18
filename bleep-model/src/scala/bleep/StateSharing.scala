@@ -25,9 +25,10 @@ import java.nio.file.Path
   * Workspace-level state (`.bleep/builds/<variant>/` — run history transcripts, logs) is ALL private and outside this classification entirely: both sharing
   * mechanisms operate per-project and never touch it. [[BuildPaths.historyDir]] documents why transcripts must stay put.
   *
-  * Generated sources/resources (`.bleep/projects/<cross>/generated-*`) live outside the variant dir; copy-state clones them wholesale (they are outputs keyed
-  * by the build, portable by construction) and the remote cache deliberately does not archive them — that asymmetry is intentional and encoded at the call
-  * sites, not here.
+  * Generated sources/resources (`.bleep/projects/<cross>/generated-*`) live outside the variant dir entirely, so this allow-list — relative to the variant dir
+  * — structurally cannot name them. Copy-state clones them wholesale (same-machine, so no portability concerns). The remote cache archives them too, but
+  * through a second, parallel allow-list and cache-key namespace in [[commands.RemoteCache]] keyed on [[ProjectDigest.computeSourcegenDigests]] rather than on
+  * a whole project's digest — see that method's doc comment for why generated output needs its own cache key, not this one.
   */
 object StateSharing {
 

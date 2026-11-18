@@ -21,6 +21,15 @@ import scala.jdk.StreamConverters.*
   *
   * `Pull(..., unsafeSeedRef = Some(ref))` additionally tries, on an exact-digest miss, a digest computed as of `git merge-base ref HEAD` — see
   * [[PullOutcome.HitSeed]] and the `.zinc/unsafe-seed` marker it writes, which [[Push]] checks before publishing.
+  *
+  * ==Sourcegen output has its own cache, pulled/pushed before anything above==
+  *
+  * A project's `generated-sources`/`generated-resources` directories are never archived as part of the project's own entry (see [[bleep.StateSharing]]'s doc
+  * comment for why they structurally can't be) and, since [[ProjectDigest]] folds a generator's output via its own content- addressed
+  * [[ProjectDigest.computeSourcegenDigests]] instead of hashing that output directly, computing a project's digest no longer requires the generator to have
+  * actually run first. `Pull`/`Push` use that to populate or publish generator output through a second, parallel cache keyed on [[sourcegenCacheKey]], before
+  * touching any project's own classes — so a project with a sourcegen dependency can be served by the cache, and the (possibly slow) generator never has to run
+  * locally at all, as long as its declared inputs are unchanged.
   */
 object RemoteCache {
 
@@ -88,6 +97,12 @@ object RemoteCache {
 
           val currentDigests = ProjectDigest.computeAll(started.build, started.buildPaths)
           val projectsToPull = withoutUnsupported(started, if (projects.nonEmpty) projects.toSet else currentDigests.keySet)
+
+          // Populate sourcegen output first — see the class doc comment. Computing `currentDigests` above never needed the generator to have run (that's
+          // the whole point of folding its output via a digest rather than hashing it directly), but the compile that follows this `pull` still does, so
+          // this is the one place that can save it from having to.
+          val (sourcegenHit, sourcegenAlready, sourcegenMissed) =
+            pullSourcegenOutputs(started, client, prefix, projectsToPull, currentDigests)
 
           // Resolved once, up front, so every project's seed digest (if any) is known before the parallel pull loop starts — never computed lazily per miss.
           val seedCommit: Option[String] = unsafeSeedRef.map(ref => internal.gitOutput.mergeBase(buildDir, ref, "HEAD"))
@@ -177,6 +192,7 @@ object RemoteCache {
               s"Remote cache pull: $hitCurrent pulled, $alreadyCompiled already compiled, $missed not cached (${projectsToPull.size} total)"
           }
           started.logger.info(summary)
+          started.logger.info(s"Remote cache pull (sourcegen output): $sourcegenHit pulled, $sourcegenAlready already generated, $sourcegenMissed not cached")
           Right(())
       }
     }
@@ -201,6 +217,11 @@ object RemoteCache {
 
           val digests = ProjectDigest.computeAll(started.build, started.buildPaths)
           val projectsToPush = withoutUnsupported(started, if (projects.nonEmpty) projects.toSet else digests.keySet)
+
+          // Push sourcegen output first, same reasoning as [[Pull]] pulling it first — no unsafe-seed gate applies here: there is no incremental-trust
+          // spectrum for raw generated files, only a generator digest that either matches what's on disk or doesn't.
+          val (sourcegenPushed, sourcegenSkipped, sourcegenNotGenerated) =
+            pushSourcegenOutputs(started, client, prefix, force, projectsToPush, digests)
 
           val pushed = AtomicInteger(0)
           val skipped = AtomicInteger(0)
@@ -256,6 +277,10 @@ object RemoteCache {
 
           futures.forEach { f => f.get(); () }
           executor.shutdown()
+
+          started.logger.info(
+            s"Remote cache push (sourcegen output): $sourcegenPushed pushed, $sourcegenSkipped already cached, $sourcegenNotGenerated not generated"
+          )
 
           val errorList = scala.jdk.CollectionConverters.IterableHasAsScala(errors).asScala.toList
           if (errorList.nonEmpty) {
@@ -318,6 +343,126 @@ object RemoteCache {
     val projectKey = crossName.fileSafeValue
     if (prefix.isEmpty) s"$projectKey/$digest.tar.gz"
     else s"$prefix/$projectKey/$digest.tar.gz"
+  }
+
+  /** Cache key for one sourcegen declaration's output, as consumed by `consumer` — a separate namespace from [[cacheKey]]'s per-project classes entries, since
+    * one declaration's output may be worth caching independently of (and long before) any particular consumer's own classes digest resolves.
+    */
+  private def sourcegenCacheKey(prefix: String, consumer: model.CrossProjectName, main: String, digest: String): String = {
+    val key = s"sourcegen/${consumer.fileSafeValue}/$main/$digest.tar.gz"
+    if (prefix.isEmpty) key else s"$prefix/$key"
+  }
+
+  private def hasAnyFile(dir: Path): Boolean =
+    Files.isDirectory(dir) && scala.util.Using.resource(Files.list(dir))(_.findAny().isPresent)
+
+  /** Populate every sourcegen declaration's `generated-sources`/`generated-resources` output from the cache, for every project in `consumers` that declares
+    * one. Run before any project's own classes are pulled, so a subsequent compile never has to run a (possibly slow) generator locally just to produce output
+    * the cache already has.
+    *
+    * One level down from [[Pull]]'s own per-project loop, and simpler: there is no seed variant, since there is no Zinc-style incremental reconciliation for
+    * raw generated files to lean on — a digest either matches exactly or the cache missed.
+    */
+  private def pullSourcegenOutputs(
+      started: Started,
+      client: CacheStore,
+      prefix: String,
+      consumers: Set[model.CrossProjectName],
+      currentDigests: model.CrossProjectName => String
+  ): (Int, Int, Int) = {
+    val entries = ProjectDigest
+      .computeSourcegenDigests(started.build, started.buildPaths, currentDigests)
+      .filter { case ((consumer, _), _) =>
+        consumers.contains(consumer)
+      }
+      .toList
+
+    val hit = new AtomicInteger(0)
+    val already = new AtomicInteger(0)
+    val missed = new AtomicInteger(0)
+
+    val executor = Executors.newFixedThreadPool(Parallelism)
+    val futures = new java.util.ArrayList[JFuture[?]]()
+
+    entries.foreach { case ((consumer, script), digest) =>
+      futures.add(executor.submit((() => {
+        val sourcesDir = started.buildPaths.generatedSourcesDir(consumer, script.main)
+        val resourcesDir = started.buildPaths.generatedResourcesDir(consumer, script.main)
+
+        if (hasAnyFile(sourcesDir) || hasAnyFile(resourcesDir)) {
+          already.incrementAndGet(): Unit
+        } else {
+          val key = sourcegenCacheKey(prefix, consumer, script.main, digest)
+          if (client.headObject(key)) {
+            val archive = client.getObject(key)
+            TarGz.unpack(archive, started.buildPaths.crossProjectDir(consumer))
+            hit.incrementAndGet(): Unit
+            started.logger.info(s"${consumer.value}: pulled sourcegen output for ${script.main} from cache (${archive.length / 1024}KB)")
+          } else {
+            missed.incrementAndGet(): Unit
+            started.logger.debug(s"${consumer.value}: sourcegen output for ${script.main} not in cache")
+          }
+        }
+      }): Runnable))
+    }
+
+    futures.forEach { f => f.get(); () }
+    executor.shutdown()
+
+    (hit.get(), already.get(), missed.get())
+  }
+
+  /** Push every sourcegen declaration's output already generated locally, for every project in `consumers` that declares one — the write side of
+    * [[pullSourcegenOutputs]]. A declaration whose output was never generated locally is skipped, not an error: `push` is normally run right after a real
+    * compile, so this is simply the case where nothing in the build actually needed that generator this time.
+    */
+  private def pushSourcegenOutputs(
+      started: Started,
+      client: CacheStore,
+      prefix: String,
+      force: Boolean,
+      consumers: Set[model.CrossProjectName],
+      digests: model.CrossProjectName => String
+  ): (Int, Int, Int) = {
+    val entries = ProjectDigest
+      .computeSourcegenDigests(started.build, started.buildPaths, digests)
+      .filter { case ((consumer, _), _) =>
+        consumers.contains(consumer)
+      }
+      .toList
+
+    val pushed = new AtomicInteger(0)
+    val skipped = new AtomicInteger(0)
+    val notGenerated = new AtomicInteger(0)
+
+    val executor = Executors.newFixedThreadPool(Parallelism)
+    val futures = new java.util.ArrayList[JFuture[?]]()
+
+    entries.foreach { case ((consumer, script), digest) =>
+      futures.add(executor.submit((() => {
+        val sourcesDir = started.buildPaths.generatedSourcesDir(consumer, script.main)
+        val resourcesDir = started.buildPaths.generatedResourcesDir(consumer, script.main)
+        val key = sourcegenCacheKey(prefix, consumer, script.main, digest)
+
+        if (!hasAnyFile(sourcesDir) && !hasAnyFile(resourcesDir)) {
+          notGenerated.incrementAndGet(): Unit
+          started.logger.debug(s"${consumer.value}: sourcegen output for ${script.main} not generated, skipping")
+        } else if (!force && client.headObject(key)) {
+          skipped.incrementAndGet(): Unit
+          started.logger.debug(s"${consumer.value}: sourcegen output for ${script.main} already in cache")
+        } else {
+          val archive = TarGz.pack(started.buildPaths.crossProjectDir(consumer), p => p.startsWith(sourcesDir) || p.startsWith(resourcesDir))
+          client.putObject(key, archive)
+          pushed.incrementAndGet(): Unit
+          started.logger.info(s"${consumer.value}: pushed sourcegen output for ${script.main} to cache (${archive.length / 1024}KB)")
+        }
+      }): Runnable))
+    }
+
+    futures.forEach { f => f.get(); () }
+    executor.shutdown()
+
+    (pushed.get(), skipped.get(), notGenerated.get())
   }
 
   private def resolveCredentials(started: Started): model.RemoteCacheCredentials =
