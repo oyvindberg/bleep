@@ -110,6 +110,29 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
     )
   )
 
+  /** Same shape as [[configs]], but with `-sourceroot <ws>` on every project — the real `-sourceroot` injection `ResolveProjects.sourceRoot` does for every
+    * Scala 3 project, unconditionally, pointing at that build's own workspace root. Kept as a separate helper rather than changing [[configs]] itself, so the
+    * two tests above (which exercise a genuinely DIRTY parent) stay exactly as they were.
+    */
+  private def configsWithSourceRoot(ws: Path): List[BspTestHarness.ProjectConfig] = List(
+    BspTestHarness.ProjectConfig(
+      name = "core",
+      sources = Set(ws.resolve("core/src")),
+      classpath = scalaLib,
+      languageConfig = ScalaConfig(ScalaV, List("-sourceroot", ws.toString)),
+      dependsOn = Set.empty,
+      isTest = false
+    ),
+    BspTestHarness.ProjectConfig(
+      name = "app",
+      sources = Set(ws.resolve("app/src")),
+      classpath = BspTestBuild.classesDirFor(ws, "core", isTest = false) :: scalaLib,
+      languageConfig = ScalaConfig(ScalaV, List("-sourceroot", ws.toString)),
+      dependsOn = Set("core"),
+      isTest = false
+    )
+  )
+
   private def appClass(ws: Path): Path = BspTestBuild.classesDirFor(ws, "app", isTest = false).resolve("applib/App.class")
   private def coreClass(ws: Path): Path = BspTestBuild.classesDirFor(ws, "core", isTest = false).resolve("corelib/Core.class")
 
@@ -233,6 +256,63 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
             "app must be recompiled in B even though its own source matches the inherited analysis — the core API it was compiled against changed back: "
           ) {
             Files.getLastModifiedTime(appClass(wsB)) should not be appMtimeAfterCopy
+          }
+        }
+      } finally {
+        deleteRecursively(wsA)
+        deleteRecursively(wsB)
+      }
+    }
+  }
+
+  /** Regression test for a real bug: `-sourceroot` — the absolute path `ResolveProjects.sourceRoot` injects into every Scala 3 project's scalac options, for
+    * Scala 3's TASTy portability — was the one path-bearing field `PortableAnalysisMappers` left as plain identity, never rebased between workspaces. Zinc's
+    * `MiniSetup` equivalence check compares scalac options verbatim, so inheriting ANY project's analysis into a workspace at a different absolute path than it
+    * was compiled under failed that check unconditionally, discarding the whole previous analysis and forcing a full recompile — regardless of whether anything
+    * the project actually depends on changed.
+    *
+    * This hit copy-state harder than remote-cache: copy-state never ships `noop-manifest.bin` (see the clue above, "the noop manifest must not be inherited"),
+    * so there is no fast path to mask it — every single copy-state use, for every Scala 3 project, was affected. The two tests above never caught this because
+    * neither passes any scalac options at all (`ScalaConfig(ScalaV, Nil)`), so there was nothing for the broken mapper to get wrong.
+    *
+    * Unlike the dirty-parent tests, nothing here is actually dirty: A and B have byte-identical sources. The only thing that differs between the two workspaces
+    * is their own absolute path — exactly the scenario `copy-state` exists for (a freshly created worktree, same commit as its parent) — so if the fix is doing
+    * its job, both projects should noop in B, not just compile successfully.
+    */
+  test("sourceroot is rebased per workspace: inheriting state at a different absolute path must still noop when nothing actually changed") {
+    failAfter(Span(300, Seconds)) {
+      val wsA = createWorkspace("copy-state-sourceroot-a-")
+      val wsB = createWorkspace("copy-state-sourceroot-b-")
+      try {
+        // Phase A: compile clean, with -sourceroot pointing at wsA's own path — exactly what a real Scala 3 project's build would inject.
+        BspTestHarness.withProjects(wsA, configsWithSourceRoot(wsA)) { client =>
+          client.initialize()
+          compileAll(client) shouldBe 1
+        }
+
+        // Phase B: a fresh workspace with IDENTICAL sources inherits A's state via copy-state, then compiles. Its own -sourceroot points at wsB, not wsA.
+        BspTestHarness.withProjects(wsB, configsWithSourceRoot(wsB)) { client =>
+          copyState(client, wsA, wsB).projects shouldBe List("app", "core")
+
+          val coreMtimeAfterCopy = Files.getLastModifiedTime(coreClass(wsB))
+          val coreBytesAfterCopy = Files.readAllBytes(coreClass(wsB))
+          val appMtimeAfterCopy = Files.getLastModifiedTime(appClass(wsB))
+          val appBytesAfterCopy = Files.readAllBytes(appClass(wsB))
+
+          client.initialize()
+          withClue("B's compile over inherited state must succeed: ") {
+            compileAll(client) shouldBe 1
+          }
+
+          withClue(
+            "LOAD-BEARING: neither source changed between A and B, so both must noop. If -sourceroot's embedded absolute path (A's) is not rebased to B's " +
+              "own workspace on load, zinc's MiniSetup equivalence check fails and the whole inherited analysis is discarded, forcing a full recompile of " +
+              "everything despite nothing having actually changed: "
+          ) {
+            Files.getLastModifiedTime(coreClass(wsB)) shouldBe coreMtimeAfterCopy
+            Files.readAllBytes(coreClass(wsB)) shouldBe coreBytesAfterCopy
+            Files.getLastModifiedTime(appClass(wsB)) shouldBe appMtimeAfterCopy
+            Files.readAllBytes(appClass(wsB)) shouldBe appBytesAfterCopy
           }
         }
       } finally {
