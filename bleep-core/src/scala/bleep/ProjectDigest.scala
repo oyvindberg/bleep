@@ -31,7 +31,9 @@ import scala.jdk.StreamConverters.*
   * Computed bottom-up through the dependency DAG so leaf projects are digested first.
   *
   * For performance on large repos, uses `git ls-tree` to get precomputed content hashes when the working tree is clean for a directory. Falls back to
-  * filesystem hashing for directories with uncommitted changes or generated sources not tracked by git.
+  * filesystem hashing for directories with uncommitted changes or generated sources not tracked by git. For a historical ref (see [[computeAllAt]]), a
+  * directory inside a git submodule is resolved through the submodule's own history instead (see [[gitLsTreeThroughSubmodules]]) — `git ls-tree` never
+  * descends into one from the superproject, at any ref, no matter how deep `-r` is asked to go.
   *
   * ==Why the JVM is in here==
   *
@@ -369,7 +371,7 @@ object ProjectDigest {
     dirs.toList.sorted.forall { dir =>
       if (!Files.isDirectory(dir)) true // doesn't exist in the current checkout either — contributes nothing, same as the working-tree computation
       else {
-        val gitHashes = gitLsTree(buildDir, ref, dir)
+        val gitHashes = gitLsTreeThroughSubmodules(buildDir, ref, dir)
         if (gitHashes.nonEmpty) {
           val dirRelToRepo = buildDir.relativize(dir).toString.replace('\\', '/')
           val dirPrefix = if (dirRelToRepo.isEmpty) "" else dirRelToRepo + "/"
@@ -451,6 +453,77 @@ object ProjectDigest {
       }
       .toList
       .sortBy(_._1)
+
+  /** Like [[gitLsTree]], but when `dir` has nothing tracked directly, also tries resolving it as content inside a git submodule — which `git ls-tree` never
+    * descends into from the superproject, no matter how deep `-r` is asked to go. Finds the nearest ancestor of `dir` that is a submodule mount point as of
+    * `ref` ([[findSubmodule]]), then asks THAT submodule's own git history for the exact commit the superproject pinned there — never whatever the submodule
+    * happens to be checked out to right now, which could be a different commit on a different machine, or mid-update on this one. Returns paths relative to
+    * `buildDir`, the same convention as [[gitLsTree]], so every caller of it needs no changes beyond calling this instead.
+    *
+    * Deliberately not used by [[hashDirectories]] (the current-digest path, via [[gitLsTree]] directly): that path already gets correct content for
+    * submodule-sourced directories through its filesystem fallback, and giving it this fast path too would need its own check for a *dirty* submodule working
+    * tree to stay correct — not worth the risk for a performance-only win when the slow path there already works. [[hashDirectoriesAt]] has no such fallback to
+    * fall back to — a past ref is never "the working tree" — so it needs this to work at all, not just to go faster.
+    *
+    * Never touches the filesystem beyond what a plain [[gitLsTree]] call already does (one extra git process, run against the submodule's own working directory
+    * instead of the superproject's). If the submodule's local clone doesn't have the pinned commit — never fetched that far back — this comes back empty,
+    * exactly like an ordinary untracked directory, and [[hashDirectoriesAt]]'s existing refusal takes over. Never a crash, never a guess.
+    */
+  private def gitLsTreeThroughSubmodules(buildDir: Path, ref: String, dir: Path): List[(String, String)] = {
+    val direct = gitLsTree(buildDir, ref, dir)
+    if (direct.nonEmpty) direct
+    else
+      findSubmodule(buildDir, ref, dir) match {
+        case None                                => Nil
+        case Some((mountPoint, submoduleCommit)) =>
+          val submoduleDir = buildDir.resolve(mountPoint)
+          val relInSubmodule = submoduleDir.relativize(dir)
+          val pathInSubmodule = if (relInSubmodule.toString.isEmpty) submoduleDir else submoduleDir.resolve(relInSubmodule)
+          val mountPrefix = mountPoint.toString.replace('\\', '/')
+          gitLsTree(submoduleDir, submoduleCommit, pathInSubmodule).map { case (p, h) => (s"$mountPrefix/$p", h) }
+      }
+  }
+
+  /** The nearest ancestor of `dir` (including `dir` itself) that is a git submodule mount point as of `ref`, if any, paired with the commit the superproject
+    * pinned there at that ref. A project's declared source directory is almost always several levels *inside* a submodule
+    * (`liberated/zinc/internal/zinc-core/src/main/scala`), not the submodule's own root, which is why this walks upward rather than checking `dir` alone.
+    *
+    * A submodule mount point is the one shape `git ls-tree` always hands back unexpanded, no matter how it's asked: mode `160000`, type `commit` — `-r` only
+    * decides whether to expand a *tree* entry further, and a submodule was never a tree to begin with.
+    */
+  private def findSubmodule(buildDir: Path, ref: String, dir: Path): Option[(Path, String)] = {
+    val relDir = buildDir.relativize(dir)
+    Iterator
+      .iterate(relDir)(_.getParent)
+      .takeWhile(_ != null)
+      .flatMap(candidate => gitLsTreeEntry(buildDir, ref, candidate).map(candidate -> _))
+      .collectFirst { case (candidate, ("160000", "commit", sha)) => candidate -> sha }
+  }
+
+  /** The single tree entry naming `path` (relative to `buildDir`) in its parent tree as of `ref`, without recursing — `git ls-tree <ref> -- <path>` (no `-r`)
+    * names `path` itself rather than expanding it, whether it's a blob, an ordinary directory, or a submodule. Used only to classify `path`, never to read file
+    * content ([[gitLsTree]] does that, with `-r`).
+    *
+    * @return
+    *   `(mode, type, hash)`, or `None` if `path` is not tracked at `ref`
+    */
+  private def gitLsTreeEntry(buildDir: Path, ref: String, path: Path): Option[(String, String, String)] =
+    internal.gitOutput
+      .attempt(buildDir, List("git", "ls-tree", "-z", ref, "--", path.toString))
+      .getOrElse("")
+      .split('\u0000')
+      .iterator
+      .filter(_.nonEmpty)
+      .flatMap { record =>
+        val tabIdx = record.indexOf('\t')
+        if (tabIdx < 0) None
+        else
+          record.substring(0, tabIdx).split(' ') match {
+            case Array(mode, tpe, hash) => Some((mode, tpe, hash))
+            case _                      => None
+          }
+      }
+      .nextOption()
 
   /** Hash all files under a directory using git-compatible blob hashes. Files are sorted by relative path for determinism.
     *

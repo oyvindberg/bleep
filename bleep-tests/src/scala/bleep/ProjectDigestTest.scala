@@ -766,6 +766,79 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
     } finally deleteRecursively(workspace)
   }
 
+  /** `git submodule add` with a plain local path. Since CVE-2022-39253, git refuses `file://` submodule sources by default; a bare local path isn't that
+    * transport, but `-c protocol.file.allow=always` is harmless insurance against a stricter global config on the machine running the test.
+    */
+  private def gitSubmoduleAdd(workspace: Path, sourceRepo: Path, at: String): Unit =
+    scala.sys.process
+      .Process(
+        List("git", "-c", "protocol.file.allow=always", "submodule", "add", sourceRepo.toString, at),
+        workspace.toFile
+      )
+      .!!
+      .discard()
+
+  test("computeAllAt resolves a project sourcing from inside a git submodule, at the commit the superproject actually pinned") {
+    // `git ls-tree` never descends into a submodule's content from the superproject — not even with `-r` — so a project's source directory several levels
+    // inside one (typical: nobody sources directly from a submodule's own root) looked exactly like untracked content to the refusal above, for reasons
+    // that have nothing to do with sourcegen. Real-world case: bleep's own `liberated/zinc`, `liberated/librarymanagement`, etc.
+    val submoduleSrc = Files.createTempDirectory("bleep-digest-submodule-src-")
+    val workspace = Files.createTempDirectory("bleep-digest-submodule-ws-")
+    try {
+      // The "upstream" repo the submodule points at.
+      gitInit(submoduleSrc)
+      val libSrc = submoduleSrc.resolve("src/scala")
+      Files.createDirectories(libSrc)
+      Files.writeString(libSrc.resolve("Lib.scala"), "object Lib { val v = 1 }")
+      gitCommitAll(submoduleSrc)
+
+      // The superproject. Project `a`'s own folder defaults to `workspace/a/` (same convention every other test here relies on), and `sources:` is
+      // relative to it, so the submodule is mounted at `a/liberated/lib` — several levels above where `a` actually declares its sources underneath it.
+      gitInit(workspace)
+      gitSubmoduleAdd(workspace, submoduleSrc, "a/liberated/lib")
+      gitCommitAll(workspace) // commits the gitlink + .gitmodules
+      val commit1 = currentCommit(workspace)
+
+      val p = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("liberated/lib/src/scala"))))
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      atCommit1.get(cpn("a")) should not be None
+      // Same correctness bar as the sourcegen test above: not just "resolvable", but equal to what computeAll produces right now, since the working tree
+      // is still exactly commit1.
+      ProjectDigest.computeAll(build, buildPaths)(cpn("a")) shouldBe atCommit1(cpn("a"))
+
+      // Move the submodule forward (a real commit inside it, then re-point the superproject's gitlink at it) and re-pin it in the superproject.
+      // `git submodule add` leaves the submodule on a detached HEAD, so `fetch` + `checkout <sha>` rather than `pull` (which needs a tracking branch).
+      Files.writeString(libSrc.resolve("Lib.scala"), "object Lib { val v = 2 }")
+      gitCommitAll(submoduleSrc)
+      val submoduleCommit2 = currentCommit(submoduleSrc)
+      val submoduleWorkdir = workspace.resolve("a/liberated/lib")
+      scala.sys.process.Process(List("git", "fetch", "origin"), submoduleWorkdir.toFile).!!.discard()
+      scala.sys.process.Process(List("git", "checkout", submoduleCommit2), submoduleWorkdir.toFile).!!.discard()
+      gitCommitAll(workspace)
+      val commit2 = currentCommit(workspace)
+
+      val digestsNow = ProjectDigest.computeAll(build, buildPaths)
+      digestsNow(cpn("a")) should not be atCommit1(cpn("a"))
+
+      // The real test of historical fidelity, not just "doesn't refuse": computeAllAt at commit1, asked for again from a workspace that has since moved
+      // on, must reproduce commit1's own bytes — the submodule's content as it was BEFORE the bump — not whatever the submodule happens to be checked out
+      // to right now (commit2's content, which is what's actually sitting on disk at this point in the test).
+      val atCommit1Again = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      atCommit1Again(cpn("a")) shouldBe atCommit1(cpn("a"))
+      atCommit1Again(cpn("a")) should not be digestsNow(cpn("a"))
+
+      // And computeAllAt at the NEW commit must agree with the NEW computeAll, the same property one more time at the other end.
+      val atCommit2 = ProjectDigest.computeAllAt(build, buildPaths, commit2)
+      atCommit2(cpn("a")) shouldBe digestsNow(cpn("a"))
+    } finally {
+      deleteRecursively(workspace)
+      deleteRecursively(submoduleSrc)
+    }
+  }
+
   test("declaring stamps leaves the digest alone") {
     // `stamp:` only decides what gets written into the artifact, so like `publish` it is stripped from the config that is hashed. Turning a stamp on must not
     // evict the project's cache entry.
