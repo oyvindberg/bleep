@@ -417,6 +417,99 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("a gitignored file inside a dirty directory is not an input") {
+    // The filesystem fallback (hashFilesystem) used to be a raw Files.walk with no idea what git would consider part of the project. Content a project
+    // explicitly excluded via .gitignore — build junk, IDE state, or (the real-world case this was found from) a nested git worktree sitting inside a
+    // declared directory — got hashed right along with everything else, just because the directory was "dirty" (some OTHER, non-ignored file in it
+    // changed) and took the filesystem path instead of git ls-tree's.
+    val workspace = Files.createTempDirectory("bleep-digest-gitignore-")
+    try {
+      gitInit(workspace)
+      val srcDir = workspace.resolve("a/src/scala")
+      Files.createDirectories(srcDir)
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo")
+      Files.writeString(workspace.resolve(".gitignore"), "ignored.scala\n")
+      gitCommitAll(workspace)
+
+      val p = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      // Make the directory dirty via an ordinary, non-ignored change, and plant ignored content alongside it.
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo { val x = 1 }")
+      Files.writeString(srcDir.resolve("ignored.scala"), "object ShouldNeverBeHashed")
+      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+
+      // Changing ONLY the ignored file's content must leave the digest alone.
+      Files.writeString(srcDir.resolve("ignored.scala"), "object StillShouldNeverBeHashed")
+      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+
+      after shouldBe before
+    } finally deleteRecursively(workspace)
+  }
+
+  test("a nested git worktree sitting inside a declared directory is never read, gitignored or not") {
+    // The real-world case: a monorepo with dozens of other worktrees checked out inside its own directory tree (always gitignored — nobody commits a
+    // worktree checkout), where a project's declared directory happens to be broad enough to be an ancestor of one. Modeled here with a plain nested
+    // directory carrying its own `.git` file, exactly the shape a worktree (or any embedded repository) has on disk — this doesn't need a real `git
+    // worktree add` to prove the point, since the guard only looks for that one marker.
+    val workspace = Files.createTempDirectory("bleep-digest-nested-worktree-")
+    try {
+      gitInit(workspace)
+      val srcDir = workspace.resolve("a/src/scala")
+      Files.createDirectories(srcDir)
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo")
+      // `sources:` resolves relative to project `a`'s own folder (`workspace/a/`), same convention the other tests here rely on — the pattern needs that
+      // prefix too, since it contains a `/` and is therefore anchored to the repo root rather than matched at every directory level.
+      Files.writeString(workspace.resolve(".gitignore"), "a/src/scala/nested-worktree/\n")
+      gitCommitAll(workspace)
+
+      val p = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val nestedWorktree = srcDir.resolve("nested-worktree")
+      Files.createDirectories(nestedWorktree)
+      Files.writeString(nestedWorktree.resolve(".git"), "gitdir: /elsewhere/.git/worktrees/whatever\n")
+      Files.writeString(nestedWorktree.resolve("SomeFileInTheOtherWorktree.scala"), "object WhateverElseIsCheckedOutThere")
+
+      // Dirty `srcDir` via an ordinary change, same as the test above, so the filesystem fallback actually runs.
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo { val x = 1 }")
+      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+
+      Files.writeString(nestedWorktree.resolve("SomeFileInTheOtherWorktree.scala"), "object SomethingCompletelyDifferentNow")
+      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+
+      after shouldBe before
+    } finally deleteRecursively(workspace)
+  }
+
+  test("with no git repository at all, the filesystem fallback still refuses to descend into a nested repository's own working directory") {
+    // gitLsFilesUnder answers `None` here (no git repository to ask at all), so there are no ignore rules to lean on — the one case walkIgnoringNestedRepos
+    // exists for: an explicit check for a nested `.git`, independent of any ignore configuration.
+    val workspace = createTempWorkspace() // deliberately no gitInit
+    try {
+      val srcDir = workspace.resolve("a/src/scala")
+      Files.createDirectories(srcDir)
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo")
+
+      val nestedWorktree = srcDir.resolve("nested-worktree")
+      Files.createDirectories(nestedWorktree)
+      Files.writeString(nestedWorktree.resolve(".git"), "gitdir: /elsewhere/.git/worktrees/whatever\n")
+      Files.writeString(nestedWorktree.resolve("SomeFileInTheOtherWorktree.scala"), "object WhateverElseIsCheckedOutThere")
+
+      val p = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      Files.writeString(nestedWorktree.resolve("SomeFileInTheOtherWorktree.scala"), "object SomethingCompletelyDifferentNow")
+      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+
+      after shouldBe before
+    } finally deleteRecursively(workspace)
+  }
+
   test("digest of a committed tree does not depend on core.quotePath") {
     // Regression: `git ls-tree` obeys `core.quotePath`, so the *spelling* of a non-ASCII path went into the
     // digest as either `café.scala` or `"caf\303\251.txt"` depending on a setting in the developer's own

@@ -2,7 +2,8 @@ package bleep
 
 import coursier.jvm.JvmChannel
 
-import java.nio.file.{Files, Path}
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 import java.security.MessageDigest
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
@@ -32,8 +33,8 @@ import scala.jdk.StreamConverters.*
   *
   * For performance on large repos, uses `git ls-tree` to get precomputed content hashes when the working tree is clean for a directory. Falls back to
   * filesystem hashing for directories with uncommitted changes or generated sources not tracked by git. For a historical ref (see [[computeAllAt]]), a
-  * directory inside a git submodule is resolved through the submodule's own history instead (see [[gitLsTreeThroughSubmodules]]) — `git ls-tree` never
-  * descends into one from the superproject, at any ref, no matter how deep `-r` is asked to go.
+  * directory inside a git submodule is resolved through the submodule's own history instead (see [[gitLsTreeThroughSubmodules]]) — `git ls-tree` never descends
+  * into one from the superproject, at any ref, no matter how deep `-r` is asked to go.
   *
   * ==Why the JVM is in here==
   *
@@ -346,11 +347,11 @@ object ProjectDigest {
             }
           } else {
             // Directory exists but git doesn't know about it (generated sources)
-            hashFilesystem(md, dir)
+            hashFilesystem(buildDir, md, dir)
           }
         } else {
           // Dirty directory — must read from filesystem to capture uncommitted changes
-          hashFilesystem(md, dir)
+          hashFilesystem(buildDir, md, dir)
         }
       }
     }
@@ -529,27 +530,95 @@ object ProjectDigest {
     *
     * Computes the same hash as `git hash-object` for each file: `SHA-1("blob <size>\0" + content)`. This ensures filesystem hashing produces the same digest as
     * git ls-tree hashing for identical content.
+    *
+    * Which files counts as much as how they're hashed. Enumerated via [[gitLsFilesUnder]] — tracked plus untracked-but-not-ignored, exactly what git itself
+    * considers part of the working tree — rather than a raw filesystem walk, so gitignored content sitting inside a declared directory (build output, IDE junk,
+    * and critically a nested git worktree or any other embedded repository, which is always expected to be gitignored) never enters the digest. Only when there
+    * is no git repository at all to ask does this fall back to a plain walk, with an explicit check that still refuses to descend into a nested repository's
+    * own working directory — the one case with no ignore rules to lean on at all.
     */
-  private def hashFilesystem(md: MessageDigest, dir: Path): Unit = {
-    val files = scala.util
-      .Using(Files.walk(dir)) { stream =>
-        stream.toScala(List).filter(Files.isRegularFile(_))
-      }
-      .getOrElse(Nil)
+  private def hashFilesystem(buildDir: Path, md: MessageDigest, dir: Path): Unit = {
+    val dirRelToRepo = buildDir.relativize(dir).toString.replace('\\', '/')
+    val dirPrefix = if (dirRelToRepo.isEmpty) "" else dirRelToRepo + "/"
+
+    val files: List[(String, Path)] = gitLsFilesUnder(buildDir, dir) match {
+      case Some(repoRelPaths) =>
+        repoRelPaths
+          .map { repoRelPathRaw =>
+            val repoRelPath = repoRelPathRaw.replace('\\', '/')
+            val relPath = if (repoRelPath.startsWith(dirPrefix)) repoRelPath.substring(dirPrefix.length) else repoRelPath
+            (relPath, buildDir.resolve(repoRelPath))
+          }
+          .filter { case (_, file) => Files.isRegularFile(file) }
+      case None =>
+        walkIgnoringNestedRepos(dir).map(file => (dir.relativize(file).toString.replace('\\', '/'), file))
+    }
+
+    files
       // Normalize to '/' so the digest matches git ls-tree's representation across OSes, and sort by that normalized string rather than by `Path`.
       // `Path.compareTo` is case-insensitive on Windows and byte-wise on Unix, so sorting Paths fed the digest in a different order per OS — and in a
-      // different order than [[gitLsTree]], which sorts these very same strings. A digest that depends on the OS is not portable across machines, which is the
-      // whole point of it. Unix ordering is unchanged (comparing full paths that share a prefix is equivalent to comparing the relative parts), so only the
-      // previously-wrong Windows digests move.
-      .map(file => (dir.relativize(file).toString.replace('\\', '/'), file))
+      // different order than [[gitLsTree]], which sorts these very same strings. A digest that depends on the OS is not portable across machines, which is
+      // the whole point of it. Unix ordering is unchanged (comparing full paths that share a prefix is equivalent to comparing the relative parts), so only
+      // the previously-wrong Windows digests move.
       .sortBy { case (relPath, _) => relPath }
+      .foreach { case (relPath, file) =>
+        val content = Files.readAllBytes(file)
+        val blobHash = gitBlobHash(content)
+        md.update(relPath.getBytes("UTF-8"))
+        md.update(blobHash.getBytes("UTF-8"))
+      }
+  }
 
-    files.foreach { case (relPath, file) =>
-      val content = Files.readAllBytes(file)
-      val blobHash = gitBlobHash(content)
-      md.update(relPath.getBytes("UTF-8"))
-      md.update(blobHash.getBytes("UTF-8"))
+  /** `git ls-files --cached --others --exclude-standard -z -- <dir>`, as paths relative to `buildDir` — every file [[hashFilesystem]] should consider part of
+    * `dir`: tracked (regardless of dirty state) plus untracked-but-not-ignored. `None` if there is no git repository to ask at all, as opposed to an empty (but
+    * successful) answer for a directory with nothing in it.
+    *
+    * git's own traversal for this already refuses to descend into a nested repository it does not know as a submodule (an embedded `.git` directory, or another
+    * worktree) — it reports the nested root as a single entry and stops there, the same way `git status` does — so this gets that protection for free, with no
+    * bleep-side notion of "what counts as a repo boundary" to maintain. A submodule it *does* know about is the one exception: `ls-files` doesn't descend into
+    * those either, which would silently undo the one thing [[hashDirectories]]'s filesystem fallback already got right about submodule-sourced directories
+    * (reading them is what the raw walk this replaces did without any git-awareness at all) — so this recurses into the submodule's own working directory the
+    * same way [[gitLsTreeThroughSubmodules]] does for a historical ref, just asking for its current state instead of a pinned commit.
+    */
+  private def gitLsFilesUnder(buildDir: Path, dir: Path): Option[List[String]] =
+    internal.gitOutput.attempt(buildDir, List("git", "ls-files", "--cached", "--others", "--exclude-standard", "-z", "--", dir.toString)) match {
+      case None         => None // no git repository at buildDir at all
+      case Some(output) =>
+        val direct = output.split('\u0000').iterator.filter(_.nonEmpty).toList
+        if (direct.nonEmpty) Some(direct)
+        else
+          findSubmodule(buildDir, "HEAD", dir) match {
+            case None                  => Some(Nil)
+            case Some((mountPoint, _)) =>
+              val submoduleDir = buildDir.resolve(mountPoint)
+              val relInSubmodule = submoduleDir.relativize(dir)
+              val pathInSubmodule = if (relInSubmodule.toString.isEmpty) submoduleDir else submoduleDir.resolve(relInSubmodule)
+              val mountPrefix = mountPoint.toString.replace('\\', '/')
+              // `.orElse(Some(Nil))`: the submodule directory existing but not being its own git repo (never `submodule update --init`) means nothing is
+              // checked out there yet, not that `buildDir` itself has no repository — the `None` case above is strictly about `buildDir`.
+              gitLsFilesUnder(submoduleDir, pathInSubmodule).map(_.map(p => s"$mountPrefix/$p")).orElse(Some(Nil))
+          }
     }
+
+  /** Plain filesystem walk for the one case [[gitLsFilesUnder]] can't help with: no git repository here at all, so no ignore rules and no repo-boundary answer
+    * to lean on. Still refuses to descend into a directory that is itself the root of a *different* repository (its own `.git` file or directory) — a nested
+    * git worktree most likely, since that's the shape this exists to guard against — so this degraded path isn't left with zero protection just because git
+    * itself isn't available to ask.
+    */
+  private def walkIgnoringNestedRepos(dir: Path): List[Path] = {
+    val files = List.newBuilder[Path]
+    Files.walkFileTree(
+      dir,
+      new SimpleFileVisitor[Path] {
+        override def preVisitDirectory(d: Path, attrs: BasicFileAttributes): FileVisitResult =
+          if (d != dir && Files.exists(d.resolve(".git"))) FileVisitResult.SKIP_SUBTREE else FileVisitResult.CONTINUE
+        override def visitFile(f: Path, attrs: BasicFileAttributes): FileVisitResult = {
+          if (Files.isRegularFile(f)) files += f: Unit
+          FileVisitResult.CONTINUE
+        }
+      }
+    ): Unit
+    files.result()
   }
 
   /** Compute the git blob hash for file content: `SHA-1("blob <size>\0" + content)`.
