@@ -74,7 +74,7 @@ class RemoteCacheIT extends IntegrationTestHarness {
         assert(Files.exists(noopManifest), s"compile should have produced $noopManifest on macOS/Linux")
 
       // === PUSH ===
-      RemoteCache.Push(projects = Array.empty, force = false).run(started).fold(e => fail(s"push failed: ${e.getMessage}"), identity)
+      RemoteCache.Push(projects = Array.empty, force = false, allowUnsafeSeeded = false).run(started).fold(e => fail(s"push failed: ${e.getMessage}"), identity)
 
       // Server should have exactly one object: <prefix>/<project>/<digest>.tar.gz.
       assert(server.size == 1, s"expected 1 cached object, got ${server.keys}")
@@ -99,7 +99,7 @@ class RemoteCacheIT extends IntegrationTestHarness {
       assert(!Files.exists(analysisFile), "wipe should have removed local analysis")
 
       // === PULL ===
-      RemoteCache.Pull(projects = Array.empty).run(started).fold(e => fail(s"pull failed: ${e.getMessage}"), identity)
+      RemoteCache.Pull(projects = Array.empty, unsafeSeedRef = None).run(started).fold(e => fail(s"pull failed: ${e.getMessage}"), identity)
 
       // Classes + analysis restored, noop manifest regenerated locally.
       assert(Files.exists(classFile), s"pull should have restored $classFile")
@@ -145,7 +145,7 @@ class RemoteCacheIT extends IntegrationTestHarness {
       ws.compileAll()
 
       // Nothing has been pushed; pull should be a no-op (classes already exist locally).
-      RemoteCache.Pull(projects = Array.empty).run(started).fold(e => fail(s"pull failed: ${e.getMessage}"), identity)
+      RemoteCache.Pull(projects = Array.empty, unsafeSeedRef = None).run(started).fold(e => fail(s"pull failed: ${e.getMessage}"), identity)
       assert(server.size == 0, "no pull traffic should have hit the server when classes are present")
       succeed
     }
@@ -172,12 +172,18 @@ class RemoteCacheIT extends IntegrationTestHarness {
       ws.compileAll()
 
       // First push uploads.
-      RemoteCache.Push(projects = Array.empty, force = false).run(started).fold(e => fail(s"first push failed: ${e.getMessage}"), identity)
+      RemoteCache
+        .Push(projects = Array.empty, force = false, allowUnsafeSeeded = false)
+        .run(started)
+        .fold(e => fail(s"first push failed: ${e.getMessage}"), identity)
       assert(server.size == 1, s"expected 1 object after first push, got ${server.keys}")
       val firstKeys = server.keys
 
       // Second push without --force: head returns 200, push skips.
-      RemoteCache.Push(projects = Array.empty, force = false).run(started).fold(e => fail(s"second push failed: ${e.getMessage}"), identity)
+      RemoteCache
+        .Push(projects = Array.empty, force = false, allowUnsafeSeeded = false)
+        .run(started)
+        .fold(e => fail(s"second push failed: ${e.getMessage}"), identity)
       assert(server.keys == firstKeys, "second push should not have written a new key")
       succeed
     }

@@ -642,16 +642,31 @@ class MultiWorkspaceBspServer(
     cancelAllActiveRequests()
   }
 
-  /** Copy compiled state from workspace `from` into a freshly created worktree `to`, under the same per-project locks compiles take.
+  /** Copy compiled state from workspace `from` into a freshly created worktree `to`, under the same per-project locks compiles take, in two passes over every
+    * project: clone everything first, then regenerate every manifest — never interleaved per project. The reason is dependencies: `regenerateFromCopy` needs a
+    * dependency's own analysis file already sitting on `to`'s disk, but projects are enumerated from disk and sorted by name (`.sortBy(_.value)`, same as
+    * [[validated]] below), not topologically — there's no resolved build here to sort by. A single pass of "clone, then immediately regenerate, per project"
+    * would silently lose the fast path for any project whose dependency happens to sort after it alphabetically (`app` depending on `core` is exactly this —
+    * not a rare case, just whatever two names happen to collide with dependency order). Splitting into two full passes removes the ordering dependency
+    * entirely: by the time phase two regenerates anything, phase one has already cloned every project, dependencies included.
     *
-    * Per project, holding a Shared lock on the source (which blocks writers but not other readers): the classes directories, the zinc analysis, and the
-    * generated sources/resources are cloned. What is deliberately NOT copied: `noop-manifest.bin` — its keys are absolute paths into `from`, and a copied
-    * manifest validates successfully against those paths, yielding a false noop that points `to` at `from`'s classes. The target's first compile does one zinc
-    * round-trip per project against the copied analysis (fast — the analysis is byte-identical to one already resident, see AnalysisCache) and writes its own
-    * manifest. `.zinc/cache`, `ksp/` and `.bleep-lock` are also skipped: caches regenerate, and a lock file must never be inherited.
+    * Locking follows the same split. Each project's Exclusive lock on `to` is acquired once, up front, and held across BOTH phases for that project — `to` "has
+    * typically never connected", but nothing besides this lock actually enforces that, and nobody else should legitimately be touching `to` during copy-state
+    * anyway, so holding it the whole time costs nothing real. Without it, a client racing to connect to `to` the instant it exists — an eager IDE build, a
+    * second concurrent copy-state call — could start a real compile of the exact project this handler is mid-clone for, interleaving writes with
+    * `CloneDir.clone` and letting `regenerateFromCopy` stat/hash a half-cloned, half-compiled directory as if it were trustworthy. Each project's Shared lock
+    * on `from` (which blocks writers but not other readers there), by contrast, is acquired and released separately in each phase — just long enough to read
+    * what that phase needs — so an unrelated compile of an ALREADY-cloned project in `from` is never blocked by copy-state's own total duration.
+    *
+    * Per project: the classes directories, the zinc analysis, and the generated sources/resources are cloned. `noop-manifest.bin` itself is never cloned
+    * verbatim — its keys are absolute paths into `from`, and a copied manifest validates successfully against those paths, yielding a false noop that points
+    * `to` at `from`'s classes. Instead, a fresh one is regenerated for `to` ([[bleep.analysis.NoopManifestStore.regenerateFromCopy]]), rebased from `from`'s
+    * own manifest after re-verifying every source file's content — safe without resolving a build, and the reason the target's first compile is normally a true
+    * noop hit rather than one real zinc round-trip per project. `.zinc/cache`, `ksp/` and `.bleep-lock` are also skipped: caches regenerate, and a lock file
+    * must never be inherited.
     *
     * Projects are enumerated from disk, not from a resolved build — the daemon needs neither workspace's build to be loaded, and `to` has typically never
-    * connected. Lock acquisition is sorted by project name, the same global order compiles use.
+    * connected.
     */
   private def handleCopyState(request: CopyStateRequest): IO[CopyStateResponse] = {
     import java.nio.file.{Files, Path, Paths}
@@ -703,22 +718,62 @@ class MultiWorkspaceBspServer(
       (fromPaths, toPaths, projects)
     }
 
-    /** Copies one project's state and returns the logical bytes that landed (apparent file sizes of the cloned trees — a metadata-only walk, the clone itself
-      * shares blocks on APFS). Counted on the destination, so the number reports what the new worktree actually starts with.
+    val lockTimeout = scala.concurrent.duration.FiniteDuration(60, "seconds")
+
+    def withFromLock[A](fromPaths: BuildPaths, crossName: CrossProjectName)(action: IO[A]): IO[A] =
+      ProjectLock
+        .acquire(
+          project = crossName,
+          outputDir = fromPaths.variantBuildDir(crossName).resolve("classes"),
+          mode = ProjectLock.LockMode.Shared,
+          timeout = lockTimeout,
+          onContention = () => logger.info(s"copy-state waiting to read in-flight compile of ${crossName.value}")
+        )
+        .use(_ => action)
+
+    // Held for a project's entire two-phase handling (both clone and regenerate), not just one read — see
+    // the doc comment above on why `to` needs locking out for longer than `from` does.
+    def toLock(toPaths: BuildPaths, crossName: CrossProjectName): cats.effect.Resource[IO, Unit] =
+      ProjectLock
+        .acquire(
+          project = crossName,
+          outputDir = toPaths.variantBuildDir(crossName).resolve("classes"),
+          mode = ProjectLock.LockMode.Exclusive,
+          timeout = lockTimeout,
+          onContention = () => logger.info(s"copy-state waiting for exclusive access to new worktree copy of ${crossName.value}")
+        )
+        .void
+
+    def dirBytes(dir: Path): Long =
+      if (!Files.isDirectory(dir)) 0L
+      else {
+        val stream = Files.walk(dir)
+        try stream.iterator().asScala.foldLeft(0L)((acc, p) => if (Files.isRegularFile(p)) acc + Files.size(p) else acc)
+        finally stream.close()
+      }
+
+    def isEmptyDir(dir: Path): Boolean = {
+      val stream = Files.list(dir)
+      try !stream.iterator().hasNext
+      finally stream.close()
+    }
+
+    def cloneIfPresent(src: Path, dest: Path): Long =
+      if (Files.isDirectory(src)) {
+        // The exclusive lock copy-state holds on `to` makes ProjectLock.acquire pre-create its own
+        // `outputDir` — always `.../classes`, see `toLock` above — before granting it. Clear that empty
+        // placeholder out of CloneDir.clone's way: safe, since nothing else can be writing under `to`'s
+        // destination while the lock is held.
+        if (Files.isDirectory(dest) && isEmptyDir(dest)) Files.delete(dest)
+        CloneDir.clone(src, dest)
+        dirBytes(dest)
+      } else 0L
+
+    /** Phase one: clones one project's state and returns the logical bytes that landed (apparent file sizes of the cloned trees — a metadata-only walk, the
+      * clone itself shares blocks on APFS). Counted on the destination, so the number reports what the new worktree actually starts with. Never touches the
+      * noop-manifest — that is phase two, [[regenerateManifest]], run only after every project here has finished.
       */
-    def copyProject(fromPaths: BuildPaths, toPaths: BuildPaths, crossName: CrossProjectName): Long = {
-      def dirBytes(dir: Path): Long =
-        if (!Files.isDirectory(dir)) 0L
-        else {
-          val stream = Files.walk(dir)
-          try stream.iterator().asScala.foldLeft(0L)((acc, p) => if (Files.isRegularFile(p)) acc + Files.size(p) else acc)
-          finally stream.close()
-        }
-
-      def cloneIfPresent(src: Path, dest: Path): Long =
-        if (Files.isDirectory(src)) { CloneDir.clone(src, dest); dirBytes(dest) }
-        else 0L
-
+    def cloneProject(fromPaths: BuildPaths, toPaths: BuildPaths, crossName: CrossProjectName): Long = {
       val srcVariantDir = fromPaths.variantBuildDir(crossName)
       val destVariantDir = toPaths.variantBuildDir(crossName)
       // What crosses the workspace boundary is decided by bleep.StateSharing — the same allow-list the remote cache packs by — never a local list that can
@@ -737,26 +792,52 @@ class MultiWorkspaceBspServer(
           } else acc
       }
 
-      variantBytes +
+      val generatedBytes =
         cloneIfPresent(fromPaths.generatedSourcesBaseDir(crossName), toPaths.generatedSourcesBaseDir(crossName)) +
-        cloneIfPresent(fromPaths.generatedResourcesBaseDir(crossName), toPaths.generatedResourcesBaseDir(crossName))
+          cloneIfPresent(fromPaths.generatedResourcesBaseDir(crossName), toPaths.generatedResourcesBaseDir(crossName))
+
+      variantBytes + generatedBytes
+    }
+
+    /** Phase two, run for every project only after [[cloneProject]] has run for every project (see the doc comment on `handleCopyState`): regenerate a
+      * noop-manifest for `to`, rebased from `from`'s own — the same idea RemoteCache.Pull already uses after extracting a cache archive, so the first compile
+      * here can be a true noop hit instead of a real Zinc round-trip per project. Safe without a resolved build (this handler loads neither workspace's):
+      * bleep.analysis.NoopManifestStore.regenerateFromCopy re-verifies every source file's content before trusting anything, and returns None — writing nothing
+      * — the moment that check fails, degrading to exactly today's behavior. Never let a failure here (missing analysis, corrupt manifest, anything) fail the
+      * copy itself — the manifest is purely an optimization.
+      */
+    def regenerateManifest(fromPaths: BuildPaths, toPaths: BuildPaths, crossName: CrossProjectName): Unit = {
+      val srcVariantDir = fromPaths.variantBuildDir(crossName)
+      val destVariantDir = toPaths.variantBuildDir(crossName)
+      try {
+        val fromAnalysisFile = srcVariantDir.resolve(".zinc").resolve("analysis.zip")
+        val toAnalysisFile = destVariantDir.resolve(".zinc").resolve("analysis.zip")
+        if (Files.isRegularFile(toAnalysisFile))
+          bleep.analysis.NoopManifestStore.regenerateFromCopy(fromAnalysisFile, fromPaths.buildDir, toAnalysisFile, toPaths.buildDir): Unit
+      } catch {
+        case e: Exception =>
+          logger.withContext("project", crossName.value).withContext("exception", e.toString).debug("could not regenerate noop manifest after copy-state")
+      }
     }
 
     IO.blocking(validated).flatMap { case (fromPaths, toPaths, projects) =>
-      projects
-        .foldLeft(IO.pure((List.empty[String], 0L))) { case (acc, crossName) =>
-          acc.flatMap { case (copied, bytes) =>
-            ProjectLock
-              .acquire(
-                project = crossName,
-                outputDir = fromPaths.variantBuildDir(crossName).resolve("classes"),
-                mode = ProjectLock.LockMode.Shared,
-                timeout = scala.concurrent.duration.FiniteDuration(60, "seconds"),
-                onContention = () => logger.info(s"copy-state waiting for in-flight compile of ${crossName.value}")
+      val allToLocks: cats.effect.Resource[IO, Unit] =
+        projects.foldLeft(cats.effect.Resource.pure[IO, Unit](()))((acc, crossName) => acc.flatMap(_ => toLock(toPaths, crossName)))
+
+      allToLocks
+        .use { _ =>
+          projects
+            .foldLeft(IO.pure((List.empty[String], 0L))) { case (acc, crossName) =>
+              acc.flatMap { case (copied, bytes) =>
+                withFromLock(fromPaths, crossName)(IO.blocking(cloneProject(fromPaths, toPaths, crossName)))
+                  .map(projectBytes => (crossName.value :: copied, bytes + projectBytes))
+              }
+            }
+            .flatTap { _ =>
+              projects.foldLeft(IO.unit)((acc, crossName) =>
+                acc >> withFromLock(fromPaths, crossName)(IO.blocking(regenerateManifest(fromPaths, toPaths, crossName)))
               )
-              .use(_ => IO.blocking(copyProject(fromPaths, toPaths, crossName)))
-              .map(projectBytes => (crossName.value :: copied, bytes + projectBytes))
-          }
+            }
         }
         .map { case (copied, bytes) =>
           CopyStateResponse(projects = copied.reverse, durationMs = System.currentTimeMillis() - startMs, bytesCopied = bytes)

@@ -221,7 +221,7 @@ object ZincBridge {
   ): Option[ProjectCompileSuccess] = {
     val analysisDir = config.analysisDir.getOrElse(config.outputDir.resolve(".zinc"))
     val analysisFile = analysisDir.resolve("analysis.zip")
-    checkNoopFromDirs(analysisFile, config.sources, dependencyAnalyses, language, ecjVersion, config.determinants).toOption
+    checkNoopFromDirs(analysisFile, config.sources, dependencyAnalyses, language, ecjVersion, config.determinants, config.buildDir).toOption
   }
 
   /** Compile a Scala/Java project using Zinc.
@@ -302,7 +302,8 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
-      determinants: OutputDeterminants
+      determinants: OutputDeterminants,
+      buildDir: Path
   ): Either[String, NoopManifest] = {
     if (!ctimeAvailable) return Left("ctime unavailable on this platform")
 
@@ -320,7 +321,7 @@ object ZincBridge {
     }
 
     // Options hash (cheap)
-    val currentHash = computeOptionsHash(language, ecjVersion, determinants)
+    val currentHash = computeOptionsHash(language, ecjVersion, determinants, buildDir)
     if (currentHash != manifest.optionsHash) return Left("compiler options changed")
 
     // Dependency analysis mtimes
@@ -389,9 +390,10 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
-      determinants: OutputDeterminants
+      determinants: OutputDeterminants,
+      buildDir: Path
   ): Either[String, ProjectCompileSuccess] = {
-    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion, determinants) match {
+    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion, determinants, buildDir) match {
       case Right(m)     => m
       case Left(reason) => return Left(reason)
     }
@@ -401,6 +403,25 @@ object ZincBridge {
     val normalizedDirs = removeNestedDirs(sourceDirs)
     normalizedDirs.find(d => !manifest.sourceDirStats.contains(d)) match {
       case Some(d) => return Left(s"source root not in manifest: $d")
+      case None    => ()
+    }
+
+    // And the reverse: no root the manifest recorded may have dropped out of the current config.
+    // `sourceDirStats` is flat — root dirs and every nested subdir in one map, see
+    // `regenerateFromLocal`/`regenerateFromCopy` — with no separate record of which entries were
+    // roots. Recover them structurally instead: a root is exactly an entry whose PARENT is itself
+    // absent from the map, since `collectDirsRecursively` walks every directory from a root downward
+    // and `removeNestedDirs` keeps roots from nesting under each other at write time.
+    //
+    // Catches: a source root removed from `sources:` whose directory is still physically present
+    // with unchanged content — e.g. across copy-state's cross-branch rebase, where `to`'s build
+    // config can genuinely differ from whatever `from`'s manifest was written against. Without this,
+    // the dropped root's files stay invisible to this O(dirs) check (the one-directional check above
+    // only asks "is every current root recorded", never "is every recorded root still current"), and
+    // a noop trusts classes compiled from a directory the current build no longer wants.
+    val recordedRoots = manifest.sourceDirStats.keySet.filter(d => !manifest.sourceDirStats.contains(d.getParent))
+    recordedRoots.find(d => !normalizedDirs.contains(d)) match {
+      case Some(d) => return Left(s"manifest source root no longer configured: $d")
       case None    => ()
     }
 
@@ -447,9 +468,10 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
-      determinants: OutputDeterminants
+      determinants: OutputDeterminants,
+      buildDir: Path
   ): Either[String, ProjectCompileSuccess] = {
-    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion, determinants) match {
+    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion, determinants, buildDir) match {
       case Right(m)     => m
       case Left(reason) => return Left(reason)
     }
@@ -492,8 +514,8 @@ object ZincBridge {
   private def contentUnchanged(path: Path, expected: FileStatEntry): Boolean =
     expected.contentHash != 0L && NoopManifestStore.hashContent(path) == expected.contentHash
 
-  private def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String], determinants: OutputDeterminants): Long =
-    NoopManifestStore.computeOptionsHash(language, ecjVersion, determinants)
+  private def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String], determinants: OutputDeterminants, buildDir: Path): Long =
+    NoopManifestStore.computeOptionsHash(language, ecjVersion, determinants, buildDir)
 
   // ─── Noop manifest: save ────────────────────────────────────────────────
 
@@ -506,7 +528,8 @@ object ZincBridge {
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
       determinants: OutputDeterminants,
-      result: ProjectCompileSuccess
+      result: ProjectCompileSuccess,
+      buildDir: Path
   ): Unit = {
     val sourcePaths = new Array[Path](sources.length)
     var i = 0
@@ -518,7 +541,17 @@ object ZincBridge {
       i += 1
     }
 
-    NoopManifestStore.regenerateFromLocal(analysisFile, sourceDirs, sourcePaths, dependencyAnalyses, language, ecjVersion, determinants, result) match {
+    NoopManifestStore.regenerateFromLocal(
+      analysisFile,
+      sourceDirs,
+      sourcePaths,
+      dependencyAnalyses,
+      language,
+      ecjVersion,
+      determinants,
+      result,
+      buildDir
+    ) match {
       case Some(manifest) => noopManifestCache.put(analysisFile, manifest): Unit
       case None           => () // ctime unavailable (Windows) — manifest disabled
     }
@@ -546,7 +579,7 @@ object ZincBridge {
     // project on noop builds by using unix:ctime as a reliable change detector.
     // Why the fast path declined, kept so it can be compared against zinc's own verdict below.
     val noopDeclinedBecause: String =
-      checkNoopManifest(analysisFile, sources, dependencyAnalyses, language, ecjVersion, config.determinants) match {
+      checkNoopManifest(analysisFile, sources, dependencyAnalyses, language, ecjVersion, config.determinants, config.buildDir) match {
         case Right(cachedResult) =>
           diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
           return cachedResult
@@ -695,7 +728,7 @@ object ZincBridge {
 
       val classFiles = collectClassFiles(config.outputDir)
       val success = ProjectCompileSuccess(config.outputDir, classFiles, Some(analysisFile))
-      saveNoopManifest(analysisFile, config.sources, sources, dependencyAnalyses, language, ecjVersion, config.determinants, success)
+      saveNoopManifest(analysisFile, config.sources, sources, dependencyAnalyses, language, ecjVersion, config.determinants, success, config.buildDir)
       success
     } catch {
       case e: xsbti.CompileFailed =>
@@ -2244,6 +2277,45 @@ private[analysis] object PortableAnalysisMappers {
     else p // Absolute path from same machine or unknown root — pass through
   }
 
+  /** `-sourceroot <path>` (two array tokens: flag, then its argument) and `-sourceroot:<path>` / `-targetroot:<path>` (one token, colon-joined, the semanticdb
+    * plugin's own syntax) both embed an absolute path directly into a scalac/javac option — unlike every path-typed field above, which goes through
+    * [[relativizePath]]/[[absolutizePath]], these were passed through as plain strings (`mapScalacOption`/`mapJavacOption` were identity). Zinc's `MiniSetup`
+    * equivalence check compares scalac options verbatim, so a workspace-A-baked absolute `-sourceroot` argument never matches workspace B's,
+    * `equivCompileSetup` fails, and Zinc discards the *entire* previous analysis for that project — not a targeted invalidation, a wholesale one — forcing a
+    * real full recompile regardless of whether anything the project actually depends on changed. This is why a remote-cache pull into a different absolute path
+    * than where it was pushed from defeats Zinc's own incremental compiler the moment any upstream project needs a genuine recompile.
+    *
+    * `mapOptionString`/`unmapOptionString` apply the same marker substitution to the colon-value or the whole token, whichever shape matches; a token that is
+    * not an absolute path (almost every other scalac/javac flag) is left untouched, since blindly resolving a non-path string to `cwd`-relative would corrupt
+    * it.
+    */
+  private val colonValueOption = raw"^(-[A-Za-z][\w-]*:)(.+)$$".r
+
+  private def isAbsolutePath(s: String): Boolean =
+    try Path.of(s).isAbsolute
+    catch { case _: java.nio.file.InvalidPathException => false }
+
+  private def mapOptionString(s: String, buildDir: Path): String =
+    s match {
+      case colonValueOption(prefix, value) if isAbsolutePath(value) =>
+        prefix + relativizePath(Path.of(value), buildDir).toString.replace('\\', '/')
+      case _ if isAbsolutePath(s) =>
+        relativizePath(Path.of(s), buildDir).toString.replace('\\', '/')
+      case _ => s
+    }
+
+  private def isMarkerValue(s: String): Boolean =
+    allMarkers.exists(m => s == m || s.startsWith(m + "/"))
+
+  private def unmapOptionString(s: String, buildDir: Path): String =
+    s match {
+      case colonValueOption(prefix, value) if isMarkerValue(value) =>
+        prefix + absolutizePath(Path.of(value), buildDir).toString
+      case _ if isMarkerValue(s) =>
+        absolutizePath(Path.of(s), buildDir).toString
+      case _ => s
+    }
+
   def writeMapper(buildDir: Path): xsbti.compile.analysis.WriteMapper = {
     val bd = buildDir.toAbsolutePath.normalize()
     new xsbti.compile.analysis.WriteMapper {
@@ -2255,9 +2327,10 @@ private[analysis] object PortableAnalysisMappers {
       override def mapOutputDir(outputDir: Path): Path = relativizePath(outputDir, bd)
       override def mapSourceDir(sourceDir: Path): Path = relativizePath(sourceDir, bd)
       override def mapClasspathEntry(classpathEntry: Path): Path = relativizePath(classpathEntry, bd)
-      // Everything else: identity
-      override def mapJavacOption(javacOption: String): String = javacOption
-      override def mapScalacOption(scalacOption: String): String = scalacOption
+      // javac/scalac options: most are not paths at all (left untouched); the few that embed one (-sourceroot, semanticdb's -sourceroot:/-targetroot:)
+      // get the same marker treatment as every other path field above — see mapOptionString.
+      override def mapJavacOption(javacOption: String): String = mapOptionString(javacOption, bd)
+      override def mapScalacOption(scalacOption: String): String = mapOptionString(scalacOption, bd)
       override def mapProductStamp(file: xsbti.VirtualFileRef, productStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = productStamp
       override def mapSourceStamp(file: xsbti.VirtualFileRef, sourceStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = sourceStamp
       override def mapBinaryStamp(file: xsbti.VirtualFileRef, binaryStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = binaryStamp
@@ -2276,9 +2349,9 @@ private[analysis] object PortableAnalysisMappers {
       override def mapOutputDir(outputDir: Path): Path = absolutizePath(outputDir, bd)
       override def mapSourceDir(sourceDir: Path): Path = absolutizePath(sourceDir, bd)
       override def mapClasspathEntry(classpathEntry: Path): Path = absolutizePath(classpathEntry, bd)
-      // Everything else: identity
-      override def mapJavacOption(javacOption: String): String = javacOption
-      override def mapScalacOption(scalacOption: String): String = scalacOption
+      // See writeMapper's mapScalacOption/mapJavacOption: the reverse of mapOptionString, rebasing a marker-prefixed option value to this workspace.
+      override def mapJavacOption(javacOption: String): String = unmapOptionString(javacOption, bd)
+      override def mapScalacOption(scalacOption: String): String = unmapOptionString(scalacOption, bd)
       override def mapProductStamp(file: xsbti.VirtualFileRef, productStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = productStamp
       override def mapSourceStamp(file: xsbti.VirtualFileRef, sourceStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = sourceStamp
       override def mapBinaryStamp(file: xsbti.VirtualFileRef, binaryStamp: xsbti.compile.analysis.Stamp): xsbti.compile.analysis.Stamp = binaryStamp

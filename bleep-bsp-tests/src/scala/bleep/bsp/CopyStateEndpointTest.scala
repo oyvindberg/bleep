@@ -165,6 +165,9 @@ class CopyStateEndpointTest extends AnyFunSuite with Matchers {
       Files.write(analysis.getParent.resolve("noop-manifest.bin"), s"manifest-$name".getBytes(StandardCharsets.UTF_8))
       Files.createDirectories(analysis.getParent.resolve("cache"))
       Files.write(analysis.getParent.resolve("cache/junk.bin"), s"zinc-cache-$name".getBytes(StandardCharsets.UTF_8))
+      // A real workspace always has one of these lying around after any compile — not a fixture quirk. Recognizable content so the test below can tell
+      // "this is from's own stale lock file, cloned" apart from "this is a lock file copy-state itself took and released on the destination".
+      Files.write(classes.getParent.resolve(".bleep-lock"), s"stale-lock-$name".getBytes(StandardCharsets.UTF_8))
       val generated = paths.generatedSourcesBaseDir(crossName).resolve("scripts")
       Files.createDirectories(generated)
       Files.write(generated.resolve("Gen.scala"), s"generated-$name".getBytes(StandardCharsets.UTF_8))
@@ -215,8 +218,12 @@ class CopyStateEndpointTest extends AnyFunSuite with Matchers {
         withClue("a copied noop manifest validates against the SOURCE workspace's absolute paths — a false noop pointing at the parent's classes: ") {
           Files.exists(toPaths.zincDir(crossName).resolve("noop-manifest.bin")) shouldBe false
         }
-        withClue("a lock file must never be inherited: ") {
-          Files.exists(toPaths.variantBuildDir(crossName).resolve(".bleep-lock")) shouldBe false
+        withClue(
+          "a lock file must never be CLONED from `from` — `to` legitimately ends up with its own, since copy-state now holds an exclusive lock on the " +
+            "destination too (see MultiWorkspaceBspServer's destination-lock fix); what must never happen is that lock file being `from`'s stale one: "
+        ) {
+          val toLockFile = toPaths.variantBuildDir(crossName).resolve(".bleep-lock")
+          if (Files.exists(toLockFile)) Files.readAllBytes(toLockFile) should not be s"stale-lock-$name".getBytes(StandardCharsets.UTF_8)
         }
         withClue("zinc's cache dir is per-workspace state and regenerates — sharing it is decided by StateSharing's allow-list, not a local deny-list: ") {
           Files.exists(toPaths.zincDir(crossName).resolve("cache")) shouldBe false

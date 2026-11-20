@@ -18,6 +18,18 @@ import scala.jdk.StreamConverters.*
   *
   * Zinc analysis IS included so incremental compilation works correctly after pulling. The noop manifest is per-machine state and is excluded from the archive
   * — Pull regenerates it locally so the next compile is a true noop hit.
+  *
+  * `Pull(..., unsafeSeedRef = Some(ref))` additionally tries, on an exact-digest miss, a digest computed as of `git merge-base ref HEAD` — see
+  * [[PullOutcome.HitSeed]] and the `.zinc/unsafe-seed` marker it writes, which [[Push]] checks before publishing.
+  *
+  * ==Sourcegen output has its own cache, pulled/pushed before anything above==
+  *
+  * A project's `generated-sources`/`generated-resources` directories are never archived as part of the project's own entry (see [[bleep.StateSharing]]'s doc
+  * comment for why they structurally can't be) and, since [[ProjectDigest]] folds a generator's output via its own content- addressed
+  * [[ProjectDigest.computeSourcegenDigests]] instead of hashing that output directly, computing a project's digest no longer requires the generator to have
+  * actually run first. `Pull`/`Push` use that to populate or publish generator output through a second, parallel cache keyed on [[sourcegenCacheKey]], before
+  * touching any project's own classes — so a project with a sourcegen dependency can be served by the cache, and the (possibly slow) generator never has to run
+  * locally at all, as long as its declared inputs are unchanged.
   */
 object RemoteCache {
 
@@ -31,7 +43,45 @@ object RemoteCache {
   private[bleep] def packFilter(variantBuildDir: Path)(p: Path): Boolean =
     bleep.StateSharing.isShareableIn(variantBuildDir)(p)
 
-  case class Pull(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
+  /** What happened when [[Pull]] tried to populate one project. */
+  sealed trait PullOutcome
+  object PullOutcome {
+    case object AlreadyCompiled extends PullOutcome
+    final case class HitCurrent(bytes: Long) extends PullOutcome
+
+    /** The current digest missed, but a digest computed as of `--unsafe-seed-ref`'s merge-base hit instead. The archive was unpacked, but — unlike
+      * [[HitCurrent]] — the noop manifest was deliberately NOT regenerated: the following compile must actually run through Zinc's incremental invalidation
+      * against the real current sources, not be treated as already up to date.
+      */
+    final case class HitSeed(bytes: Long, seedCommit: String, digest: String) extends PullOutcome
+    case object MissNoSeedRequested extends PullOutcome // current digest missed; no --unsafe-seed-ref given
+    case object MissSeedDigestUnavailable extends PullOutcome // --unsafe-seed-ref given, but this project's digest at that commit couldn't be determined
+    case object MissSameDigestAsSeed extends PullOutcome // --unsafe-seed-ref given, but its digest equals the current one — already covered by the miss above
+    case object MissSeedAlsoMissed extends PullOutcome // --unsafe-seed-ref given, digest differs from current and was computable, but the cache missed too
+  }
+
+  /** `.zinc/unsafe-seed`: written by [[Pull]] whenever a project is populated via [[PullOutcome.HitSeed]], read by [[Push]] to refuse publishing it under the
+    * exact current digest unless `allowUnsafeSeeded` is set. The compiled state behind it was never verified against its own current inputs — only against
+    * Zinc's incremental invalidation running on top of a real content gap — so letting it reach the cache under the current digest would let every future
+    * puller trust it as a fully verified hit. Lives under `.zinc/`, which `bleep clean` removes wholesale along with the rest of the project's compiled state,
+    * so the marker never outlives what it describes. Deliberately absent from [[bleep.StateSharing.variantDirEntries]], so neither `push` nor `copy-state` ever
+    * propagates it.
+    */
+  private def unsafeSeedMarkerPath(projectPaths: ProjectPaths): Path =
+    projectPaths.targetDir.resolve(".zinc").resolve("unsafe-seed")
+
+  private def writeUnsafeSeedMarker(projectPaths: ProjectPaths, seedCommit: String, digest: String): Unit = {
+    val marker = unsafeSeedMarkerPath(projectPaths)
+    Files.createDirectories(marker.getParent)
+    Files.writeString(marker, s"seedCommit: $seedCommit\nseedDigest: $digest\n"): Unit
+  }
+
+  private def readUnsafeSeedMarker(projectPaths: ProjectPaths): Option[String] = {
+    val marker = unsafeSeedMarkerPath(projectPaths)
+    if (Files.exists(marker)) Some(Files.readString(marker)) else None
+  }
+
+  case class Pull(projects: Array[model.CrossProjectName], unsafeSeedRef: Option[String]) extends BleepBuildCommand {
     override def run(started: Started): Either[BleepException, Unit] = {
       val cacheConfig = started.build.remoteCache
       cacheConfig match {
@@ -43,24 +93,35 @@ object RemoteCache {
           )
         case Some(config) =>
           val (client, prefix) = storeFor(started, config)
+          val buildDir = started.buildPaths.buildDir
 
-          val digests = ProjectDigest.computeAll(started.build, started.buildPaths)
-          val projectsToPull = withoutUnsupported(started, if (projects.nonEmpty) projects.toSet else digests.keySet)
+          val currentDigests = ProjectDigest.computeAll(started.build, started.buildPaths)
+          val projectsToPull = withoutUnsupported(started, if (projects.nonEmpty) projects.toSet else currentDigests.keySet)
 
-          val pulled = AtomicInteger(0)
-          val skipped = AtomicInteger(0)
-          val notFound = AtomicInteger(0)
+          // Populate sourcegen output first — see the class doc comment. Computing `currentDigests` above never needed the generator to have run (that's
+          // the whole point of folding its output via a digest rather than hashing it directly), but the compile that follows this `pull` still does, so
+          // this is the one place that can save it from having to.
+          val (sourcegenHit, sourcegenAlready, sourcegenMissed) =
+            pullSourcegenOutputs(started, client, prefix, projectsToPull, currentDigests)
+
+          // Resolved once, up front, so every project's seed digest (if any) is known before the parallel pull loop starts — never computed lazily per miss.
+          val seedCommit: Option[String] = unsafeSeedRef.map(ref => internal.gitOutput.mergeBase(buildDir, ref, "HEAD"))
+          val seedDigests = seedCommit match {
+            case Some(commit) => ProjectDigest.computeAllAt(started.build, started.buildPaths, commit)
+            case None         => scala.collection.immutable.SortedMap.empty[model.CrossProjectName, String]
+          }
+
+          val outcomes = new java.util.concurrent.ConcurrentLinkedQueue[(model.CrossProjectName, PullOutcome)]()
 
           val executor = Executors.newFixedThreadPool(Parallelism)
           val futures = new java.util.ArrayList[JFuture[?]]()
 
           projectsToPull.toList.sorted.foreach { crossName =>
-            digests.get(crossName) match {
+            currentDigests.get(crossName) match {
               case None =>
                 started.logger.warn(s"Project ${crossName.value} not in build, skipping")
-              case Some(digest) =>
+              case Some(currentDigest) =>
                 futures.add(executor.submit((() => {
-                  val key = cacheKey(prefix, crossName, digest)
                   val projectPaths =
                     started.buildPaths.project(crossName, started.build.explodedProjects(crossName), started.build.crossPlatforms(crossName.name))
 
@@ -69,18 +130,47 @@ object RemoteCache {
                     Files.isDirectory(projectPaths.classes) &&
                       scala.util.Using.resource(Files.list(projectPaths.classes))(_.findAny().isPresent)
 
+                  def recordAndLog(outcome: PullOutcome, message: String, level: String): Unit = {
+                    outcomes.add(crossName -> outcome): Unit
+                    if (level == "info") started.logger.info(message) else started.logger.debug(message)
+                  }
+
+                  val currentKey = cacheKey(prefix, crossName, currentDigest)
+
                   if (alreadyCompiled) {
-                    skipped.incrementAndGet()
-                    started.logger.debug(s"${crossName.value}: already compiled, skipping")
-                  } else if (client.headObject(key)) {
-                    val archive = client.getObject(key)
+                    recordAndLog(PullOutcome.AlreadyCompiled, s"${crossName.value}: already compiled, skipping", "debug")
+                  } else if (client.headObject(currentKey)) {
+                    val archive = client.getObject(currentKey)
                     TarGz.unpack(archive, projectPaths.targetDir)
                     regenerateManifest(started, crossName, projectPaths)
-                    pulled.incrementAndGet()
-                    started.logger.info(s"${crossName.value}: pulled from cache (${archive.length / 1024}KB)")
+                    recordAndLog(PullOutcome.HitCurrent(archive.length), s"${crossName.value}: pulled from cache (${archive.length / 1024}KB)", "info")
                   } else {
-                    notFound.incrementAndGet()
-                    started.logger.debug(s"${crossName.value}: not in cache")
+                    (seedCommit, seedDigests.get(crossName)) match {
+                      case (None, _) =>
+                        recordAndLog(PullOutcome.MissNoSeedRequested, s"${crossName.value}: not in cache", "debug")
+                      case (Some(_), None) =>
+                        recordAndLog(
+                          PullOutcome.MissSeedDigestUnavailable,
+                          s"${crossName.value}: not in cache (no comparable digest at ${unsafeSeedRef.getOrElse("")})",
+                          "debug"
+                        )
+                      case (Some(_), Some(seedDigest)) if seedDigest == currentDigest =>
+                        recordAndLog(PullOutcome.MissSameDigestAsSeed, s"${crossName.value}: not in cache", "debug")
+                      case (Some(commit), Some(seedDigest)) =>
+                        val seedKey = cacheKey(prefix, crossName, seedDigest)
+                        if (client.headObject(seedKey)) {
+                          val archive = client.getObject(seedKey)
+                          TarGz.unpack(archive, projectPaths.targetDir)
+                          writeUnsafeSeedMarker(projectPaths, commit, seedDigest)
+                          recordAndLog(
+                            PullOutcome.HitSeed(archive.length, commit, seedDigest),
+                            s"${crossName.value}: missed current digest, pulled unsafe seed from $commit (${archive.length / 1024}KB) — incremental compile will run",
+                            "info"
+                          )
+                        } else {
+                          recordAndLog(PullOutcome.MissSeedAlsoMissed, s"${crossName.value}: not in cache (also missed seed from $commit)", "debug")
+                        }
+                    }
                   }
                 }): Runnable))
             }
@@ -89,15 +179,26 @@ object RemoteCache {
           futures.forEach { f => f.get(); () }
           executor.shutdown()
 
-          started.logger.info(
-            s"Remote cache pull: ${pulled.get()} pulled, ${skipped.get()} already compiled, ${notFound.get()} not cached (${projectsToPull.size} total)"
-          )
+          val results = scala.jdk.CollectionConverters.IterableHasAsScala(outcomes).asScala.toList.map(_._2)
+          val hitCurrent = results.count(_.isInstanceOf[PullOutcome.HitCurrent])
+          val hitSeed = results.count(_.isInstanceOf[PullOutcome.HitSeed])
+          val alreadyCompiled = results.count(_ == PullOutcome.AlreadyCompiled)
+          val missed = results.size - hitCurrent - hitSeed - alreadyCompiled
+
+          val summary = seedCommit match {
+            case Some(commit) =>
+              s"Remote cache pull: $hitCurrent pulled, $hitSeed seeded from $commit, $alreadyCompiled already compiled, $missed not cached (${projectsToPull.size} total)"
+            case None =>
+              s"Remote cache pull: $hitCurrent pulled, $alreadyCompiled already compiled, $missed not cached (${projectsToPull.size} total)"
+          }
+          started.logger.info(summary)
+          started.logger.info(s"Remote cache pull (sourcegen output): $sourcegenHit pulled, $sourcegenAlready already generated, $sourcegenMissed not cached")
           Right(())
       }
     }
   }
 
-  case class Push(projects: Array[model.CrossProjectName], force: Boolean) extends BleepBuildCommand {
+  case class Push(projects: Array[model.CrossProjectName], force: Boolean, allowUnsafeSeeded: Boolean) extends BleepBuildCommand {
 
     /** Read portability warnings written by the BSP server after compile. Returns list of absolute paths (empty = portable). */
     private def checkPortability(targetDir: Path): List[String] = {
@@ -116,6 +217,11 @@ object RemoteCache {
 
           val digests = ProjectDigest.computeAll(started.build, started.buildPaths)
           val projectsToPush = withoutUnsupported(started, if (projects.nonEmpty) projects.toSet else digests.keySet)
+
+          // Push sourcegen output first, same reasoning as [[Pull]] pulling it first — no unsafe-seed gate applies here: there is no incremental-trust
+          // spectrum for raw generated files, only a generator digest that either matches what's on disk or doesn't.
+          val (sourcegenPushed, sourcegenSkipped, sourcegenNotGenerated) =
+            pushSourcegenOutputs(started, client, prefix, force, projectsToPush, digests)
 
           val pushed = AtomicInteger(0)
           val skipped = AtomicInteger(0)
@@ -148,12 +254,17 @@ object RemoteCache {
                     started.logger.debug(s"${crossName.value}: already in cache")
                   } else {
                     val absolutePaths = checkPortability(projectPaths.targetDir)
-                    absolutePaths match {
-                      case head :: _ =>
+                    val unsafeSeed = if (allowUnsafeSeeded) None else readUnsafeSeedMarker(projectPaths)
+                    (absolutePaths, unsafeSeed) match {
+                      case (head :: _, _) =>
                         errors.add(
                           s"${crossName.value}: analysis contains ${absolutePaths.size} absolute path(s), e.g. '$head'. Kill BSP servers and recompile."
                         ): Unit
-                      case Nil =>
+                      case (Nil, Some(marker)) =>
+                        errors.add(
+                          s"${crossName.value}: compiled from an unsafe seed, never verified against its own current inputs (${marker.linesIterator.mkString(", ")}). Pass --allow-unsafe-seeded to push anyway."
+                        ): Unit
+                      case (Nil, None) =>
                         val archive = TarGz.pack(projectPaths.targetDir, packFilter(projectPaths.targetDir))
                         client.putObject(key, archive)
                         pushed.incrementAndGet()
@@ -167,14 +278,18 @@ object RemoteCache {
           futures.forEach { f => f.get(); () }
           executor.shutdown()
 
+          started.logger.info(
+            s"Remote cache push (sourcegen output): $sourcegenPushed pushed, $sourcegenSkipped already cached, $sourcegenNotGenerated not generated"
+          )
+
           val errorList = scala.jdk.CollectionConverters.IterableHasAsScala(errors).asScala.toList
           if (errorList.nonEmpty) {
             started.logger.info(
-              s"Remote cache push: ${pushed.get()} pushed, ${errorList.size} failed portability check, ${skipped.get()} already cached, ${notCompiled.get()} not compiled (${projectsToPush.size} total)"
+              s"Remote cache push: ${pushed.get()} pushed, ${errorList.size} refused, ${skipped.get()} already cached, ${notCompiled.get()} not compiled (${projectsToPush.size} total)"
             )
             Left(
               new BleepException.Text(
-                s"${errorList.size} project(s) have non-portable analysis:\n${errorList.map(e => s"  - $e").mkString("\n")}"
+                s"${errorList.size} project(s) refused (non-portable analysis, or compiled from an unsafe seed):\n${errorList.map(e => s"  - $e").mkString("\n")}"
               )
             )
           } else {
@@ -228,6 +343,126 @@ object RemoteCache {
     val projectKey = crossName.fileSafeValue
     if (prefix.isEmpty) s"$projectKey/$digest.tar.gz"
     else s"$prefix/$projectKey/$digest.tar.gz"
+  }
+
+  /** Cache key for one sourcegen declaration's output, as consumed by `consumer` — a separate namespace from [[cacheKey]]'s per-project classes entries, since
+    * one declaration's output may be worth caching independently of (and long before) any particular consumer's own classes digest resolves.
+    */
+  private def sourcegenCacheKey(prefix: String, consumer: model.CrossProjectName, main: String, digest: String): String = {
+    val key = s"sourcegen/${consumer.fileSafeValue}/$main/$digest.tar.gz"
+    if (prefix.isEmpty) key else s"$prefix/$key"
+  }
+
+  private def hasAnyFile(dir: Path): Boolean =
+    Files.isDirectory(dir) && scala.util.Using.resource(Files.list(dir))(_.findAny().isPresent)
+
+  /** Populate every sourcegen declaration's `generated-sources`/`generated-resources` output from the cache, for every project in `consumers` that declares
+    * one. Run before any project's own classes are pulled, so a subsequent compile never has to run a (possibly slow) generator locally just to produce output
+    * the cache already has.
+    *
+    * One level down from [[Pull]]'s own per-project loop, and simpler: there is no seed variant, since there is no Zinc-style incremental reconciliation for
+    * raw generated files to lean on — a digest either matches exactly or the cache missed.
+    */
+  private def pullSourcegenOutputs(
+      started: Started,
+      client: CacheStore,
+      prefix: String,
+      consumers: Set[model.CrossProjectName],
+      currentDigests: model.CrossProjectName => String
+  ): (Int, Int, Int) = {
+    val entries = ProjectDigest
+      .computeSourcegenDigests(started.build, started.buildPaths, currentDigests)
+      .filter { case ((consumer, _), _) =>
+        consumers.contains(consumer)
+      }
+      .toList
+
+    val hit = new AtomicInteger(0)
+    val already = new AtomicInteger(0)
+    val missed = new AtomicInteger(0)
+
+    val executor = Executors.newFixedThreadPool(Parallelism)
+    val futures = new java.util.ArrayList[JFuture[?]]()
+
+    entries.foreach { case ((consumer, script), digest) =>
+      futures.add(executor.submit((() => {
+        val sourcesDir = started.buildPaths.generatedSourcesDir(consumer, script.main)
+        val resourcesDir = started.buildPaths.generatedResourcesDir(consumer, script.main)
+
+        if (hasAnyFile(sourcesDir) || hasAnyFile(resourcesDir)) {
+          already.incrementAndGet(): Unit
+        } else {
+          val key = sourcegenCacheKey(prefix, consumer, script.main, digest)
+          if (client.headObject(key)) {
+            val archive = client.getObject(key)
+            TarGz.unpack(archive, started.buildPaths.crossProjectDir(consumer))
+            hit.incrementAndGet(): Unit
+            started.logger.info(s"${consumer.value}: pulled sourcegen output for ${script.main} from cache (${archive.length / 1024}KB)")
+          } else {
+            missed.incrementAndGet(): Unit
+            started.logger.debug(s"${consumer.value}: sourcegen output for ${script.main} not in cache")
+          }
+        }
+      }): Runnable))
+    }
+
+    futures.forEach { f => f.get(); () }
+    executor.shutdown()
+
+    (hit.get(), already.get(), missed.get())
+  }
+
+  /** Push every sourcegen declaration's output already generated locally, for every project in `consumers` that declares one — the write side of
+    * [[pullSourcegenOutputs]]. A declaration whose output was never generated locally is skipped, not an error: `push` is normally run right after a real
+    * compile, so this is simply the case where nothing in the build actually needed that generator this time.
+    */
+  private def pushSourcegenOutputs(
+      started: Started,
+      client: CacheStore,
+      prefix: String,
+      force: Boolean,
+      consumers: Set[model.CrossProjectName],
+      digests: model.CrossProjectName => String
+  ): (Int, Int, Int) = {
+    val entries = ProjectDigest
+      .computeSourcegenDigests(started.build, started.buildPaths, digests)
+      .filter { case ((consumer, _), _) =>
+        consumers.contains(consumer)
+      }
+      .toList
+
+    val pushed = new AtomicInteger(0)
+    val skipped = new AtomicInteger(0)
+    val notGenerated = new AtomicInteger(0)
+
+    val executor = Executors.newFixedThreadPool(Parallelism)
+    val futures = new java.util.ArrayList[JFuture[?]]()
+
+    entries.foreach { case ((consumer, script), digest) =>
+      futures.add(executor.submit((() => {
+        val sourcesDir = started.buildPaths.generatedSourcesDir(consumer, script.main)
+        val resourcesDir = started.buildPaths.generatedResourcesDir(consumer, script.main)
+        val key = sourcegenCacheKey(prefix, consumer, script.main, digest)
+
+        if (!hasAnyFile(sourcesDir) && !hasAnyFile(resourcesDir)) {
+          notGenerated.incrementAndGet(): Unit
+          started.logger.debug(s"${consumer.value}: sourcegen output for ${script.main} not generated, skipping")
+        } else if (!force && client.headObject(key)) {
+          skipped.incrementAndGet(): Unit
+          started.logger.debug(s"${consumer.value}: sourcegen output for ${script.main} already in cache")
+        } else {
+          val archive = TarGz.pack(started.buildPaths.crossProjectDir(consumer), p => p.startsWith(sourcesDir) || p.startsWith(resourcesDir))
+          client.putObject(key, archive)
+          pushed.incrementAndGet(): Unit
+          started.logger.info(s"${consumer.value}: pushed sourcegen output for ${script.main} to cache (${archive.length / 1024}KB)")
+        }
+      }): Runnable))
+    }
+
+    futures.forEach { f => f.get(); () }
+    executor.shutdown()
+
+    (pushed.get(), skipped.get(), notGenerated.get())
   }
 
   private def resolveCredentials(started: Started): model.RemoteCacheCredentials =
@@ -296,7 +531,8 @@ object RemoteCache {
       language = maybeLanguage.get,
       ecjVersion = ecjVersion,
       determinants = OutputDeterminants.none,
-      result = result
+      result = result,
+      buildDir = started.buildPaths.buildDir
     ): Unit
     started.logger.debug(s"${crossName.value}: regenerated noop manifest")
   }

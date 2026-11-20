@@ -117,8 +117,38 @@ object NoopManifestStore {
       }
     }
 
-  /** FNV-1a hash of compiler options — and of the [[OutputDeterminants]], which decide the output just as much — for cheap equality check. */
-  def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String], determinants: OutputDeterminants): Long = {
+  private val colonValueOption = raw"^(-[A-Za-z][\w-]*:)(.+)$$".r
+
+  /** `-sourceroot <path>` (two tokens) or `-sourceroot:<path>` (one, colon-joined) embeds an absolute path directly into a scalac/javac option — bleep injects
+    * it, pinned to the project's own build dir, because Scala 3 otherwise records every source path in TASTy relative to the compiler's working directory,
+    * which for a long-lived daemon is wherever it happened to be started rather than anything project-specific (see `ResolveProjects.sourceRoot`). The same
+    * shape shows up in Scala Native's position-relativization paths. Either way, the value is real and absolute by the time it reaches here — the token form
+    * (`${BUILD_DIR}`) is only how it's declared in `bleep.yaml`; `ResolveProjects` fills it to the project's actual build dir before this ever sees it, the
+    * same way [[bleep.analysis]]'s `PortableAnalysisMappers` rebases it before Zinc's own `MiniSetup` check runs — but that only makes ZINC'S decision
+    * path-portable, not this one, and copy-state's whole premise is a second workspace at a different absolute path. Without this, every Scala 3 project's
+    * options hash differs from a sibling workspace's by construction, declining a noop no matter how identical the sources are.
+    */
+  private def relativizeToBuildDir(s: String, buildDir: Path): String = {
+    val buildDirStr = buildDir.toString
+    val token = bleep.model.Replacements.known.BuildDir
+    def rel(v: String): String =
+      if (v == buildDirStr) token
+      else if (v.startsWith(buildDirStr) && (v.charAt(buildDirStr.length) == '/' || v.charAt(buildDirStr.length) == '\\'))
+        token + "/" + v.substring(buildDirStr.length + 1).replace('\\', '/')
+      else v
+    s match {
+      case colonValueOption(prefix, value) => prefix + rel(value)
+      case _                               => rel(s)
+    }
+  }
+
+  /** FNV-1a hash of compiler options — and of the [[OutputDeterminants]], which decide the output just as much — for cheap equality check.
+    *
+    * `buildDir` is used only to relativize path-bearing options (`-sourceroot` and the like, see [[relativizeToBuildDir]]) before hashing them — never to
+    * change what's actually passed to the compiler. Two workspaces with identical sources at different absolute paths must hash equal here; that's the entire
+    * reason this parameter exists.
+    */
+  def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String], determinants: OutputDeterminants, buildDir: Path): Long = {
     var hash = 0xcbf29ce484222325L
     val prime = 0x100000001b3L
 
@@ -134,12 +164,136 @@ object NoopManifestStore {
     }
 
     mix(language.scalaVersion)
-    language.scalaOptions.foreach(mix)
-    language.javaOptions.foreach(mix)
+    language.scalaOptions.foreach(opt => mix(relativizeToBuildDir(opt, buildDir)))
+    language.javaOptions.foreach(opt => mix(relativizeToBuildDir(opt, buildDir)))
     ecjVersion.foreach(mix)
     determinants.asZincExtra.foreach { case (k, v) => mix(k); mix(v) }
     determinants.transformedClasses.toList.sortBy(_._1).foreach { case (name, c) => mix(name); mix(c.kind.value); mix(c.hash) }
     hash
+  }
+
+  /** Build + write a manifest for `to` by rebasing `from`'s own manifest, used by `copy-state` after cloning a project's compiled state into a sibling
+    * worktree. Unlike [[regenerateFromLocal]]'s other two callers, a directory clone comes with no proof that `to`'s actual source files are what `from`'s
+    * analysis was compiled from: `ZincBridge` calls `regenerateFromLocal` right after a real compile ran against these exact files, and `RemoteCache.Pull` only
+    * reaches it after an exact digest match already proved file-set-and-content equality. A clone proves neither — `to` is a sibling worktree that can
+    * genuinely be on different, locally-modified sources (the "dirty parent" case).
+    *
+    * So only the source side gets re-verified here: every file `from`'s manifest recorded is re-hashed at its rebased path in `to`, and the source directories
+    * are re-walked to confirm nothing was added. Output directories and dependency analyses are not re-proven this way — they are copied build artifacts,
+    * correct by construction of the clone, so they are simply re-stat'd/re-hashed fresh off `to`'s disk, the same as [[regenerateFromLocal]] already does for
+    * its own callers.
+    *
+    * Returns `None` (writing nothing) the moment anything about the source files doesn't match, or `from` has no manifest to rebase in the first place (ctime
+    * unavailable there, or one was never written) — the existing behavior either way: a real Zinc round-trip on `to`'s first compile, never a false noop from
+    * trusting a mismatch.
+    */
+  def regenerateFromCopy(fromAnalysisFile: Path, fromBuildDir: Path, toAnalysisFile: Path, toBuildDir: Path): Option[NoopManifest] = {
+    if (!ctimeAvailable) return None
+
+    def rebase(p: Path): Path = toBuildDir.resolve(fromBuildDir.relativize(p))
+
+    load(fromAnalysisFile) match {
+      case None               => None
+      case Some(fromManifest) =>
+        // Every recorded source file must still be there, at its rebased path, with identical content.
+        val sourceStatsBuilder = Map.newBuilder[Path, FileStatEntry]
+        var sourcesOk = true
+        val sourceIter = fromManifest.sourceStats.iterator
+        while (sourcesOk && sourceIter.hasNext) {
+          val (fromPath, fromStat) = sourceIter.next()
+          val toPath = rebase(fromPath)
+          if (!Files.isRegularFile(toPath)) sourcesOk = false
+          else {
+            val toStat = statSourceFile(toPath)
+            // Size first: free (both stats already in hand) and strictly stronger than the hash alone —
+            // the same order checkNoopFromDirs/checkNoopManifest already check in, at real compile time.
+            if (toStat.size != fromStat.size || toStat.contentHash != fromStat.contentHash) sourcesOk = false
+            else sourceStatsBuilder += toPath -> toStat
+          }
+        }
+        if (!sourcesOk) return None
+
+        // And no NEW source file must have appeared that `from` never saw: count every `.scala`/`.java` file actually in the rebased source roots, and
+        // compare against how many `from` recorded. Combined with every recorded file having just been confirmed present above, equal counts mean equal
+        // sets — the cheap way to ask "exactly these files, nothing more" without materializing and diffing two path sets.
+        val sourceRoots = removeNestedDirs(fromManifest.sourceDirStats.keySet.map(rebase))
+        val actualSourceFileCount = sourceRoots.iterator.map { root =>
+          if (!Files.isDirectory(root)) 0
+          else
+            scala.util
+              .Using(Files.walk(root)) { stream =>
+                import scala.jdk.StreamConverters.*
+                stream.toScala(List).count(p => Files.isRegularFile(p) && (p.toString.endsWith(".scala") || p.toString.endsWith(".java")))
+              }
+              .getOrElse(0)
+        }.sum
+        if (actualSourceFileCount != fromManifest.sourceStats.size) return None
+
+        // Source directories themselves, re-stat'd fresh (not reused from `from`: a directory's own mtime is per-filesystem-entry, never portable).
+        val sourceDirStatsBuilder = Map.newBuilder[Path, FileStatEntry]
+        var dirsOk = true
+        val dirIter = fromManifest.sourceDirStats.keysIterator
+        while (dirsOk && dirIter.hasNext) {
+          val toPath = rebase(dirIter.next())
+          if (!Files.isDirectory(toPath)) dirsOk = false
+          else sourceDirStatsBuilder += toPath -> statFile(toPath)
+        }
+        if (!dirsOk) return None
+
+        // Output directories and dependency analyses: copied artifacts, not git-tracked sources — nothing to re-verify content against, just re-stat/
+        // re-hash what the clone actually put on disk.
+        val outputDirStatsBuilder = Map.newBuilder[Path, FileStatEntry]
+        var outputOk = true
+        val outIter = fromManifest.outputDirStats.keysIterator
+        while (outputOk && outIter.hasNext) {
+          val toPath = rebase(outIter.next())
+          if (!Files.isDirectory(toPath)) outputOk = false
+          else outputDirStatsBuilder += toPath -> statFile(toPath)
+        }
+        if (!outputOk) return None
+
+        // A dependency's analysis, re-stat'd the same way as our own output dir above. A missing file
+        // here must fail the whole regeneration, not paper over it with a sentinel — matching every
+        // other check in this function. Callers that process several projects in one copy (like
+        // copy-state's own `copyProject`) MUST have already cloned every project's state before calling
+        // this for any of them, precisely so a dependency is never "not there yet" by construction —
+        // see MultiWorkspaceBspServer.handleCopyState's two-phase (clone-all, then regenerate-all)
+        // structure. If this still finds one missing, something is actually wrong (or absent) in `to`.
+        val depStatsBuilder = Map.newBuilder[Path, DepAnalysisStat]
+        var depsOk = true
+        val depIter = fromManifest.depAnalysisStats.keysIterator
+        while (depsOk && depIter.hasNext) {
+          val fromOutputDir = depIter.next()
+          val toOutputDir = rebase(fromOutputDir)
+          val toDepAnalysisFile = toOutputDir.getParent.resolve(".zinc").resolve("analysis.zip")
+          if (!Files.exists(toDepAnalysisFile)) depsOk = false
+          else depStatsBuilder += toOutputDir -> DepAnalysisStat(Files.getLastModifiedTime(toDepAnalysisFile).toMillis, hashContent(toDepAnalysisFile))
+        }
+        if (!depsOk) return None
+
+        val toOutputDir = rebase(fromManifest.cachedResult.outputDir)
+        val toClassFiles: Set[Path] =
+          if (!Files.isDirectory(toOutputDir)) Set.empty
+          else
+            scala.util
+              .Using(Files.walk(toOutputDir)) { stream =>
+                import scala.jdk.StreamConverters.*
+                stream.toScala(List).filter(p => Files.isRegularFile(p) && p.toString.endsWith(".class")).toSet
+              }
+              .getOrElse(Set.empty)
+
+        val manifest = NoopManifest(
+          sourceStats = sourceStatsBuilder.result(),
+          sourceDirStats = sourceDirStatsBuilder.result(),
+          outputDirStats = outputDirStatsBuilder.result(),
+          depAnalysisStats = depStatsBuilder.result(),
+          optionsHash = fromManifest.optionsHash, // config, not content — unchanged if wrong, loadAndValidateManifest declines rather than trusts
+          cachedResult = ProjectCompileSuccess(toOutputDir, toClassFiles, fromManifest.cachedResult.analysisFile.map(rebase))
+        )
+
+        write(toAnalysisFile, manifest)
+        Some(manifest)
+    }
   }
 
   /** Build + write a manifest by stat'ing the local filesystem. Used by both ZincBridge (post-compile) and RemoteCache.Pull (post-extraction).
@@ -154,7 +308,8 @@ object NoopManifestStore {
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
       determinants: OutputDeterminants,
-      result: ProjectCompileSuccess
+      result: ProjectCompileSuccess,
+      buildDir: Path
   ): Option[NoopManifest] = {
     if (!ctimeAvailable) return None
 
@@ -196,7 +351,7 @@ object NoopManifestStore {
       sourceDirStats = sourceDirStatsMap,
       outputDirStats = outputDirStatsMap,
       depAnalysisStats = depStats,
-      optionsHash = computeOptionsHash(language, ecjVersion, determinants),
+      optionsHash = computeOptionsHash(language, ecjVersion, determinants, buildDir),
       cachedResult = result
     )
 

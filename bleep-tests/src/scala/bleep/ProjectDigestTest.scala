@@ -417,6 +417,99 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
     }
   }
 
+  test("a gitignored file inside a dirty directory is not an input") {
+    // The filesystem fallback (hashFilesystem) used to be a raw Files.walk with no idea what git would consider part of the project. Content a project
+    // explicitly excluded via .gitignore — build junk, IDE state, or (the real-world case this was found from) a nested git worktree sitting inside a
+    // declared directory — got hashed right along with everything else, just because the directory was "dirty" (some OTHER, non-ignored file in it
+    // changed) and took the filesystem path instead of git ls-tree's.
+    val workspace = Files.createTempDirectory("bleep-digest-gitignore-")
+    try {
+      gitInit(workspace)
+      val srcDir = workspace.resolve("a/src/scala")
+      Files.createDirectories(srcDir)
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo")
+      Files.writeString(workspace.resolve(".gitignore"), "ignored.scala\n")
+      gitCommitAll(workspace)
+
+      val p = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      // Make the directory dirty via an ordinary, non-ignored change, and plant ignored content alongside it.
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo { val x = 1 }")
+      Files.writeString(srcDir.resolve("ignored.scala"), "object ShouldNeverBeHashed")
+      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+
+      // Changing ONLY the ignored file's content must leave the digest alone.
+      Files.writeString(srcDir.resolve("ignored.scala"), "object StillShouldNeverBeHashed")
+      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+
+      after shouldBe before
+    } finally deleteRecursively(workspace)
+  }
+
+  test("a nested git worktree sitting inside a declared directory is never read, gitignored or not") {
+    // The real-world case: a monorepo with dozens of other worktrees checked out inside its own directory tree (always gitignored — nobody commits a
+    // worktree checkout), where a project's declared directory happens to be broad enough to be an ancestor of one. Modeled here with a plain nested
+    // directory carrying its own `.git` file, exactly the shape a worktree (or any embedded repository) has on disk — this doesn't need a real `git
+    // worktree add` to prove the point, since the guard only looks for that one marker.
+    val workspace = Files.createTempDirectory("bleep-digest-nested-worktree-")
+    try {
+      gitInit(workspace)
+      val srcDir = workspace.resolve("a/src/scala")
+      Files.createDirectories(srcDir)
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo")
+      // `sources:` resolves relative to project `a`'s own folder (`workspace/a/`), same convention the other tests here rely on — the pattern needs that
+      // prefix too, since it contains a `/` and is therefore anchored to the repo root rather than matched at every directory level.
+      Files.writeString(workspace.resolve(".gitignore"), "a/src/scala/nested-worktree/\n")
+      gitCommitAll(workspace)
+
+      val p = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val nestedWorktree = srcDir.resolve("nested-worktree")
+      Files.createDirectories(nestedWorktree)
+      Files.writeString(nestedWorktree.resolve(".git"), "gitdir: /elsewhere/.git/worktrees/whatever\n")
+      Files.writeString(nestedWorktree.resolve("SomeFileInTheOtherWorktree.scala"), "object WhateverElseIsCheckedOutThere")
+
+      // Dirty `srcDir` via an ordinary change, same as the test above, so the filesystem fallback actually runs.
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo { val x = 1 }")
+      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+
+      Files.writeString(nestedWorktree.resolve("SomeFileInTheOtherWorktree.scala"), "object SomethingCompletelyDifferentNow")
+      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+
+      after shouldBe before
+    } finally deleteRecursively(workspace)
+  }
+
+  test("with no git repository at all, the filesystem fallback still refuses to descend into a nested repository's own working directory") {
+    // gitLsFilesUnder answers `None` here (no git repository to ask at all), so there are no ignore rules to lean on — the one case walkIgnoringNestedRepos
+    // exists for: an explicit check for a nested `.git`, independent of any ignore configuration.
+    val workspace = createTempWorkspace() // deliberately no gitInit
+    try {
+      val srcDir = workspace.resolve("a/src/scala")
+      Files.createDirectories(srcDir)
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo")
+
+      val nestedWorktree = srcDir.resolve("nested-worktree")
+      Files.createDirectories(nestedWorktree)
+      Files.writeString(nestedWorktree.resolve(".git"), "gitdir: /elsewhere/.git/worktrees/whatever\n")
+      Files.writeString(nestedWorktree.resolve("SomeFileInTheOtherWorktree.scala"), "object WhateverElseIsCheckedOutThere")
+
+      val p = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      Files.writeString(nestedWorktree.resolve("SomeFileInTheOtherWorktree.scala"), "object SomethingCompletelyDifferentNow")
+      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+
+      after shouldBe before
+    } finally deleteRecursively(workspace)
+  }
+
   test("digest of a committed tree does not depend on core.quotePath") {
     // Regression: `git ls-tree` obeys `core.quotePath`, so the *spelling* of a non-ASCII path went into the
     // digest as either `café.scala` or `"caf\303\251.txt"` depending on a setting in the developer's own
@@ -551,10 +644,14 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
     } finally deleteRecursively(workspace)
   }
 
-  test("sourcegen output IS an input: rewriting it moves the digest") {
-    // The other side of the line drawn above, pinned so nobody moves it by analogy. A sourcegen is the tool people use precisely to read outside the source
-    // tree — a schema, git, the network — which is why it can declare `sourceGlobs`. Hashing its output is what turns a generator reading something bleep does
-    // not know about into a cache miss, instead of a cache hit serving classes compiled from a stale value.
+  test("sourcegen output is not hashed directly: only its declared inputs are, via its own generator digest") {
+    // Unlike AP/KSP output (not an input at all, above), a sourcegen's output IS an input to the digest — but folded via its own generator digest
+    // (`ProjectDigest.computeGeneratorDigest`: the script project's digest, each declared `inputs` project's digest, and `sourceGlobs` content), never by
+    // hashing the output bytes directly. That equivalence is deliberate, not an approximation: a generator is required to be a deterministic function of
+    // exactly those inputs for any of this digest's existing invalidation to be sound at all (today's digest already trusts the Scala/Java compiler the
+    // same way). It's also what lets a project's digest be computed without the generator ever having run — see `bleep remote-cache`. So rewriting the
+    // output directly, with nothing about its declared inputs changing, must leave the digest alone — the opposite of what hashing the raw bytes would
+    // have done, and exactly why `sourceGlobs`/the script project's own sources moving the digest (covered in SourcegenInputsTest) is still true.
     val workspace = createTempWorkspace()
     try {
       val gen: model.ScriptDef = model.ScriptDef.Main(cpn("scripts"), "my.Gen", model.JsonSet.empty, model.JsonSet.empty, None)
@@ -569,7 +666,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       writeIn(genDir, "Version.java", "class Version { static String V = \"1.0.1\"; }")
       val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
 
-      after should not be before
+      after shouldBe before
     } finally deleteRecursively(workspace)
   }
 
@@ -595,6 +692,244 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
 
       after shouldBe before
     } finally deleteRecursively(workspace)
+  }
+
+  /** `git rev-parse HEAD`, trimmed. */
+  private def currentCommit(workspace: Path): String =
+    scala.sys.process.Process(List("git", "rev-parse", "HEAD"), workspace.toFile).!!.trim
+
+  test("computeAllAt a ref that is HEAD, with a clean tree, agrees with computeAll") {
+    val workspace = Files.createTempDirectory("bleep-digest-at-head-")
+    try {
+      gitInit(workspace)
+      val srcDir = workspace.resolve("a/src/scala")
+      Files.createDirectories(srcDir)
+      Files.writeString(srcDir.resolve("Foo.scala"), "object Foo")
+      gitCommitAll(workspace)
+
+      val p = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val atHead = ProjectDigest.computeAllAt(build, buildPaths, currentCommit(workspace))
+      val current = ProjectDigest.computeAll(build, buildPaths)
+
+      atHead(cpn("a")) shouldBe current(cpn("a"))
+    } finally deleteRecursively(workspace)
+  }
+
+  test("computeAllAt an ancestor commit reproduces the digest that commit actually had, even after a transitive dep moved on") {
+    // The whole point of --unsafe-seed-ref: `app` never touches its own source, but depends on `lib`. Once `lib`'s source
+    // changes, `app`'s CURRENT digest moves too (dependency propagation), so an exact-digest pull misses for both. The
+    // digest computed as of the ancestor commit must match what that commit's digest genuinely was, for both projects,
+    // so a cache entry pushed back then is found under the right key.
+    val workspace = Files.createTempDirectory("bleep-digest-ancestor-")
+    try {
+      gitInit(workspace)
+      val libSrc = workspace.resolve("lib/src/scala")
+      Files.createDirectories(libSrc)
+      Files.writeString(libSrc.resolve("Lib.scala"), "object Lib { val v = 1 }")
+      gitCommitAll(workspace)
+      val commit1 = currentCommit(workspace)
+
+      val lib = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val app = projectWithDeps("lib")
+      val build = makeBuild("lib" -> lib, "app" -> app)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val digestsAtCommit1 = ProjectDigest.computeAll(build, buildPaths)
+
+      // Move lib forward. `app`'s own files never change.
+      Files.writeString(libSrc.resolve("Lib.scala"), "object Lib { val v = 2 }")
+      gitCommitAll(workspace)
+
+      val digestsNow = ProjectDigest.computeAll(build, buildPaths)
+      // Sanity: both moved (the existing "transitive dep changes propagate" test covers this for `app`; repeated here
+      // because the rest of this test depends on it actually being true).
+      digestsNow(cpn("lib")) should not be digestsAtCommit1(cpn("lib"))
+      digestsNow(cpn("app")) should not be digestsAtCommit1(cpn("app"))
+
+      val digestsAsOfCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      digestsAsOfCommit1(cpn("lib")) shouldBe digestsAtCommit1(cpn("lib"))
+      digestsAsOfCommit1(cpn("app")) shouldBe digestsAtCommit1(cpn("app"))
+    } finally deleteRecursively(workspace)
+  }
+
+  test("computeAllAt omits a project whose source dir holds untracked content, rather than guessing at its historical bytes") {
+    // sourcegen output is exactly this: real content on disk right now that git never saw at any past commit. Silently
+    // hashing it under a historical ref's label would produce a digest matching no build that ever ran.
+    val workspace = Files.createTempDirectory("bleep-digest-untracked-")
+    try {
+      gitInit(workspace)
+      Files.writeString(workspace.resolve("README.md"), "placeholder")
+      gitCommitAll(workspace)
+      val commit1 = currentCommit(workspace)
+
+      val genDir = workspace.resolve("a/generated")
+      Files.createDirectories(genDir)
+      Files.writeString(genDir.resolve("Gen.scala"), "object Gen") // never committed
+
+      val p = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("generated"))))
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      atCommit1.get(cpn("a")) shouldBe None
+
+      // The ordinary, current-tree computation still sees it via the filesystem fallback.
+      ProjectDigest.computeAll(build, buildPaths).get(cpn("a")) should not be None
+    } finally deleteRecursively(workspace)
+  }
+
+  test("computeAllAt omits a project whose source dir did not exist yet at that commit") {
+    val workspace = Files.createTempDirectory("bleep-digest-new-project-")
+    try {
+      gitInit(workspace)
+      val aSrc = workspace.resolve("a/src/scala")
+      Files.createDirectories(aSrc)
+      Files.writeString(aSrc.resolve("A.scala"), "object A")
+      gitCommitAll(workspace)
+      val commit1 = currentCommit(workspace)
+
+      // `b` is created after commit1 — its source dir is untracked at that ref, but has real content on disk now.
+      val bSrc = workspace.resolve("b/src/scala")
+      Files.createDirectories(bSrc)
+      Files.writeString(bSrc.resolve("B.scala"), "object B")
+
+      val projA = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val projB = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val build = makeBuild("a" -> projA, "b" -> projB)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      atCommit1.get(cpn("a")) should not be None
+      atCommit1.get(cpn("b")) shouldBe None
+    } finally deleteRecursively(workspace)
+  }
+
+  test("computeAllAt resolves a sourcegen-bearing project even though its generated output is untracked — the bug --unsafe-seed-ref was named to fix") {
+    // Before generated output was folded via its own generator digest instead of being hashed directly (see computeGeneratorDigest), this came back `None`
+    // for exactly the same reason as the untracked-content test above — generated-sources is never git-tracked. That refusal cascaded to every project
+    // downstream of a sourcegen dependency, which is what made --unsafe-seed-ref useless on any build that had one at all. It no longer needs to, because
+    // resolving the generator's digest never requires reading the generated directory's content, only the generator's own declared inputs (here: none
+    // beyond the script project itself, which is tracked like any other project).
+    val workspace = Files.createTempDirectory("bleep-digest-sourcegen-at-ref-")
+    try {
+      gitInit(workspace)
+      val scriptsSrc = workspace.resolve("scripts/src/scala")
+      Files.createDirectories(scriptsSrc)
+      Files.writeString(scriptsSrc.resolve("Gen.scala"), "object Gen")
+      val libSrc = workspace.resolve("lib/src/scala")
+      Files.createDirectories(libSrc)
+      Files.writeString(libSrc.resolve("Lib.scala"), "object Lib")
+      Files.writeString(workspace.resolve("unrelated.txt"), "v1") // a tracked file `a` doesn't declare, so changing it moves nothing of a's
+      gitCommitAll(workspace)
+      val commit1 = currentCommit(workspace)
+
+      val gen: model.ScriptDef = model.ScriptDef.Main(cpn("scripts"), "my.Gen", model.JsonSet.empty, model.JsonSet.empty, None)
+      val scripts = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      val lib = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))))
+      // `dependsOn: lib` alongside `sourcegen:` mirrors the real shape that caught the fold-order bug: a project whose digest folds BOTH an ordinary
+      // transitive dependency AND a sourcegen declaration. A project with only one or the other can't tell two different fold orders apart.
+      val a = projectWithDeps("lib").copy(sourcegen = model.JsonSet(SortedSet(gen)))
+      val build = makeBuild("scripts" -> scripts, "lib" -> lib, "a" -> a)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      // Generated output exists on disk (as it would after a real local run), but was never committed — this is the untracked content that used to cause
+      // the refusal.
+      val genDir = buildPaths.generatedSourcesDir(cpn("a"), gen.folderName)
+      writeIn(genDir, "Generated.scala", "object Generated")
+
+      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      atCommit1.get(cpn("a")) should not be None
+
+      // The working tree is still exactly commit1, so this isn't just "resolvable" — it must equal what computeAll produces right now, directly pinning
+      // computeAllAt's whole documented job (reproduce a digest a real push could have produced). This caught a real bug: computeAll folds a project's
+      // sourcegen-declaration digests BEFORE its transitive/indirect deps, but computeAllAt folded them AFTER — same information, different
+      // MessageDigest.update order, so the two disagreed on every sourcegen-bearing project despite both being "correct" in isolation.
+      ProjectDigest.computeAll(build, buildPaths)(cpn("a")) shouldBe atCommit1(cpn("a"))
+
+      // Move the repo on — the unrelated file changes, `a`'s and `scripts`' own content doesn't — then check that `atCommit1`'s digest for `a` still
+      // matches a direct computeAll at commit1 (the sibling ancestor-commit test above already pins that property for ordinary projects; this just
+      // confirms the refusal is gone for a sourcegen-bearing one too).
+      Files.writeString(workspace.resolve("unrelated.txt"), "v2")
+      gitCommitAll(workspace)
+      val atCommit1Again = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      atCommit1Again(cpn("a")) shouldBe atCommit1(cpn("a"))
+    } finally deleteRecursively(workspace)
+  }
+
+  /** `git submodule add` with a plain local path. Since CVE-2022-39253, git refuses `file://` submodule sources by default; a bare local path isn't that
+    * transport, but `-c protocol.file.allow=always` is harmless insurance against a stricter global config on the machine running the test.
+    */
+  private def gitSubmoduleAdd(workspace: Path, sourceRepo: Path, at: String): Unit =
+    scala.sys.process
+      .Process(
+        List("git", "-c", "protocol.file.allow=always", "submodule", "add", sourceRepo.toString, at),
+        workspace.toFile
+      )
+      .!!
+      .discard()
+
+  test("computeAllAt resolves a project sourcing from inside a git submodule, at the commit the superproject actually pinned") {
+    // `git ls-tree` never descends into a submodule's content from the superproject — not even with `-r` — so a project's source directory several levels
+    // inside one (typical: nobody sources directly from a submodule's own root) looked exactly like untracked content to the refusal above, for reasons
+    // that have nothing to do with sourcegen. Real-world case: bleep's own `liberated/zinc`, `liberated/librarymanagement`, etc.
+    val submoduleSrc = Files.createTempDirectory("bleep-digest-submodule-src-")
+    val workspace = Files.createTempDirectory("bleep-digest-submodule-ws-")
+    try {
+      // The "upstream" repo the submodule points at.
+      gitInit(submoduleSrc)
+      val libSrc = submoduleSrc.resolve("src/scala")
+      Files.createDirectories(libSrc)
+      Files.writeString(libSrc.resolve("Lib.scala"), "object Lib { val v = 1 }")
+      gitCommitAll(submoduleSrc)
+
+      // The superproject. Project `a`'s own folder defaults to `workspace/a/` (same convention every other test here relies on), and `sources:` is
+      // relative to it, so the submodule is mounted at `a/liberated/lib` — several levels above where `a` actually declares its sources underneath it.
+      gitInit(workspace)
+      gitSubmoduleAdd(workspace, submoduleSrc, "a/liberated/lib")
+      gitCommitAll(workspace) // commits the gitlink + .gitmodules
+      val commit1 = currentCommit(workspace)
+
+      val p = model.Project.empty.copy(sources = model.JsonSet(SortedSet(RelPath.force("liberated/lib/src/scala"))))
+      val build = makeBuild("a" -> p)
+      val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
+
+      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      atCommit1.get(cpn("a")) should not be None
+      // Same correctness bar as the sourcegen test above: not just "resolvable", but equal to what computeAll produces right now, since the working tree
+      // is still exactly commit1.
+      ProjectDigest.computeAll(build, buildPaths)(cpn("a")) shouldBe atCommit1(cpn("a"))
+
+      // Move the submodule forward (a real commit inside it, then re-point the superproject's gitlink at it) and re-pin it in the superproject.
+      // `git submodule add` leaves the submodule on a detached HEAD, so `fetch` + `checkout <sha>` rather than `pull` (which needs a tracking branch).
+      Files.writeString(libSrc.resolve("Lib.scala"), "object Lib { val v = 2 }")
+      gitCommitAll(submoduleSrc)
+      val submoduleCommit2 = currentCommit(submoduleSrc)
+      val submoduleWorkdir = workspace.resolve("a/liberated/lib")
+      scala.sys.process.Process(List("git", "fetch", "origin"), submoduleWorkdir.toFile).!!.discard()
+      scala.sys.process.Process(List("git", "checkout", submoduleCommit2), submoduleWorkdir.toFile).!!.discard()
+      gitCommitAll(workspace)
+      val commit2 = currentCommit(workspace)
+
+      val digestsNow = ProjectDigest.computeAll(build, buildPaths)
+      digestsNow(cpn("a")) should not be atCommit1(cpn("a"))
+
+      // The real test of historical fidelity, not just "doesn't refuse": computeAllAt at commit1, asked for again from a workspace that has since moved
+      // on, must reproduce commit1's own bytes — the submodule's content as it was BEFORE the bump — not whatever the submodule happens to be checked out
+      // to right now (commit2's content, which is what's actually sitting on disk at this point in the test).
+      val atCommit1Again = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      atCommit1Again(cpn("a")) shouldBe atCommit1(cpn("a"))
+      atCommit1Again(cpn("a")) should not be digestsNow(cpn("a"))
+
+      // And computeAllAt at the NEW commit must agree with the NEW computeAll, the same property one more time at the other end.
+      val atCommit2 = ProjectDigest.computeAllAt(build, buildPaths, commit2)
+      atCommit2(cpn("a")) shouldBe digestsNow(cpn("a"))
+    } finally {
+      deleteRecursively(workspace)
+      deleteRecursively(submoduleSrc)
+    }
   }
 
   test("declaring stamps leaves the digest alone") {

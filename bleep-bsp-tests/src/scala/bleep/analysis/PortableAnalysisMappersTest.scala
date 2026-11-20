@@ -204,6 +204,63 @@ class PortableAnalysisMappersTest extends AnyFunSuite with Matchers {
     }
   }
 
+  // ── scalac/javac option mapper tests ────────────────────────────────────
+  //
+  // `-sourceroot <path>` (ResolveProjects.scala) renders as two array tokens: the flag, then its argument as a separate string, with no shared context
+  // between them — mapScalacOption/mapJavacOption only ever see one token at a time. The semanticdb plugin instead uses `-sourceroot:<path>` /
+  // `-targetroot:<path>`, one colon-joined token. Both embed an absolute, workspace-specific path that Zinc's MiniSetup equivalence check compares
+  // verbatim — if it's not rebased like every other path field, a cross-machine pull makes that check fail for every project, independent of what, if
+  // anything, actually changed, discarding the whole previous analysis instead of a targeted invalidation.
+
+  test("writeMapper relativizes an absolute path option argument (the -sourceroot <path> token)") {
+    withTempBuildDir("write-scalac-arg") { buildDir =>
+      val mapper = PortableAnalysisMappers.writeMapper(buildDir)
+      val sourceRootArg = buildDir.toAbsolutePath.normalize().toString
+
+      mapper.mapScalacOption(sourceRootArg) shouldBe "${BASE}"
+      mapper.mapJavacOption(sourceRootArg) shouldBe "${BASE}"
+    }
+  }
+
+  test("writeMapper relativizes the value of a colon-joined option (-sourceroot:<path>)") {
+    withTempBuildDir("write-scalac-colon") { buildDir =>
+      val mapper = PortableAnalysisMappers.writeMapper(buildDir)
+      val sub = buildDir.resolve("target/semanticdb")
+
+      mapper.mapScalacOption(s"-sourceroot:$sub") shouldBe "-sourceroot:${BASE}/target/semanticdb"
+      mapper.mapScalacOption(s"-targetroot:$sub") shouldBe "-targetroot:${BASE}/target/semanticdb"
+    }
+  }
+
+  test("writeMapper/readMapper leave a non-path option untouched") {
+    withTempBuildDir("scalac-nonpath") { buildDir =>
+      val write = PortableAnalysisMappers.writeMapper(buildDir)
+      val read = PortableAnalysisMappers.readMapper(buildDir)
+
+      write.mapScalacOption("-sourceroot") shouldBe "-sourceroot" // the flag name token itself, not a path
+      write.mapScalacOption("-Werror") shouldBe "-Werror"
+      write.mapScalacOption("-Xplugin:nonsense") shouldBe "-Xplugin:nonsense" // colon value isn't an absolute path
+      read.mapScalacOption("-Werror") shouldBe "-Werror"
+    }
+  }
+
+  test("write+read round-trip of -sourceroot's argument works across different build dirs (cross-machine simulation)") {
+    withTempBuildDir("roundtrip-sourceroot-a") { buildDirA =>
+      withTempBuildDir("roundtrip-sourceroot-b") { buildDirB =>
+        val writeMapper = PortableAnalysisMappers.writeMapper(buildDirA)
+        val readMapper = PortableAnalysisMappers.readMapper(buildDirB)
+
+        val argOnMachineA = buildDirA.toAbsolutePath.normalize().toString
+        val written = writeMapper.mapScalacOption(argOnMachineA)
+        val restoredOnMachineB = readMapper.mapScalacOption(written)
+
+        // The whole point: machine B's -sourceroot argument is machine B's own build dir, not machine A's — so a MiniSetup built from this restores to
+        // something that actually compares equal to what machine B's own fresh compile would produce.
+        restoredOnMachineB shouldBe buildDirB.toAbsolutePath.normalize().toString
+      }
+    }
+  }
+
   // ── analysisMappers integration ────────────────────────────────────────
 
   test("analysisMappers infers build dir from analysis file path") {
