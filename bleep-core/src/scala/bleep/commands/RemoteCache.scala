@@ -531,7 +531,8 @@ object RemoteCache {
       language = maybeLanguage.get,
       ecjVersion = ecjVersion,
       determinants = OutputDeterminants.none,
-      result = result
+      result = result,
+      buildDir = started.buildPaths.buildDir
     ): Unit
     started.logger.debug(s"${crossName.value}: regenerated noop manifest")
   }

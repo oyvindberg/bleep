@@ -221,7 +221,7 @@ object ZincBridge {
   ): Option[ProjectCompileSuccess] = {
     val analysisDir = config.analysisDir.getOrElse(config.outputDir.resolve(".zinc"))
     val analysisFile = analysisDir.resolve("analysis.zip")
-    checkNoopFromDirs(analysisFile, config.sources, dependencyAnalyses, language, ecjVersion, config.determinants).toOption
+    checkNoopFromDirs(analysisFile, config.sources, dependencyAnalyses, language, ecjVersion, config.determinants, config.buildDir).toOption
   }
 
   /** Compile a Scala/Java project using Zinc.
@@ -302,7 +302,8 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
-      determinants: OutputDeterminants
+      determinants: OutputDeterminants,
+      buildDir: Path
   ): Either[String, NoopManifest] = {
     if (!ctimeAvailable) return Left("ctime unavailable on this platform")
 
@@ -320,7 +321,7 @@ object ZincBridge {
     }
 
     // Options hash (cheap)
-    val currentHash = computeOptionsHash(language, ecjVersion, determinants)
+    val currentHash = computeOptionsHash(language, ecjVersion, determinants, buildDir)
     if (currentHash != manifest.optionsHash) return Left("compiler options changed")
 
     // Dependency analysis mtimes
@@ -389,9 +390,10 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
-      determinants: OutputDeterminants
+      determinants: OutputDeterminants,
+      buildDir: Path
   ): Either[String, ProjectCompileSuccess] = {
-    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion, determinants) match {
+    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion, determinants, buildDir) match {
       case Right(m)     => m
       case Left(reason) => return Left(reason)
     }
@@ -466,9 +468,10 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
-      determinants: OutputDeterminants
+      determinants: OutputDeterminants,
+      buildDir: Path
   ): Either[String, ProjectCompileSuccess] = {
-    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion, determinants) match {
+    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion, determinants, buildDir) match {
       case Right(m)     => m
       case Left(reason) => return Left(reason)
     }
@@ -511,8 +514,8 @@ object ZincBridge {
   private def contentUnchanged(path: Path, expected: FileStatEntry): Boolean =
     expected.contentHash != 0L && NoopManifestStore.hashContent(path) == expected.contentHash
 
-  private def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String], determinants: OutputDeterminants): Long =
-    NoopManifestStore.computeOptionsHash(language, ecjVersion, determinants)
+  private def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String], determinants: OutputDeterminants, buildDir: Path): Long =
+    NoopManifestStore.computeOptionsHash(language, ecjVersion, determinants, buildDir)
 
   // ─── Noop manifest: save ────────────────────────────────────────────────
 
@@ -525,7 +528,8 @@ object ZincBridge {
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
       determinants: OutputDeterminants,
-      result: ProjectCompileSuccess
+      result: ProjectCompileSuccess,
+      buildDir: Path
   ): Unit = {
     val sourcePaths = new Array[Path](sources.length)
     var i = 0
@@ -537,7 +541,17 @@ object ZincBridge {
       i += 1
     }
 
-    NoopManifestStore.regenerateFromLocal(analysisFile, sourceDirs, sourcePaths, dependencyAnalyses, language, ecjVersion, determinants, result) match {
+    NoopManifestStore.regenerateFromLocal(
+      analysisFile,
+      sourceDirs,
+      sourcePaths,
+      dependencyAnalyses,
+      language,
+      ecjVersion,
+      determinants,
+      result,
+      buildDir
+    ) match {
       case Some(manifest) => noopManifestCache.put(analysisFile, manifest): Unit
       case None           => () // ctime unavailable (Windows) — manifest disabled
     }
@@ -565,7 +579,7 @@ object ZincBridge {
     // project on noop builds by using unix:ctime as a reliable change detector.
     // Why the fast path declined, kept so it can be compared against zinc's own verdict below.
     val noopDeclinedBecause: String =
-      checkNoopManifest(analysisFile, sources, dependencyAnalyses, language, ecjVersion, config.determinants) match {
+      checkNoopManifest(analysisFile, sources, dependencyAnalyses, language, ecjVersion, config.determinants, config.buildDir) match {
         case Right(cachedResult) =>
           diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
           return cachedResult
@@ -714,7 +728,7 @@ object ZincBridge {
 
       val classFiles = collectClassFiles(config.outputDir)
       val success = ProjectCompileSuccess(config.outputDir, classFiles, Some(analysisFile))
-      saveNoopManifest(analysisFile, config.sources, sources, dependencyAnalyses, language, ecjVersion, config.determinants, success)
+      saveNoopManifest(analysisFile, config.sources, sources, dependencyAnalyses, language, ecjVersion, config.determinants, success, config.buildDir)
       success
     } catch {
       case e: xsbti.CompileFailed =>

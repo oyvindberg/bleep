@@ -117,8 +117,38 @@ object NoopManifestStore {
       }
     }
 
-  /** FNV-1a hash of compiler options — and of the [[OutputDeterminants]], which decide the output just as much — for cheap equality check. */
-  def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String], determinants: OutputDeterminants): Long = {
+  private val colonValueOption = raw"^(-[A-Za-z][\w-]*:)(.+)$$".r
+
+  /** `-sourceroot <path>` (two tokens) or `-sourceroot:<path>` (one, colon-joined) embeds an absolute path directly into a scalac/javac option — bleep injects
+    * it, pinned to the project's own build dir, because Scala 3 otherwise records every source path in TASTy relative to the compiler's working directory,
+    * which for a long-lived daemon is wherever it happened to be started rather than anything project-specific (see `ResolveProjects.sourceRoot`). The same
+    * shape shows up in Scala Native's position-relativization paths. Either way, the value is real and absolute by the time it reaches here — the token form
+    * (`${BUILD_DIR}`) is only how it's declared in `bleep.yaml`; `ResolveProjects` fills it to the project's actual build dir before this ever sees it, the
+    * same way [[bleep.analysis]]'s `PortableAnalysisMappers` rebases it before Zinc's own `MiniSetup` check runs — but that only makes ZINC'S decision
+    * path-portable, not this one, and copy-state's whole premise is a second workspace at a different absolute path. Without this, every Scala 3 project's
+    * options hash differs from a sibling workspace's by construction, declining a noop no matter how identical the sources are.
+    */
+  private def relativizeToBuildDir(s: String, buildDir: Path): String = {
+    val buildDirStr = buildDir.toString
+    val token = bleep.model.Replacements.known.BuildDir
+    def rel(v: String): String =
+      if (v == buildDirStr) token
+      else if (v.startsWith(buildDirStr) && (v.charAt(buildDirStr.length) == '/' || v.charAt(buildDirStr.length) == '\\'))
+        token + "/" + v.substring(buildDirStr.length + 1).replace('\\', '/')
+      else v
+    s match {
+      case colonValueOption(prefix, value) => prefix + rel(value)
+      case _                               => rel(s)
+    }
+  }
+
+  /** FNV-1a hash of compiler options — and of the [[OutputDeterminants]], which decide the output just as much — for cheap equality check.
+    *
+    * `buildDir` is used only to relativize path-bearing options (`-sourceroot` and the like, see [[relativizeToBuildDir]]) before hashing them — never to
+    * change what's actually passed to the compiler. Two workspaces with identical sources at different absolute paths must hash equal here; that's the entire
+    * reason this parameter exists.
+    */
+  def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String], determinants: OutputDeterminants, buildDir: Path): Long = {
     var hash = 0xcbf29ce484222325L
     val prime = 0x100000001b3L
 
@@ -134,8 +164,8 @@ object NoopManifestStore {
     }
 
     mix(language.scalaVersion)
-    language.scalaOptions.foreach(mix)
-    language.javaOptions.foreach(mix)
+    language.scalaOptions.foreach(opt => mix(relativizeToBuildDir(opt, buildDir)))
+    language.javaOptions.foreach(opt => mix(relativizeToBuildDir(opt, buildDir)))
     ecjVersion.foreach(mix)
     determinants.asZincExtra.foreach { case (k, v) => mix(k); mix(v) }
     determinants.transformedClasses.toList.sortBy(_._1).foreach { case (name, c) => mix(name); mix(c.kind.value); mix(c.hash) }
@@ -278,7 +308,8 @@ object NoopManifestStore {
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
       determinants: OutputDeterminants,
-      result: ProjectCompileSuccess
+      result: ProjectCompileSuccess,
+      buildDir: Path
   ): Option[NoopManifest] = {
     if (!ctimeAvailable) return None
 
@@ -320,7 +351,7 @@ object NoopManifestStore {
       sourceDirStats = sourceDirStatsMap,
       outputDirStats = outputDirStatsMap,
       depAnalysisStats = depStats,
-      optionsHash = computeOptionsHash(language, ecjVersion, determinants),
+      optionsHash = computeOptionsHash(language, ecjVersion, determinants, buildDir),
       cachedResult = result
     )
 
