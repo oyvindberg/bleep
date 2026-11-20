@@ -404,6 +404,25 @@ object ZincBridge {
       case None    => ()
     }
 
+    // And the reverse: no root the manifest recorded may have dropped out of the current config.
+    // `sourceDirStats` is flat — root dirs and every nested subdir in one map, see
+    // `regenerateFromLocal`/`regenerateFromCopy` — with no separate record of which entries were
+    // roots. Recover them structurally instead: a root is exactly an entry whose PARENT is itself
+    // absent from the map, since `collectDirsRecursively` walks every directory from a root downward
+    // and `removeNestedDirs` keeps roots from nesting under each other at write time.
+    //
+    // Catches: a source root removed from `sources:` whose directory is still physically present
+    // with unchanged content — e.g. across copy-state's cross-branch rebase, where `to`'s build
+    // config can genuinely differ from whatever `from`'s manifest was written against. Without this,
+    // the dropped root's files stay invisible to this O(dirs) check (the one-directional check above
+    // only asks "is every current root recorded", never "is every recorded root still current"), and
+    // a noop trusts classes compiled from a directory the current build no longer wants.
+    val recordedRoots = manifest.sourceDirStats.keySet.filter(d => !manifest.sourceDirStats.contains(d.getParent))
+    recordedRoots.find(d => !normalizedDirs.contains(d)) match {
+      case Some(d) => return Left(s"manifest source root no longer configured: $d")
+      case None    => ()
+    }
+
     // Check every recorded source directory (roots + nested subdirs) — a dir's mtime moves
     // when a file is added/deleted/renamed directly inside it. Iterating the *recorded* set
     // rather than walking the tree keeps this O(dirs) pure stats, and still catches

@@ -175,7 +175,9 @@ object NoopManifestStore {
           if (!Files.isRegularFile(toPath)) sourcesOk = false
           else {
             val toStat = statSourceFile(toPath)
-            if (toStat.contentHash != fromStat.contentHash) sourcesOk = false
+            // Size first: free (both stats already in hand) and strictly stronger than the hash alone —
+            // the same order checkNoopFromDirs/checkNoopManifest already check in, at real compile time.
+            if (toStat.size != fromStat.size || toStat.contentHash != fromStat.contentHash) sourcesOk = false
             else sourceStatsBuilder += toPath -> toStat
           }
         }
@@ -220,15 +222,24 @@ object NoopManifestStore {
         }
         if (!outputOk) return None
 
+        // A dependency's analysis, re-stat'd the same way as our own output dir above. A missing file
+        // here must fail the whole regeneration, not paper over it with a sentinel — matching every
+        // other check in this function. Callers that process several projects in one copy (like
+        // copy-state's own `copyProject`) MUST have already cloned every project's state before calling
+        // this for any of them, precisely so a dependency is never "not there yet" by construction —
+        // see MultiWorkspaceBspServer.handleCopyState's two-phase (clone-all, then regenerate-all)
+        // structure. If this still finds one missing, something is actually wrong (or absent) in `to`.
         val depStatsBuilder = Map.newBuilder[Path, DepAnalysisStat]
-        fromManifest.depAnalysisStats.keysIterator.foreach { fromOutputDir =>
+        var depsOk = true
+        val depIter = fromManifest.depAnalysisStats.keysIterator
+        while (depsOk && depIter.hasNext) {
+          val fromOutputDir = depIter.next()
           val toOutputDir = rebase(fromOutputDir)
           val toDepAnalysisFile = toOutputDir.getParent.resolve(".zinc").resolve("analysis.zip")
-          val stat =
-            if (Files.exists(toDepAnalysisFile)) DepAnalysisStat(Files.getLastModifiedTime(toDepAnalysisFile).toMillis, hashContent(toDepAnalysisFile))
-            else DepAnalysisStat(0L, 0L)
-          depStatsBuilder += toOutputDir -> stat
+          if (!Files.exists(toDepAnalysisFile)) depsOk = false
+          else depStatsBuilder += toOutputDir -> DepAnalysisStat(Files.getLastModifiedTime(toDepAnalysisFile).toMillis, hashContent(toDepAnalysisFile))
         }
+        if (!depsOk) return None
 
         val toOutputDir = rebase(fromManifest.cachedResult.outputDir)
         val toClassFiles: Set[Path] =
