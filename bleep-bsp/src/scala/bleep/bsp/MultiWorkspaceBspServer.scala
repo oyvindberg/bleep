@@ -645,10 +645,11 @@ class MultiWorkspaceBspServer(
   /** Copy compiled state from workspace `from` into a freshly created worktree `to`, under the same per-project locks compiles take.
     *
     * Per project, holding a Shared lock on the source (which blocks writers but not other readers): the classes directories, the zinc analysis, and the
-    * generated sources/resources are cloned. What is deliberately NOT copied: `noop-manifest.bin` — its keys are absolute paths into `from`, and a copied
-    * manifest validates successfully against those paths, yielding a false noop that points `to` at `from`'s classes. The target's first compile does one zinc
-    * round-trip per project against the copied analysis (fast — the analysis is byte-identical to one already resident, see AnalysisCache) and writes its own
-    * manifest. `.zinc/cache`, `ksp/` and `.bleep-lock` are also skipped: caches regenerate, and a lock file must never be inherited.
+    * generated sources/resources are cloned. `noop-manifest.bin` itself is never cloned verbatim — its keys are absolute paths into `from`, and a copied
+    * manifest validates successfully against those paths, yielding a false noop that points `to` at `from`'s classes. Instead, a fresh one is regenerated for
+    * `to` ([[bleep.analysis.NoopManifestStore.regenerateFromCopy]]), rebased from `from`'s own manifest after re-verifying every source file's content — safe
+    * without resolving a build, and the reason the target's first compile is normally a true noop hit rather than one real zinc round-trip per project.
+    * `.zinc/cache`, `ksp/` and `.bleep-lock` are also skipped: caches regenerate, and a lock file must never be inherited.
     *
     * Projects are enumerated from disk, not from a resolved build — the daemon needs neither workspace's build to be loaded, and `to` has typically never
     * connected. Lock acquisition is sorted by project name, the same global order compiles use.
@@ -735,6 +736,21 @@ class MultiWorkspaceBspServer(
             Files.copy(src, dest)
             acc + Files.size(dest)
           } else acc
+      }
+
+      // Regenerate a noop-manifest for `to`, rebased from `from`'s own — the same idea RemoteCache.Pull already uses after extracting a cache archive, so
+      // the first compile here can be a true noop hit instead of a real Zinc round-trip per project. Safe without a resolved build (this handler loads
+      // neither workspace's): bleep.analysis.NoopManifestStore.regenerateFromCopy re-verifies every source file's content before trusting anything, and
+      // returns None — writing nothing — the moment that check fails, degrading to exactly today's behavior. Never let a failure here (missing analysis,
+      // corrupt manifest, anything) fail the copy itself — the manifest is purely an optimization.
+      try {
+        val fromAnalysisFile = srcVariantDir.resolve(".zinc").resolve("analysis.zip")
+        val toAnalysisFile = destVariantDir.resolve(".zinc").resolve("analysis.zip")
+        if (Files.isRegularFile(toAnalysisFile))
+          bleep.analysis.NoopManifestStore.regenerateFromCopy(fromAnalysisFile, fromPaths.buildDir, toAnalysisFile, toPaths.buildDir): Unit
+      } catch {
+        case e: Exception =>
+          logger.withContext("project", crossName.value).withContext("exception", e.toString).debug("could not regenerate noop manifest after copy-state")
       }
 
       variantBytes +

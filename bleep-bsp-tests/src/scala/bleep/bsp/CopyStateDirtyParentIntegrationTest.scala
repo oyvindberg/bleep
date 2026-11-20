@@ -178,9 +178,18 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
           withClue("copy-state must clone A's classfiles verbatim, dirty marker included: ") {
             classBytesContain(appClass(wsB), Marker) shouldBe true
           }
-          withClue("the noop manifest must not be inherited — it would validate against A's paths and fake a noop for the dirty project: ") {
-            val toPaths = bleep.BuildPaths(wsB, bleep.BuildLoader.find(wsB), model.BuildVariant.Normal)
+          val toPaths = bleep.BuildPaths(wsB, bleep.BuildLoader.find(wsB), model.BuildVariant.Normal)
+          withClue(
+            "A's own noop-manifest.bin must never be inherited verbatim — it would validate against A's paths and fake a noop. Regenerating one for `app` " +
+              "specifically must also fail: its rebased source content (B's original App.scala) does not match what A's manifest recorded (B's App.scala " +
+              "plus the marker edit) — exactly the divergence the regeneration's content re-verification exists to catch: "
+          ) {
             Files.exists(toPaths.zincDir(model.CrossProjectName.fromString("app").get).resolve("noop-manifest.bin")) shouldBe false
+          }
+          withClue(
+            "but `core`'s source is identical between A and B, so a freshly regenerated manifest for it must exist — proving this isn't just \"never write one\": "
+          ) {
+            Files.exists(toPaths.zincDir(model.CrossProjectName.fromString("core").get).resolve("noop-manifest.bin")) shouldBe true
           }
 
           // Captured AFTER the copy: any rewrite by B's compile moves the mtime past this.
@@ -293,6 +302,16 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
         // Phase B: a fresh workspace with IDENTICAL sources inherits A's state via copy-state, then compiles. Its own -sourceroot points at wsB, not wsA.
         BspTestHarness.withProjects(wsB, configsWithSourceRoot(wsB)) { client =>
           copyState(client, wsA, wsB).projects shouldBe List("app", "core")
+
+          val toPaths = bleep.BuildPaths(wsB, bleep.BuildLoader.find(wsB), model.BuildVariant.Normal)
+          withClue(
+            "both projects' sources are byte-identical between A and B, so copy-state's manifest regeneration must succeed for both — rebased to B's own " +
+              "absolute paths, not inherited verbatim from A's. This is what lets the compile below skip zinc's own invalidation entirely, rather than " +
+              "merely surviving it: "
+          ) {
+            Files.exists(toPaths.zincDir(model.CrossProjectName.fromString("core").get).resolve("noop-manifest.bin")) shouldBe true
+            Files.exists(toPaths.zincDir(model.CrossProjectName.fromString("app").get).resolve("noop-manifest.bin")) shouldBe true
+          }
 
           val coreMtimeAfterCopy = Files.getLastModifiedTime(coreClass(wsB))
           val coreBytesAfterCopy = Files.readAllBytes(coreClass(wsB))

@@ -142,6 +142,119 @@ object NoopManifestStore {
     hash
   }
 
+  /** Build + write a manifest for `to` by rebasing `from`'s own manifest, used by `copy-state` after cloning a project's compiled state into a sibling
+    * worktree. Unlike [[regenerateFromLocal]]'s other two callers, a directory clone comes with no proof that `to`'s actual source files are what `from`'s
+    * analysis was compiled from: `ZincBridge` calls `regenerateFromLocal` right after a real compile ran against these exact files, and `RemoteCache.Pull` only
+    * reaches it after an exact digest match already proved file-set-and-content equality. A clone proves neither — `to` is a sibling worktree that can
+    * genuinely be on different, locally-modified sources (the "dirty parent" case).
+    *
+    * So only the source side gets re-verified here: every file `from`'s manifest recorded is re-hashed at its rebased path in `to`, and the source directories
+    * are re-walked to confirm nothing was added. Output directories and dependency analyses are not re-proven this way — they are copied build artifacts,
+    * correct by construction of the clone, so they are simply re-stat'd/re-hashed fresh off `to`'s disk, the same as [[regenerateFromLocal]] already does for
+    * its own callers.
+    *
+    * Returns `None` (writing nothing) the moment anything about the source files doesn't match, or `from` has no manifest to rebase in the first place (ctime
+    * unavailable there, or one was never written) — the existing behavior either way: a real Zinc round-trip on `to`'s first compile, never a false noop from
+    * trusting a mismatch.
+    */
+  def regenerateFromCopy(fromAnalysisFile: Path, fromBuildDir: Path, toAnalysisFile: Path, toBuildDir: Path): Option[NoopManifest] = {
+    if (!ctimeAvailable) return None
+
+    def rebase(p: Path): Path = toBuildDir.resolve(fromBuildDir.relativize(p))
+
+    load(fromAnalysisFile) match {
+      case None               => None
+      case Some(fromManifest) =>
+        // Every recorded source file must still be there, at its rebased path, with identical content.
+        val sourceStatsBuilder = Map.newBuilder[Path, FileStatEntry]
+        var sourcesOk = true
+        val sourceIter = fromManifest.sourceStats.iterator
+        while (sourcesOk && sourceIter.hasNext) {
+          val (fromPath, fromStat) = sourceIter.next()
+          val toPath = rebase(fromPath)
+          if (!Files.isRegularFile(toPath)) sourcesOk = false
+          else {
+            val toStat = statSourceFile(toPath)
+            if (toStat.contentHash != fromStat.contentHash) sourcesOk = false
+            else sourceStatsBuilder += toPath -> toStat
+          }
+        }
+        if (!sourcesOk) return None
+
+        // And no NEW source file must have appeared that `from` never saw: count every `.scala`/`.java` file actually in the rebased source roots, and
+        // compare against how many `from` recorded. Combined with every recorded file having just been confirmed present above, equal counts mean equal
+        // sets — the cheap way to ask "exactly these files, nothing more" without materializing and diffing two path sets.
+        val sourceRoots = removeNestedDirs(fromManifest.sourceDirStats.keySet.map(rebase))
+        val actualSourceFileCount = sourceRoots.iterator.map { root =>
+          if (!Files.isDirectory(root)) 0
+          else
+            scala.util
+              .Using(Files.walk(root)) { stream =>
+                import scala.jdk.StreamConverters.*
+                stream.toScala(List).count(p => Files.isRegularFile(p) && (p.toString.endsWith(".scala") || p.toString.endsWith(".java")))
+              }
+              .getOrElse(0)
+        }.sum
+        if (actualSourceFileCount != fromManifest.sourceStats.size) return None
+
+        // Source directories themselves, re-stat'd fresh (not reused from `from`: a directory's own mtime is per-filesystem-entry, never portable).
+        val sourceDirStatsBuilder = Map.newBuilder[Path, FileStatEntry]
+        var dirsOk = true
+        val dirIter = fromManifest.sourceDirStats.keysIterator
+        while (dirsOk && dirIter.hasNext) {
+          val toPath = rebase(dirIter.next())
+          if (!Files.isDirectory(toPath)) dirsOk = false
+          else sourceDirStatsBuilder += toPath -> statFile(toPath)
+        }
+        if (!dirsOk) return None
+
+        // Output directories and dependency analyses: copied artifacts, not git-tracked sources — nothing to re-verify content against, just re-stat/
+        // re-hash what the clone actually put on disk.
+        val outputDirStatsBuilder = Map.newBuilder[Path, FileStatEntry]
+        var outputOk = true
+        val outIter = fromManifest.outputDirStats.keysIterator
+        while (outputOk && outIter.hasNext) {
+          val toPath = rebase(outIter.next())
+          if (!Files.isDirectory(toPath)) outputOk = false
+          else outputDirStatsBuilder += toPath -> statFile(toPath)
+        }
+        if (!outputOk) return None
+
+        val depStatsBuilder = Map.newBuilder[Path, DepAnalysisStat]
+        fromManifest.depAnalysisStats.keysIterator.foreach { fromOutputDir =>
+          val toOutputDir = rebase(fromOutputDir)
+          val toDepAnalysisFile = toOutputDir.getParent.resolve(".zinc").resolve("analysis.zip")
+          val stat =
+            if (Files.exists(toDepAnalysisFile)) DepAnalysisStat(Files.getLastModifiedTime(toDepAnalysisFile).toMillis, hashContent(toDepAnalysisFile))
+            else DepAnalysisStat(0L, 0L)
+          depStatsBuilder += toOutputDir -> stat
+        }
+
+        val toOutputDir = rebase(fromManifest.cachedResult.outputDir)
+        val toClassFiles: Set[Path] =
+          if (!Files.isDirectory(toOutputDir)) Set.empty
+          else
+            scala.util
+              .Using(Files.walk(toOutputDir)) { stream =>
+                import scala.jdk.StreamConverters.*
+                stream.toScala(List).filter(p => Files.isRegularFile(p) && p.toString.endsWith(".class")).toSet
+              }
+              .getOrElse(Set.empty)
+
+        val manifest = NoopManifest(
+          sourceStats = sourceStatsBuilder.result(),
+          sourceDirStats = sourceDirStatsBuilder.result(),
+          outputDirStats = outputDirStatsBuilder.result(),
+          depAnalysisStats = depStatsBuilder.result(),
+          optionsHash = fromManifest.optionsHash, // config, not content — unchanged if wrong, loadAndValidateManifest declines rather than trusts
+          cachedResult = ProjectCompileSuccess(toOutputDir, toClassFiles, fromManifest.cachedResult.analysisFile.map(rebase))
+        )
+
+        write(toAnalysisFile, manifest)
+        Some(manifest)
+    }
+  }
+
   /** Build + write a manifest by stat'ing the local filesystem. Used by both ZincBridge (post-compile) and RemoteCache.Pull (post-extraction).
     *
     * Returns the constructed manifest so the caller can populate any in-memory cache. No-op on Windows.
