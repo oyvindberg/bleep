@@ -133,6 +133,33 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
     )
   )
 
+  /** Same shape as [[configs]], but `core`'s sources also include a directory under `.bleep/projects/core/generated-sources/` — exactly where a real sourcegen
+    * step writes, and populated here the same way: a file dropped there before the project ever compiles, standing in for whatever a generator would have
+    * produced. The generated file lives outside the git-tracked `core/src` this test otherwise never touches.
+    */
+  private def configsWithGeneratedSource(ws: Path): List[BspTestHarness.ProjectConfig] = {
+    val crossName = model.CrossProjectName.fromString("core").get
+    val genDir = bleep.BuildPaths(ws, bleep.BuildLoader.find(ws), model.BuildVariant.Normal).generatedSourcesDir(crossName, "fake-sourcegen")
+    List(
+      BspTestHarness.ProjectConfig(
+        name = "core",
+        sources = Set(ws.resolve("core/src"), genDir),
+        classpath = scalaLib,
+        languageConfig = ScalaConfig(ScalaV, Nil),
+        dependsOn = Set.empty,
+        isTest = false
+      ),
+      BspTestHarness.ProjectConfig(
+        name = "app",
+        sources = Set(ws.resolve("app/src")),
+        classpath = BspTestBuild.classesDirFor(ws, "core", isTest = false) :: scalaLib,
+        languageConfig = ScalaConfig(ScalaV, Nil),
+        dependsOn = Set("core"),
+        isTest = false
+      )
+    )
+  }
+
   private def appClass(ws: Path): Path = BspTestBuild.classesDirFor(ws, "app", isTest = false).resolve("applib/App.class")
   private def coreClass(ws: Path): Path = BspTestBuild.classesDirFor(ws, "core", isTest = false).resolve("corelib/Core.class")
 
@@ -332,6 +359,71 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
             Files.readAllBytes(coreClass(wsB)) shouldBe coreBytesAfterCopy
             Files.getLastModifiedTime(appClass(wsB)) shouldBe appMtimeAfterCopy
             Files.readAllBytes(appClass(wsB)) shouldBe appBytesAfterCopy
+          }
+        }
+      } finally {
+        deleteRecursively(wsA)
+        deleteRecursively(wsB)
+      }
+    }
+  }
+
+  /** Regression test for a real bug: `copyProject` called `regenerateFromCopy` BEFORE cloning `generated-sources`/`generated-resources` into `to`. A project
+    * with a sourcegen step records its generated files in the manifest exactly like a hand-written source — so at the moment regeneration ran, those files were
+    * not yet on `to`'s disk, the content check saw them as missing, and regeneration declined. The decline is never unsafe (it just forces a real Zinc
+    * round-trip instead of a noop), which is exactly why the two dirty-parent tests above — whose projects have no generated sources — never caught it.
+    *
+    * Nothing here is dirty: `core`'s generated source is byte-identical in A and B (copy-state clones it verbatim). If the ordering fix holds, `core` must noop
+    * in B same as `app` does, not just compile successfully.
+    */
+  test("generated sources: a project with sourcegen-style generated sources still gets a regenerated manifest after copy-state") {
+    failAfter(Span(300, Seconds)) {
+      val wsA = createWorkspace("copy-state-gensrc-a-")
+      val wsB = createWorkspace("copy-state-gensrc-b-")
+      try {
+        val crossName = model.CrossProjectName.fromString("core").get
+        val genDirA = bleep.BuildPaths(wsA, bleep.BuildLoader.find(wsA), model.BuildVariant.Normal).generatedSourcesDir(crossName, "fake-sourcegen")
+        Files.createDirectories(genDirA)
+        Files.writeString(
+          genDirA.resolve("Generated.scala"),
+          """package corelib
+            |
+            |object Generated { val value: Int = 1 }
+            |""".stripMargin
+        )
+
+        // Phase A: compile clean, with the generated source already in place — standing in for a sourcegen step that ran before this compile.
+        BspTestHarness.withProjects(wsA, configsWithGeneratedSource(wsA)) { client =>
+          client.initialize()
+          compileAll(client) shouldBe 1
+        }
+
+        // Phase B: a fresh workspace, never sourcegen'd, inherits A's state via copy-state — `generated-sources` only exists on B because the clone put it there.
+        BspTestHarness.withProjects(wsB, configsWithGeneratedSource(wsB)) { client =>
+          copyState(client, wsA, wsB).projects shouldBe List("app", "core")
+
+          val toPaths = bleep.BuildPaths(wsB, bleep.BuildLoader.find(wsB), model.BuildVariant.Normal)
+          withClue(
+            "core's generated source is byte-identical between A and B (cloned verbatim), so copy-state's manifest regeneration must succeed for it too — " +
+              "even though, at the moment regeneration runs, it must look past the fact that the clone of generated-sources needs to have already happened: "
+          ) {
+            Files.exists(toPaths.zincDir(crossName).resolve("noop-manifest.bin")) shouldBe true
+          }
+
+          val coreMtimeAfterCopy = Files.getLastModifiedTime(coreClass(wsB))
+          val coreBytesAfterCopy = Files.readAllBytes(coreClass(wsB))
+
+          client.initialize()
+          withClue("B's compile over inherited state must succeed: ") {
+            compileAll(client) shouldBe 1
+          }
+
+          withClue(
+            "LOAD-BEARING: core's generated source never changed between A and B, so it must noop. If the manifest regeneration wrongly declined (the " +
+              "ordering bug), B pays a real Zinc round-trip here instead: "
+          ) {
+            Files.getLastModifiedTime(coreClass(wsB)) shouldBe coreMtimeAfterCopy
+            Files.readAllBytes(coreClass(wsB)) shouldBe coreBytesAfterCopy
           }
         }
       } finally {

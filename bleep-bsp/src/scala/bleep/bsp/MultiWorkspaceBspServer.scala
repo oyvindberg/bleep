@@ -738,11 +738,19 @@ class MultiWorkspaceBspServer(
           } else acc
       }
 
+      val generatedBytes =
+        cloneIfPresent(fromPaths.generatedSourcesBaseDir(crossName), toPaths.generatedSourcesBaseDir(crossName)) +
+          cloneIfPresent(fromPaths.generatedResourcesBaseDir(crossName), toPaths.generatedResourcesBaseDir(crossName))
+
       // Regenerate a noop-manifest for `to`, rebased from `from`'s own — the same idea RemoteCache.Pull already uses after extracting a cache archive, so
       // the first compile here can be a true noop hit instead of a real Zinc round-trip per project. Safe without a resolved build (this handler loads
       // neither workspace's): bleep.analysis.NoopManifestStore.regenerateFromCopy re-verifies every source file's content before trusting anything, and
       // returns None — writing nothing — the moment that check fails, degrading to exactly today's behavior. Never let a failure here (missing analysis,
       // corrupt manifest, anything) fail the copy itself — the manifest is purely an optimization.
+      //
+      // Must run after the generated-sources/generated-resources clone above: a project with a sourcegen step records its generated sources in the manifest
+      // like any other source file, and until they land on `to`'s disk, regenerateFromCopy sees them as missing and declines — correctly refusing to fabricate
+      // a noop, but needlessly, since the files were always going to be there once the clone above completed.
       try {
         val fromAnalysisFile = srcVariantDir.resolve(".zinc").resolve("analysis.zip")
         val toAnalysisFile = destVariantDir.resolve(".zinc").resolve("analysis.zip")
@@ -753,9 +761,7 @@ class MultiWorkspaceBspServer(
           logger.withContext("project", crossName.value).withContext("exception", e.toString).debug("could not regenerate noop manifest after copy-state")
       }
 
-      variantBytes +
-        cloneIfPresent(fromPaths.generatedSourcesBaseDir(crossName), toPaths.generatedSourcesBaseDir(crossName)) +
-        cloneIfPresent(fromPaths.generatedResourcesBaseDir(crossName), toPaths.generatedResourcesBaseDir(crossName))
+      variantBytes + generatedBytes
     }
 
     IO.blocking(validated).flatMap { case (fromPaths, toPaths, projects) =>
