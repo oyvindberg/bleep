@@ -5,6 +5,7 @@ import bleep.bsp.protocol.BleepBspProtocol
 import bleep.internal.TransitiveProjects
 
 import java.nio.file.Files
+import ryddig.{LogLevel, LogPatterns, Loggers}
 
 /** @param raw
   *   use raw stdin and stdout and avoid the logger
@@ -61,7 +62,7 @@ case class Run(
         diffBase = None,
         diffOutput = OutputMode.Text
       )
-      .run(started)
+      .run(Run.compileStartedFor(started, raw))
 
   private def linkProject(started: Started): Either[BleepException, Unit] =
     ReactiveBsp
@@ -184,4 +185,17 @@ object Run {
     val projectEnv = started.build.explodedProjects(project).platform.map(_.jvmEnvironment.toMap).getOrElse(Map.empty)
     (sys.env ++ projectEnv).toList
   }
+
+  /** `raw` hands the forked program raw stdout/stdin moments after this: its own protocol (LSP, or anything else that must own the stream from its first byte)
+    * is what lands there, not bleep's own compile progress. The compile that runs first must honor the same signal — it writes through the same `Started`,
+    * which defaults to a stdout logger — by routing to stderr instead, same as BSP/autocomplete/JSON-output modes already do for the analogous reason (see
+    * [[bleep.internal.bleepLoggers]]).
+    *
+    * Not a blanket change to compile logging: only this one pre-run compile, only when `raw` is set, so `bleep compile`/`bleep test`/everything else keeps
+    * writing to stdout exactly as before.
+    */
+  private[commands] def compileStartedFor(started: Started, raw: Boolean): Started =
+    if (raw)
+      started.withLogger(Loggers.stderr(LogPatterns.interface(startRun = None, noColor = PreBootstrapOpts.noColorRequested)).withMinLogLevel(LogLevel.info))
+    else started
 }
