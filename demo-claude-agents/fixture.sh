@@ -37,9 +37,15 @@ templates:
       version: 3.8.4
 YAML
 
+# A unique comment per run: the compile daemon's own analysis cache is content-addressed and shared
+# across every workspace it has ever served, including a PRIOR run of this same deterministic fixture
+# at a different path. Without this, a second run against a still-warm daemon finds the "cold" worktree
+# already cached too, and the cold-vs-seeded gap this demo exists to show quietly disappears.
+nonce="${FIXTURE_NONCE:-$(date +%s)-$$}"
+
 for i in $(seq 1 30); do
-  printf 'package com.example\n\nimport io.circe.Codec\n\ncase class Record%d(id: Int, name: String, tags: List[String] = Nil) derives Codec:\n  def describe: String = s"Record%d($id, $name)"\n  def withTag(t: String): Record%d = copy(tags = t :: tags)\n\nobject Record%d:\n  def sample: Record%d = Record%d(%d, "sample").withTag("t%d")\n' \
-    "$i" "$i" "$i" "$i" "$i" "$i" "$i" "$i" > core/src/scala/com/example/Record$i.scala
+  printf '// build %s\npackage com.example\n\nimport io.circe.Codec\n\ncase class Record%d(id: Int, name: String, tags: List[String] = Nil) derives Codec:\n  def describe: String = s"Record%d($id, $name)"\n  def withTag(t: String): Record%d = copy(tags = t :: tags)\n\nobject Record%d:\n  def sample: Record%d = Record%d(%d, "sample").withTag("t%d")\n' \
+    "$nonce" "$i" "$i" "$i" "$i" "$i" "$i" "$i" "$i" > core/src/scala/com/example/Record$i.scala
 done
 
 cat > core-test/src/scala/com/example/RecordTest.scala <<'SCALA'
