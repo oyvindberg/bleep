@@ -101,6 +101,29 @@ class RunLogStoreTest extends AnyFunSuite with Matchers {
     a[BleepException.Text] should be thrownBy RunLogStore.readLatest(freshPaths())
   }
 
+  test("a run.json written before `sourcegenFor` existed still reads, defaulting it to empty — and does not block minting the next id") {
+    val paths = freshPaths()
+    val r = create(paths)
+    val pre = io.circe.parser.parse(Files.readString(RunLogStore.runDir(paths, r.id).resolve(RunLogStore.RecordFile))).toOption.get
+    val withoutSourcegenFor = io.circe.Json.fromJsonObject(pre.asObject.get.remove("sourcegenFor"))
+    Files.writeString(RunLogStore.runDir(paths, r.id).resolve(RunLogStore.RecordFile), withoutSourcegenFor.noSpaces)
+
+    RunLogStore.read(paths, r.id).sourcegenFor shouldBe Nil
+
+    // minting the next id enumerates every run on disk (list/applyRetention), so the old record must not poison that either
+    create(paths).id shouldBe 2L
+  }
+
+  test("a run.json written before `script` existed still reads, defaulting it to None") {
+    val paths = freshPaths()
+    val r = create(paths)
+    val pre = io.circe.parser.parse(Files.readString(RunLogStore.runDir(paths, r.id).resolve(RunLogStore.RecordFile))).toOption.get
+    val withoutScript = io.circe.Json.fromJsonObject(pre.asObject.get.remove("script"))
+    Files.writeString(RunLogStore.runDir(paths, r.id).resolve(RunLogStore.RecordFile), withoutScript.noSpaces)
+
+    RunLogStore.read(paths, r.id).script shouldBe None
+  }
+
   private def javaExe: String = {
     val exe = if (System.getProperty("os.name").toLowerCase.contains("win")) "java.exe" else "java"
     java.nio.file.Path.of(System.getProperty("java.home")).resolve("bin").resolve(exe).toString

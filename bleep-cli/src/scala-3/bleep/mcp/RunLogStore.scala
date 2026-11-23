@@ -2,9 +2,8 @@ package bleep.mcp
 
 import bleep.{BleepException, BuildPaths}
 import bleep.history.DirectoryLock
-import io.circe.Codec
-import io.circe.generic.semiauto.deriveCodec
 import io.circe.syntax.EncoderOps
+import io.circe.{Codec, Decoder, Encoder, Json}
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path, StandardCopyOption}
@@ -37,7 +36,77 @@ case class RunRecord(
 )
 
 object RunRecord {
-  implicit val codec: Codec[RunRecord] = deriveCodec
+
+  /** Hand-written and absent-tolerant, for the same reason as [[bleep.bsp.protocol.BleepBspProtocol.TestOptions]]'s codec: `run.json` outlives the bleep binary
+    * that wrote it — retention keeps up to [[RunLogStore.MaxRuns]] runs across restarts and upgrades.
+    *
+    * `sourcegenFor` was added (in `dcf021cfb`) after this format shipped, and circe's derived decoder does not fill in case-class defaults for a field missing
+    * from old JSON — confirmed: decoding a pre-existing `run.json` without it fails with `DecodingFailure at .sourcegenFor: Missing required field`. That
+    * breaks more than reading that one record: [[RunLogStore.list]]/[[RunLogStore.applyRetention]] enumerate the run directory to mint the next id, so one
+    * unreadable old record blocks starting any new run in that workspace.
+    *
+    * `script` (added earlier, in `176cee87e`) turns out not to need this: circe's generic derivation already treats a missing key as `None` for an
+    * `Option`-typed field with no help from us — confirmed the same way. It is still decoded through `getOrElse` below, for symmetry with `sourcegenFor` and so
+    * the next `Option` field added here does not need this comment re-litigated. The fields present since this format's first version stay required — their
+    * absence would mean real corruption, not schema evolution.
+    */
+  implicit val codec: Codec[RunRecord] = {
+    val enc: Encoder[RunRecord] = Encoder.instance { r =>
+      Json.obj(
+        "id" -> r.id.asJson,
+        "workspace" -> r.workspace.asJson,
+        "project" -> r.project.asJson,
+        "script" -> r.script.asJson,
+        "sourcegenFor" -> r.sourcegenFor.asJson,
+        "mainClass" -> r.mainClass.asJson,
+        "args" -> r.args.asJson,
+        "command" -> r.command.asJson,
+        "timeoutSeconds" -> r.timeoutSeconds.asJson,
+        "ownerPid" -> r.ownerPid.asJson,
+        "pid" -> r.pid.asJson,
+        "startedAtMs" -> r.startedAtMs.asJson,
+        "state" -> r.state.asJson,
+        "exitCode" -> r.exitCode.asJson,
+        "durationMs" -> r.durationMs.asJson
+      )
+    }
+    val dec: Decoder[RunRecord] = Decoder.instance { c =>
+      for {
+        id <- c.get[Long]("id")
+        workspace <- c.get[String]("workspace")
+        project <- c.get[String]("project")
+        script <- c.getOrElse[Option[String]]("script")(None)
+        sourcegenFor <- c.getOrElse[List[String]]("sourcegenFor")(Nil)
+        mainClass <- c.get[String]("mainClass")
+        args <- c.get[List[String]]("args")
+        command <- c.get[String]("command")
+        timeoutSeconds <- c.get[Int]("timeoutSeconds")
+        ownerPid <- c.get[Long]("ownerPid")
+        pid <- c.get[Option[Long]]("pid")
+        startedAtMs <- c.get[Long]("startedAtMs")
+        state <- c.get[String]("state")
+        exitCode <- c.get[Option[Int]]("exitCode")
+        durationMs <- c.get[Option[Long]]("durationMs")
+      } yield RunRecord(
+        id,
+        workspace,
+        project,
+        script,
+        sourcegenFor,
+        mainClass,
+        args,
+        command,
+        timeoutSeconds,
+        ownerPid,
+        pid,
+        startedAtMs,
+        state,
+        exitCode,
+        durationMs
+      )
+    }
+    Codec.from(dec, enc)
+  }
 }
 
 object RunState {
