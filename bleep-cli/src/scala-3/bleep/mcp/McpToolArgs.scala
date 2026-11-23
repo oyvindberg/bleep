@@ -123,7 +123,7 @@ object TestArgs {
       jvmOptions <- decodeList(c, "jvmOptions")
       env <- decodeOptional[Map[String, String]](c, "env").map(_.getOrElse(Map.empty))
       // These belong to the fork's launcher, which is why the client never forwards them either. Setting one would corrupt the fork, so say so.
-      _ <- env.keySet.intersect(bleep.bsp.protocol.BleepBspProtocol.ClientEnv.denied).toList.sorted match {
+      _ <- env.keySet.filter(bleep.bsp.protocol.BleepBspProtocol.ClientEnv.isDenied).toList.sorted match {
         case Nil    => Right(())
         case denied => Left(DecodingFailure(s"env cannot set ${denied.mkString(", ")}: the forked test JVM's launcher owns these", c.history))
       }
@@ -163,7 +163,7 @@ object TestArgs {
           "type" -> Json.fromString("object"),
           "additionalProperties" -> Json.obj("type" -> Json.fromString("string")),
           "description" -> Json.fromString(
-            "Environment variables for the forked test JVMs, e.g. {\"MY_VAR\": \"value\"}. Without this, tests see the MCP server's own environment, captured when it started — not your shell's. These override that; a project's platform.jvmEnvironment still wins over both. CLASSPATH, PWD, OLDPWD and _ are rejected."
+            "Environment variables for the forked test JVMs, e.g. {\"MY_VAR\": \"value\"}. Without this, tests see the MCP server's own environment, captured when it started — not your shell's. These override that; a project's platform.jvmEnvironment still wins over both. CLASSPATH, PWD, OLDPWD, _ and any GIT_* variable are rejected."
           )
         ),
         "showOutput" -> Json.obj(

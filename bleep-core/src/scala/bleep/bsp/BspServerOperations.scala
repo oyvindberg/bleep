@@ -142,6 +142,16 @@ object BspServerOperations {
       // config it reads for itself. Non-bleep variables (PATH, HOME, JAVA_HOME, proxy settings) are
       // left alone: those describe the machine, which the daemon genuinely shares.
       pb.environment().keySet().removeIf(k => k.startsWith("BLEEP_") && k != "BLEEP_BSP_DEBUG")
+      // Same reasoning for git's repository-location variables (GIT_DIR, GIT_WORK_TREE, GIT_INDEX_FILE,
+      // GIT_OBJECT_DIRECTORY, GIT_COMMON_DIR, GIT_CEILING_DIRECTORIES, ...). git exports these into the
+      // environment of any command it runs — notably `git rebase --exec` in a linked worktree — so a
+      // developer's `exec bleep compile` step can cold-start this long-lived daemon with GIT_DIR baked
+      // into ITS OWN process environment. Every later `git` invocation any client's test run forks
+      // (including from a clean shell, on a different workspace entirely) then inherits that one
+      // worktree's repository via ProcessBuilder's default env-copy, as if it were the repo under test.
+      // Observed exactly that: forked test JVMs ran real `git` commands against the developer's actual
+      // checkout and rewrote its shared `.git/config`.
+      pb.environment().keySet().removeIf(k => k.startsWith("GIT_"))
       // Redirect stderr (where our logger writes) to the output file.
       // Discard stdout — libraries (Bloop, Zinc) dump massive
       // amounts of data to stdout which would bloat the log to tens of GB.

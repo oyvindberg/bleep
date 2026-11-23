@@ -200,14 +200,23 @@ object BleepBspProtocol {
       *     the pool sets it, so it would silently replace the test classpath with the client shell's.
       *   - `PWD` / `OLDPWD` / `_`: shell bookkeeping describing the client's cwd, which is not the forked process's cwd (that is set per-project via
       *     `ProcessBuilder.directory`). Forwarding them hands subprocesses a path that disagrees with `getcwd`.
+      *   - `GIT_*`: git exports a whole family of these (`GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE`, `GIT_OBJECT_DIRECTORY`, `GIT_COMMON_DIR`, ...) to point
+      *     any `git` command at a specific repository — set by, e.g., `git rebase --exec`. A forked test process has its own repository (often a disposable
+      *     temp one it creates itself); overlaying the client's would silently redirect every `git` call the test makes at the client's checkout instead.
+      *     Denied by prefix, not by name: git ties new variables to this same namespace, and none of them describe the machine the way `PATH`/`JAVA_HOME` do.
       *
       * Notably NOT denied: `PATH` and `JAVA_HOME`. Tests that shell out should find the same tools the developer would — except the JDK's own: the server puts
       * the build's JDK first on that `PATH` and makes it `JAVA_HOME`, so a `javac` a test execs compiles for the JVM the test runs on.
       */
     val denied: Set[String] = Set("CLASSPATH", "PWD", "OLDPWD", "_")
 
+    /** Prefixes denied wholesale — see the `GIT_*` entry on [[denied]]. */
+    val deniedPrefixes: Set[String] = Set("GIT_")
+
+    def isDenied(k: String): Boolean = denied.contains(k) || deniedPrefixes.exists(k.startsWith)
+
     def capture(raw: Map[String, String]): Map[String, String] =
-      raw.filterNot { case (k, _) => denied.contains(k) }
+      raw.filterNot { case (k, _) => isDenied(k) }
 
     /** The current process's environment, filtered. Call this on the client, never on the daemon.
       *
