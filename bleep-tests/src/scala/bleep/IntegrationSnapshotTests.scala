@@ -251,7 +251,8 @@ class IntegrationSnapshotTests extends SnapshotTest {
         model.BleepVersion.dev,
         inputData,
         bleepTasksVersion = model.BleepVersion("1.0.0-M14"),
-        maybeExistingBuildFile = None
+        maybeExistingBuildFile = None,
+        userPaths = userPaths
       )
 
     writeAndCompare(

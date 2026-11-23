@@ -110,7 +110,7 @@ object TestResolver {
     val used = mutable.Set.empty[Cached.Request]
 
     val factory: CoursierResolver.Factory = { (pre, _, buildFile) =>
-      lazy val replacements = model.Replacements.paths(pre.buildPaths.buildDir)
+      lazy val replacements = pre.replacements
 
       val resolvers = buildFile.resolvers.values.map {
         case model.Repository.Maven(name, uri)        => model.Repository.Maven(name, replacements.fill.uri(uri))

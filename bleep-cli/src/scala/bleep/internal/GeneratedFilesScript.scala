@@ -30,14 +30,15 @@ object GeneratedFilesScript {
       bleepVersion: model.BleepVersion,
       /** every cross project of the imported build */
       crossProjects: Set[model.CrossProjectName],
-      generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]]
+      generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]],
+      baseReplacements: model.Replacements
   ): Generated = {
     val scriptsProject = model.Project.empty.copy(
       dependencies = model.JsonSet(model.Dep.Java("build.bleep", "bleepscript", bleepVersion.value)),
       platform = Some(model.Platform.Jvm(model.Options.empty, None, model.Options.empty)),
       resources = model.JsonSet(RelPath.force(keptIn))
     )
-    val scriptsPaths = destinationPaths.project(projectName, scriptsProject, scriptsProject.platform.flatMap(_.name).toSet)
+    val scriptsPaths = destinationPaths.project(projectName, scriptsProject, scriptsProject.platform.flatMap(_.name).toSet, baseReplacements)
     val scriptsDir = scriptsPaths.dir
     val sourcesDir = scriptsPaths.sourcesDirs.fromSourceLayout.toList match {
       case List(one) => one

@@ -61,7 +61,8 @@ object ProjectDigest {
     */
   def computeAll(
       build: model.Build,
-      buildPaths: BuildPaths
+      buildPaths: BuildPaths,
+      baseReplacements: model.Replacements
   ): SortedMap[model.CrossProjectName, String] = {
     val digests = mutable.Map.empty[model.CrossProjectName, String]
 
@@ -83,7 +84,7 @@ object ProjectDigest {
       digests.getOrElseUpdate(
         crossName, {
           val project = build.explodedProjects(crossName)
-          val projectPaths = buildPaths.project(crossName, project, build.crossPlatforms(crossName.name))
+          val projectPaths = buildPaths.project(crossName, project, build.crossPlatforms(crossName.name), baseReplacements)
 
           val md = MessageDigest.getInstance("SHA-256")
 
@@ -155,7 +156,8 @@ object ProjectDigest {
   def computeAllAt(
       build: model.Build,
       buildPaths: BuildPaths,
-      ref: String
+      ref: String,
+      baseReplacements: model.Replacements
   ): SortedMap[model.CrossProjectName, String] = {
     val digests = mutable.Map.empty[model.CrossProjectName, Option[String]]
 
@@ -170,7 +172,7 @@ object ProjectDigest {
       digests.getOrElseUpdate(
         crossName, {
           val project = build.explodedProjects(crossName)
-          val projectPaths = buildPaths.project(crossName, project, build.crossPlatforms(crossName.name))
+          val projectPaths = buildPaths.project(crossName, project, build.crossPlatforms(crossName.name), baseReplacements)
 
           val md = MessageDigest.getInstance("SHA-256")
           md.update(build.$version.value.getBytes("UTF-8"))
@@ -289,12 +291,13 @@ object ProjectDigest {
   def computeSourcegenDigests(
       build: model.Build,
       buildPaths: BuildPaths,
-      projectDigests: model.CrossProjectName => String
+      projectDigests: model.CrossProjectName => String,
+      baseReplacements: model.Replacements
   ): Map[(model.CrossProjectName, model.ScriptDef.Main), String] = {
     val dirtyPaths = gitDirtyPaths(buildPaths.buildDir)
     allSourcegenEntries(build).map { case (crossName, script) =>
       val project = build.explodedProjects(crossName)
-      val consumerPaths = buildPaths.project(crossName, project, build.crossPlatforms(crossName.name))
+      val consumerPaths = buildPaths.project(crossName, project, build.crossPlatforms(crossName.name), baseReplacements)
       (crossName, script) -> computeGeneratorDigest(buildPaths.buildDir, script, consumerPaths, dirtyPaths, projectDigests)
     }.toMap
   }
@@ -306,11 +309,12 @@ object ProjectDigest {
       build: model.Build,
       buildPaths: BuildPaths,
       ref: String,
-      projectDigestsAt: model.CrossProjectName => Option[String]
+      projectDigestsAt: model.CrossProjectName => Option[String],
+      baseReplacements: model.Replacements
   ): Map[(model.CrossProjectName, model.ScriptDef.Main), String] =
     allSourcegenEntries(build).flatMap { case (crossName, script) =>
       val project = build.explodedProjects(crossName)
-      val consumerPaths = buildPaths.project(crossName, project, build.crossPlatforms(crossName.name))
+      val consumerPaths = buildPaths.project(crossName, project, build.crossPlatforms(crossName.name), baseReplacements)
       computeGeneratorDigestAt(buildPaths.buildDir, ref, script, consumerPaths, projectDigestsAt).map(d => (crossName, script) -> d)
     }.toMap
 

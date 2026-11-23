@@ -18,7 +18,11 @@ class BuildProjectMergeInto(projectName: model.ProjectName, into: model.ProjectN
         case other                                          => other
       }
 
-    override protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project] =
+    override protected def newExplodedProjects(
+        oldBuild: model.Build,
+        buildPaths: BuildPaths,
+        baseReplacements: model.Replacements
+    ): Map[model.CrossProjectName, model.Project] =
       oldBuild.explodedProjects.flatMap {
         case (crossName, _) if crossName.name == projectName =>
           None
@@ -75,9 +79,9 @@ class BuildProjectMergeInto(projectName: model.ProjectName, into: model.ProjectN
     }
 
     val rewrittenBuild = {
-      val build0 = rewrite(started.build.requireFileBacked(ctx = "command project-merge-into"), started.buildPaths)
+      val build0 = rewrite(started.build.requireFileBacked(ctx = "command project-merge-into"), started.buildPaths, started.replacements)
       val build1 = build0.copy(file = build0.file.copy(scripts = build0.file.scripts.map { case (sn, sd) => (sn, sd.map(rewriteScriptDef)) }))
-      BuildReapplyTemplates.normalize(build1, started.buildPaths)
+      BuildReapplyTemplates.normalize(build1, started.buildPaths, started.replacements)
     }
 
     def pathsFor(crossName: model.CrossProjectName): List[Path] = {

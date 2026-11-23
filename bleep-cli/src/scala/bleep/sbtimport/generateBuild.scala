@@ -17,10 +17,15 @@ object generateBuild {
       bleepVersion: model.BleepVersion,
       inputData: ImportInputData,
       bleepTasksVersion: model.BleepVersion,
-      maybeExistingBuildFile: Option[model.BuildFile]
+      maybeExistingBuildFile: Option[model.BuildFile],
+      userPaths: UserPaths
   ): Map[Path, String] = {
 
-    val build00 = buildFromBloopFiles(logger, sbtBuildDir, destinationPaths, inputData, bleepVersion, options.filtering.excludeProjects)
+    // Two different build dirs are in play — the sbt build being imported FROM, and the bleep workspace being generated INTO — so each gets its own
+    // `Replacements`, both derived from the one `userPaths` rather than each independently reading `UserPaths.fromAppDirs`.
+    val destinationReplacements = model.Replacements.paths(destinationPaths.buildDir, userPaths)
+
+    val build00 = buildFromBloopFiles(logger, sbtBuildDir, destinationPaths, inputData, bleepVersion, options.filtering.excludeProjects, userPaths)
     // the newest java version any project compiles for, tapir compiles some for java 21
     val compiledFor = build00.explodedProjects.values.flatMap { p =>
       p.scala.toList.flatMap(s => importJvm.compiledFor(s.options)) ++ p.java.toList.flatMap(j => importJvm.compiledFor(j.options))
@@ -30,7 +35,7 @@ object generateBuild {
     // Apply project name and platform filtering
     val filteredBuild = applyFiltering(dropUnsupportedScala(logger, build0), options.filtering, logger)
 
-    val normalizedBuild = normalizeBuild(filteredBuild, destinationPaths)
+    val normalizedBuild = normalizeBuild(filteredBuild, destinationPaths, destinationReplacements)
 
     val buildFile = templatesInfer(new BleepTemplateLogger(logger), normalizedBuild, options.ignoreWhenInferringTemplates, mineTemplates.Costs.default)
 
@@ -44,7 +49,8 @@ object generateBuild {
 
     if (options.skipGeneratedResourcesScript || inputData.generatedFiles.isEmpty) Map(destinationPaths.bleepYamlFile -> yaml.encodeShortened(buildFile1))
     else {
-      val generated = GeneratedFilesScript(destinationPaths, bleepTasksVersion, normalizedBuild.explodedProjects.keySet, inputData.generatedFiles)
+      val generated =
+        GeneratedFilesScript(destinationPaths, bleepTasksVersion, normalizedBuild.explodedProjects.keySet, inputData.generatedFiles, destinationReplacements)
 
       val buildWithScript = buildFile1.copy(
         projects = buildFile1.projects

@@ -1313,7 +1313,7 @@ object Main {
 
       val existingBuild = buildLoader.existing.flatMap(_.buildFile.forceGet).toOption
 
-      commands.ImportSbt(existingBuild, sbtBuildDir = buildPaths.cwd, fetchJvm, buildPaths, logger, opts, model.BleepVersion.current)
+      commands.ImportSbt(existingBuild, sbtBuildDir = buildPaths.cwd, fetchJvm, buildPaths, logger, opts, model.BleepVersion.current, userPaths)
     }
 
     Opts.subcommand("import-sbt", "import an existing sbt build into a bleep.yaml in the same directory. bleep runs sbt itself to read the build")(

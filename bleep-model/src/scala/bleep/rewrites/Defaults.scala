@@ -43,7 +43,11 @@ object Defaults {
   object remove extends BuildRewrite {
     override val name = model.BuildRewriteName("defaults-remove")
 
-    protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project] =
+    protected def newExplodedProjects(
+        oldBuild: model.Build,
+        buildPaths: BuildPaths,
+        baseReplacements: model.Replacements
+    ): Map[model.CrossProjectName, model.Project] =
       oldBuild.explodedProjects.map { case (name, p) => (name, project(p)) }
 
     def project(proj: model.Project): model.Project =
@@ -59,7 +63,11 @@ object Defaults {
   object add extends BuildRewrite {
     override val name = model.BuildRewriteName("defaults-add")
 
-    protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project] =
+    protected def newExplodedProjects(
+        oldBuild: model.Build,
+        buildPaths: BuildPaths,
+        baseReplacements: model.Replacements
+    ): Map[model.CrossProjectName, model.Project] =
       oldBuild.explodedProjects.map { case (name, p) => (name, project(p)) }
 
     def project(proj: model.Project): model.Project =

@@ -92,10 +92,10 @@ object RemoteCache {
             )
           )
         case Some(config) =>
-          val (client, prefix) = storeFor(started, config)
+          val (client, prefix) = storeFor(started, config, started.replacements)
           val buildDir = started.buildPaths.buildDir
 
-          val currentDigests = ProjectDigest.computeAll(started.build, started.buildPaths)
+          val currentDigests = ProjectDigest.computeAll(started.build, started.buildPaths, started.replacements)
           val projectsToPull = withoutUnsupported(started, if (projects.nonEmpty) projects.toSet else currentDigests.keySet)
 
           // Populate sourcegen output first — see the class doc comment. Computing `currentDigests` above never needed the generator to have run (that's
@@ -107,7 +107,7 @@ object RemoteCache {
           // Resolved once, up front, so every project's seed digest (if any) is known before the parallel pull loop starts — never computed lazily per miss.
           val seedCommit: Option[String] = unsafeSeedRef.map(ref => internal.gitOutput.mergeBase(buildDir, ref, "HEAD"))
           val seedDigests = seedCommit match {
-            case Some(commit) => ProjectDigest.computeAllAt(started.build, started.buildPaths, commit)
+            case Some(commit) => ProjectDigest.computeAllAt(started.build, started.buildPaths, commit, started.replacements)
             case None         => scala.collection.immutable.SortedMap.empty[model.CrossProjectName, String]
           }
 
@@ -123,7 +123,8 @@ object RemoteCache {
               case Some(currentDigest) =>
                 futures.add(executor.submit((() => {
                   val projectPaths =
-                    started.buildPaths.project(crossName, started.build.explodedProjects(crossName), started.build.crossPlatforms(crossName.name))
+                    started.buildPaths
+                      .project(crossName, started.build.explodedProjects(crossName), started.build.crossPlatforms(crossName.name), started.replacements)
 
                   // `Files.list` holds an open directory stream until it is closed; one leaked descriptor per project adds up on a large build.
                   def alreadyCompiled: Boolean =
@@ -213,9 +214,9 @@ object RemoteCache {
         case None =>
           Left(new BleepException.Text("No remote-cache configured in bleep.yaml"))
         case Some(config) =>
-          val (client, prefix) = storeFor(started, config)
+          val (client, prefix) = storeFor(started, config, started.replacements)
 
-          val digests = ProjectDigest.computeAll(started.build, started.buildPaths)
+          val digests = ProjectDigest.computeAll(started.build, started.buildPaths, started.replacements)
           val projectsToPush = withoutUnsupported(started, if (projects.nonEmpty) projects.toSet else digests.keySet)
 
           // Push sourcegen output first, same reasoning as [[Pull]] pulling it first — no unsafe-seed gate applies here: there is no incremental-trust
@@ -239,7 +240,8 @@ object RemoteCache {
                 futures.add(executor.submit((() => {
                   val key = cacheKey(prefix, crossName, digest)
                   val projectPaths =
-                    started.buildPaths.project(crossName, started.build.explodedProjects(crossName), started.build.crossPlatforms(crossName.name))
+                    started.buildPaths
+                      .project(crossName, started.build.explodedProjects(crossName), started.build.crossPlatforms(crossName.name), started.replacements)
 
                   // Closed, for the same reason as in [[Pull]].
                   def notCompiledYet: Boolean =
@@ -333,11 +335,13 @@ object RemoteCache {
       }
     }
 
-  private def storeFor(started: Started, config: model.RemoteCacheConfig): (CacheStore, String) =
-    config.uri.getScheme match {
-      case "file" => (LocalDirStore.fromUri(started.logger, config.uri), "")
-      case _      => (S3Client.fromConfig(started.logger, config, resolveCredentials(started)), S3Client.keyPrefix(config))
+  private def storeFor(started: Started, config: model.RemoteCacheConfig, replacements: model.Replacements): (CacheStore, String) = {
+    val uri = config.uri.resolve(replacements)
+    uri.getScheme match {
+      case "file" => (LocalDirStore.fromUri(started.logger, uri), "")
+      case _      => (S3Client.fromConfig(started.logger, uri, config.region, resolveCredentials(started)), S3Client.keyPrefix(uri))
     }
+  }
 
   private def cacheKey(prefix: String, crossName: model.CrossProjectName, digest: String): String = {
     val projectKey = crossName.fileSafeValue
@@ -371,7 +375,7 @@ object RemoteCache {
       currentDigests: model.CrossProjectName => String
   ): (Int, Int, Int) = {
     val entries = ProjectDigest
-      .computeSourcegenDigests(started.build, started.buildPaths, currentDigests)
+      .computeSourcegenDigests(started.build, started.buildPaths, currentDigests, started.replacements)
       .filter { case ((consumer, _), _) =>
         consumers.contains(consumer)
       }
@@ -425,7 +429,7 @@ object RemoteCache {
       digests: model.CrossProjectName => String
   ): (Int, Int, Int) = {
     val entries = ProjectDigest
-      .computeSourcegenDigests(started.build, started.buildPaths, digests)
+      .computeSourcegenDigests(started.build, started.buildPaths, digests, started.replacements)
       .filter { case ((consumer, _), _) =>
         consumers.contains(consumer)
       }

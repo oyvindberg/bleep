@@ -50,7 +50,7 @@ object bootstrap {
       try
         pre.existingBuild.buildFile.forceGet.map { buildFile =>
           val resolver = resolverFactory(pre, config, buildFile)
-          val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b, pre.buildPaths) }
+          val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b, pre.buildPaths, pre.replacements) }
           val bleepExecutable = Lazy(BleepExecutable.getCommand(resolver, pre, forceJvm = false))
 
           // Resolve projects - this may also modify the build (e.g., ReplaceBleepDependencies removes build.bleep:* deps)
@@ -65,7 +65,7 @@ object bootstrap {
             else {
               val chosen =
                 finalBuild.explodedProjects.flatMap { case (crossProjectName, p) =>
-                  val projectPaths = pre.buildPaths.project(crossProjectName, p, finalBuild.crossPlatforms(crossProjectName.name))
+                  val projectPaths = pre.buildPaths.project(crossProjectName, p, finalBuild.crossPlatforms(crossProjectName.name), pre.replacements)
                   val underFolder = projectPaths.dir.startsWith(pre.buildPaths.cwd)
                   def underSources = projectPaths.sourcesDirs.all(Usage.Runtime).exists(_.startsWith(pre.buildPaths.cwd))
                   def underResources = projectPaths.resourcesDirs.all(Usage.Runtime).exists(_.startsWith(pre.buildPaths.cwd))

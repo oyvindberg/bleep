@@ -128,7 +128,7 @@ class StampsIT extends IntegrationTestHarness {
     assert(stamp.stringPropertyNames().toArray.toSet == Set("dynver", "git-sha", "project-digest", "build-digest"), stamp)
     assert(stamp.getProperty("git-sha") == git(ws.root, "rev-parse", "HEAD"))
     assert(stamp.getProperty("dynver") == PublishVersion.resolve(PublishVersion.Dynver, ws.root, assertRelease = false).orThrow)
-    assert(stamp.getProperty("project-digest") == ProjectDigest.computeAll(started.build, started.buildPaths)(lib))
+    assert(stamp.getProperty("project-digest") == ProjectDigest.computeAll(started.build, started.buildPaths, started.replacements)(lib))
     assert(stamp.getProperty("build-digest").matches("[0-9a-f]{64}"), stamp.getProperty("build-digest"))
 
     // `app` declared no stamps: no directory in its path model, so nothing to write and nothing on its classpath.

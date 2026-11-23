@@ -49,8 +49,8 @@ case class BuildUpdateDeps(scalaStewardMode: Boolean, allowPrerelease: Boolean, 
       upgrades: Map[(Dep, VersionCombo), Dep]
   ): Right[BleepException, Unit] = {
 
-    val newBuild = UpgradeDependencies(new UpgradeLogger(started.logger), upgrades)(build, started.buildPaths)
-    val newBuild1 = normalizeBuild(newBuild, started.buildPaths)
+    val newBuild = UpgradeDependencies(new UpgradeLogger(started.logger), upgrades)(build, started.buildPaths, started.replacements)
+    val newBuild1 = normalizeBuild(newBuild, started.buildPaths, started.replacements)
     Right(writeYamlLogged(started.logger, "Wrote update build", newBuild1.file, started.buildPaths.bleepYamlFile))
   }
 

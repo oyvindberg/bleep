@@ -13,21 +13,30 @@ import scala.collection.immutable
 trait BuildRewrite {
   val name: model.BuildRewriteName
 
-  protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project]
+  /** `baseReplacements` — the full, standard `${TOKEN}` set for this build+machine, see [[Prebootstrapped.replacements]]/[[Started.replacements]] — is a
+    * parameter here (not read via `UserPaths.fromAppDirs` by whichever rewrite happens to need one, [[bleep.rewrites.semanticDb]] currently) because a rewrite
+    * instance is typically constructed before any build — and so before any [[Prebootstrapped]] — exists (see `BleepScript.rewrites`), so it cannot be a
+    * constructor parameter either; it has to arrive here, at application time, when it is actually available. Most rewrites simply ignore it.
+    */
+  protected def newExplodedProjects(
+      oldBuild: model.Build,
+      buildPaths: BuildPaths,
+      baseReplacements: model.Replacements
+  ): Map[model.CrossProjectName, model.Project]
 
-  final def apply(oldBuild: model.Build, buildPaths: BuildPaths): model.Build =
+  final def apply(oldBuild: model.Build, buildPaths: BuildPaths, baseReplacements: model.Replacements): model.Build =
     oldBuild match {
-      case oldBuild: model.Build.Exploded   => apply(oldBuild, buildPaths)
-      case oldBuild: model.Build.FileBacked => apply(oldBuild, buildPaths)
+      case oldBuild: model.Build.Exploded   => apply(oldBuild, buildPaths, baseReplacements)
+      case oldBuild: model.Build.FileBacked => apply(oldBuild, buildPaths, baseReplacements)
     }
 
-  final def apply(oldBuild: model.Build.Exploded, buildPaths: BuildPaths): model.Build.Exploded = {
-    val newProjects = newExplodedProjects(oldBuild, buildPaths)
+  final def apply(oldBuild: model.Build.Exploded, buildPaths: BuildPaths, baseReplacements: model.Replacements): model.Build.Exploded = {
+    val newProjects = newExplodedProjects(oldBuild, buildPaths, baseReplacements)
     oldBuild.copy(explodedProjects = newProjects)
   }
 
-  final def apply(oldBuild: model.Build.FileBacked, buildPaths: BuildPaths): model.Build.FileBacked = {
-    val newProjects = newExplodedProjects(oldBuild, buildPaths)
+  final def apply(oldBuild: model.Build.FileBacked, buildPaths: BuildPaths, baseReplacements: model.Replacements): model.Build.FileBacked = {
+    val newProjects = newExplodedProjects(oldBuild, buildPaths, baseReplacements)
     BuildRewrite.withProjects(oldBuild, newProjects)
   }
 }

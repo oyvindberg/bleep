@@ -22,6 +22,10 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
   private def cpn(name: String): model.CrossProjectName =
     model.CrossProjectName(model.ProjectName(name), None)
 
+  // None of this suite's fixtures put a `${HOME_DIR}`/`${TEMP_DIR}` token in any option, so the only thing that matters about this is that every call site
+  // in this file uses the same one — not that it be built from any particular `UserPaths`.
+  private def replacementsFor(buildPaths: BuildPaths): model.Replacements = model.Replacements.paths(buildPaths.buildDir, UserPaths.fromAppDirs)
+
   private def scriptDef(scriptProject: String, globs: String*): model.ScriptDef =
     model.ScriptDef.Main(
       cpn(scriptProject),
@@ -77,9 +81,9 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
       val myapp = model.Project.empty.copy(sourcegen = model.JsonSet(SortedSet(scriptDef("scripts", "../schema"))))
       val build = makeBuild("scripts" -> model.Project.empty, "myapp" -> myapp)
 
-      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("myapp"))
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("myapp"))
       writeSchema(workspace, "create table users (id int, email text)")
-      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("myapp"))
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("myapp"))
 
       after should not be before
     }
@@ -92,9 +96,9 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
       val myapp = model.Project.empty.copy(sourcegen = model.JsonSet(SortedSet(scriptDef("scripts"))))
       val build = makeBuild("scripts" -> model.Project.empty, "myapp" -> myapp)
 
-      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("myapp"))
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("myapp"))
       writeSchema(workspace, "create table users (id int, email text)")
-      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("myapp"))
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("myapp"))
 
       // Nothing in the build mentions `schema/`, so nothing should. This is the control for the test above.
       after shouldBe before
@@ -109,9 +113,9 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
       val doesNot = model.Project.empty.copy(sourcegen = model.JsonSet(SortedSet(scriptDef("scripts"))))
       val build = makeBuild("scripts" -> model.Project.empty, "declares" -> declares, "does-not" -> doesNot)
 
-      val before = ProjectDigest.computeAll(build, buildPaths)
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))
       writeSchema(workspace, "create table users (id int, email text)")
-      val after = ProjectDigest.computeAll(build, buildPaths)
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))
 
       after(cpn("declares")) should not be before(cpn("declares"))
       after(cpn("does-not")) shouldBe before(cpn("does-not"))
@@ -127,9 +131,9 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
       val myapp = model.Project.empty.copy(sourcegen = model.JsonSet(SortedSet(scriptDef("scripts"))))
       val build = makeBuild("scripts" -> scripts, "myapp" -> myapp)
 
-      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("myapp"))
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("myapp"))
       writeSchema(workspace, "create table users (id int, email text)")
-      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("myapp"))
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("myapp"))
 
       after should not be before
     }
@@ -143,9 +147,9 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
       val myapp = model.Project.empty.copy(sourcegen = model.JsonSet(SortedSet(scriptDef("scripts"))))
       val build = makeBuild("scripts" -> scripts, "myapp" -> myapp)
 
-      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("myapp"))
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("myapp"))
       writeSchema(workspace, "create table users (id int, email text)")
-      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("myapp"))
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("myapp"))
 
       after should not be before
     }
@@ -161,9 +165,9 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
       val myapp = model.Project.empty.copy(sourcegen = model.JsonSet(SortedSet(scriptDef("scripts"))))
       val build = makeBuild("scripts" -> scripts, "myapp" -> myapp)
 
-      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("myapp"))
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("myapp"))
       Files.writeString(srcDir.resolve("Main.scala"), "object Main { val x = 1 }")
-      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("myapp"))
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("myapp"))
 
       after should not be before
     }
@@ -174,8 +178,8 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
       val without = model.Project.empty.copy(sourcegen = model.JsonSet(SortedSet(scriptDef("scripts"))))
       val with_ = model.Project.empty.copy(sourcegen = model.JsonSet(SortedSet(scriptDef("scripts", "../schema"))))
 
-      val d1 = ProjectDigest.computeAll(makeBuild("scripts" -> model.Project.empty, "myapp" -> without), buildPaths)(cpn("myapp"))
-      val d2 = ProjectDigest.computeAll(makeBuild("scripts" -> model.Project.empty, "myapp" -> with_), buildPaths)(cpn("myapp"))
+      val d1 = ProjectDigest.computeAll(makeBuild("scripts" -> model.Project.empty, "myapp" -> without), buildPaths, replacementsFor(buildPaths))(cpn("myapp"))
+      val d2 = ProjectDigest.computeAll(makeBuild("scripts" -> model.Project.empty, "myapp" -> with_), buildPaths, replacementsFor(buildPaths))(cpn("myapp"))
 
       d1 should not be d2
     }
@@ -193,7 +197,7 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
         sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))),
         sourcegen = model.JsonSet(SortedSet(scriptDef("scripts", "../schema")))
       )
-      val projectPaths = buildPaths.project(cpn("myapp"), myapp, Set.empty)
+      val projectPaths = buildPaths.project(cpn("myapp"), myapp, Set.empty, replacementsFor(buildPaths))
 
       ProjectInputs.all(myapp, projectPaths) should contain(workspace.resolve("schema"))
       ProjectInputs.all(myapp, projectPaths) should contain(workspace.resolve("myapp").resolve("src").resolve("scala"))
@@ -206,7 +210,7 @@ class SourcegenInputsTest extends AnyFunSuite with Matchers {
         sources = model.JsonSet(SortedSet(RelPath.force("src/scala"))),
         resources = model.JsonSet(SortedSet(RelPath.force("src/resources")))
       )
-      val projectPaths = buildPaths.project(cpn("myapp"), myapp, Set.empty)
+      val projectPaths = buildPaths.project(cpn("myapp"), myapp, Set.empty, replacementsFor(buildPaths))
 
       ProjectInputs
         .all(myapp, projectPaths) shouldBe (projectPaths.sourcesDirs.all(Usage.Input) ++ projectPaths.resourcesDirs.all(Usage.Input))

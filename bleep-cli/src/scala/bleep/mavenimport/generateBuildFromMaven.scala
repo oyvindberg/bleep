@@ -17,7 +17,8 @@ object generateBuildFromMaven {
       bleepTasksVersion: model.BleepVersion,
       fs: MavenFs,
       mavenProjects: List[MavenProject],
-      dependencyList: Path
+      dependencyList: Path,
+      baseReplacements: model.Replacements
   ): Map[Path, String] = {
 
     val build0 = buildFromMavenPom(logger, fs, destinationPaths, mavenProjects, dependencyList, bleepVersion, options.buildJvm)
@@ -27,7 +28,7 @@ object generateBuildFromMaven {
 
     val filteredBuild = applyFiltering(internal.dropUnsupportedScala(logger, build0), options.filtering, logger)
 
-    val normalizedBuild = normalizeBuild(filteredBuild, destinationPaths)
+    val normalizedBuild = normalizeBuild(filteredBuild, destinationPaths, baseReplacements)
 
     val buildFile1 = templatesInfer(new BleepTemplateLogger(logger), normalizedBuild, options.ignoreWhenInferringTemplates, mineTemplates.Costs.default)
 
@@ -56,7 +57,8 @@ object generateBuildFromMaven {
     else {
       // The makeshift generated-files copy script, present only when Maven generated sources/resources. Quarkus still needs a scripts project even without it.
       val generatedOpt: Option[GeneratedFilesScript.Generated] =
-        if (hasGeneratedFiles) Some(GeneratedFilesScript(destinationPaths, bleepTasksVersion, normalizedBuild.explodedProjects.keySet, nonEmptyGeneratedFiles))
+        if (hasGeneratedFiles)
+          Some(GeneratedFilesScript(destinationPaths, bleepTasksVersion, normalizedBuild.explodedProjects.keySet, nonEmptyGeneratedFiles, baseReplacements))
         else None
 
       // Start from the generated-files script's project when it exists, else a bare JVM scripts project the same shape it builds, then add bleep-plugin-quarkus

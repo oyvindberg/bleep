@@ -115,13 +115,6 @@ object Replacements {
     val CoursierArcCacheDir = "${COURSIER_ARC_CACHE_DIR}"
   }
 
-  /** The one read of `user.home` in `bleep-model` — `RemoteCacheConfig`'s `${HOME_DIR}` expansion shares it rather than reading the system property itself a
-    * second time, so there is exactly one place to account for a platform quirk instead of two that can drift apart. (`bleep-core` has its own, narrower
-    * `FileUtils.Home`; `bleep-model` cannot depend on `bleep-core`, so this is that module's own copy of the same read, not a second source of truth split
-    * across a dependency edge.)
-    */
-  val userHome: String = System.getProperty("user.home")
-
   def ofReplacements(map: List[(String, String)]): Replacements =
     new Replacements(map.distinct.sortBy(-_._1.length)) // longest first
 
@@ -130,12 +123,16 @@ object Replacements {
       List(target.toString -> known.TargetDir)
     )
 
-  def paths(build: Path): Replacements =
+  /** `userPaths` is a parameter, not read via `UserPaths.fromAppDirs` in here, for the same reason `build` already was one: `bleep-model` holds data, not a
+    * JVM-environment dependency, and a caller that genuinely needs different paths can supply its own instead of being stuck with whatever this process's own
+    * environment reports. Every current caller already has one resolved (`started.userPaths`/`pre.userPaths`).
+    */
+  def paths(build: Path, userPaths: UserPaths): Replacements =
     ofReplacements(
       List(
         build.toString -> known.BuildDir,
-        System.getProperty("java.io.tmpdir") -> known.TempDir,
-        userHome -> known.HomeDir,
+        userPaths.tempDir.toString -> known.TempDir,
+        userPaths.homeDir.toString -> known.HomeDir,
         CacheDefaults.location.toString -> known.CoursierCacheDir,
         CoursierPaths.archiveCacheDirectory.toString -> known.CoursierArcCacheDir
       )

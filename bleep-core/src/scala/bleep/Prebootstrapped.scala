@@ -17,6 +17,11 @@ case class Prebootstrapped(
   val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ec)
   val fetchNode = new FetchNode(cacheLogger, ec)
 
+  /** The full, standard set of `${TOKEN}`-style replacements for this build+machine (`BUILD_DIR`, `HOME_DIR`, `TEMP_DIR`, the coursier cache dirs) — built
+    * once, here, rather than reconstructed narrowly (missing most of the tokens) at whichever inner call site happens to need one.
+    */
+  val replacements: model.Replacements = model.Replacements.paths(buildPaths.buildDir, userPaths)
+
   val resolvedJvm: Lazy[ResolvedJvm] =
     existingBuild.buildFile.map {
       case Left(_) =>

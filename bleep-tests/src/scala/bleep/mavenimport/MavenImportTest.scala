@@ -561,7 +561,8 @@ class MavenImportTest extends AnyFunSuite with TripleEqualsSupport {
         MavenFs.Real,
         mavenProjects,
         // these poms manage no versions, so the import never asks what maven resolved
-        tempDir.resolve("dependency-list.txt")
+        tempDir.resolve("dependency-list.txt"),
+        model.Replacements.paths(tempDir, bleep.UserPaths.fromAppDirs)
       )
 
       val yamlString = files(tempDir.resolve("bleep.yaml"))

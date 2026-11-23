@@ -196,7 +196,7 @@ object ResolveProjects {
   ): ResolvedProject = {
 
     val projectPaths: ProjectPaths =
-      pre.buildPaths.project(crossName, explodedProject, build.crossPlatforms(crossName.name))
+      pre.buildPaths.project(crossName, explodedProject, build.crossPlatforms(crossName.name), pre.replacements)
 
     val allTransitiveResolved: Map[model.CrossProjectName, ResolvedProject] = {
       val builder = Map.newBuilder[model.CrossProjectName, ResolvedProject]
@@ -232,7 +232,7 @@ object ResolveProjects {
 
     // the same replacements the source directories are filled with (see `BuildPaths.project`), so an option can point into them
     val templateDirs =
-      model.Replacements.paths(build = pre.buildPaths.buildDir) ++
+      pre.replacements ++
         model.Replacements.projectPaths(project = projectPaths.dir) ++
         model.Replacements.projectSources(projectPaths.sourcesDirs.all(Usage.Compile)) ++
         model.Replacements.targetDir(projectPaths.targetDir) ++

@@ -5,7 +5,25 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import java.net.URI
-import java.nio.file.Path
+
+/** A `uri:` value as written in `bleep.yaml` — possibly still carrying a literal `${HOME_DIR}` token (or any other [[Replacements.known]] token), since `uri:`
+  * is checked in and cannot bake in one person's absolute home directory, but a `file://` cache (built for git worktrees, see `docs/usage/remote-cache.mdx`) is
+  * inherently per-machine.
+  *
+  * Deliberately a distinct type from `java.net.URI`, not a type alias or a bare `String`: a token-bearing value cannot even construct a `URI` — `URI.create`
+  * rejects `{`/`}` outright — so the type itself marks "not resolved yet" instead of leaving it a convention a caller could forget. [[resolve]] takes the
+  * already-built [[Replacements]] to apply — the same token-substitution machinery every other `${TOKEN}` expansion in this codebase goes through
+  * (`ResolveProjects`, `CoursierResolver`'s repository URIs, ...) — rather than hand-rolling its own, so it stays a trivial, generic one-liner with no
+  * JVM-environment dependency of its own: the caller decides what "the home directory" (or any other token) resolves to.
+  */
+case class TemplatedUri(raw: String) {
+  def resolve(replacements: Replacements): URI = URI.create(replacements.fill.string(raw))
+}
+
+object TemplatedUri {
+  implicit val decoder: Decoder[TemplatedUri] = Decoder[String].map(TemplatedUri(_))
+  implicit val encoder: Encoder[TemplatedUri] = Encoder[String].contramap(_.raw)
+}
 
 /** Remote build cache configuration. Stored in `bleep.yaml` (shared by all contributors).
   *
@@ -13,37 +31,11 @@ import java.nio.file.Path
   * environment variables.
   */
 case class RemoteCacheConfig(
-    uri: URI,
+    uri: TemplatedUri,
     region: Option[String]
 )
 
 object RemoteCacheConfig {
-
-  /** [[Replacements.userHome]] as a `file://` URI's path component, via `Path.toUri` — the same route every other path-to-URI conversion in this codebase takes
-    * (`MultiWorkspaceBspServer`, `CoursierResolver`, `BspQuery`, ...), rather than a one-off hand-rolled substitute. `user.home` itself is already a valid URI
-    * path on macOS/Linux (`/Users/x`), but not on Windows (`C:\Users\x` — backslashes, which `URI.create` rejects outright, and no leading slash before the
-    * drive letter); `toUri` handles both uniformly and is what actually caught this: the un-normalized substitution produced exactly the illegal string above
-    * on a real Windows CI run. `private[bleep]` so the test asserting the substitution's exact result can compute the same expected value instead of hardcoding
-    * the pre-fix, platform-dependent form; `bleep`, not `model`, because the test lives one package up from `bleep.model`.
-    */
-  private[bleep] def homeDirUriPath: String = {
-    val path = Path.of(Replacements.userHome).toUri.getRawPath
-    path.stripSuffix("/")
-  }
-
-  /** `uri:` is checked in to `bleep.yaml`, shared by every contributor, so it cannot bake in one person's absolute home directory — but a `file://` cache
-    * (built for git worktrees, see `docs/usage/remote-cache.mdx`) is inherently per-machine. `${HOME_DIR}` lets the shared config name a path under whoever's
-    * home it happens to run in: `file://${HOME_DIR}/.cache/bleep-remote-cache`.
-    *
-    * Plain string substitution before `URI.create`, not [[Replacements.fill]]: that needs a build directory to expand `${BUILD_DIR}`-style tokens, which this
-    * decoder — run before a build is even loaded — does not have. `${HOME_DIR}` alone needs nothing but a JVM system property, so it is handled directly.
-    * `URI.create` is also stricter about `{`/`}` than this scheme tolerates, so the substitution must happen first, on the raw string, not after parsing.
-    */
-  implicit val uriDecoder: Decoder[URI] = Decoder[String].map { raw =>
-    URI.create(raw.replace(Replacements.known.HomeDir, homeDirUriPath))
-  }
-  implicit val uriEncoder: Encoder[URI] = Encoder[String].contramap(_.toString)
-
   implicit val decoder: Decoder[RemoteCacheConfig] = deriveDecoder
   implicit val encoder: Encoder[RemoteCacheConfig] = deriveEncoder
 }

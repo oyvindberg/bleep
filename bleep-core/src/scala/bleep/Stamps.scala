@@ -54,7 +54,7 @@ object Stamps {
           throw new BleepException.Cause(th, s"a project declares `stamp: [${StampKind.GitSha.value}]`, but $buildDir has no git commit to name")
       }
 
-    private lazy val projectDigests: Map[model.CrossProjectName, String] = ProjectDigest.computeAll(started.build, started.buildPaths)
+    private lazy val projectDigests: Map[model.CrossProjectName, String] = ProjectDigest.computeAll(started.build, started.buildPaths, started.replacements)
 
     /** `crossName`'s content digest, computed once per pass for the whole build. Also what identifies a compiler built in the build — see
       * [[bleep.analysis.OutputDeterminants]].

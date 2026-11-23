@@ -12,6 +12,10 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
   private def cpn(name: String): model.CrossProjectName =
     model.CrossProjectName(model.ProjectName(name), None)
 
+  // None of this suite's fixtures put a `${HOME_DIR}`/`${TEMP_DIR}` token in any option, so the only thing that matters about this is that every call site
+  // in this file uses the same one — not that it be built from any particular `UserPaths`.
+  private def replacementsFor(buildPaths: BuildPaths): model.Replacements = model.Replacements.paths(buildPaths.buildDir, UserPaths.fromAppDirs)
+
   private def projectWithDeps(deps: String*): model.Project =
     model.Project.empty.copy(
       dependsOn = model.JsonSet(SortedSet.from(deps.map(d => model.ProjectRef(model.ProjectName(d)))))
@@ -61,7 +65,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> model.Project.empty)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digest = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val digest = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       // This value must remain stable across platforms and versions.
       // If it changes, remote cache entries become invalid.
@@ -80,7 +84,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digest = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val digest = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
       info(s"project-with-dep digest: $digest")
       digest shouldBe "5f65e20cccda0e0d1fd1dd7a34e600edf5aaf4788a8d2d0b44ef01b5bb64f74a"
     } finally deleteRecursively(workspace)
@@ -92,8 +96,8 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> model.Project.empty)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digests1 = ProjectDigest.computeAll(build, buildPaths)
-      val digests2 = ProjectDigest.computeAll(build, buildPaths)
+      val digests1 = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))
+      val digests2 = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))
 
       digests1(cpn("a")) shouldBe digests2(cpn("a"))
     } finally deleteRecursively(workspace)
@@ -112,8 +116,8 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build2 = makeBuild("a" -> p2)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digest1 = ProjectDigest.computeAll(build1, buildPaths)(cpn("a"))
-      val digest2 = ProjectDigest.computeAll(build2, buildPaths)(cpn("a"))
+      val digest1 = ProjectDigest.computeAll(build1, buildPaths, replacementsFor(buildPaths))(cpn("a"))
+      val digest2 = ProjectDigest.computeAll(build2, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       digest1 should not be digest2
     } finally deleteRecursively(workspace)
@@ -128,7 +132,9 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val viaRenamedTemplate = settled.copy(`extends` = model.JsonSet(model.TemplateId("template-renamed")))
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digests = List(settled, viaTemplate, viaRenamedTemplate).map(p => ProjectDigest.computeAll(makeBuild("a" -> p), buildPaths)(cpn("a")))
+      val digests = List(settled, viaTemplate, viaRenamedTemplate).map(p =>
+        ProjectDigest.computeAll(makeBuild("a" -> p), buildPaths, replacementsFor(buildPaths))(cpn("a"))
+      )
       digests.distinct should have size 1
     } finally deleteRecursively(workspace)
   }
@@ -156,8 +162,8 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build2 = makeBuild("a" -> p2)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digest1 = ProjectDigest.computeAll(build1, buildPaths)(cpn("a"))
-      val digest2 = ProjectDigest.computeAll(build2, buildPaths)(cpn("a"))
+      val digest1 = ProjectDigest.computeAll(build1, buildPaths, replacementsFor(buildPaths))(cpn("a"))
+      val digest2 = ProjectDigest.computeAll(build2, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       digest1 shouldBe digest2
     } finally deleteRecursively(workspace)
@@ -178,8 +184,8 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build2 = makeBuild("lib" -> lib2, "app" -> app)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val appDigest1 = ProjectDigest.computeAll(build1, buildPaths)(cpn("app"))
-      val appDigest2 = ProjectDigest.computeAll(build2, buildPaths)(cpn("app"))
+      val appDigest1 = ProjectDigest.computeAll(build1, buildPaths, replacementsFor(buildPaths))(cpn("app"))
+      val appDigest2 = ProjectDigest.computeAll(build2, buildPaths, replacementsFor(buildPaths))(cpn("app"))
 
       appDigest1 should not be appDigest2
     } finally deleteRecursively(workspace)
@@ -199,12 +205,12 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digest1 = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val digest1 = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       // Change source file
       Files.writeString(srcDir.resolve("Foo.scala"), "object Foo { val x = 1 }")
 
-      val digest2 = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val digest2 = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       digest1 should not be digest2
     } finally deleteRecursively(workspace)
@@ -234,14 +240,14 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
       // Digest with uncommitted files (uses filesystem hashing)
-      val digestBefore = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val digestBefore = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       // Commit everything
       scala.sys.process.Process(List("git", "add", "."), workspace.toFile).!!
       scala.sys.process.Process(List("git", "commit", "-m", "init"), workspace.toFile).!!
 
       // Digest with committed files (uses git ls-tree hashing)
-      val digestAfter = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val digestAfter = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       info(s"before commit (filesystem): $digestBefore")
       info(s"after commit (git ls-tree): $digestAfter")
@@ -270,7 +276,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digest = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val digest = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
       info(s"nested-paths digest: $digest")
       digest shouldBe "0e468fae76ec8911f251c149e65bf9c02772cd3bb3c48765b2e7e6c9f2e1edf3"
     } finally deleteRecursively(workspace)
@@ -286,8 +292,8 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build21 = makeBuildWith(Some(model.Jvm("temurin:21", None)), model.JsonList.empty, projects)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digest17 = ProjectDigest.computeAll(build17, buildPaths)(cpn("a"))
-      val digest21 = ProjectDigest.computeAll(build21, buildPaths)(cpn("a"))
+      val digest17 = ProjectDigest.computeAll(build17, buildPaths, replacementsFor(buildPaths))(cpn("a"))
+      val digest21 = ProjectDigest.computeAll(build21, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       digest17 should not be digest21
     } finally deleteRecursively(workspace)
@@ -303,9 +309,9 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val otherIndex = makeBuildWith(Some(model.Jvm("temurin:17", Some("https://corp.example.com/jvm-index.json"))), model.JsonList.empty, projects)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digestDefault = ProjectDigest.computeAll(defaultIndex, buildPaths)(cpn("a"))
-      val digestExplicitDefault = ProjectDigest.computeAll(explicitDefaultIndex, buildPaths)(cpn("a"))
-      val digestOther = ProjectDigest.computeAll(otherIndex, buildPaths)(cpn("a"))
+      val digestDefault = ProjectDigest.computeAll(defaultIndex, buildPaths, replacementsFor(buildPaths))(cpn("a"))
+      val digestExplicitDefault = ProjectDigest.computeAll(explicitDefaultIndex, buildPaths, replacementsFor(buildPaths))(cpn("a"))
+      val digestOther = ProjectDigest.computeAll(otherIndex, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       // Spelling out the index coursier would have used anyway describes the same toolchain
       digestExplicitDefault shouldBe digestDefault
@@ -320,7 +326,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuildWith(None, model.JsonList.empty, Seq("a" -> model.Project.empty))
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val th = the[BleepException] thrownBy ProjectDigest.computeAll(build, buildPaths)
+      val th = the[BleepException] thrownBy ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))
       th.getMessage should include("jvm:")
     } finally deleteRecursively(workspace)
   }
@@ -340,8 +346,8 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       )
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digestWithout = ProjectDigest.computeAll(noResolvers, buildPaths)(cpn("a"))
-      val digestWith = ProjectDigest.computeAll(withResolvers, buildPaths)(cpn("a"))
+      val digestWithout = ProjectDigest.computeAll(noResolvers, buildPaths, replacementsFor(buildPaths))(cpn("a"))
+      val digestWith = ProjectDigest.computeAll(withResolvers, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       digestWith shouldBe digestWithout
     } finally deleteRecursively(workspace)
@@ -360,11 +366,11 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digest1 = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val digest1 = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       Files.writeString(resDir.resolve("app.conf"), "key=value2")
 
-      val digest2 = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val digest2 = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       digest1 should not be digest2
     } finally deleteRecursively(workspace)
@@ -405,10 +411,10 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
         val build = makeBuild("a" -> p)
         val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-        val committed = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+        val committed = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
         Files.writeString(srcDir.resolve(name), "object Foo { val x = 1 }")
-        val modified = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+        val modified = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
         withClue(s"digest did not move when '$name' was modified: ") {
           modified should not be committed
@@ -438,11 +444,11 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       // Make the directory dirty via an ordinary, non-ignored change, and plant ignored content alongside it.
       Files.writeString(srcDir.resolve("Foo.scala"), "object Foo { val x = 1 }")
       Files.writeString(srcDir.resolve("ignored.scala"), "object ShouldNeverBeHashed")
-      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       // Changing ONLY the ignored file's content must leave the digest alone.
       Files.writeString(srcDir.resolve("ignored.scala"), "object StillShouldNeverBeHashed")
-      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       after shouldBe before
     } finally deleteRecursively(workspace)
@@ -475,10 +481,10 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
 
       // Dirty `srcDir` via an ordinary change, same as the test above, so the filesystem fallback actually runs.
       Files.writeString(srcDir.resolve("Foo.scala"), "object Foo { val x = 1 }")
-      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       Files.writeString(nestedWorktree.resolve("SomeFileInTheOtherWorktree.scala"), "object SomethingCompletelyDifferentNow")
-      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       after shouldBe before
     } finally deleteRecursively(workspace)
@@ -502,9 +508,9 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
       Files.writeString(nestedWorktree.resolve("SomeFileInTheOtherWorktree.scala"), "object SomethingCompletelyDifferentNow")
-      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       after shouldBe before
     } finally deleteRecursively(workspace)
@@ -528,7 +534,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
 
       def withQuotePath(value: String): String = {
         scala.sys.process.Process(List("git", "config", "core.quotePath", value), workspace.toFile).!!.discard()
-        ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+        ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
       }
 
       withQuotePath("false") shouldBe withQuotePath("true")
@@ -554,12 +560,12 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> p, "b" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val before = ProjectDigest.computeAll(build, buildPaths)
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))
 
       // Staged, so git reports it as a rename rather than as a deletion plus an untracked file.
       scala.sys.process.Process(List("git", "mv", "a/src/scala/Foo.scala", "b/src/scala/Foo.scala"), workspace.toFile).!!.discard()
 
-      val after = ProjectDigest.computeAll(build, buildPaths)
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))
 
       // `a` lost a file: only correct if the rename's *source* field was parsed.
       withClue("source of the rename: ")(after(cpn("a")) should not be before(cpn("a")))
@@ -607,16 +613,16 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
       val apDir = buildPaths.generatedSourcesDir(cpn("a"), "annotations")
-      val projectPaths = buildPaths.project(cpn("a"), p, build.crossPlatforms(cpn("a").name))
+      val projectPaths = buildPaths.project(cpn("a"), p, build.crossPlatforms(cpn("a").name), replacementsFor(buildPaths))
       assert(projectPaths.sourcesDirs.all(Usage.Compile).contains(apDir), "the compiler must still see AP output")
       // The same answer reaches `--watch` and `build invalidated` through `ProjectInputs`, not just the digest.
       assert(!ProjectInputs.all(p, projectPaths).contains(apDir), "AP output is not an input to watch or invalidate on")
 
       writeIn(apDir, "FooMapperImpl.java", "@Generated(date = \"2026-09-21T10:00:00\") class FooMapperImpl {}")
-      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       writeIn(apDir, "FooMapperImpl.java", "@Generated(date = \"2026-09-21T10:00:01\") class FooMapperImpl {}")
-      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       after shouldBe before
     } finally deleteRecursively(workspace)
@@ -634,11 +640,11 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
 
       writeIn(kspBase / "kotlin", "Generated.kt", "object Generated { val n = 1 }")
       writeIn(kspBase / "resources", "META-INF/generated.txt", "one")
-      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       writeIn(kspBase / "kotlin", "Generated.kt", "object Generated { val n = 2 }")
       writeIn(kspBase / "resources", "META-INF/generated.txt", "two")
-      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       after shouldBe before
     } finally deleteRecursively(workspace)
@@ -661,10 +667,10 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val genDir = buildPaths.generatedSourcesDir(cpn("a"), gen.folderName)
 
       writeIn(genDir, "Version.java", "class Version { static String V = \"1.0.0\"; }")
-      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       writeIn(genDir, "Version.java", "class Version { static String V = \"1.0.1\"; }")
-      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       after shouldBe before
     } finally deleteRecursively(workspace)
@@ -679,16 +685,16 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
       val stampsRoot = buildPaths
-        .project(cpn("a"), p, build.crossPlatforms(cpn("a").name))
+        .project(cpn("a"), p, build.crossPlatforms(cpn("a").name), replacementsFor(buildPaths))
         .resourcesDirs
         .stamps
         .getOrElse(fail("a declared stamps but has no stamps directory"))
 
       writeIn(stampsRoot, StampFile.resourcePath(cpn("a")), "dynver=1.0.0+1-aaaaaaa\n")
-      val before = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val before = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       writeIn(stampsRoot, StampFile.resourcePath(cpn("a")), "dynver=1.0.0+2-bbbbbbb\n")
-      val after = ProjectDigest.computeAll(build, buildPaths)(cpn("a"))
+      val after = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a"))
 
       after shouldBe before
     } finally deleteRecursively(workspace)
@@ -711,8 +717,8 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val atHead = ProjectDigest.computeAllAt(build, buildPaths, currentCommit(workspace))
-      val current = ProjectDigest.computeAll(build, buildPaths)
+      val atHead = ProjectDigest.computeAllAt(build, buildPaths, currentCommit(workspace), replacementsFor(buildPaths))
+      val current = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))
 
       atHead(cpn("a")) shouldBe current(cpn("a"))
     } finally deleteRecursively(workspace)
@@ -737,19 +743,19 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("lib" -> lib, "app" -> app)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val digestsAtCommit1 = ProjectDigest.computeAll(build, buildPaths)
+      val digestsAtCommit1 = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))
 
       // Move lib forward. `app`'s own files never change.
       Files.writeString(libSrc.resolve("Lib.scala"), "object Lib { val v = 2 }")
       gitCommitAll(workspace)
 
-      val digestsNow = ProjectDigest.computeAll(build, buildPaths)
+      val digestsNow = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))
       // Sanity: both moved (the existing "transitive dep changes propagate" test covers this for `app`; repeated here
       // because the rest of this test depends on it actually being true).
       digestsNow(cpn("lib")) should not be digestsAtCommit1(cpn("lib"))
       digestsNow(cpn("app")) should not be digestsAtCommit1(cpn("app"))
 
-      val digestsAsOfCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      val digestsAsOfCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1, replacementsFor(buildPaths))
       digestsAsOfCommit1(cpn("lib")) shouldBe digestsAtCommit1(cpn("lib"))
       digestsAsOfCommit1(cpn("app")) shouldBe digestsAtCommit1(cpn("app"))
     } finally deleteRecursively(workspace)
@@ -773,11 +779,11 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1, replacementsFor(buildPaths))
       atCommit1.get(cpn("a")) shouldBe None
 
       // The ordinary, current-tree computation still sees it via the filesystem fallback.
-      ProjectDigest.computeAll(build, buildPaths).get(cpn("a")) should not be None
+      ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths)).get(cpn("a")) should not be None
     } finally deleteRecursively(workspace)
   }
 
@@ -801,7 +807,7 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> projA, "b" -> projB)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1, replacementsFor(buildPaths))
       atCommit1.get(cpn("a")) should not be None
       atCommit1.get(cpn("b")) shouldBe None
     } finally deleteRecursively(workspace)
@@ -840,21 +846,21 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val genDir = buildPaths.generatedSourcesDir(cpn("a"), gen.folderName)
       writeIn(genDir, "Generated.scala", "object Generated")
 
-      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1, replacementsFor(buildPaths))
       atCommit1.get(cpn("a")) should not be None
 
       // The working tree is still exactly commit1, so this isn't just "resolvable" — it must equal what computeAll produces right now, directly pinning
       // computeAllAt's whole documented job (reproduce a digest a real push could have produced). This caught a real bug: computeAll folds a project's
       // sourcegen-declaration digests BEFORE its transitive/indirect deps, but computeAllAt folded them AFTER — same information, different
       // MessageDigest.update order, so the two disagreed on every sourcegen-bearing project despite both being "correct" in isolation.
-      ProjectDigest.computeAll(build, buildPaths)(cpn("a")) shouldBe atCommit1(cpn("a"))
+      ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a")) shouldBe atCommit1(cpn("a"))
 
       // Move the repo on — the unrelated file changes, `a`'s and `scripts`' own content doesn't — then check that `atCommit1`'s digest for `a` still
       // matches a direct computeAll at commit1 (the sibling ancestor-commit test above already pins that property for ordinary projects; this just
       // confirms the refusal is gone for a sourcegen-bearing one too).
       Files.writeString(workspace.resolve("unrelated.txt"), "v2")
       gitCommitAll(workspace)
-      val atCommit1Again = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      val atCommit1Again = ProjectDigest.computeAllAt(build, buildPaths, commit1, replacementsFor(buildPaths))
       atCommit1Again(cpn("a")) shouldBe atCommit1(cpn("a"))
     } finally deleteRecursively(workspace)
   }
@@ -896,11 +902,11 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       val build = makeBuild("a" -> p)
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
 
-      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      val atCommit1 = ProjectDigest.computeAllAt(build, buildPaths, commit1, replacementsFor(buildPaths))
       atCommit1.get(cpn("a")) should not be None
       // Same correctness bar as the sourcegen test above: not just "resolvable", but equal to what computeAll produces right now, since the working tree
       // is still exactly commit1.
-      ProjectDigest.computeAll(build, buildPaths)(cpn("a")) shouldBe atCommit1(cpn("a"))
+      ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))(cpn("a")) shouldBe atCommit1(cpn("a"))
 
       // Move the submodule forward (a real commit inside it, then re-point the superproject's gitlink at it) and re-pin it in the superproject.
       // `git submodule add` leaves the submodule on a detached HEAD, so `fetch` + `checkout <sha>` rather than `pull` (which needs a tracking branch).
@@ -913,18 +919,18 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
       gitCommitAll(workspace)
       val commit2 = currentCommit(workspace)
 
-      val digestsNow = ProjectDigest.computeAll(build, buildPaths)
+      val digestsNow = ProjectDigest.computeAll(build, buildPaths, replacementsFor(buildPaths))
       digestsNow(cpn("a")) should not be atCommit1(cpn("a"))
 
       // The real test of historical fidelity, not just "doesn't refuse": computeAllAt at commit1, asked for again from a workspace that has since moved
       // on, must reproduce commit1's own bytes — the submodule's content as it was BEFORE the bump — not whatever the submodule happens to be checked out
       // to right now (commit2's content, which is what's actually sitting on disk at this point in the test).
-      val atCommit1Again = ProjectDigest.computeAllAt(build, buildPaths, commit1)
+      val atCommit1Again = ProjectDigest.computeAllAt(build, buildPaths, commit1, replacementsFor(buildPaths))
       atCommit1Again(cpn("a")) shouldBe atCommit1(cpn("a"))
       atCommit1Again(cpn("a")) should not be digestsNow(cpn("a"))
 
       // And computeAllAt at the NEW commit must agree with the NEW computeAll, the same property one more time at the other end.
-      val atCommit2 = ProjectDigest.computeAllAt(build, buildPaths, commit2)
+      val atCommit2 = ProjectDigest.computeAllAt(build, buildPaths, commit2, replacementsFor(buildPaths))
       atCommit2(cpn("a")) shouldBe digestsNow(cpn("a"))
     } finally {
       deleteRecursively(workspace)
@@ -938,10 +944,11 @@ class ProjectDigestTest extends AnyFunSuite with Matchers {
     val workspace = createTempWorkspace()
     try {
       val buildPaths = BuildPaths(workspace, BuildLoader.inDirectory(workspace), model.BuildVariant.Normal)
-      val plain = ProjectDigest.computeAll(makeBuild("a" -> model.Project.empty), buildPaths)(cpn("a"))
+      val plain = ProjectDigest.computeAll(makeBuild("a" -> model.Project.empty), buildPaths, replacementsFor(buildPaths))(cpn("a"))
       val stamped = ProjectDigest.computeAll(
         makeBuild("a" -> model.Project.empty.copy(stamp = model.JsonSet(model.StampKind.Dynver, model.StampKind.ProjectDigest))),
-        buildPaths
+        buildPaths,
+        replacementsFor(buildPaths)
       )(cpn("a"))
 
       stamped shouldBe plain

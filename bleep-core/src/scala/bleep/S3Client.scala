@@ -133,17 +133,17 @@ class S3Client(
 
 object S3Client {
 
-  /** Create an S3Client from a remote cache config and credentials.
+  /** Create an S3Client from a remote cache's (already resolved — see `commands.RemoteCache.resolveUri`) URI, region and credentials.
     *
     * Parses `s3://bucket/prefix` URIs. For non-S3 URIs, uses the URI directly as the endpoint.
     */
   def fromConfig(
       logger: Logger,
-      cacheConfig: model.RemoteCacheConfig,
+      uri: URI,
+      configRegion: Option[String],
       credentials: model.RemoteCacheCredentials
   ): S3Client = {
-    val uri = cacheConfig.uri
-    val region = cacheConfig.region.getOrElse("us-east-1")
+    val region = configRegion.getOrElse("us-east-1")
 
     if (uri.getScheme == "s3") {
       val bucket = uri.getHost
@@ -167,8 +167,7 @@ object S3Client {
   }
 
   /** Resolve the key prefix from the config URI (the path part after the bucket). */
-  def keyPrefix(cacheConfig: model.RemoteCacheConfig): String = {
-    val uri = cacheConfig.uri
+  def keyPrefix(uri: URI): String = {
     val path =
       if (uri.getScheme == "s3") uri.getPath
       else {
