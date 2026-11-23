@@ -28,7 +28,7 @@ object Versions {
 
   // ── Compilers and formatters bleep fetches ──
   /** Eclipse JDT compiler (ECJ), used when a project opts out of javac */
-  val Ecj: String = "3.46.0"
+  val Ecj: String = "3.46.100"
   val GoogleJavaFormat: String = "1.35.0"
   val Ktfmt: String = "0.64"
 
