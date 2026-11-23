@@ -39,7 +39,8 @@ object buildFromBloopFiles {
       destinationPaths: BuildPaths,
       inputProjects: ImportInputData,
       bleepVersion: model.BleepVersion,
-      excludeProjects: Set[model.ProjectName]
+      excludeProjects: Set[model.ProjectName],
+      userPaths: UserPaths
   ): model.Build.Exploded = {
 
     // excluded projects are not imported, and neither is anything depending on them. Before anything else: an excluded project may be one the import cannot
@@ -116,7 +117,7 @@ object buildFromBloopFiles {
       val originalTarget = findOriginalTargetDir.force(crossName, bloopProject)
 
       val replacements =
-        model.Replacements.paths(sbtBuildDir) ++
+        model.Replacements.paths(sbtBuildDir, userPaths) ++
           model.Replacements.projectPaths(directory) ++
           model.Replacements.targetDir(originalTarget) ++
           model.Replacements.scope(projectType.sbtScope)

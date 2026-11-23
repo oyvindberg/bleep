@@ -13,6 +13,10 @@ object normalizeBuild extends BuildRewrite {
       deduplicateDependencies
     )
 
-  protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project] =
-    Pipeline.foldLeft(oldBuild.dropBuildFile)((acc, f) => f(acc, buildPaths)).explodedProjects
+  protected def newExplodedProjects(
+      oldBuild: model.Build,
+      buildPaths: BuildPaths,
+      baseReplacements: model.Replacements
+  ): Map[model.CrossProjectName, model.Project] =
+    Pipeline.foldLeft(oldBuild.dropBuildFile)((acc, f) => f(acc, buildPaths, baseReplacements)).explodedProjects
 }

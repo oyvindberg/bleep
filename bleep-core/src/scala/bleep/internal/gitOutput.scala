@@ -41,4 +41,32 @@ object gitOutput {
   def attempt(buildDir: Path, args: List[String]): Option[String] =
     try Some(apply(buildDir, args))
     catch { case NonFatal(_) => None }
+
+  /** Resolves a base ref to compare against: `explicit` if given, otherwise this branch's upstream — git's own answer (via `git rev-parse` on the token
+    * `@{upstream}`), not a guessed `origin/main`. Shared by `bleep build invalidated`'s `--base` and `bleep remote-cache pull`'s `--unsafe-seed-ref`, so both
+    * resolve "which ref did the caller mean" the same way.
+    *
+    * No upstream (detached HEAD, a branch that was never pushed, a CI checkout of a bare ref) means git has no answer, and neither do we: this throws rather
+    * than quietly picking a ref and comparing against the wrong one.
+    */
+  def resolveBase(buildDir: Path, explicit: Option[String]): String =
+    explicit.getOrElse {
+      attempt(buildDir, List("git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"))
+        .map(_.trim)
+        .filter(_.nonEmpty)
+        .getOrElse(
+          throw new BleepException.Text(
+            "no base ref to compare against: this branch has no upstream (`git rev-parse @{upstream}` found none). Pass one explicitly."
+          )
+        )
+    }
+
+  /** `git merge-base a b`: the most recent commit both refs share. Throws if git has no answer — an unrelated history, or a shallow clone that never fetched
+    * deep enough for the two refs to meet.
+    */
+  def mergeBase(buildDir: Path, a: String, b: String): String =
+    attempt(buildDir, List("git", "merge-base", a, b))
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      .getOrElse(throw new BleepException.Text(s"no merge base between '$a' and '$b' in $buildDir (shallow clone? unrelated histories?)"))
 }

@@ -109,7 +109,8 @@ class MavenIntegrationSnapshotTests extends SnapshotTest {
         bleepTasksVersion = model.BleepVersion("1.0.0-M14"),
         fs,
         mavenProjects,
-        dependencyList
+        dependencyList,
+        model.Replacements.paths(importedDestinationPaths.buildDir, UserPaths.fromAppDirs)
       )
 
     val input: MavenSnapshotInput =

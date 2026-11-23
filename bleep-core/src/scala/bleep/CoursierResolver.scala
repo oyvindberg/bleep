@@ -112,7 +112,7 @@ object CoursierResolver {
   object Factory {
     object default extends Factory {
       def apply(pre: Prebootstrapped, config: model.BleepConfig, buildFile: model.BuildFile): CoursierResolver = {
-        lazy val replacements = model.Replacements.paths(pre.buildPaths.buildDir)
+        lazy val replacements = pre.replacements
 
         val resolvers = buildFile.resolvers.values.map {
           case model.Repository.Maven(name, uri)        => model.Repository.Maven(name, replacements.fill.uri(uri))

@@ -123,12 +123,16 @@ object Replacements {
       List(target.toString -> known.TargetDir)
     )
 
-  def paths(build: Path): Replacements =
+  /** `userPaths` is a parameter, not read via `UserPaths.fromAppDirs` in here, for the same reason `build` already was one: `bleep-model` holds data, not a
+    * JVM-environment dependency, and a caller that genuinely needs different paths can supply its own instead of being stuck with whatever this process's own
+    * environment reports. Every current caller already has one resolved (`started.userPaths`/`pre.userPaths`).
+    */
+  def paths(build: Path, userPaths: UserPaths): Replacements =
     ofReplacements(
       List(
         build.toString -> known.BuildDir,
-        System.getProperty("java.io.tmpdir") -> known.TempDir,
-        System.getProperty("user.home") -> known.HomeDir,
+        userPaths.tempDir.toString -> known.TempDir,
+        userPaths.homeDir.toString -> known.HomeDir,
         CacheDefaults.location.toString -> known.CoursierCacheDir,
         CoursierPaths.archiveCacheDirectory.toString -> known.CoursierArcCacheDir
       )

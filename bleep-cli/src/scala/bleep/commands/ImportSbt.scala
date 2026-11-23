@@ -12,7 +12,8 @@ case class ImportSbt(
     destinationPaths: BuildPaths,
     logger: Logger,
     options: sbtimport.ImportOptions,
-    bleepVersion: model.BleepVersion
+    bleepVersion: model.BleepVersion,
+    userPaths: UserPaths
 ) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {
     if (!options.skipSbt) {
@@ -31,7 +32,8 @@ case class ImportSbt(
         bleepVersion = bleepVersion,
         inputData = inputData,
         bleepTasksVersion = model.BleepVersion(model.Replacements.known.BleepVersion),
-        maybeExistingBuildFile = existingBuild
+        maybeExistingBuildFile = existingBuild,
+        userPaths = userPaths
       )
       .map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
 

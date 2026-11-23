@@ -20,6 +20,7 @@ case class Started(
 )(reloadUsing: (Prebootstrapped, model.BleepConfig, List[BuildRewrite]) => Either[BleepException, Started]) {
   def buildPaths: BuildPaths = pre.buildPaths
   def userPaths: UserPaths = pre.userPaths
+  def replacements: model.Replacements = pre.replacements
   def logger: Logger = pre.logger
   def executionContext: ExecutionContext = pre.ec
   def resolvedJvm: Lazy[ResolvedJvm] = pre.resolvedJvm
@@ -39,7 +40,7 @@ case class Started(
     )
 
   def projectPaths(crossName: model.CrossProjectName): ProjectPaths =
-    buildPaths.project(crossName, build.explodedProjects(crossName), build.crossPlatforms(crossName.name))
+    buildPaths.project(crossName, build.explodedProjects(crossName), build.crossPlatforms(crossName.name), replacements)
 
   lazy val globs: model.ProjectGlobs =
     new model.ProjectGlobs(activeProjectsFromPath, build.explodedProjects)

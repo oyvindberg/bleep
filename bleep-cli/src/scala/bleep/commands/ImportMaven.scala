@@ -33,7 +33,8 @@ case class ImportMaven(
         bleepTasksVersion = model.BleepVersion(model.Replacements.known.BleepVersion),
         fs = mavenimport.MavenFs.Real,
         mavenProjects = mavenProjects,
-        dependencyList = destinationPaths.bleepImportMavenDir / "dependency-list.txt"
+        dependencyList = destinationPaths.bleepImportMavenDir / "dependency-list.txt",
+        baseReplacements = model.Replacements.paths(destinationPaths.buildDir, userPaths)
       )
       .map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
 

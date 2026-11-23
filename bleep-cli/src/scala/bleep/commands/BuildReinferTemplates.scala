@@ -11,7 +11,7 @@ case class BuildReinferTemplates(ignoreWhenInferringTemplates: Set[model.Project
     val build0 = started.build.requireFileBacked(ctx = "command templates-generate-new")
 
     // normalize to make results of template inference better. drop existing file/template structure
-    val normalizedBuild = normalizeBuild(build0.dropBuildFile.dropTemplates, started.buildPaths)
+    val normalizedBuild = normalizeBuild(build0.dropBuildFile.dropTemplates, started.buildPaths, started.replacements)
 
     val newBuildFile = templatesInfer(
       logger = new BleepTemplateLogger(started.logger),

@@ -182,7 +182,12 @@ class YamlCommentsTest extends AnyFunSuite with TripleEqualsSupport {
     }
     val source = Files.readString(existing.bleepYaml)
     val buildPaths = BuildPaths(FileUtils.cwd, existing, model.BuildVariant.Normal)
-    val normalized = normalizeBuild(model.Build.FileBacked(existing.buildFile.forceGet.orThrow), buildPaths)
+    val normalized =
+      normalizeBuild(
+        model.Build.FileBacked(existing.buildFile.forceGet.orThrow),
+        buildPaths,
+        model.Replacements.paths(buildPaths.buildDir, UserPaths.fromAppDirs)
+      )
 
     val printed = yaml.encodeShortenedKeepingComments(normalized.file, source)
     def commentLines(s: String): List[String] =

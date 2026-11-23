@@ -1088,10 +1088,22 @@ object Main {
           Opts.subcommand("remote-cache", "push and pull compiled classes to/from a build cache (S3-compatible service or local directory)")(
             List(
               Opts.subcommand("pull", "pull cached compiled classes from the cache")(
-                projectNames.map(names => commands.RemoteCache.Pull(names))
+                (
+                  projectNames,
+                  Opts
+                    .option[String](
+                      "unsafe-seed-ref",
+                      "if a project's exact digest misses, also try a digest computed as of `git merge-base <ref> HEAD` and seed Zinc's incremental compiler from it on a hit. Trusts Zinc's own invalidation against a real content gap: the resulting class files are not guaranteed identical to a full recompile."
+                    )
+                    .orNone
+                ).mapN(commands.RemoteCache.Pull.apply)
               ),
               Opts.subcommand("push", "push compiled classes to the cache")(
-                (projectNames, Opts.flag("force", "overwrite existing cache entries").orFalse).mapN(commands.RemoteCache.Push.apply)
+                (
+                  projectNames,
+                  Opts.flag("force", "overwrite existing cache entries").orFalse,
+                  Opts.flag("allow-unsafe-seeded", "also push projects pulled via --unsafe-seed-ref, instead of refusing them").orFalse
+                ).mapN(commands.RemoteCache.Push.apply)
               )
             ).foldK
           ),
@@ -1301,7 +1313,7 @@ object Main {
 
       val existingBuild = buildLoader.existing.flatMap(_.buildFile.forceGet).toOption
 
-      commands.ImportSbt(existingBuild, sbtBuildDir = buildPaths.cwd, fetchJvm, buildPaths, logger, opts, model.BleepVersion.current)
+      commands.ImportSbt(existingBuild, sbtBuildDir = buildPaths.cwd, fetchJvm, buildPaths, logger, opts, model.BleepVersion.current, userPaths)
     }
 
     Opts.subcommand("import-sbt", "import an existing sbt build into a bleep.yaml in the same directory. bleep runs sbt itself to read the build")(

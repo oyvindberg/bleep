@@ -10,12 +10,16 @@ import scala.collection.immutable.SortedMap
 object BuildMoveFilesIntoBleepLayout extends BleepBuildCommand {
   override def run(started: Started): Either[BleepException, Unit] = {
     val build = started.build.requireFileBacked(ctx = "command move-files-into-bleep-layout")
-    val (rewrittenBuild, filesToMove) = newBuildAndFilesToMove(build, started.buildPaths)
+    val (rewrittenBuild, filesToMove) = newBuildAndFilesToMove(build, started.buildPaths, started.replacements)
     commit(started.logger, started.buildPaths, filesToMove, rewrittenBuild.file)
     Right(())
   }
 
-  def newBuildAndFilesToMove(build: model.Build.FileBacked, buildPaths: BuildPaths): (model.Build.FileBacked, SortedMap[Path, Path]) = {
+  def newBuildAndFilesToMove(
+      build: model.Build.FileBacked,
+      buildPaths: BuildPaths,
+      baseReplacements: model.Replacements
+  ): (model.Build.FileBacked, SortedMap[Path, Path]) = {
 
     val moves = collection.mutable.Map.empty[Path, Path]
     def registerMove(from: Path, to: Path): Unit =
@@ -30,8 +34,8 @@ object BuildMoveFilesIntoBleepLayout extends BleepBuildCommand {
     val newProjects = build.explodedProjects.map { case (crossName, p0) =>
       // compute paths for the same project after we remove `folder` and `sbt-scope`
       val p1 = p0.copy(folder = None, `sbt-scope` = None)
-      val fromDirs = buildPaths.project(crossName, p0, build.crossPlatforms(crossName.name))
-      val toDirs = buildPaths.project(crossName, p1, build.crossPlatforms(crossName.name))
+      val fromDirs = buildPaths.project(crossName, p0, build.crossPlatforms(crossName.name), baseReplacements)
+      val toDirs = buildPaths.project(crossName, p1, build.crossPlatforms(crossName.name), baseReplacements)
 
       // move source folders from source layout
       // assume ordering stays the same before and after removing `folder` and `sbt-scope` here. it should.

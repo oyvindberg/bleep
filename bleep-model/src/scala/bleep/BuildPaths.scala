@@ -116,8 +116,16 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
 
   /** @param crossPlatforms
     *   the platforms the project is built for, across its cross projects. See [[model.Build.crossPlatforms]]
+    * @param baseReplacements
+    *   the full, standard `${TOKEN}` set (`BUILD_DIR`, `HOME_DIR`, `TEMP_DIR`, coursier cache dirs) for this build+machine, built once by the caller — see
+    *   [[Prebootstrapped.replacements]]/[[Started.replacements]] — not reconstructed narrowly in here from a raw `UserPaths`.
     */
-  final def project(crossName: model.CrossProjectName, p: model.Project, crossPlatforms: Set[model.PlatformId]): ProjectPaths = {
+  final def project(
+      crossName: model.CrossProjectName,
+      p: model.Project,
+      crossPlatforms: Set[model.PlatformId],
+      baseReplacements: model.Replacements
+  ): ProjectPaths = {
     val dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value))
     val scalaVersion: Option[model.VersionScala] = p.scala.flatMap(_.version)
     val maybePlatformId = p.platform.flatMap(_.name)
@@ -125,7 +133,7 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
 
     val targetDir = variantBuildDir(crossName)
     val replacements =
-      model.Replacements.paths(buildDir) ++
+      baseReplacements ++
         model.Replacements.projectPaths(dir) ++
         model.Replacements.targetDir(targetDir) ++
         model.Replacements.scope(p.`sbt-scope`.getOrElse("")) ++
