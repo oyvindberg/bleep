@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.analysis.{deleteRecursively, BspTestBuild, BspTestHarness, CompilerResolver, ScalaConfig}
+import bleep.analysis.{deleteRecursively, BspTestBuild, BspTestHarness, CompilerResolver, NoopManifestStore, ScalaConfig}
 import bleep.bsp.protocol.{BleepServerAdmin, CopyStateResponse}
 import bleep.model
 import cats.effect.unsafe.implicits.global
@@ -248,11 +248,15 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
           ) {
             Files.exists(toPaths.zincDir(model.CrossProjectName.fromString("app").get).resolve("noop-manifest.bin")) shouldBe false
           }
-          withClue(
-            "but `core`'s source is identical between A and B, so a freshly regenerated manifest for it must exist — proving this isn't just \"never write one\": "
-          ) {
-            Files.exists(toPaths.zincDir(model.CrossProjectName.fromString("core").get).resolve("noop-manifest.bin")) shouldBe true
-          }
+          // ctimeAvailable is false on Windows (Java can't read `unix:ctime` there), which disables the whole
+          // manifest mechanism by design — see NoopManifestStore.ctimeAvailable — so no manifest is ever written
+          // there, for `core` either. Precedent: RemoteCacheIT/LocalDirCacheIT guard the same assertion the same way.
+          if (NoopManifestStore.ctimeAvailable)
+            withClue(
+              "but `core`'s source is identical between A and B, so a freshly regenerated manifest for it must exist — proving this isn't just \"never write one\": "
+            ) {
+              Files.exists(toPaths.zincDir(model.CrossProjectName.fromString("core").get).resolve("noop-manifest.bin")) shouldBe true
+            }
 
           // Captured AFTER the copy: any rewrite by B's compile moves the mtime past this.
           val coreMtimeAfterCopy = Files.getLastModifiedTime(coreClass(wsB))
@@ -366,14 +370,16 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
           copyState(client, wsA, wsB).projects shouldBe List("app", "core")
 
           val toPaths = bleep.BuildPaths(wsB, bleep.BuildLoader.find(wsB), model.BuildVariant.Normal)
-          withClue(
-            "both projects' sources are byte-identical between A and B, so copy-state's manifest regeneration must succeed for both — rebased to B's own " +
-              "absolute paths, not inherited verbatim from A's. This is what lets the compile below skip zinc's own invalidation entirely, rather than " +
-              "merely surviving it: "
-          ) {
-            Files.exists(toPaths.zincDir(model.CrossProjectName.fromString("core").get).resolve("noop-manifest.bin")) shouldBe true
-            Files.exists(toPaths.zincDir(model.CrossProjectName.fromString("app").get).resolve("noop-manifest.bin")) shouldBe true
-          }
+          // See the same guard above: ctimeAvailable is false on Windows by design, so neither manifest is ever written there.
+          if (NoopManifestStore.ctimeAvailable)
+            withClue(
+              "both projects' sources are byte-identical between A and B, so copy-state's manifest regeneration must succeed for both — rebased to B's own " +
+                "absolute paths, not inherited verbatim from A's. This is what lets the compile below skip zinc's own invalidation entirely, rather than " +
+                "merely surviving it: "
+            ) {
+              Files.exists(toPaths.zincDir(model.CrossProjectName.fromString("core").get).resolve("noop-manifest.bin")) shouldBe true
+              Files.exists(toPaths.zincDir(model.CrossProjectName.fromString("app").get).resolve("noop-manifest.bin")) shouldBe true
+            }
 
           val coreMtimeAfterCopy = Files.getLastModifiedTime(coreClass(wsB))
           val coreBytesAfterCopy = Files.readAllBytes(coreClass(wsB))
@@ -438,12 +444,14 @@ class CopyStateDirtyParentIntegrationTest extends AnyFunSuite with Matchers with
           copyState(client, wsA, wsB).projects shouldBe List("app", "core")
 
           val toPaths = bleep.BuildPaths(wsB, bleep.BuildLoader.find(wsB), model.BuildVariant.Normal)
-          withClue(
-            "core's generated source is byte-identical between A and B (cloned verbatim), so copy-state's manifest regeneration must succeed for it too — " +
-              "even though, at the moment regeneration runs, it must look past the fact that the clone of generated-sources needs to have already happened: "
-          ) {
-            Files.exists(toPaths.zincDir(crossName).resolve("noop-manifest.bin")) shouldBe true
-          }
+          // See the same guard above: ctimeAvailable is false on Windows by design, so no manifest is ever written there.
+          if (NoopManifestStore.ctimeAvailable)
+            withClue(
+              "core's generated source is byte-identical between A and B (cloned verbatim), so copy-state's manifest regeneration must succeed for it too — " +
+                "even though, at the moment regeneration runs, it must look past the fact that the clone of generated-sources needs to have already happened: "
+            ) {
+              Files.exists(toPaths.zincDir(crossName).resolve("noop-manifest.bin")) shouldBe true
+            }
 
           val coreMtimeAfterCopy = Files.getLastModifiedTime(coreClass(wsB))
           val coreBytesAfterCopy = Files.readAllBytes(coreClass(wsB))

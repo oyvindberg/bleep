@@ -18,6 +18,18 @@ case class RemoteCacheConfig(
 
 object RemoteCacheConfig {
 
+  /** `user.home` as a `file://` URI's path component. Already valid as-is on macOS/Linux (`/Users/x`), but on Windows it's `C:\Users\x` — backslashes, which
+    * `URI.create` rejects outright, and no leading slash before the drive letter, which the path component needs (`file:///C:/Users/x`, matching what
+    * `Path.toUri()` itself produces for a Windows path). Normalized here, on the raw string, rather than via `Path.toUri()` — that queries the filesystem to
+    * decide whether to append a trailing slash, which this should not depend on. `private[model]` so the test asserting the substitution's exact result can
+    * compute the same expected value instead of hardcoding the raw, pre-Windows-fix form. `private[bleep]`, not `private[model]`: the test lives in `bleep`,
+    * one package up from `bleep.model`.
+    */
+  private[bleep] def homeDirUriPath: String = {
+    val home = System.getProperty("user.home").replace('\\', '/')
+    if (home.startsWith("/")) home else s"/$home"
+  }
+
   /** `uri:` is checked in to `bleep.yaml`, shared by every contributor, so it cannot bake in one person's absolute home directory — but a `file://` cache
     * (built for git worktrees, see `docs/usage/remote-cache.mdx`) is inherently per-machine. `${HOME_DIR}` lets the shared config name a path under whoever's
     * home it happens to run in: `file://${HOME_DIR}/.cache/bleep-remote-cache`.
@@ -27,7 +39,7 @@ object RemoteCacheConfig {
     * `URI.create` is also stricter about `{`/`}` than this scheme tolerates, so the substitution must happen first, on the raw string, not after parsing.
     */
   implicit val uriDecoder: Decoder[URI] = Decoder[String].map { raw =>
-    URI.create(raw.replace(Replacements.known.HomeDir, System.getProperty("user.home")))
+    URI.create(raw.replace(Replacements.known.HomeDir, homeDirUriPath))
   }
   implicit val uriEncoder: Encoder[URI] = Encoder[String].contramap(_.toString)
 

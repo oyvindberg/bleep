@@ -12,7 +12,11 @@ class RemoteCacheConfigTest extends AnyFunSuite with Matchers {
 
   test("${HOME_DIR} expands to the running user's home directory") {
     val uri = decodeUri(s"file://${model.Replacements.known.HomeDir}/.cache/bleep-remote-cache")
-    uri.toString shouldBe s"file://${System.getProperty("user.home")}/.cache/bleep-remote-cache"
+    // Not the raw `user.home` system property: on Windows that's `C:\Users\x` (backslashes, no leading
+    // slash), which the decoder itself normalizes into a valid `file://` URI path component before
+    // substituting — see `RemoteCacheConfig.homeDirUriPath`. Asserting against the same normalization,
+    // not the raw property, is what makes this test pass on every OS instead of only macOS/Linux.
+    uri.toString shouldBe s"file://${model.RemoteCacheConfig.homeDirUriPath}/.cache/bleep-remote-cache"
   }
 
   test("a uri with no ${HOME_DIR} token is unaffected") {
@@ -26,6 +30,6 @@ class RemoteCacheConfigTest extends AnyFunSuite with Matchers {
       "region" -> io.circe.Json.Null
     )
     val config = model.RemoteCacheConfig.decoder.decodeJson(json).getOrElse(fail("could not decode RemoteCacheConfig"))
-    config.uri.toString shouldBe s"file://${System.getProperty("user.home")}/.cache/bleep-remote-cache"
+    config.uri.toString shouldBe s"file://${model.RemoteCacheConfig.homeDirUriPath}/.cache/bleep-remote-cache"
   }
 }
