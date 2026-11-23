@@ -5,6 +5,7 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import java.net.URI
+import java.nio.file.Path
 
 /** Remote build cache configuration. Stored in `bleep.yaml` (shared by all contributors).
   *
@@ -18,16 +19,16 @@ case class RemoteCacheConfig(
 
 object RemoteCacheConfig {
 
-  /** `user.home` as a `file://` URI's path component. Already valid as-is on macOS/Linux (`/Users/x`), but on Windows it's `C:\Users\x` — backslashes, which
-    * `URI.create` rejects outright, and no leading slash before the drive letter, which the path component needs (`file:///C:/Users/x`, matching what
-    * `Path.toUri()` itself produces for a Windows path). Normalized here, on the raw string, rather than via `Path.toUri()` — that queries the filesystem to
-    * decide whether to append a trailing slash, which this should not depend on. `private[model]` so the test asserting the substitution's exact result can
-    * compute the same expected value instead of hardcoding the raw, pre-Windows-fix form. `private[bleep]`, not `private[model]`: the test lives in `bleep`,
-    * one package up from `bleep.model`.
+  /** [[Replacements.userHome]] as a `file://` URI's path component, via `Path.toUri` — the same route every other path-to-URI conversion in this codebase takes
+    * (`MultiWorkspaceBspServer`, `CoursierResolver`, `BspQuery`, ...), rather than a one-off hand-rolled substitute. `user.home` itself is already a valid URI
+    * path on macOS/Linux (`/Users/x`), but not on Windows (`C:\Users\x` — backslashes, which `URI.create` rejects outright, and no leading slash before the
+    * drive letter); `toUri` handles both uniformly and is what actually caught this: the un-normalized substitution produced exactly the illegal string above
+    * on a real Windows CI run. `private[bleep]` so the test asserting the substitution's exact result can compute the same expected value instead of hardcoding
+    * the pre-fix, platform-dependent form; `bleep`, not `model`, because the test lives one package up from `bleep.model`.
     */
   private[bleep] def homeDirUriPath: String = {
-    val home = System.getProperty("user.home").replace('\\', '/')
-    if (home.startsWith("/")) home else s"/$home"
+    val path = Path.of(Replacements.userHome).toUri.getRawPath
+    path.stripSuffix("/")
   }
 
   /** `uri:` is checked in to `bleep.yaml`, shared by every contributor, so it cannot bake in one person's absolute home directory — but a `file://` cache
